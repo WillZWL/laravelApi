@@ -4,9 +4,55 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "ea1fee525914154e6d6bbf071697b5a1",
-    "content-hash": "8b1485987e7c5949da82435d403e52e8",
+    "hash": "49e6d4d5c1fbf703733ca9605bf134d2",
+    "content-hash": "582059de944cb14a7fd6a954aedd2381",
     "packages": [
+        {
+            "name": "brickfox/mws",
+            "version": "v0.0.7",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/brickfox/mws.git",
+                "reference": "73c3966a84bb7ef3e86dfcb947f6d3626450d653"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/brickfox/mws/zipball/73c3966a84bb7ef3e86dfcb947f6d3626450d653",
+                "reference": "73c3966a84bb7ef3e86dfcb947f6d3626450d653",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "FBAInboundServiceMWS": "src/",
+                    "FBAInventoryServiceMWS": "src/",
+                    "FBAOutboundServiceMWS": "src/",
+                    "MarketplaceWebService": "src/",
+                    "MarketplaceWebServiceOrders": "src/",
+                    "MarketplaceWebServiceProducts": "src/",
+                    "MarketplaceWebServiceSellers": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "src/"
+            ],
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Amazon.com, Inc.",
+                    "homepage": "https://developer.amazonservices.de/"
+                },
+                {
+                    "name": "Nikolas Hermann",
+                    "email": "nikolas.hermann@brickfox.de"
+                }
+            ],
+            "description": "Amazon Marketplace Web Service libraries",
+            "time": "2016-01-12 12:54:53"
+        },
         {
             "name": "classpreloader/classpreloader",
             "version": "3.0.0",
