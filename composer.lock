@@ -4,55 +4,9 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "49e6d4d5c1fbf703733ca9605bf134d2",
-    "content-hash": "582059de944cb14a7fd6a954aedd2381",
+    "hash": "84dba3b09c3e6464c5fb40c06c351e35",
+    "content-hash": "b546c7860848d4ae1d616499a2fc752a",
     "packages": [
-        {
-            "name": "brickfox/mws",
-            "version": "v0.0.7",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/brickfox/mws.git",
-                "reference": "73c3966a84bb7ef3e86dfcb947f6d3626450d653"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/brickfox/mws/zipball/73c3966a84bb7ef3e86dfcb947f6d3626450d653",
-                "reference": "73c3966a84bb7ef3e86dfcb947f6d3626450d653",
-                "shasum": ""
-            },
-            "type": "library",
-            "autoload": {
-                "psr-0": {
-                    "FBAInboundServiceMWS": "src/",
-                    "FBAInventoryServiceMWS": "src/",
-                    "FBAOutboundServiceMWS": "src/",
-                    "MarketplaceWebService": "src/",
-                    "MarketplaceWebServiceOrders": "src/",
-                    "MarketplaceWebServiceProducts": "src/",
-                    "MarketplaceWebServiceSellers": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "include-path": [
-                "src/"
-            ],
-            "license": [
-                "Apache-2.0"
-            ],
-            "authors": [
-                {
-                    "name": "Amazon.com, Inc.",
-                    "homepage": "https://developer.amazonservices.de/"
-                },
-                {
-                    "name": "Nikolas Hermann",
-                    "email": "nikolas.hermann@brickfox.de"
-                }
-            ],
-            "description": "Amazon Marketplace Web Service libraries",
-            "time": "2016-01-12 12:54:53"
-        },
         {
             "name": "classpreloader/classpreloader",
             "version": "3.0.0",
@@ -354,16 +308,16 @@
         },
         {
             "name": "laravel/framework",
-            "version": "v5.2.16",
+            "version": "v5.2.20",
             "source": {
                 "type": "git",
                 "url": "https://github.com/laravel/framework.git",
-                "reference": "39e89553c124dce266da03ee3c0260bdd62f1848"
+                "reference": "d4ff9a1e3e9b2f99f8f3e957876e343d804d944f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/laravel/framework/zipball/39e89553c124dce266da03ee3c0260bdd62f1848",
-                "reference": "39e89553c124dce266da03ee3c0260bdd62f1848",
+                "url": "https://api.github.com/repos/laravel/framework/zipball/d4ff9a1e3e9b2f99f8f3e957876e343d804d944f",
+                "reference": "d4ff9a1e3e9b2f99f8f3e957876e343d804d944f",
                 "shasum": ""
             },
             "require": {
@@ -478,20 +432,20 @@
                 "framework",
                 "laravel"
             ],
-            "time": "2016-02-15 17:46:58"
+            "time": "2016-02-19 17:58:28"
         },
         {
             "name": "league/flysystem",
-            "version": "1.0.16",
+            "version": "1.0.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/flysystem.git",
-                "reference": "183e1a610664baf6dcd6fceda415baf43cbdc031"
+                "reference": "02f5b6c9a8b9278c8381e3361e7bd9d641c740ca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/183e1a610664baf6dcd6fceda415baf43cbdc031",
-                "reference": "183e1a610664baf6dcd6fceda415baf43cbdc031",
+                "url": "https://api.github.com/repos/thephpleague/flysystem/zipball/02f5b6c9a8b9278c8381e3361e7bd9d641c740ca",
+                "reference": "02f5b6c9a8b9278c8381e3361e7bd9d641c740ca",
                 "shasum": ""
             },
             "require": {
@@ -504,8 +458,7 @@
                 "ext-fileinfo": "*",
                 "mockery/mockery": "~0.9",
                 "phpspec/phpspec": "^2.2",
-                "phpspec/prophecy-phpunit": "~1.0",
-                "phpunit/phpunit": "~4.8"
+                "phpunit/phpunit": "~4.8 || ~5.0"
             },
             "suggest": {
                 "ext-fileinfo": "Required for MimeType",
@@ -562,7 +515,7 @@
                 "sftp",
                 "storage"
             ],
-            "time": "2015-12-19 20:16:43"
+            "time": "2016-02-19 15:35:38"
         },
         {
             "name": "monolog/monolog",
@@ -830,6 +783,54 @@
                 "random"
             ],
             "time": "2016-02-06 03:52:05"
+        },
+        {
+            "name": "peron/laravel5-amazon-mws",
+            "version": "2.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/przemekperon/amazon-mws-laravel.git",
+                "reference": "836f9ad5a05cc6e8c25a50fcc543f6aaa08d37e1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/przemekperon/amazon-mws-laravel/zipball/836f9ad5a05cc6e8c25a50fcc543f6aaa08d37e1",
+                "reference": "836f9ad5a05cc6e8c25a50fcc543f6aaa08d37e1",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "illuminate/support": "5.*",
+                "php": ">=5.5.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Peron\\AmazonMws": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "authors": [
+                {
+                    "name": "Przemek Peron",
+                    "email": "przemek@redkorn.pl"
+                }
+            ],
+            "description": "Use Amazon's MWS web services with Laravel 5.x. Based on creacoon/amazon-mws-laravel package and modified to make it compatible with latest Laravel releases (+ bugfixes).",
+            "keywords": [
+                "amazon",
+                "api",
+                "laravel",
+                "mws",
+                "php"
+            ],
+            "time": "2016-02-02 19:18:11"
         },
         {
             "name": "psr/log",
