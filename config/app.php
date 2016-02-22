@@ -156,6 +156,11 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /*
+         * Customer Service Providers...
+         */
+        Peron\AmazonMws\ServiceProvider::class,
+
     ],
 
     /*
