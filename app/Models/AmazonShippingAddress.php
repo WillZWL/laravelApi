@@ -20,4 +20,9 @@ class AmazonShippingAddress extends Model
         'country_code',
         'phone'
     ];
+
+    public function amazonOrder()
+    {
+        $this->belongsTo('App\Models\AmazonOrder');
+    }
 }

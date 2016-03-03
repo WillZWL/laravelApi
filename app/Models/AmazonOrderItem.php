@@ -23,4 +23,9 @@ class AmazonOrderItem extends Model
         'shipping_discount',
         'promotion_discount'
     ];
+
+    public function amazonOrder()
+    {
+        $this->belongsTo('App\Models\AmazonOrder');
+    }
 }

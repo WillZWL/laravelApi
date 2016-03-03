@@ -28,4 +28,5 @@ Route::get('/', function () {
 
 Route::group(['middleware' => ['web']], function () {
     Route::get('/getorders/{store}', 'RetrieveOrdersController@getAmazonOrders');
+    Route::get('/listorders/{store}/{timestamp}', 'ListOrders@index');
 });

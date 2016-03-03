@@ -28,4 +28,14 @@ class AmazonOrder extends Model
         'earliest_delivery_date',
         'latest_delivery_date'
     ];
+
+    public function amazonShippingAddress()
+    {
+        $this->hasOne('App\Models\AmazonShippingAddress');
+    }
+
+    public function amazonOrderItem()
+    {
+        $this->hasMany('App\Models\AmazonOrderItem');
+    }
 }
