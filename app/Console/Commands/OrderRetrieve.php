@@ -28,7 +28,7 @@ class OrderRetrieve extends Command
      *
      * @var string
      */
-    protected $description = 'Retrieve amazon orders';
+    protected $description = 'Retrieve orders from amazon';
 
     /**
      * Create a new command instance.
