@@ -7,6 +7,7 @@ use App\Models\AmazonOrderItem;
 use App\Models\Client;
 use App\Models\ExchangeRate;
 use App\Models\PlatformBizVar;
+use App\Models\PlatformOrderDeliveryType;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
@@ -127,6 +128,17 @@ class OrderTransfer extends Command
                                                 ->where('to_currency_id', '=', 'USD')
                                                 ->first();
 
+                $countryCode = strtoupper($order->amazonShippingAddress->country_code);
+                $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
+                $platformOrderDeliveryType = PlatformOrderDeliveryType::where('sku', '=', $localSKU)
+                                                                        ->where('platform_type', '=', 'BCAMAZON')
+                                                                        ->where('country_id', '=', $countryCode)
+                                                                        ->first();
+
+                if (!$platformOrderDeliveryType) {
+                    throw new \Exception("Amazon order id: {$order->amazon_order_id}. SKU: {$localSKU}. Can't decide which delivery type.", 1);
+                }
+
                 $so = $this->createSo($order);
                 $so->so_no = $soNumber;
                 $so->platform_id = $platformBizVar->selling_platform_id;
@@ -139,7 +151,9 @@ class OrderTransfer extends Command
                 $so->vat_percent = $platformBizVar->vat_percent;
                 $so->vat = 0;    // not sure.
                 $so->rate = $exchangeRate->rate;
+                $so->delivery_type_id = $platformOrderDeliveryType->delivery_type_id;
 
+                //dd($so);
                 $soItem = $this->createSoItem($order->amazonOrderItem[$i]);
                 $soItem->so_no = $soNumber;
 
@@ -157,7 +171,6 @@ class OrderTransfer extends Command
 
                 $soExtend = $this->createSoExtend($order);
                 $soExtend->so_no = $soNumber;
-
                 $so->save();
                 $soItem->save();
                 $soItemDetail->save();
@@ -171,6 +184,7 @@ class OrderTransfer extends Command
         } catch (\Exception $e) {
             mail('handy.hon@eservicesgroup.com', 'BrandConnect', $e->getMessage());
             file_put_contents('/var/tmp/abc', $e->getMessage().PHP_EOL, FILE_APPEND);
+            return false;
         }
 
         return true;
@@ -204,8 +218,8 @@ class OrderTransfer extends Command
         $newOrder->currency_id = $order->currency;
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
         $newOrder->delivery_address = $order->amazonShippingAddress->address_line_1
-                                            . ($order->amazonShippingAddress->address_line_2) ? (' | ') : '' . $order->amazonShippingAddress->address_line_2
-                                            . ($order->amazonShippingAddress->address_line_3) ? (' | ') : '' . $order->amazonShippingAddress->address_line_3;
+                                            . (($order->amazonShippingAddress->address_line_2) ? (' | ') : '' . $order->amazonShippingAddress->address_line_2)
+                                            . (($order->amazonShippingAddress->address_line_3) ? (' | ') : '' . $order->amazonShippingAddress->address_line_3);
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
         $newOrder->delivery_state = $order->amazonShippingAddress->state_or_region;
@@ -214,7 +228,6 @@ class OrderTransfer extends Command
         $newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->amazonShippingAddress->phone;
-        $newOrder->delivery_type_id = 'STD';
 
         return $newOrder;
     }
