@@ -26,6 +26,6 @@ class AmazonOrderItem extends Model
 
     public function amazonOrder()
     {
-        $this->belongsTo('App\Models\AmazonOrder');
+        return $this->belongsTo('App\Models\AmazonOrder');
     }
 }

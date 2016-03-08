@@ -29,13 +29,32 @@ class AmazonOrder extends Model
         'latest_delivery_date'
     ];
 
+    /***************************************************/
+    /****              relations method             ****/
+    /***************************************************/
+
     public function amazonShippingAddress()
     {
-        $this->hasOne('App\Models\AmazonShippingAddress');
+        return $this->hasOne('App\Models\AmazonShippingAddress', 'id', 'shipping_address_id');
     }
 
     public function amazonOrderItem()
     {
-        $this->hasMany('App\Models\AmazonOrderItem');
+        return $this->hasMany('App\Models\AmazonOrderItem', 'amazon_order_id', 'amazon_order_id');
+    }
+
+    /***************************************************/
+    /****                scope method               ****/
+    /***************************************************/
+
+    /**
+     * Get not acknowledge order.
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeReadyOrder($query)
+    {
+        return $query->where('acknowledge', '=', '0')
+                        ->where('order_status', '!=', 'Canceled')
+                        ->where('order_status', '!=', 'Pending');
     }
 }
