@@ -182,7 +182,7 @@ class OrderTransfer extends Command
             }
 
         } catch (\Exception $e) {
-            mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', 'BrandConnect', $e->getMessage());
+            mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', '[BrandConnect] Amazon Order Import failed', $e->getMessage());
             return false;
         }
 
