@@ -67,10 +67,10 @@ return [
 
         'mysql_esg' => [
             'driver'    => 'mysql',
-            'host'      => '127.0.0.1',
-            'database'  => 'atomesg',
-            'username'  => 'atomesg',
-            'password'  => '[&^dDdkidd]',
+            'host'      => env('DB_HOST_2', 'localhost'),
+            'database'  => env('DB_DATABASE_2', 'forge'),
+            'username'  => env('DB_USERNAME_2', 'forge'),
+            'password'  => env('DB_PASSWORD_2', ''),
             'charset'   => 'utf8',
             'collation' => 'utf8_unicode_ci',
             'prefix'    => '',
