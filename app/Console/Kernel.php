@@ -32,6 +32,6 @@ class Kernel extends ConsoleKernel
             ->dailyAt('02:00');
 
         $schedule->command('order:transfer')
-            ->dailyAt(02:50);
+            ->dailyAt('02:50');
     }
 }
