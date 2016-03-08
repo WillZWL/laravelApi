@@ -182,8 +182,7 @@ class OrderTransfer extends Command
             }
 
         } catch (\Exception $e) {
-            mail('handy.hon@eservicesgroup.com', 'BrandConnect', $e->getMessage());
-            file_put_contents('/var/tmp/abc', $e->getMessage().PHP_EOL, FILE_APPEND);
+            mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', 'BrandConnect', $e->getMessage());
             return false;
         }
 
@@ -228,6 +227,8 @@ class OrderTransfer extends Command
         $newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->amazonShippingAddress->phone;
+        $newOrder->create_on = Carbon::now();
+        $newOrder->modify_on = Carbon::now();
 
         return $newOrder;
     }
@@ -244,6 +245,8 @@ class OrderTransfer extends Command
         $newOrderItem->unit_price = $orderItem->item_price;
         $newOrderItem->vat_total = 0;   // not sure.
         $newOrderItem->amount = $orderItem->item_price;
+        $newOrderItem->create_on = Carbon::now();
+        $newOrderItem->modify_on = Carbon::now();
 
         return $newOrderItem;
     }
@@ -259,6 +262,8 @@ class OrderTransfer extends Command
         $newOrderItemDetail->unit_price = $orderItem->item_price;
         $newOrderItemDetail->vat_total = 0;   // not sure.
         $newOrderItemDetail->amount = $orderItem->item_price;
+        $newOrderItemDetail->create_on = Carbon::now();
+        $newOrderItemDetail->modify_on = Carbon::now();
 
         return $newOrderItemDetail;
     }
@@ -271,6 +276,8 @@ class OrderTransfer extends Command
         $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
         $soPaymentStatus->payment_gateway_id = 'bc_amazon_'.$countryCode;
         $soPaymentStatus->payment_status = 'S';
+        $soPaymentStatus->create_on = Carbon::now();
+        $soPaymentStatus->modify_on = Carbon::now();
 
         return $soPaymentStatus;
     }
@@ -278,6 +285,8 @@ class OrderTransfer extends Command
     private function createSoExtend(AmazonOrder $order)
     {
         $soExtend = new SoExtend;
+        $soExtend->create_on = Carbon::now();
+        $soExtend->modify_on = Carbon::now();
 
         return $soExtend;
     }
