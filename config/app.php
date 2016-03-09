@@ -161,6 +161,8 @@ return [
          */
         Peron\AmazonMws\ServiceProvider::class,
 
+        Barryvdh\LaravelIdeHelper\IdeHelperServiceProvider::class
+
     ],
 
     /*
