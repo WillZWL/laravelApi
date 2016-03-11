@@ -10,8 +10,6 @@ class So extends Model
 
     protected $table = 'so';
 
-    public $primaryKey = 'so_no';
-
     public $timestamps = false;
 
     function soItem()

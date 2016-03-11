@@ -16,6 +16,7 @@ use App\Models\SoItemDetail;
 use App\Models\SoPaymentStatus;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Collection;
 
 class OrderTransfer extends Command
 {
@@ -52,20 +53,40 @@ class OrderTransfer extends Command
     {
         $amazonOrderList = AmazonOrder::readyOrder()->get();
         foreach ($amazonOrderList as $amazonOrder) {
-            $isCreated = $this->createLocalOrder($amazonOrder);
-
-            if ($isCreated) {
+            \DB::transaction(function() use ($amazonOrder) {
+                //$this->createSplitOrder($amazonOrder);
+                $this->createGroupOrder($amazonOrder);
                 $amazonOrder->acknowledge = 1;
                 $amazonOrder->save();
-            }
+            });
         }
+    }
+
+    /**
+     * @param AmazonOrder $order
+     */
+    public function createGroupOrder(AmazonOrder $order)
+    {
+        $so = $this->createOrder($order);
+        $this->saveSoItem($so, $order->amazonOrderItem);
+        $this->saveSoItemDetail($so, $order->amazonOrderItem);
+        $this->saveSoPaymentStatus($so);
+        $this->saveSoExtend($so, $order);
+    }
+
+    /**
+     * @param AmazonOrder $order
+     */
+    public function createSplitOrder(AmazonOrder $order)
+    {
+
     }
 
     /***
      * @param AmazonOrder $order
      * @return \App\Models\Client
      */
-    private function createLocalClient(AmazonOrder $order)
+    private function createOrUpdateClient(AmazonOrder $order)
     {
         $client = Client::where('email', '=', $order->buyer_email)->first();
 
@@ -97,7 +118,28 @@ class OrderTransfer extends Command
      */
     private function createLocalOrder(AmazonOrder $order)
     {
-        $client = $this->createLocalClient($order);
+        $client = $this->createOrUpdateClient($order);
+        $skuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
+        $merchantList = \DB::connection('mysql_esg')->table('merchant_product_mapping')
+            ->join('merchant', 'merchant_id', '=', 'id')
+            ->select('short_id')
+            ->whereIn('sku', $skuList)
+            ->groupBy('id')
+            ->get();
+
+        // all items belong to same merchant.
+        if (count($merchantList) === 1) {
+            $so = $this->createLocalOrder($order);
+
+            $soItem = [];
+            $soItemDetail = [];
+            foreach ($order->amazonOrderItem as $orderItem) {
+                $soItem[] = $this->saveSoItem($orderItem);
+                $soItemDetail[] = $this->saveSoItemDetail($orderItem);
+            }
+
+        }
+
 
         try {
             // if amazon order contains multi items, split it.
@@ -117,11 +159,11 @@ class OrderTransfer extends Command
                     throw new \Exception("Amazon order id: {$order->amazon_order_id}. {$localSKU} can't find a merchant", 1);
                 }
 
-                $sellingPlatfromId = 'AC-BCAZ-'.$merchant->short_id.substr($order->platform, -2);
-                $platformBizVar = PlatformBizVar::where('selling_platform_id', '=', $sellingPlatfromId)->first();
+                $sellingPlatformId = 'AC-BCAZ-'.$merchant->short_id.substr($order->platform, -2);
+                $platformBizVar = PlatformBizVar::where('selling_platform_id', '=', $sellingPlatformId)->first();
 
                 if (!$platformBizVar) {
-                    throw new \Exception("Amazon order id: {$order->amazon_order_id}. {$sellingPlatfromId} isn't exists", 1);
+                    throw new \Exception("Amazon order id: {$order->amazon_order_id}. {$sellingPlatformId} isn't exists", 1);
                 }
 
                 $exchangeRate = ExchangeRate::where('from_currency_id', '=', $order->currency)
@@ -139,7 +181,7 @@ class OrderTransfer extends Command
                     throw new \Exception("Amazon order id: {$order->amazon_order_id}. SKU: {$localSKU}. Can't decide which delivery type.", 1);
                 }
 
-                $so = $this->createSo($order);
+                $so = $this->createLocalOrder($order);
                 $so->so_no = $soNumber;
                 $so->platform_id = $platformBizVar->selling_platform_id;
                 $so->platform_order_id = $order->amazon_order_id.'-'.$order->amazonOrderItem[$i]->order_item_id;
@@ -154,22 +196,22 @@ class OrderTransfer extends Command
                 $so->delivery_type_id = $platformOrderDeliveryType->delivery_type_id;
 
                 //dd($so);
-                $soItem = $this->createSoItem($order->amazonOrderItem[$i]);
+                $soItem = $this->saveSoItem($order->amazonOrderItem[$i]);
                 $soItem->so_no = $soNumber;
 
                 // TODO:
                 // need check CA product for FBM. maybe need this order have multi items.
 
-                $soItemDetail = $this->createSoItemDetail($order->amazonOrderItem[$i]);
+                $soItemDetail = $this->saveSoItemDetail($order->amazonOrderItem[$i]);
                 $soItemDetail->so_no = $soNumber;
 
                 // TODO:
                 // also need consider CA product. maybe need add item to so_item_detail table.
 
-                $soPaymentStatus = $this->createSoPaymentStatus($order);
+                $soPaymentStatus = $this->saveSoPaymentStatus($order);
                 $soPaymentStatus->so_no = $soNumber;
 
-                $soExtend = $this->createSoExtend($order);
+                $soExtend = $this->saveSoExtend($order);
                 $soExtend->so_no = $soNumber;
                 $so->save();
                 $soItem->save();
@@ -182,7 +224,7 @@ class OrderTransfer extends Command
             }
 
         } catch (\Exception $e) {
-            mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', '[BrandConnect] Amazon Order Import failed', $e->getMessage());
+            mail('handy.hon@eservicesgroup.com', '[BrandsConnect] Amazon Order Import failed', $e->getMessage());
             return false;
         }
 
@@ -194,31 +236,49 @@ class OrderTransfer extends Command
      */
     private function generateSoNumber()
     {
+        // TODO: need add transaction.
         $sequence = Sequence::where('seq_name', '=', 'customer_order')->first();
         $sequence->value += 1;
         $sequence->save();
 
         return $sequence->value;
-        //\DB::transaction(function() {
-        //});
     }
 
-    private function createSo(AmazonOrder $order)
+    /**
+     * @param AmazonOrder $order
+     * @return So
+     */
+    private function createOrder(AmazonOrder $order)
     {
         $newOrder = new So;
 
-        //$newOrder->so_no = $order->local_so_no;
-        //$newOrder->platform_order_id = $order->local_platform_order_id;
-        //$newOrder->platform = $order->local_platform;
-        //$newOrder->txn_id = $order->local_platform_order_id;
-        //$newOrder->client_id = $order->local_client_id;
-        $newOrder->biz_type = ($order->fulfillment_channel === 'AFN') ? 'FBA' : 'AMAZON';
-        $newOrder->weight = 1;  // can't get this data from amazon. hard code it.
+        $soNumber = $this->generateSoNumber();
+        $client = $this->createOrUpdateClient($order);
+
+        $newOrder->so_no = $soNumber;
+        $newOrder->platform_order_id = $order->amazon_order_id;
+        $newOrder->platform_id = 'AC-GROUP';  // TODO:: should add in selling_platform and platform_biz_var table.
+        $newOrder->txn_id = $order->amazon_order_id;
+        $newOrder->client_id = $client->id;
+        $newOrder->biz_type = $order->fulfillment_channel;
+        $newOrder->weight = 1;  // TODO: need calculate base esg sku.
+        $newOrder->amount = $order->amazonOrderItem->pluck('item_price')->sum();
+        $newOrder->cost = $newOrder->amount;   // temporary as amount, should get data from price table.
         $newOrder->currency_id = $order->currency;
+        $newOrder->rate = ExchangeRate::where('from_currency_id', '=', $order->currency)
+            ->where('to_currency_id', '=', 'USD')
+            ->first()
+            ->rate;
+        $newOrder->vat_percent = 0;     // not sure.
+        $newOrder->vat = 0;             // not sure.
+        $newOrder->delivery_address = $order->amazonOrderItem->pluck('shipping_price')->sum();
+        $newOrder->delivery_type_id = 'STD';// TODO: should base split order, have a rule in Doc, do it later as settle.
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
-        $newOrder->delivery_address = $order->amazonShippingAddress->address_line_1
-                                            . (($order->amazonShippingAddress->address_line_2) ? (' | ') : '' . $order->amazonShippingAddress->address_line_2)
-                                            . (($order->amazonShippingAddress->address_line_3) ? (' | ') : '' . $order->amazonShippingAddress->address_line_3);
+        $newOrder->delivery_address = implode(' | ', array_filter([
+            $order->amazonShippingAddress->address_line_1,
+            $order->amazonShippingAddress->address_line_2,
+            $order->amazonShippingAddress->address_line_3
+        ]));
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
         $newOrder->delivery_state = $order->amazonShippingAddress->state_or_region;
@@ -230,64 +290,99 @@ class OrderTransfer extends Command
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
 
+        $newOrder->save();
+
         return $newOrder;
     }
 
-    private function createSoItem(AmazonOrderItem $orderItem)
+
+    /**
+     * @param So $so
+     * @param Collection $orderItem
+     */
+    private function saveSoItem(So $so, Collection $orderItem)
     {
-        $newOrderItem = new SoItem;
+        $line_no = 1;
+        foreach ($orderItem as $item) {
+            $newOrderItem = new SoItem;
 
-        $newOrderItem->prod_sku = $orderItem->seller_sku;
-        $newOrderItem->line_no = 1;     // TODO: temporary set 1. need consider multi items case.
-        $newOrderItem->prod_name = $orderItem->title;
-        $newOrderItem->ext_item_cd = $orderItem->order_item_id;
-        $newOrderItem->qty = $orderItem->quantity_ordered;
-        $newOrderItem->unit_price = $orderItem->item_price;
-        $newOrderItem->vat_total = 0;   // not sure.
-        $newOrderItem->amount = $orderItem->item_price;
-        $newOrderItem->create_on = Carbon::now();
-        $newOrderItem->modify_on = Carbon::now();
+            $newOrderItem->so_no = $so->so_no;
+            $newOrderItem->line_no = $line_no++;
+            $newOrderItem->prod_sku = $item->seller_sku;
+            $newOrderItem->prod_name = $item->title;
+            $newOrderItem->ext_item_cd = $item->order_item_id;
+            $newOrderItem->qty = $item->quantity_ordered;
+            $newOrderItem->unit_price = $item->item_price;
+            $newOrderItem->vat_total = 0;   // not sure.
+            $newOrderItem->amount = $item->item_price;
+            $newOrderItem->create_on = Carbon::now();
+            $newOrderItem->modify_on = Carbon::now();
 
-        return $newOrderItem;
+            $newOrderItem->save();
+        }
     }
 
-    private function createSoItemDetail(AmazonOrderItem $orderItem)
+    /**
+     * @param So $so
+     * @param Collection $orderItem
+     */
+    private function saveSoItemDetail(So $so, Collection $orderItem)
     {
-        $newOrderItemDetail = new SoItemDetail;
+        $line_no = 1;
+        foreach ($orderItem as $item) {
+            $newOrderItemDetail = new SoItemDetail;
 
-        $newOrderItemDetail->item_sku = $orderItem->seller_sku;
-        $newOrderItemDetail->line_no = 1;     // TODO: temporary set 1. need consider multi items case.
-        $newOrderItemDetail->qty = $orderItem->quantity_ordered;
-        $newOrderItemDetail->outstanding_qty = $orderItem->quantity_ordered;
-        $newOrderItemDetail->unit_price = $orderItem->item_price;
-        $newOrderItemDetail->vat_total = 0;   // not sure.
-        $newOrderItemDetail->amount = $orderItem->item_price;
-        $newOrderItemDetail->create_on = Carbon::now();
-        $newOrderItemDetail->modify_on = Carbon::now();
+            $newOrderItemDetail->so_no = $so->so_no;
+            $newOrderItemDetail->item_sku = $item->seller_sku;
+            $newOrderItemDetail->line_no = $line_no++;
+            $newOrderItemDetail->qty = $item->quantity_ordered;
+            $newOrderItemDetail->outstanding_qty = $item->quantity_ordered;
+            $newOrderItemDetail->unit_price = $item->item_price;
+            $newOrderItemDetail->vat_total = 0;   // not sure.
+            $newOrderItemDetail->amount = $item->item_price;
+            $newOrderItemDetail->create_on = Carbon::now();
+            $newOrderItemDetail->modify_on = Carbon::now();
 
-        return $newOrderItemDetail;
+            $newOrderItemDetail->save();
+        }
     }
 
-    private function createSoPaymentStatus(AmazonOrder $order)
+    /**
+     * @param So $so
+     */
+    private function saveSoPaymentStatus(So $so)
     {
         $soPaymentStatus = new SoPaymentStatus;
 
-        $countryCode = strtolower(substr($order->platform, -2));
-        $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
-        $soPaymentStatus->payment_gateway_id = 'bc_amazon_'.$countryCode;
+        $soPaymentStatus->so_no = $so->so_no;
+
+        if ($so->platform_id === 'AC-GROUP') {
+            $soPaymentStatus->payment_gateway_id = 'amazon';
+        } else {
+            $countryCode = strtolower(substr($so->platform_id, -2));
+            $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
+            $soPaymentStatus->payment_gateway_id = 'bc_amazon_'.$countryCode;
+        }
+
         $soPaymentStatus->payment_status = 'S';
         $soPaymentStatus->create_on = Carbon::now();
         $soPaymentStatus->modify_on = Carbon::now();
 
-        return $soPaymentStatus;
+        $soPaymentStatus->save();
     }
 
-    private function createSoExtend(AmazonOrder $order)
+    /**
+     * @param So $so
+     * @param AmazonOrder $order
+     */
+    private function saveSoExtend(So $so, AmazonOrder $order)
     {
         $soExtend = new SoExtend;
+
+        $soExtend->so_no = $so->so_no;
         $soExtend->create_on = Carbon::now();
         $soExtend->modify_on = Carbon::now();
 
-        return $soExtend;
+        $soExtend->save();
     }
 }

@@ -31,7 +31,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('order:retrieve')
             ->dailyAt('02:00');
 
-        $schedule->command('order:transfer')
-            ->dailyAt('02:50');
+        //$schedule->command('order:transfer')
+        //    ->dailyAt('02:50');
     }
 }
