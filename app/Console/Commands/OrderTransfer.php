@@ -86,8 +86,8 @@ class OrderTransfer extends Command
             foreach ($notMatchSku as $sku) {
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "SKU <{$sku}> not match between amazon and esg";
-                mail('handy.hon@eservicesgroup.com', $subject, $message);
+                $message .= "SKU <{$sku}> not match between amazon and esg, please note it. Thanks";
+                mail('amazon_us@brandsconnect.net', 'handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
@@ -106,8 +106,8 @@ class OrderTransfer extends Command
             foreach ($notExistPlatform as $platformId) {
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "Selling Platform Id <{$platformId}> not exist in esg system, please add it.";
-                mail('handy.hon@eservicesgroup.com', $subject, $message);
+                $message .= "Selling Platform Id <{$platformId}> not exist in esg system, please add it. Thanks";
+                mail('amazon_us@brandsconnect.net', 'handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
@@ -125,8 +125,8 @@ class OrderTransfer extends Command
             foreach ($notHaveDeliveryType as $sku) {
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "SKU <{$sku}> not have delivery type in esg system, please add it.";
-                mail('handy.hon@eservicesgroup.com', $subject, $message);
+                $message .= "SKU <{$sku}> not have delivery type in esg system, please add it. Thanks";
+                mail('amazon_us@brandsconnect.net', 'handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
