@@ -169,6 +169,7 @@ class OrderTransfer extends Command
             $sellingPlatformId = 'AC-BCAZ-'.$merchantShortId.$countryCode;
 
             $so->platform_id = $sellingPlatformId;
+            $so->is_platform_split_order = 1;
             $so->save();
             $this->saveSoItem($so, $items);
             $this->saveSoItemDetail($so, $items);
@@ -234,6 +235,7 @@ class OrderTransfer extends Command
 
         $newOrder->so_no = $soNumber;
         $newOrder->platform_order_id = $order->amazon_order_id;
+        $newOrder->is_platform_split_order = 0;
         $newOrder->platform_id = 'AC-GROUP';  // TODO:: should add in selling_platform and platform_biz_var table.
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
@@ -300,6 +302,9 @@ class OrderTransfer extends Command
             $newOrderItem->modify_on = Carbon::now();
 
             $newOrderItem->save();
+
+            // TODO:
+            // need to check product_assembly_mapping
         }
     }
 
@@ -325,6 +330,9 @@ class OrderTransfer extends Command
             $newOrderItemDetail->modify_on = Carbon::now();
 
             $newOrderItemDetail->save();
+
+            // TODO:
+            // need to check product_assembly_mapping
         }
     }
 
