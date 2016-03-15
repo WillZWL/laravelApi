@@ -6,8 +6,9 @@ use App\Models\AmazonOrder;
 use App\Models\AmazonOrderItem;
 use App\Models\Client;
 use App\Models\ExchangeRate;
+use App\Models\MerchantProductMapping;
 use App\Models\PlatformBizVar;
-use App\Models\PlatformOrderDeliveryType;
+use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
@@ -54,12 +55,83 @@ class OrderTransfer extends Command
         $amazonOrderList = AmazonOrder::readyOrder()->get();
         foreach ($amazonOrderList as $amazonOrder) {
             \DB::transaction(function() use ($amazonOrder) {
-                //$this->createSplitOrder($amazonOrder);
-                $this->createGroupOrder($amazonOrder);
-                $amazonOrder->acknowledge = 1;
-                $amazonOrder->save();
+                \DB::connection('mysql_esg')->transaction(function() use ($amazonOrder) {
+                    if ($this->validateAmazonOrder($amazonOrder)) {
+                        $this->createSplitOrder($amazonOrder);
+                        $this->createGroupOrder($amazonOrder);
+                        $amazonOrder->acknowledge = 1;
+                        $amazonOrder->save();
+                    }
+                });
             });
         }
+    }
+
+    /**
+     * @param AmazonOrder $order
+     * @return bool
+     */
+    public function validateAmazonOrder(AmazonOrder $order)
+    {
+        $skuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
+
+        // check sku is belong to which merchant.
+        $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
+            ->whereIn('sku', $skuList)
+            ->get();
+        $merchantSku = $merchantProductMapping->pluck('sku')->toArray();
+        $notMatchSku = array_diff($skuList, $merchantSku);
+        if ($notMatchSku) {
+            // TODO: need rewrite this part, should move it to mail queue.
+            foreach ($notMatchSku as $sku) {
+                $subject = '[BrandsConnect] Amazon Order Import Failed!';
+                $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+                $message .= "SKU <{$sku}> not match between amazon and esg";
+                mail('handy.hon@eservicesgroup.com', $subject, $message);
+            }
+            return false;
+        }
+
+        // check selling platform is exist or not.
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($countryCode) {
+            return 'AC-BCAZ-'.$item.$countryCode;
+        })->toArray();
+        $platformIdFromDB = PlatformBizVar::whereIn('selling_platform_id', $sellingPlatformId)
+            ->get()
+            ->pluck('selling_platform_id')
+            ->toArray();
+        $notExistPlatform = array_diff($sellingPlatformId, $platformIdFromDB);
+        if ($notExistPlatform) {
+            foreach ($notExistPlatform as $platformId) {
+                $subject = '[BrandsConnect] Amazon Order Import Failed!';
+                $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+                $message .= "Selling Platform Id <{$platformId}> not exist in esg system, please add it.";
+                mail('handy.hon@eservicesgroup.com', $subject, $message);
+            }
+            return false;
+        }
+
+        // check sku delivery type.
+        $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
+        $skuHaveDeliveryScore = PlatformOrderDeliveryScore::whereIn('sku', $skuList)
+            ->where('platform_type', '=', 'BCAMAZON')
+            ->where('country_id', '=', $countryCode)
+            ->get()
+            ->pluck('sku')
+            ->toArray();
+        $notHaveDeliveryType = array_diff($skuList, $skuHaveDeliveryScore);
+        if ($notHaveDeliveryType) {
+            foreach ($notHaveDeliveryType as $sku) {
+                $subject = '[BrandsConnect] Amazon Order Import Failed!';
+                $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+                $message .= "SKU <{$sku}> not have delivery type in esg system, please add it.";
+                mail('handy.hon@eservicesgroup.com', $subject, $message);
+            }
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -67,19 +139,42 @@ class OrderTransfer extends Command
      */
     public function createGroupOrder(AmazonOrder $order)
     {
-        $so = $this->createOrder($order);
+        $so = $this->createOrder($order, $order->amazonOrderItem);
         $this->saveSoItem($so, $order->amazonOrderItem);
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
     }
 
-    /**
-     * @param AmazonOrder $order
-     */
     public function createSplitOrder(AmazonOrder $order)
     {
+        $merchant = [];
+        foreach ($order->amazonOrderItem as $item) {
+            $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
+                ->where('sku', '=', $item->seller_sku)
+                ->first();
 
+            // group items by merchant (short id).
+            if (!array_key_exists($merchantProductMapping->short_id, $merchant)) {
+                $merchant[$merchantProductMapping->short_id] = new Collection();
+            }
+            $merchant[$merchantProductMapping->short_id]->add($item);
+        }
+
+        foreach ($merchant as $merchantShortId => $items) {
+            $so = $this->createOrder($order, $items);
+
+            $countryCode = strtoupper(substr($order->platform, -2));
+            //$countryCode = ($countryCode === 'UK') ? 'GB' : $countryCode;
+            $sellingPlatformId = 'AC-BCAZ-'.$merchantShortId.$countryCode;
+
+            $so->platform_id = $sellingPlatformId;
+            $so->save();
+            $this->saveSoItem($so, $items);
+            $this->saveSoItemDetail($so, $items);
+            $this->saveSoPaymentStatus($so);
+            $this->saveSoExtend($so, $order);
+        }
     }
 
     /***
@@ -113,125 +208,6 @@ class OrderTransfer extends Command
     }
 
     /***
-     * @param AmazonOrder $order
-     * @return boolean
-     */
-    private function createLocalOrder(AmazonOrder $order)
-    {
-        $client = $this->createOrUpdateClient($order);
-        $skuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
-        $merchantList = \DB::connection('mysql_esg')->table('merchant_product_mapping')
-            ->join('merchant', 'merchant_id', '=', 'id')
-            ->select('short_id')
-            ->whereIn('sku', $skuList)
-            ->groupBy('id')
-            ->get();
-
-        // all items belong to same merchant.
-        if (count($merchantList) === 1) {
-            $so = $this->createLocalOrder($order);
-
-            $soItem = [];
-            $soItemDetail = [];
-            foreach ($order->amazonOrderItem as $orderItem) {
-                $soItem[] = $this->saveSoItem($orderItem);
-                $soItemDetail[] = $this->saveSoItemDetail($orderItem);
-            }
-
-        }
-
-
-        try {
-            // if amazon order contains multi items, split it.
-            for ($i = 0, $totalItem = count($order->amazonOrderItem); $i < $totalItem; $i++) {
-
-                $soNumber = $this->generateSoNumber();
-
-                $localSKU = $order->amazonOrderItem[$i]->seller_sku;
-
-                $merchant = \DB::connection('mysql_esg')->table('merchant_product_mapping')
-                    ->join('merchant', 'merchant_id', '=', 'id')
-                    ->select('short_id')
-                    ->where('sku', '=', $localSKU)
-                    ->first();
-
-                if (!$merchant) {
-                    throw new \Exception("Amazon order id: {$order->amazon_order_id}. {$localSKU} can't find a merchant", 1);
-                }
-
-                $sellingPlatformId = 'AC-BCAZ-'.$merchant->short_id.substr($order->platform, -2);
-                $platformBizVar = PlatformBizVar::where('selling_platform_id', '=', $sellingPlatformId)->first();
-
-                if (!$platformBizVar) {
-                    throw new \Exception("Amazon order id: {$order->amazon_order_id}. {$sellingPlatformId} isn't exists", 1);
-                }
-
-                $exchangeRate = ExchangeRate::where('from_currency_id', '=', $order->currency)
-                                                ->where('to_currency_id', '=', 'USD')
-                                                ->first();
-
-                $countryCode = strtoupper($order->amazonShippingAddress->country_code);
-                $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
-                $platformOrderDeliveryType = PlatformOrderDeliveryType::where('sku', '=', $localSKU)
-                                                                        ->where('platform_type', '=', 'BCAMAZON')
-                                                                        ->where('country_id', '=', $countryCode)
-                                                                        ->first();
-
-                if (!$platformOrderDeliveryType) {
-                    throw new \Exception("Amazon order id: {$order->amazon_order_id}. SKU: {$localSKU}. Can't decide which delivery type.", 1);
-                }
-
-                $so = $this->createLocalOrder($order);
-                $so->so_no = $soNumber;
-                $so->platform_id = $platformBizVar->selling_platform_id;
-                $so->platform_order_id = $order->amazon_order_id.'-'.$order->amazonOrderItem[$i]->order_item_id;
-
-                $so->txn_id = $so->platform_order_id;
-                $so->client_id = $client->id;
-                $so->amount = $order->amazonOrderItem[$i]->item_price;
-                $so->cost = $so->amount;    // temporary as amount, should get data from price table.
-                $so->vat_percent = $platformBizVar->vat_percent;
-                $so->vat = 0;    // not sure.
-                $so->rate = $exchangeRate->rate;
-                $so->delivery_type_id = $platformOrderDeliveryType->delivery_type_id;
-
-                //dd($so);
-                $soItem = $this->saveSoItem($order->amazonOrderItem[$i]);
-                $soItem->so_no = $soNumber;
-
-                // TODO:
-                // need check CA product for FBM. maybe need this order have multi items.
-
-                $soItemDetail = $this->saveSoItemDetail($order->amazonOrderItem[$i]);
-                $soItemDetail->so_no = $soNumber;
-
-                // TODO:
-                // also need consider CA product. maybe need add item to so_item_detail table.
-
-                $soPaymentStatus = $this->saveSoPaymentStatus($order);
-                $soPaymentStatus->so_no = $soNumber;
-
-                $soExtend = $this->saveSoExtend($order);
-                $soExtend->so_no = $soNumber;
-                $so->save();
-                $soItem->save();
-                $soItemDetail->save();
-                $soPaymentStatus->save();
-                $soExtend->save();
-                //\DB::transaction(function($so, $soItem, $soItemDetail, $soPaymentStatus, $soExtend) {
-                //
-                //});
-            }
-
-        } catch (\Exception $e) {
-            mail('handy.hon@eservicesgroup.com', '[BrandsConnect] Amazon Order Import failed', $e->getMessage());
-            return false;
-        }
-
-        return true;
-    }
-
-    /***
      * @return int local order number.
      */
     private function generateSoNumber()
@@ -246,9 +222,10 @@ class OrderTransfer extends Command
 
     /**
      * @param AmazonOrder $order
+     * @param Collection $orderItems
      * @return So
      */
-    private function createOrder(AmazonOrder $order)
+    private function createOrder(AmazonOrder $order, Collection $orderItems)
     {
         $newOrder = new So;
 
@@ -262,7 +239,7 @@ class OrderTransfer extends Command
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = $order->fulfillment_channel;
         $newOrder->weight = 1;  // TODO: need calculate base esg sku.
-        $newOrder->amount = $order->amazonOrderItem->pluck('item_price')->sum();
+        $newOrder->amount = $orderItems->pluck('item_price')->sum();
         $newOrder->cost = $newOrder->amount;   // temporary as amount, should get data from price table.
         $newOrder->currency_id = $order->currency;
         $newOrder->rate = ExchangeRate::where('from_currency_id', '=', $order->currency)
@@ -271,8 +248,12 @@ class OrderTransfer extends Command
             ->rate;
         $newOrder->vat_percent = 0;     // not sure.
         $newOrder->vat = 0;             // not sure.
-        $newOrder->delivery_address = $order->amazonOrderItem->pluck('shipping_price')->sum();
-        $newOrder->delivery_type_id = 'STD';// TODO: should base split order, have a rule in Doc, do it later as settle.
+        $newOrder->delivery_address = $orderItems->pluck('shipping_price')->sum();
+        $newOrder->delivery_type_id = PlatformOrderDeliveryScore::whereIn('sku', $orderItems->pluck('seller_sku'))
+            ->where('country_id', '=', $order->amazonShippingAddress->country_code)
+            ->orderBy('score', 'desc')
+            ->first()
+            ->delivery_type_id;
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
         $newOrder->delivery_address = implode(' | ', array_filter([
             $order->amazonShippingAddress->address_line_1,

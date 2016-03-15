@@ -10,7 +10,13 @@ class So extends Model
 
     protected $table = 'so';
 
+    protected $primaryKey = 'so_no';
+
     public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $guarded = ['create_at'];
 
     function soItem()
     {

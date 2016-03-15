@@ -10,7 +10,11 @@ class PlatformBizVar extends Model
 
     protected $table = 'platform_biz_var';
 
-    //public $primaryKey = 'selling_platform_id';
+    public $primaryKey = 'selling_platform_id';
 
     public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $guarded = ['create_at'];
 }
