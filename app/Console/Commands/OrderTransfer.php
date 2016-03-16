@@ -57,10 +57,14 @@ class OrderTransfer extends Command
             \DB::transaction(function() use ($amazonOrder) {
                 \DB::connection('mysql_esg')->transaction(function() use ($amazonOrder) {
                     if ($this->validateAmazonOrder($amazonOrder)) {
-                        $this->createSplitOrder($amazonOrder);
-                        $this->createGroupOrder($amazonOrder);
-                        $amazonOrder->acknowledge = 1;
-                        $amazonOrder->save();
+                        try {
+                            $this->createSplitOrder($amazonOrder);
+                            $this->createGroupOrder($amazonOrder);
+                            $amazonOrder->acknowledge = 1;
+                            $amazonOrder->save();
+                        } catch (\Exception $e) {
+                            mail('handy.hon@eservicesgroup.com', '[BrandsConnect] - Exception', $e->getMessage());
+                        }
                     }
                 });
             });
