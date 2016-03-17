@@ -243,7 +243,7 @@ class OrderTransfer extends Command
         $newOrder->platform_id = 'AC-GROUP';  // TODO:: should add in selling_platform and platform_biz_var table.
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
-        $newOrder->biz_type = $order->fulfillment_channel;
+        $newOrder->biz_type = 'AMAZON';
         $newOrder->weight = 1;  // TODO: need calculate base esg sku.
         $newOrder->amount = $orderItems->pluck('item_price')->sum();
         $newOrder->cost = $newOrder->amount;   // temporary as amount, should get data from price table.
