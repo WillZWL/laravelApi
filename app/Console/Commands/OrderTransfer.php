@@ -54,20 +54,22 @@ class OrderTransfer extends Command
     {
         $amazonOrderList = AmazonOrder::readyOrder()->get();
         foreach ($amazonOrderList as $amazonOrder) {
-            \DB::transaction(function() use ($amazonOrder) {
-                \DB::connection('mysql_esg')->transaction(function() use ($amazonOrder) {
-                    if ($this->validateAmazonOrder($amazonOrder)) {
-                        try {
-                            $this->createSplitOrder($amazonOrder);
-                            $this->createGroupOrder($amazonOrder);
-                            $amazonOrder->acknowledge = 1;
-                            $amazonOrder->save();
-                        } catch (\Exception $e) {
-                            mail('handy.hon@eservicesgroup.com', '[BrandsConnect] - Exception', $e->getMessage());
-                        }
-                    }
-                });
-            });
+            if ($this->validateAmazonOrder($amazonOrder)) {
+                \DB::beginTransaction();
+                \DB::connection('mysql_esg')->beginTransaction();
+                try {
+                    $this->createSplitOrder($amazonOrder);
+                    $this->createGroupOrder($amazonOrder);
+                    $amazonOrder->acknowledge = 1;
+                    $amazonOrder->save();
+                    \DB::connection('mysql_esg')->commit();
+                    \DB::commit();
+                } catch (\Exception $e) {
+                    \DB::connection('mysql_esg')->rollBack();
+                    \DB::rollBack();
+                    mail('handy.hon@eservicesgroup.com', '[BrandsConnect] - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                }
+            }
         }
     }
 
@@ -129,7 +131,7 @@ class OrderTransfer extends Command
             foreach ($notHaveDeliveryType as $sku) {
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "SKU <{$sku}> not have delivery type in esg system, please add it. Thanks";
+                $message .= "SKU <{$sku}> not set delivery type to {$countryCode} in esg system, please add it. Thanks";
                 mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
@@ -240,7 +242,7 @@ class OrderTransfer extends Command
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
         $newOrder->is_platform_split_order = 0;
-        $newOrder->platform_id = ''; // it depends on group order or split order.
+        $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set this.
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
@@ -259,8 +261,10 @@ class OrderTransfer extends Command
         if ($order->fulfillment_channel === 'AFN') {
             $newOrder->delivery_type_id = 'FBA';
         } else {
+            $countryCode = strtoupper($order->amazonShippingAddress->country_code);
+            $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
             $newOrder->delivery_type_id = PlatformOrderDeliveryScore::whereIn('sku', $orderItems->pluck('seller_sku'))
-                ->where('country_id', '=', $order->amazonShippingAddress->country_code)
+                ->where('country_id', '=', $countryCode)
                 ->orderBy('score', 'desc')
                 ->first()
                 ->delivery_type_id;
@@ -379,6 +383,6 @@ class OrderTransfer extends Command
         $countryCode = strtolower(substr($so->platform_id, -2));
         $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
 
-        return 'bc_amazon'.$countryCode;
+        return 'bc_amazon_'.$countryCode;
     }
 }
