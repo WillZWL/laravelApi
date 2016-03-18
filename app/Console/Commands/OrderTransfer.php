@@ -54,20 +54,22 @@ class OrderTransfer extends Command
     {
         $amazonOrderList = AmazonOrder::readyOrder()->get();
         foreach ($amazonOrderList as $amazonOrder) {
-            \DB::transaction(function() use ($amazonOrder) {
-                \DB::connection('mysql_esg')->transaction(function() use ($amazonOrder) {
-                    if ($this->validateAmazonOrder($amazonOrder)) {
-                        try {
-                            $this->createSplitOrder($amazonOrder);
-                            $this->createGroupOrder($amazonOrder);
-                            $amazonOrder->acknowledge = 1;
-                            $amazonOrder->save();
-                        } catch (\Exception $e) {
-                            mail('handy.hon@eservicesgroup.com', '[BrandsConnect] - Exception', $e->getMessage());
-                        }
-                    }
-                });
-            });
+            if ($this->validateAmazonOrder($amazonOrder)) {
+                \DB::beginTransaction();
+                \DB::connection('mysql_esg')->beginTransaction();
+                try {
+                    $this->createSplitOrder($amazonOrder);
+                    $this->createGroupOrder($amazonOrder);
+                    $amazonOrder->acknowledge = 1;
+                    $amazonOrder->save();
+                    \DB::connection('mysql_esg')->commit();
+                    \DB::commit();
+                } catch (\Exception $e) {
+                    \DB::connection('mysql_esg')->rollBack();
+                    \DB::rollBack();
+                    mail('handy.hon@eservicesgroup.com', '[BrandsConnect] - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                }
+            }
         }
     }
 
@@ -91,7 +93,7 @@ class OrderTransfer extends Command
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
                 $message .= "SKU <{$sku}> not match between amazon and esg, please note it. Thanks";
-                mail('amazon_us@brandsconnect.net', 'handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
@@ -111,7 +113,7 @@ class OrderTransfer extends Command
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
                 $message .= "Selling Platform Id <{$platformId}> not exist in esg system, please add it. Thanks";
-                mail('amazon_us@brandsconnect.net', 'handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
@@ -129,8 +131,8 @@ class OrderTransfer extends Command
             foreach ($notHaveDeliveryType as $sku) {
                 $subject = '[BrandsConnect] Amazon Order Import Failed!';
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "SKU <{$sku}> not have delivery type in esg system, please add it. Thanks";
-                mail('amazon_us@brandsconnect.net', 'handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                $message .= "SKU <{$sku}> not set delivery type to {$countryCode} in esg system, please add it. Thanks";
+                mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
@@ -144,6 +146,11 @@ class OrderTransfer extends Command
     public function createGroupOrder(AmazonOrder $order)
     {
         $so = $this->createOrder($order, $order->amazonOrderItem);
+
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $so->platform_id = 'AC-BCAZ-GROUP'.$countryCode;
+        $so->save();
+
         $this->saveSoItem($so, $order->amazonOrderItem);
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
@@ -170,9 +177,7 @@ class OrderTransfer extends Command
 
             $countryCode = strtoupper(substr($order->platform, -2));
             //$countryCode = ($countryCode === 'UK') ? 'GB' : $countryCode;
-            $sellingPlatformId = 'AC-BCAZ-'.$merchantShortId.$countryCode;
-
-            $so->platform_id = $sellingPlatformId;
+            $so->platform_id = 'AC-BCAZ-'.$merchantShortId.$countryCode;
             $so->is_platform_split_order = 1;
             $so->save();
             $this->saveSoItem($so, $items);
@@ -233,14 +238,11 @@ class OrderTransfer extends Command
     private function createOrder(AmazonOrder $order, Collection $orderItems)
     {
         $newOrder = new So;
-
-        $soNumber = $this->generateSoNumber();
         $client = $this->createOrUpdateClient($order);
-
-        $newOrder->so_no = $soNumber;
+        $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
         $newOrder->is_platform_split_order = 0;
-        $newOrder->platform_id = 'AC-GROUP';  // TODO:: should add in selling_platform and platform_biz_var table.
+        $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set this.
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
@@ -255,11 +257,19 @@ class OrderTransfer extends Command
         $newOrder->vat_percent = 0;     // not sure.
         $newOrder->vat = 0;             // not sure.
         $newOrder->delivery_address = $orderItems->pluck('shipping_price')->sum();
-        $newOrder->delivery_type_id = PlatformOrderDeliveryScore::whereIn('sku', $orderItems->pluck('seller_sku'))
-            ->where('country_id', '=', $order->amazonShippingAddress->country_code)
-            ->orderBy('score', 'desc')
-            ->first()
-            ->delivery_type_id;
+
+        if ($order->fulfillment_channel === 'AFN') {
+            $newOrder->delivery_type_id = 'FBA';
+        } else {
+            $countryCode = strtoupper($order->amazonShippingAddress->country_code);
+            $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
+            $newOrder->delivery_type_id = PlatformOrderDeliveryScore::whereIn('sku', $orderItems->pluck('seller_sku'))
+                ->where('country_id', '=', $countryCode)
+                ->orderBy('score', 'desc')
+                ->first()
+                ->delivery_type_id;
+        }
+
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
         $newOrder->delivery_address = implode(' | ', array_filter([
             $order->amazonShippingAddress->address_line_1,
@@ -292,7 +302,6 @@ class OrderTransfer extends Command
         $line_no = 1;
         foreach ($orderItem as $item) {
             $newOrderItem = new SoItem;
-
             $newOrderItem->so_no = $so->so_no;
             $newOrderItem->line_no = $line_no++;
             $newOrderItem->prod_sku = $item->seller_sku;
@@ -321,7 +330,6 @@ class OrderTransfer extends Command
         $line_no = 1;
         foreach ($orderItem as $item) {
             $newOrderItemDetail = new SoItemDetail;
-
             $newOrderItemDetail->so_no = $so->so_no;
             $newOrderItemDetail->item_sku = $item->seller_sku;
             $newOrderItemDetail->line_no = $line_no++;
@@ -346,17 +354,8 @@ class OrderTransfer extends Command
     private function saveSoPaymentStatus(So $so)
     {
         $soPaymentStatus = new SoPaymentStatus;
-
         $soPaymentStatus->so_no = $so->so_no;
-
-        if ($so->platform_id === 'AC-GROUP') {
-            $soPaymentStatus->payment_gateway_id = 'amazon';
-        } else {
-            $countryCode = strtolower(substr($so->platform_id, -2));
-            $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
-            $soPaymentStatus->payment_gateway_id = 'bc_amazon_'.$countryCode;
-        }
-
+        $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so);
         $soPaymentStatus->payment_status = 'S';
         $soPaymentStatus->create_on = Carbon::now();
         $soPaymentStatus->modify_on = Carbon::now();
@@ -377,5 +376,13 @@ class OrderTransfer extends Command
         $soExtend->modify_on = Carbon::now();
 
         $soExtend->save();
+    }
+
+    private function getPaymentGateway(So $so)
+    {
+        $countryCode = strtolower(substr($so->platform_id, -2));
+        $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
+
+        return 'bc_amazon_'.$countryCode;
     }
 }
