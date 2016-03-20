@@ -12,6 +12,8 @@ class Client extends Model
 
     public $timestamps = false;
 
+    protected $fillable = ['email'];
+
     public function so()
     {
         return $this->hasMany('App\Models\So', 'client_id', 'id');

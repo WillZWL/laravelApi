@@ -163,7 +163,7 @@ class OrderTransfer extends Command
         foreach ($order->amazonOrderItem as $item) {
             $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
                 ->where('sku', '=', $item->seller_sku)
-                ->first();
+                ->firstOrFail();
 
             // group items by merchant (short id).
             if (!array_key_exists($merchantProductMapping->short_id, $merchant)) {
@@ -193,13 +193,7 @@ class OrderTransfer extends Command
      */
     private function createOrUpdateClient(AmazonOrder $order)
     {
-        $client = Client::where('email', '=', $order->buyer_email)->first();
-
-        if (!$client) {
-            $client = new Client();
-        }
-
-        $client->email = $order->buyer_email;
+        $client = Client::firstOrNew(['email' => $order->buyer_email]);
         $client->password = bcrypt(Carbon::now());
         $client->forename = $order->buyer_name;
         $client->country_id = $order->amazonShippingAddress->country_code;
@@ -370,7 +364,6 @@ class OrderTransfer extends Command
     private function saveSoExtend(So $so, AmazonOrder $order)
     {
         $soExtend = new SoExtend;
-
         $soExtend->so_no = $so->so_no;
         $soExtend->create_on = Carbon::now();
         $soExtend->modify_on = Carbon::now();
