@@ -7,15 +7,18 @@ use App\Models\AmazonOrderItem;
 use App\Models\Client;
 use App\Models\ExchangeRate;
 use App\Models\MerchantProductMapping;
+use App\Models\MerchantQuotation;
 use App\Models\PlatformBizVar;
 use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Product;
+use App\Models\Quotaton;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
 use App\Models\SoItem;
 use App\Models\SoItemDetail;
 use App\Models\SoPaymentStatus;
+use App\Models\WeightCourier;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
@@ -185,6 +188,8 @@ class OrderTransfer extends Command
             $this->saveSoItemDetail($so, $items);
             $this->saveSoPaymentStatus($so);
             $this->saveSoExtend($so, $order);
+
+            $this->setRecommendCourierAndCharge($so);
         }
     }
 
@@ -386,7 +391,7 @@ class OrderTransfer extends Command
      * @param Collection $orderItems
      * @return mixed
      */
-    public function calculateOrderWeight(Collection $orderItems)
+    private function calculateOrderWeight(Collection $orderItems)
     {
         $skuQty = $orderItems->pluck('quantity_ordered', 'seller_sku')->toArray();
         $skuWeight = Product::whereIn('sku', array_keys($skuQty))->get()->pluck('weight', 'sku');
@@ -396,5 +401,87 @@ class OrderTransfer extends Command
         })->sum();
 
         return $totalWeight;
+    }
+
+    private function setRecommendCourierAndCharge(So $order)
+    {
+        $merchantShortId = substr(last(implode('-', $order->platform_id)), 0, -2);
+        $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
+
+        switch ($order->delivery_type_id) {
+            case 'FBA':
+                $quotationType = 'acc_fba';
+                break;
+
+            case 'STD':
+                if ($this->isIncludeBattery($order)) {
+                    $quotationType = 'acc_external_postage';
+                } else {
+                    $quotationType = 'acc_builtin_postage';
+                }
+                break;
+
+            case 'EXPED':
+                $quotationType = 'acc_courier';
+                break;
+
+            case 'EXP':
+                $quotationType = 'acc_courier_exp';
+                break;
+
+            case 'MCF':
+                $quotation = 'acc_mcf';
+                break;
+
+            default :
+                $quotationType = '';
+                break;
+        }
+
+        $quotationVersionId  = $availableQuotation->where('quotation_type', $quotationType)->last()->id();
+        $weightId = WeightCourier::getWeightId($order->weight);
+
+        if ($weightId === null) {
+            // TODO
+            // overweight case.
+            $quotation = '';
+        } else {
+            $quotation = Quotaton::where('quotn_version_id', '=', $quotationVersionId)
+                ->where('dest_country_id', '=', $order->delivery_country_id)
+                ->where('dest_state_id', '=', $order->delivery_state)
+                ->where('weight_id', '=', $weightId)
+                ->first();
+        }
+
+        $order->recommend_courier_id = $quotation->courier;
+        $order->esg_delivery_cost = $quotation->cost;
+        $order->esg_delivery_offer = $quotation->cost;
+        $order->delivery_charge = $quotation->quotation; // TODO: need to confirm whether markup by merchant.
+        $order->save();
+    }
+
+    /**
+     * @param $merchantShortId
+     * @return Collection|static[]
+     */
+    private function getAvailableMerchantQuotation($merchantShortId)
+    {
+        return MerchantQuotation::availableQuotation()
+            ->join('merchant', 'merchant.id', '=', 'merchant_quotation.merchant_id')
+            ->where('merchant.short_id', '=', $merchantShortId)
+            ->get();
+    }
+
+    /**
+     * @param So $so
+     * @return bool
+     */
+    private function isIncludeBattery(So $so)
+    {
+        if (1 == Product::whereIn('sku', $so->soItem->pluck('prod_sku'))->max('battery')) {
+            return true;
+        }
+
+        return false;
     }
 }
