@@ -9,6 +9,7 @@ use App\Models\ExchangeRate;
 use App\Models\MerchantProductMapping;
 use App\Models\PlatformBizVar;
 use App\Models\PlatformOrderDeliveryScore;
+use App\Models\Product;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
@@ -240,7 +241,7 @@ class OrderTransfer extends Command
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
-        $newOrder->weight = 1;  // TODO: need calculate base esg sku.
+        $newOrder->weight = $this->calculateOrderWeight($orderItems);
         $newOrder->amount = $orderItems->pluck('item_price')->sum();
         $newOrder->cost = $newOrder->amount;   // temporary as amount, should get data from price table.
         $newOrder->currency_id = $order->currency;
@@ -378,5 +379,22 @@ class OrderTransfer extends Command
         $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
 
         return 'bc_amazon_'.$countryCode;
+    }
+
+    /**
+     * Not contain assembly product
+     * @param Collection $orderItems
+     * @return mixed
+     */
+    public function calculateOrderWeight(Collection $orderItems)
+    {
+        $skuQty = $orderItems->pluck('quantity_ordered', 'seller_sku')->toArray();
+        $skuWeight = Product::whereIn('sku', array_keys($skuQty))->get()->pluck('weight', 'sku');
+
+        $totalWeight = $skuWeight->map(function($weight, $sku) use ($skuQty) {
+            return $skuQty[$sku] * $weight;
+        })->sum();
+
+        return $totalWeight;
     }
 }
