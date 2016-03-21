@@ -16,6 +16,6 @@ class WeightCourier extends Model
 
     static public function getWeightId($weight)
     {
-        return WeightCourier::where('weight', '>=', $weight)->min('id');
+        return WeightCourier::where('weight', '>=', $weight)->first()->id;
     }
 }

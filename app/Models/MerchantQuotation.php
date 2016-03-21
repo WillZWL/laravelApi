@@ -25,7 +25,7 @@ class MerchantQuotation extends Model
     {
         return $query->where('current_used', '=', 1)
             ->where('is_approved', '=', 1)
-            ->where('status', '=', 1)
+            ->where('merchant_quotation.status', '=', 1)
             ->where('expire_date', '>=', Carbon::now());
     }
 }
