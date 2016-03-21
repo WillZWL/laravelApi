@@ -284,6 +284,7 @@ class OrderTransfer extends Command
         $newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->amazonShippingAddress->phone;
+        $newOrder->bill_country_id = $order->amazonShippingAddress->country_code;
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
 
