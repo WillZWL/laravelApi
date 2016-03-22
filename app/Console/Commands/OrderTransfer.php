@@ -5,16 +5,22 @@ namespace App\Console\Commands;
 use App\Models\AmazonOrder;
 use App\Models\AmazonOrderItem;
 use App\Models\Client;
+use App\Models\CountryState;
+use App\Models\CourierCost;
 use App\Models\ExchangeRate;
 use App\Models\MerchantProductMapping;
+use App\Models\MerchantQuotation;
 use App\Models\PlatformBizVar;
 use App\Models\PlatformOrderDeliveryScore;
+use App\Models\Product;
+use App\Models\Quotaton;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
 use App\Models\SoItem;
 use App\Models\SoItemDetail;
 use App\Models\SoPaymentStatus;
+use App\Models\WeightCourier;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
@@ -155,6 +161,8 @@ class OrderTransfer extends Command
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
+
+        $this->setGroupOrderRecommendCourierAndCharge($so);
     }
 
     public function createSplitOrder(AmazonOrder $order)
@@ -163,7 +171,7 @@ class OrderTransfer extends Command
         foreach ($order->amazonOrderItem as $item) {
             $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
                 ->where('sku', '=', $item->seller_sku)
-                ->first();
+                ->firstOrFail();
 
             // group items by merchant (short id).
             if (!array_key_exists($merchantProductMapping->short_id, $merchant)) {
@@ -184,6 +192,8 @@ class OrderTransfer extends Command
             $this->saveSoItemDetail($so, $items);
             $this->saveSoPaymentStatus($so);
             $this->saveSoExtend($so, $order);
+
+            $this->setSplitOrderRecommendCourierAndCharge($so);
         }
     }
 
@@ -193,13 +203,7 @@ class OrderTransfer extends Command
      */
     private function createOrUpdateClient(AmazonOrder $order)
     {
-        $client = Client::where('email', '=', $order->buyer_email)->first();
-
-        if (!$client) {
-            $client = new Client();
-        }
-
-        $client->email = $order->buyer_email;
+        $client = Client::firstOrNew(['email' => $order->buyer_email]);
         $client->password = bcrypt(Carbon::now());
         $client->forename = $order->buyer_name;
         $client->country_id = $order->amazonShippingAddress->country_code;
@@ -246,7 +250,7 @@ class OrderTransfer extends Command
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
-        $newOrder->weight = 1;  // TODO: need calculate base esg sku.
+        $newOrder->weight = $this->calculateOrderWeight($orderItems);
         $newOrder->amount = $orderItems->pluck('item_price')->sum();
         $newOrder->cost = $newOrder->amount;   // temporary as amount, should get data from price table.
         $newOrder->currency_id = $order->currency;
@@ -278,8 +282,8 @@ class OrderTransfer extends Command
         ]));
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
-        $newOrder->delivery_state = $order->amazonShippingAddress->state_or_region;
         $newOrder->delivery_country_id = $order->amazonShippingAddress->country_code;
+        $newOrder->delivery_state = CountryState::getStateId($order->amazonShippingAddress->country_code, $order->amazonShippingAddress->state_or_region);
         // if fulfillment by amazon, marked as shipped (6), if fulfillment by ESG, marked as 3, no need credit check.
         $newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
         $newOrder->order_create_date = $order->purchase_date;
@@ -371,7 +375,6 @@ class OrderTransfer extends Command
     private function saveSoExtend(So $so, AmazonOrder $order)
     {
         $soExtend = new SoExtend;
-
         $soExtend->so_no = $so->so_no;
         $soExtend->create_on = Carbon::now();
         $soExtend->modify_on = Carbon::now();
@@ -385,5 +388,146 @@ class OrderTransfer extends Command
         $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
 
         return 'bc_amazon_'.$countryCode;
+    }
+
+    /**
+     * Not contain assembly product
+     * @param Collection $orderItems
+     * @return mixed
+     */
+    private function calculateOrderWeight(Collection $orderItems)
+    {
+        $skuQty = $orderItems->pluck('quantity_ordered', 'seller_sku')->toArray();
+        $skuWeight = Product::whereIn('sku', array_keys($skuQty))->get()->pluck('weight', 'sku');
+
+        $totalWeight = $skuWeight->map(function($weight, $sku) use ($skuQty) {
+            return $skuQty[$sku] * $weight;
+        })->sum();
+
+        return $totalWeight;
+    }
+
+    private function setSplitOrderRecommendCourierAndCharge(So $order)
+    {
+        $merchantShortId = substr(last(explode('-', $order->platform_id)), 0, -2);
+        $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
+
+        if ( ! $availableQuotation->isEmpty()) {
+            switch ($order->delivery_type_id) {
+                case 'FBA':
+                    $quotationType = 'acc_fba';
+                    break;
+
+                case 'STD':
+                    if ($this->isIncludeBattery($order)) {
+                        $quotationType = 'acc_external_postage';
+                    } else {
+                        $quotationType = 'acc_builtin_postage';
+                    }
+                    break;
+
+                case 'EXPED':
+                    $quotationType = 'acc_courier';
+                    break;
+
+                case 'EXP':
+                    $quotationType = 'acc_courier_exp';
+                    break;
+
+                case 'MCF':
+                    $quotation = 'acc_mcf';
+                    break;
+
+                default :
+                    $quotationType = '';
+                    break;
+            }
+
+            $quotationVersion = $availableQuotation->where('quotation_type', $quotationType)->last();
+            if (empty($quotationVersion)) {
+                return false;
+            }
+            $quotationVersionId = $quotationVersion->id;
+            $weightId = WeightCourier::getWeightId($order->weight);
+            if ($weightId === null) {
+                // TODO
+                // overweight case.
+                $quotation = '';
+            } else {
+                $quotation = Quotaton::where('quotn_version_id', '=', $quotationVersionId)
+                    ->where('dest_country_id', '=', $order->delivery_country_id)
+                    ->where('dest_state_id', '=', $order->delivery_state)
+                    ->where('weight_id', '=', $weightId)
+                    ->first();
+            }
+
+            if (empty($quotation)) {
+                return false;
+            }
+
+            $order->recommend_courier_id = $quotation->courier_id;
+            $order->esg_delivery_cost = $quotation->cost;
+            $order->esg_delivery_offer = $quotation->cost;
+            $order->delivery_charge = $quotation->quotation; // TODO: need to confirm whether markup by merchant.
+            $order->save();
+        }
+    }
+
+    private function setGroupOrderRecommendCourierAndCharge(So $order)
+    {
+        $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
+            ->where('is_platform_split_order', '=', '1')
+            ->get();
+
+        $weightId = WeightCourier::getWeightId($order->weight);
+
+        if ($splitOrders[0]->courierInfo) {
+            $courierCost = $this->getCourierCost($order->delivery_country_id, $order->delivery_state, $weightId, $splitOrders[0]->courierInfo->courier_id);
+
+            if ($courierCost) {
+                $order->recommend_courier_id = $splitOrders[0]->courierInfo->courier_id;
+                $order->delivery_charge = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
+                $order->esg_delivery_cost = $order->delivery_charge;
+                $order->esg_delivery_offer = $order->delivery_charge;
+                return $order->save();
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $merchantShortId
+     * @return Collection|static[]
+     */
+    private function getAvailableMerchantQuotation($merchantShortId)
+    {
+        return MerchantQuotation::availableQuotation()
+            ->join('merchant', 'merchant.id', '=', 'merchant_quotation.merchant_id')
+            ->where('merchant.short_id', '=', $merchantShortId)
+            ->select('merchant_quotation.*')
+            ->get();
+    }
+
+    private function getCourierCost($destCountryId, $destStateId, $weightId, $courierId)
+    {
+        return CourierCost::where('dest_country_id', '=', $destCountryId)
+            ->where('dest_state_id', '=', $destStateId)
+            ->where('weight_id', '=', $weightId)
+            ->where('courier_id', '=', $courierId)
+            ->first();
+    }
+
+    /**
+     * @param So $so
+     * @return bool
+     */
+    private function isIncludeBattery(So $so)
+    {
+        if (1 == Product::whereIn('sku', $so->soItem->pluck('prod_sku'))->max('battery')) {
+            return true;
+        }
+
+        return false;
     }
 }
