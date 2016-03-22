@@ -79,11 +79,10 @@ class OrderRetrieve extends Command
     public function retrieveOrder($storeName, Schedule $schedule)
     {
         $amazonOrderList = new AmazonOrderList($storeName);
-        $amazonOrderList->setLimits('Created', $schedule->last_access_time);
+        $amazonOrderList->setLimits('Modified', $schedule->last_access_time);
         $amazonOrderList->setUseToken();
         $amazonOrderList->fetchOrders();
         $originOrders = $amazonOrderList->getList();
-
         $amazonOrderItemList = new AmazonOrderItemList($storeName);
 
         foreach ($originOrders as $originOrder) {
