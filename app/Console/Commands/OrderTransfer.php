@@ -6,6 +6,7 @@ use App\Models\AmazonOrder;
 use App\Models\AmazonOrderItem;
 use App\Models\Client;
 use App\Models\CountryState;
+use App\Models\CourierCost;
 use App\Models\ExchangeRate;
 use App\Models\MerchantProductMapping;
 use App\Models\MerchantQuotation;
@@ -160,6 +161,8 @@ class OrderTransfer extends Command
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
+
+        $this->setGroupOrderRecommendCourierAndCharge($so);
     }
 
     public function createSplitOrder(AmazonOrder $order)
@@ -190,7 +193,7 @@ class OrderTransfer extends Command
             $this->saveSoPaymentStatus($so);
             $this->saveSoExtend($so, $order);
 
-            $this->setRecommendCourierAndCharge($so);
+            $this->setSplitOrderRecommendCourierAndCharge($so);
         }
     }
 
@@ -404,7 +407,7 @@ class OrderTransfer extends Command
         return $totalWeight;
     }
 
-    private function setRecommendCourierAndCharge(So $order)
+    private function setSplitOrderRecommendCourierAndCharge(So $order)
     {
         $merchantShortId = substr(last(explode('-', $order->platform_id)), 0, -2);
         $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
@@ -470,6 +473,29 @@ class OrderTransfer extends Command
         }
     }
 
+    private function setGroupOrderRecommendCourierAndCharge(So $order)
+    {
+        $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
+            ->where('is_platform_split_order', '=', '1')
+            ->get();
+
+        $weightId = WeightCourier::getWeightId($order->weight);
+
+        if ($splitOrders[0]->courierInfo) {
+            $courierCost = $this->getCourierCost($order->delivery_country_id, $order->delivery_state, $weightId, $splitOrders[0]->courierInfo->courier_id);
+
+            if ($courierCost) {
+                $order->recommend_courier_id = $splitOrders[0]->courierInfo->courier_id;
+                $order->delivery_charge = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
+                $order->esg_delivery_cost = $order->delivery_charge;
+                $order->esg_delivery_offer = $order->delivery_charge;
+                return $order->save();
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param $merchantShortId
      * @return Collection|static[]
@@ -481,6 +507,15 @@ class OrderTransfer extends Command
             ->where('merchant.short_id', '=', $merchantShortId)
             ->select('merchant_quotation.*')
             ->get();
+    }
+
+    private function getCourierCost($destCountryId, $destStateId, $weightId, $courierId)
+    {
+        return CourierCost::where('dest_country_id', '=', $destCountryId)
+            ->where('dest_state_id', '=', $destStateId)
+            ->where('weight_id', '=', $weightId)
+            ->where('courier_id', '=', $courierId)
+            ->first();
     }
 
     /**

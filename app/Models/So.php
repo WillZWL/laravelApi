@@ -32,4 +32,9 @@ class So extends Model
     {
         return $this->belongsTo('App\Models\Client', 'id', 'client_id');
     }
+
+    public function courierInfo()
+    {
+        return $this->belongsTo('App\Models\CourierInfo', 'recommend_courier_id', 'courier_id');
+    }
 }
