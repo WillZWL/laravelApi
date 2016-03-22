@@ -31,13 +31,7 @@ class CountryState extends Model
 
         $countryState = CountryState::where('country_id', '=', $countryCode)
             ->where('state_id', '=', $stateNameOrId)
-            ->first();
-        if ($countryState) {
-            return $countryState->state_id;
-        }
-
-        $countryState = CountryState::where('country_id', '=', $countryCode)
-            ->where('name', 'like', "%{$stateNameOrId}%")
+            ->orWhere('name', '=', $stateNameOrId)
             ->first();
         if ($countryState) {
             return $countryState->state_id;
