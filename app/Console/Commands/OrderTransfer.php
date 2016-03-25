@@ -543,6 +543,7 @@ class OrderTransfer extends Command
             ->get();
 
         if ( ! $complementaryAccessory->isEmpty()) {
+            $order->load('soItem');
             $lineNumber = count($order->soItem) + 1;
             foreach ($complementaryAccessory as $item) {
                 $soItem = new SoItem();
@@ -556,7 +557,7 @@ class OrderTransfer extends Command
                 $soItem->amount = 0;
                 $soItem->create_on = Carbon::now();
                 $soItem->modify_on = Carbon::now();
-                $soItem->save();
+                $order->soItem()->save($soItem);
 
                 $soItemDetail = new SoItemDetail();
                 $soItemDetail->so_no = $order->so_no;
@@ -569,7 +570,7 @@ class OrderTransfer extends Command
                 $soItemDetail->amount = 0;
                 $soItemDetail->create_on = Carbon::now();
                 $soItemDetail->modify_on = Carbon::now();
-                $soItemDetail->save();
+                $order->soItemDetail()->save($soItemDetail);
 
                 $lineNumber++;
             }
