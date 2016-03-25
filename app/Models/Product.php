@@ -17,4 +17,9 @@ class Product extends Model
     public $incrementing = false;
 
     protected $guarded = ['create_at'];
+
+    public function productComplementaryAcc()
+    {
+        return $this->hasMany('App\Models\ProductComplementaryAcc', 'sku', 'accessory_sku');
+    }
 }
