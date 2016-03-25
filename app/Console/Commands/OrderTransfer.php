@@ -13,6 +13,7 @@ use App\Models\MerchantQuotation;
 use App\Models\PlatformBizVar;
 use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Product;
+use App\Models\ProductComplementaryAcc;
 use App\Models\Quotaton;
 use App\Models\Sequence;
 use App\Models\So;
@@ -162,7 +163,9 @@ class OrderTransfer extends Command
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
 
+        $this->addComplementaryAccessory($so);
         $this->setGroupOrderRecommendCourierAndCharge($so);
+
     }
 
     public function createSplitOrder(AmazonOrder $order)
@@ -193,6 +196,7 @@ class OrderTransfer extends Command
             $this->saveSoPaymentStatus($so);
             $this->saveSoExtend($so, $order);
 
+            $this->addComplementaryAccessory($so);
             $this->setSplitOrderRecommendCourierAndCharge($so);
         }
     }
@@ -304,11 +308,11 @@ class OrderTransfer extends Command
      */
     private function saveSoItem(So $so, Collection $orderItem)
     {
-        $line_no = 1;
+        $lineNumber = 1;
         foreach ($orderItem as $item) {
             $newOrderItem = new SoItem;
             $newOrderItem->so_no = $so->so_no;
-            $newOrderItem->line_no = $line_no++;
+            $newOrderItem->line_no = $lineNumber++;
             $newOrderItem->prod_sku = $item->seller_sku;
             $newOrderItem->prod_name = $item->title;
             $newOrderItem->ext_item_cd = $item->order_item_id;
@@ -332,12 +336,12 @@ class OrderTransfer extends Command
      */
     private function saveSoItemDetail(So $so, Collection $orderItem)
     {
-        $line_no = 1;
+        $lineNumber = 1;
         foreach ($orderItem as $item) {
             $newOrderItemDetail = new SoItemDetail;
             $newOrderItemDetail->so_no = $so->so_no;
             $newOrderItemDetail->item_sku = $item->seller_sku;
-            $newOrderItemDetail->line_no = $line_no++;
+            $newOrderItemDetail->line_no = $lineNumber++;
             $newOrderItemDetail->qty = $item->quantity_ordered;
             $newOrderItemDetail->outstanding_qty = $item->quantity_ordered;
             $newOrderItemDetail->unit_price = $item->item_price;
@@ -529,5 +533,46 @@ class OrderTransfer extends Command
         }
 
         return false;
+    }
+
+    private function addComplementaryAccessory(So $order)
+    {
+        $skuInOrder = $order->soItem->pluck('qty', 'prod_sku')->toArray();
+        $complementaryAccessory = ProductComplementaryAcc::active()->whereIn('mainprod_sku', array_keys($skuInOrder))
+            ->where('dest_country_id', '=', $order->delivery_country_id)
+            ->get();
+
+        if ( ! $complementaryAccessory->isEmpty()) {
+            $lineNumber = count($order->soItem) + 1;
+            foreach ($complementaryAccessory as $item) {
+                $soItem = new SoItem();
+                $soItem->so_no = $order->so_no;
+                $soItem->line_no = $lineNumber;
+                $soItem->prod_sku = $item->accessory_sku;
+                $soItem->prod_name = $item->product->name;
+                $soItem->qty = $skuInOrder[$item->mainprod_sku];
+                $soItem->unit_price = 0;
+                $soItem->vat_total = 0;
+                $soItem->amount = 0;
+                $soItem->create_on = Carbon::now();
+                $soItem->modify_on = Carbon::now();
+                $soItem->save();
+
+                $soItemDetail = new SoItemDetail();
+                $soItemDetail->so_no = $order->so_no;
+                $soItemDetail->line_no = $lineNumber;
+                $soItemDetail->item_sku = $item->accessory_sku;
+                $soItemDetail->qty = $skuInOrder[$item->mainprod_sku];
+                $soItemDetail->outstanding_qty = $skuInOrder[$item->mainprod_sku];;
+                $soItemDetail->unit_price = 0;
+                $soItemDetail->vat_total = 0;
+                $soItemDetail->amount = 0;
+                $soItemDetail->create_on = Carbon::now();
+                $soItemDetail->modify_on = Carbon::now();
+                $soItemDetail->save();
+
+                $lineNumber++;
+            }
+        }
     }
 }
