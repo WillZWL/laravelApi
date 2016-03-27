@@ -13,6 +13,7 @@ use App\Models\MerchantQuotation;
 use App\Models\PlatformBizVar;
 use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Product;
+use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
 use App\Models\Quotaton;
 use App\Models\Sequence;
@@ -163,6 +164,7 @@ class OrderTransfer extends Command
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
 
+        $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
         $this->setGroupOrderRecommendCourierAndCharge($so);
 
@@ -196,6 +198,7 @@ class OrderTransfer extends Command
             $this->saveSoPaymentStatus($so);
             $this->saveSoExtend($so, $order);
 
+            $this->addAssemblyProduct($so);
             $this->addComplementaryAccessory($so);
             $this->setSplitOrderRecommendCourierAndCharge($so);
         }
@@ -295,7 +298,6 @@ class OrderTransfer extends Command
         $newOrder->bill_country_id = $order->amazonShippingAddress->country_code;
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
-
         $newOrder->save();
 
         return $newOrder;
@@ -322,11 +324,7 @@ class OrderTransfer extends Command
             $newOrderItem->amount = $item->item_price;
             $newOrderItem->create_on = Carbon::now();
             $newOrderItem->modify_on = Carbon::now();
-
             $newOrderItem->save();
-
-            // TODO:
-            // need to check product_assembly_mapping
         }
     }
 
@@ -349,11 +347,7 @@ class OrderTransfer extends Command
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
             $newOrderItemDetail->modify_on = Carbon::now();
-
             $newOrderItemDetail->save();
-
-            // TODO:
-            // need to check product_assembly_mapping
         }
     }
 
@@ -368,7 +362,6 @@ class OrderTransfer extends Command
         $soPaymentStatus->payment_status = 'S';
         $soPaymentStatus->create_on = Carbon::now();
         $soPaymentStatus->modify_on = Carbon::now();
-
         $soPaymentStatus->save();
     }
 
@@ -543,6 +536,7 @@ class OrderTransfer extends Command
             ->get();
 
         if ( ! $complementaryAccessory->isEmpty()) {
+            $order->load('soItem');
             $lineNumber = count($order->soItem) + 1;
             foreach ($complementaryAccessory as $item) {
                 $soItem = new SoItem();
@@ -556,7 +550,7 @@ class OrderTransfer extends Command
                 $soItem->amount = 0;
                 $soItem->create_on = Carbon::now();
                 $soItem->modify_on = Carbon::now();
-                $soItem->save();
+                $order->soItem()->save($soItem);
 
                 $soItemDetail = new SoItemDetail();
                 $soItemDetail->so_no = $order->so_no;
@@ -569,7 +563,50 @@ class OrderTransfer extends Command
                 $soItemDetail->amount = 0;
                 $soItemDetail->create_on = Carbon::now();
                 $soItemDetail->modify_on = Carbon::now();
-                $soItemDetail->save();
+                $order->soItemDetail()->save($soItemDetail);
+
+                $lineNumber++;
+            }
+        }
+    }
+
+    private function addAssemblyProduct(So $order)
+    {
+        $skuInOrder = $order->soItem->pluck('qty', 'prod_sku')->toArray();
+        $assemblyMapping = ProductAssemblyMapping::active()->whereIn('main_sku', array_keys($skuInOrder))
+            ->where('is_replace_main_sku', '=', '0')
+            ->get();
+
+        if ( ! $assemblyMapping->isEmpty()) {
+            $order->load('soItem');
+            $lineNumber = $order->soItem->max('line_no') + 1;
+            foreach ($assemblyMapping as $item) {
+                $soItem = new SoItem();
+                $soItem->so_no = $order->so_no;
+                $soItem->line_no = $lineNumber;
+                $soItem->prod_sku = $item->sku;
+                $soItem->prod_name = $item->product->name;
+                $soItem->qty = $soItem->qty + $skuInOrder[$item->main_sku] * $item->replace_qty;
+                $soItem->unit_price = 0;
+                $soItem->vat_total = 0;
+                $soItem->amount = 0;
+                $soItem->hidden_to_client = 1;
+                $soItem->create_on = Carbon::now();
+                $soItem->modify_on = Carbon::now();
+                $order->soItem()->save($soItem);
+
+                $soItemDetail = new SoItemDetail();
+                $soItemDetail->so_no = $order->so_no;
+                $soItemDetail->line_no = $lineNumber;
+                $soItemDetail->item_sku = $item->sku;
+                $soItemDetail->qty = $soItemDetail->qty + $skuInOrder[$item->main_sku] * $item->replace_qty;
+                $soItemDetail->outstanding_qty = $soItemDetail->qty;
+                $soItemDetail->unit_price = 0;
+                $soItemDetail->vat_total = 0;
+                $soItemDetail->amount = 0;
+                $soItemDetail->create_on = Carbon::now();
+                $soItemDetail->modify_on = Carbon::now();
+                $order->soItemDetail()->save($soItemDetail);
 
                 $lineNumber++;
             }
