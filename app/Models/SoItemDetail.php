@@ -12,6 +12,8 @@ class SoItemDetail extends Model
 
     public $timestamps = false;
 
+    protected $guarded = ['create_at'];
+
     public function so()
     {
         return $this->belongsTo('App\Models\So', 'so_no', 'so_no');
