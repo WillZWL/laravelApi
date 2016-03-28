@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Builder;
 
 class AmazonOrder extends Model
 {
@@ -49,6 +50,7 @@ class AmazonOrder extends Model
 
     /**
      * Get not acknowledge order.
+     * @param $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeReadyOrder($query)
@@ -56,5 +58,17 @@ class AmazonOrder extends Model
         return $query->where('acknowledge', '=', '0')
                         ->where('order_status', '!=', 'Canceled')
                         ->where('order_status', '!=', 'Pending');
+    }
+
+    /**
+     * Get all waiting for ship order.
+     * @param $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeUnshippedOrder($query)
+    {
+        return $query->where('fulfillment_channel', '=', 'MFN')
+            ->where('order_status', '=', 'Unshipped')
+            ->where('acknowledge', '=', '1');
     }
 }
