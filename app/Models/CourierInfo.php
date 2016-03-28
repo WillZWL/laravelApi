@@ -22,4 +22,9 @@ class CourierInfo extends Model
     {
         return $this->hasMany('App\Models\So', 'courier_id', 'recommend_courier_id');
     }
+
+    public function shipment()
+    {
+        return $this->hasMany('App\Models\SoShipment', 'courier_id', 'courier_id');
+    }
 }
