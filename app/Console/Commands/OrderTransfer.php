@@ -412,49 +412,49 @@ class OrderTransfer extends Command
         if ( ! $availableQuotation->isEmpty()) {
             switch ($order->delivery_type_id) {
                 case 'FBA':
-                    $quotationType = 'acc_fbmp';
+                    $quotationType = ['acc_fbmp'];
                     break;
 
                 case 'STD':
                     if ($this->isIncludeBattery($order)) {
-                        $quotationType = 'acc_external_postage';
+                        $quotationType = ['acc_builtin_postage'];
                     } else {
-                        $quotationType = 'acc_builtin_postage';
+                        $quotationType = ['acc_builtin_postage', 'acc_external_postage'];
                     }
                     break;
 
                 case 'EXPED':
-                    $quotationType = 'acc_courier';
+                    $quotationType = ['acc_courier'];
                     break;
 
                 case 'EXP':
-                    $quotationType = 'acc_courier_exp';
+                    $quotationType = ['acc_courier_exp'];
                     break;
 
                 case 'MCF':
-                    $quotationType = 'acc_mcf';
+                    $quotationType = ['acc_mcf'];
                     break;
 
                 default :
-                    $quotationType = '';
+                    $quotationType = [];
                     break;
             }
 
-            $quotationVersion = $availableQuotation->where('quotation_type', $quotationType)->last();
-            if (empty($quotationVersion)) {
+            $quotationVersionIds = $availableQuotation->whereIn('quotation_type', $quotationType)->pluck('id')->toArray();
+            if (empty($quotationVersionIds)) {
                 return false;
             }
-            $quotationVersionId = $quotationVersion->id;
             $weightId = WeightCourier::getWeightId($order->weight);
             if ($weightId === null) {
                 // TODO
                 // overweight case.
                 $quotation = '';
             } else {
-                $quotation = Quotaton::where('quotn_version_id', '=', $quotationVersionId)
+                $quotation = Quotaton::whereIn('quotn_version_id', $quotationVersionIds)
                     ->where('dest_country_id', '=', $order->delivery_country_id)
                     ->where('dest_state_id', '=', $order->delivery_state)
                     ->where('weight_id', '=', $weightId)
+                    ->orderBy('quotation', 'ASC')
                     ->first();
             }
 
