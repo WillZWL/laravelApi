@@ -521,7 +521,7 @@ class OrderTransfer extends Command
      */
     private function isIncludeBattery(So $so)
     {
-        if (1 == Product::whereIn('sku', $so->soItem->pluck('prod_sku'))->max('battery')) {
+        if (2 == Product::whereIn('sku', $so->soItem->pluck('prod_sku'))->max('battery')) {
             return true;
         }
 
