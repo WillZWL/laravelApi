@@ -72,7 +72,7 @@ class SubmitOrderFulfillmentFeed extends Command
                 $xml .= '<MessageID>1</MessageID>';
                 $xml .= '<OrderFulfillment>';
                 $xml .= '<AmazonOrderID>'.$esgOrder->platform_order_id.'</AmazonOrderID>';
-                $xml .= '<MerchantFulfillmentID>'.$esgOrderShipment->sh_no.'</MerchantFulfillmentID>';
+                $xml .= '<MerchantFulfillmentID>'.$esgOrder->so_no.'</MerchantFulfillmentID>';
                 $xml .= '<FulfillmentDate>'.Carbon::parse($esgOrder->dispatch_date)->format('c').'</FulfillmentDate>';
                 $xml .= '<FulfillmentData>';
                 $xml .= '<CarrierName>'.$esgOrderShipment->courierInfo->courier_name.'</CarrierName>';
