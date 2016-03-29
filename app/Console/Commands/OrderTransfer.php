@@ -432,7 +432,7 @@ class OrderTransfer extends Command
                     break;
 
                 case 'MCF':
-                    $quotation = 'acc_mcf';
+                    $quotationType = 'acc_mcf';
                     break;
 
                 default :
@@ -462,10 +462,11 @@ class OrderTransfer extends Command
                 return false;
             }
 
+            $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
             $order->recommend_courier_id = $quotation->courier_id;
-            $order->esg_delivery_cost = $quotation->cost;
-            $order->esg_delivery_offer = $quotation->cost;
-            $order->delivery_charge = $quotation->quotation; // TODO: need to confirm whether markup by merchant.
+            $order->esg_delivery_cost = $quotation->cost * $currencyRate;
+            $order->esg_delivery_offer = $quotation->cost * $currencyRate;
+            $order->delivery_charge = $quotation->quotation * $currencyRate * 1.0125;   // 1.0125 is exchange rate mark up.
             $order->save();
         }
     }
@@ -478,14 +479,18 @@ class OrderTransfer extends Command
 
         $weightId = WeightCourier::getWeightId($order->weight);
 
+
         if ($splitOrders[0]->courierInfo) {
             $courierCost = $this->getCourierCost($order->delivery_country_id, $order->delivery_state, $weightId, $splitOrders[0]->courierInfo->courier_id);
 
             if ($courierCost) {
+                $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
+                $deliveryChargeInHKD = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
+
+                $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
+                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate;
+                $order->delivery_charge = 1.0125 * $order->esg_delivery_offer;
                 $order->recommend_courier_id = $splitOrders[0]->courierInfo->courier_id;
-                $order->delivery_charge = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
-                $order->esg_delivery_cost = $order->delivery_charge;
-                $order->esg_delivery_offer = $order->delivery_charge;
                 return $order->save();
             }
         }

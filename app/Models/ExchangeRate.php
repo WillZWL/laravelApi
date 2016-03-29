@@ -13,4 +13,12 @@ class ExchangeRate extends Model
     //public $primaryKey = ['from_currency_id', 'to_currency_id'];
 
     public $timestamps = false;
+
+    public static function getRate($fromCurrency, $toCurrency)
+    {
+        return ExchangeRate::where('from_currency_id', '=', $fromCurrency)
+            ->where('to_currency_id', '=', $toCurrency)
+            ->firstOrFail()
+            ->rate;
+    }
 }
