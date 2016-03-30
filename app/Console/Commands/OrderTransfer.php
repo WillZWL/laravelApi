@@ -463,7 +463,7 @@ class OrderTransfer extends Command
             }
 
             $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
-            $order->recommend_courier_id = $quotation->courier_id;
+            $order->esg_quotation_courier_id = $quotation->courier_id;
             $order->esg_delivery_cost = $quotation->cost * $currencyRate;
             $order->esg_delivery_offer = $quotation->cost * $currencyRate;
             $order->delivery_charge = $quotation->quotation * $currencyRate * 1.0125;   // 1.0125 is exchange rate mark up.
@@ -490,7 +490,7 @@ class OrderTransfer extends Command
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
                 $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate;
                 $order->delivery_charge = 1.0125 * $order->esg_delivery_offer;
-                $order->recommend_courier_id = $splitOrders[0]->courierInfo->courier_id;
+                $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
                 return $order->save();
             }
         }
