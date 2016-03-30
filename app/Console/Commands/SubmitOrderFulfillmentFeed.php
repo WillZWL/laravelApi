@@ -98,10 +98,23 @@ class SubmitOrderFulfillmentFeed extends Command
                     $platformOrderFeed->feed_submission_id = $response['FeedSubmissionId'];
                     $platformOrderFeed->submitted_date = $response['SubmittedDate'];
                     $platformOrderFeed->feed_processing_status = $response['FeedProcessingStatus'];
+
+                    $this->markSplitOrderShipped($esgOrder);
                 }
 
                 $platformOrderFeed->save();
             }
         }
+    }
+
+    public function markSplitOrderShipped(So $order)
+    {
+        $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
+            ->where('is_platform_split_order', '=', 1)->get();
+
+        $splitOrders->map(function($splitOrder) {
+            $splitOrder->status = 3;
+            $splitOrder->save();
+        });
     }
 }
