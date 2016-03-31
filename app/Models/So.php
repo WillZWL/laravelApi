@@ -18,6 +18,24 @@ class So extends Model
 
     protected $guarded = ['create_at'];
 
+    public function hasInternalBattery()
+    {
+        $result = $this->soItem->contains(function ($key, $value) {
+            return $value->product->battery == 1;
+        });
+
+        return $result;
+    }
+
+    public function hasExternalBattery()
+    {
+        $result = $this->soItem->contains(function ($key, $value) {
+            return $value->product->battery == 2;
+        });
+
+        return $result;
+    }
+
     function soItem()
     {
         return $this->hasMany('App\Models\SoItem', 'so_no', 'so_no');
