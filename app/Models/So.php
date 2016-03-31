@@ -35,6 +35,6 @@ class So extends Model
 
     public function courierInfo()
     {
-        return $this->belongsTo('App\Models\CourierInfo', 'recommend_courier_id', 'courier_id');
+        return $this->belongsTo('App\Models\CourierInfo', 'esg_quotation_courier_id', 'courier_id');
     }
 }
