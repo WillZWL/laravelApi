@@ -113,7 +113,7 @@ class SubmitOrderFulfillmentFeed extends Command
             ->where('is_platform_split_order', '=', 1)->get();
 
         $splitOrders->map(function($splitOrder) {
-            $splitOrder->status = 3;
+            $splitOrder->status = 6;
             $splitOrder->save();
         });
     }
