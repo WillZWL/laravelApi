@@ -18,6 +18,11 @@ class Product extends Model
 
     protected $guarded = ['create_at'];
 
+    public function soItem()
+    {
+        return $this->hasMany('App\Models\SoItem', 'sku', 'prod_sku');
+    }
+
     public function productComplementaryAcc()
     {
         return $this->hasMany('App\Models\ProductComplementaryAcc', 'sku', 'accessory_sku');

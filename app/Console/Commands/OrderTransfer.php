@@ -167,7 +167,6 @@ class OrderTransfer extends Command
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
         $this->setGroupOrderRecommendCourierAndCharge($so);
-
     }
 
     public function createSplitOrder(AmazonOrder $order)
@@ -416,7 +415,8 @@ class OrderTransfer extends Command
                     break;
 
                 case 'STD':
-                    if ($this->isIncludeBattery($order)) {
+                    // see sbf 8255.
+                    if ( ! $order->hasExternalBattery() && $order->hasInternalBattery())  {
                         $quotationType = ['acc_builtin_postage'];
                     } else {
                         $quotationType = ['acc_builtin_postage', 'acc_external_postage'];
@@ -450,11 +450,16 @@ class OrderTransfer extends Command
                 // overweight case.
                 $quotation = '';
             } else {
+                if ($order->hasExternalBattery() || $order->hasInternalBattery()) {
+                    $sort = 'DESC';             // use more expensive quotation of STD.
+                } else {
+                    $sort = 'ASC';              // use cheaper quotation of STD.
+                }
                 $quotation = Quotaton::whereIn('quotn_version_id', $quotationVersionIds)
                     ->where('dest_country_id', '=', $order->delivery_country_id)
                     ->where('dest_state_id', '=', $order->delivery_state)
                     ->where('weight_id', '=', $weightId)
-                    ->orderBy('quotation', 'ASC')
+                    ->orderBy('quotation', $sort)
                     ->first();
             }
 
@@ -478,7 +483,6 @@ class OrderTransfer extends Command
             ->get();
 
         $weightId = WeightCourier::getWeightId($order->weight);
-
 
         if ($splitOrders[0]->courierInfo) {
             $courierCost = $this->getCourierCost($order->delivery_country_id, $order->delivery_state, $weightId, $splitOrders[0]->courierInfo->courier_id);
@@ -518,19 +522,6 @@ class OrderTransfer extends Command
             ->where('weight_id', '=', $weightId)
             ->where('courier_id', '=', $courierId)
             ->first();
-    }
-
-    /**
-     * @param So $so
-     * @return bool
-     */
-    private function isIncludeBattery(So $so)
-    {
-        if (2 == Product::whereIn('sku', $so->soItem->pluck('prod_sku'))->max('battery')) {
-            return true;
-        }
-
-        return false;
     }
 
     private function addComplementaryAccessory(So $order)

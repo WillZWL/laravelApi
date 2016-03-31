@@ -18,6 +18,24 @@ class So extends Model
 
     protected $guarded = ['create_at'];
 
+    public function hasInternalBattery()
+    {
+        $result = $this->soItem->contains(function ($key, $value) {
+            return $value->product->battery == 1;
+        });
+
+        return $result;
+    }
+
+    public function hasExternalBattery()
+    {
+        $result = $this->soItem->contains(function ($key, $value) {
+            return $value->product->battery == 2;
+        });
+
+        return $result;
+    }
+
     function soItem()
     {
         return $this->hasMany('App\Models\SoItem', 'so_no', 'so_no');
@@ -35,6 +53,6 @@ class So extends Model
 
     public function courierInfo()
     {
-        return $this->belongsTo('App\Models\CourierInfo', 'recommend_courier_id', 'courier_id');
+        return $this->belongsTo('App\Models\CourierInfo', 'esg_quotation_courier_id', 'courier_id');
     }
 }
