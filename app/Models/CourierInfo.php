@@ -27,4 +27,9 @@ class CourierInfo extends Model
     {
         return $this->hasMany('App\Models\SoShipment', 'courier_id', 'courier_id');
     }
+
+    public function quotation()
+    {
+        return $this->hasMany('App\Models\Quotation', 'courier_id', 'courier_id');
+    }
 }

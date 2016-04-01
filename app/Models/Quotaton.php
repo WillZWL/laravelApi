@@ -13,4 +13,9 @@ class Quotaton extends Model
     public $timestamps = false;
 
     public $incrementing = false;
+
+    public function courierInfo()
+    {
+        return $this->belongsTo('App\Models\CourierInfo', 'courier_id', 'courier_id');
+    }
 }
