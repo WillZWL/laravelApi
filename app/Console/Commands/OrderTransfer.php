@@ -411,7 +411,7 @@ class OrderTransfer extends Command
         if ( ! $availableQuotation->isEmpty()) {
             switch ($order->delivery_type_id) {
                 case 'FBA':
-                    $quotationType = ['acc_fbmp'];
+                    $quotationType = ['acc_fba'];
                     break;
 
                 case 'STD':
