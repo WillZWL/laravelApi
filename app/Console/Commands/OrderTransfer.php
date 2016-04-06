@@ -108,8 +108,9 @@ class OrderTransfer extends Command
 
         // check selling platform is exist or not.
         $countryCode = strtoupper(substr($order->platform, -2));
-        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($countryCode) {
-            return 'AC-BCAZ-'.$item.$countryCode;
+        $platformId = strtoupper(substr($order->platform, 0, -2));
+        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($platformId, $countryCode) {
+            return $platformId.$item.$countryCode;
         })->toArray();
         $platformIdFromDB = PlatformBizVar::whereIn('selling_platform_id', $sellingPlatformId)
             ->get()
@@ -129,7 +130,6 @@ class OrderTransfer extends Command
         // check sku delivery type.
         $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
         $skuHaveDeliveryScore = PlatformOrderDeliveryScore::whereIn('sku', $skuList)
-            ->where('platform_type', '=', 'BCAMAZON')
             ->where('country_id', '=', $countryCode)
             ->get()
             ->pluck('sku')
@@ -156,7 +156,8 @@ class OrderTransfer extends Command
         $so = $this->createOrder($order, $order->amazonOrderItem);
 
         $countryCode = strtoupper(substr($order->platform, -2));
-        $so->platform_id = 'AC-BCAZ-GROUP'.$countryCode;
+        $platformId = strtoupper(substr($order->platform, 0, -2));
+        $so->platform_id = $platformId.'GROUP'.$countryCode;
         $so->save();
 
         $this->saveSoItem($so, $order->amazonOrderItem);
@@ -189,7 +190,8 @@ class OrderTransfer extends Command
 
             $countryCode = strtoupper(substr($order->platform, -2));
             //$countryCode = ($countryCode === 'UK') ? 'GB' : $countryCode;
-            $so->platform_id = 'AC-BCAZ-'.$merchantShortId.$countryCode;
+            $platformId = strtoupper(substr($order->platform, 0, -2));
+            $so->platform_id = $platformId.$merchantShortId.$countryCode;
             $so->is_platform_split_order = 1;
             $so->save();
             $this->saveSoItem($so, $items);
@@ -251,8 +253,8 @@ class OrderTransfer extends Command
         $client = $this->createOrUpdateClient($order);
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
-        $newOrder->is_platform_split_order = 0;
         $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set this.
+        $newOrder->is_platform_split_order = 0;
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
@@ -382,8 +384,9 @@ class OrderTransfer extends Command
     {
         $countryCode = strtolower(substr($so->platform_id, -2));
         $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
+        $amazonAccount = strtolower(substr($so->platform_id, 3, 2));
 
-        return 'bc_amazon_'.$countryCode;
+        return $amazonAccount.'_amazon_'.$countryCode;
     }
 
     /**
@@ -462,11 +465,13 @@ class OrderTransfer extends Command
                     ->orderBy('quotation', $sort)
                     ->first();
 
-                if ($order->hasInternalBattery() && ($quotation->courierInfo->allow_builtin_battery != 1)) {
-                    $quotation = '';
-                }
-                if ($order->hasExternalBattery() && ($quotation->courierInfo->allow_external_battery != 1)) {
-                    $quotation = '';
+                if ($quotation) {
+                    if ($order->hasInternalBattery() && ($quotation->courierInfo->allow_builtin_battery != 1)) {
+                        $quotation = '';
+                    }
+                    if ($order->hasExternalBattery() && ($quotation->courierInfo->allow_external_battery != 1)) {
+                        $quotation = '';
+                    }
                 }
             }
 

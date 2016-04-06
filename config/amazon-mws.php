@@ -1,16 +1,16 @@
 <?php
 
 return [
-	'store' => [
-		'AMZUS' => [
-			'merchantId' => 'A31GWB3ZYX0LWJ',
-			'marketplaceId' => 'ATVPDKIKX0DER',
-			'keyId' => 'AKIAJV4DKBKNNPD4EXEA', // Access Key ID.
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.com/',
+    'store' => [
+        'AC-BCAZ-US' => [
+            'merchantId' => 'A31GWB3ZYX0LWJ',
+            'marketplaceId' => 'ATVPDKIKX0DER',
+            'keyId' => 'AKIAJV4DKBKNNPD4EXEA', // Access Key ID.
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.com/',
             'platform' => 'US',
-		],
-        'AMZCA' => [
+        ],
+        'AC-BCAZ-CA' => [
             'merchantId' => 'A31GWB3ZYX0LWJ',
             'marketplaceId' => 'A2EUQ1WTGCTBG2',
             'keyId' => 'AKIAJV4DKBKNNPD4EXEA',
@@ -18,66 +18,131 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
             'platform' =>'CA',
         ],
-		'AMZMX' => [
-			'merchantId' => 'A31GWB3ZYX0LWJ',
-			'marketplaceId' => 'A1AM78C64UM0Y8',
-			'keyId' => 'AKIAJV4DKBKNNPD4EXEA',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
-			'platform' =>'MX',
-		],
-		'AMZGB' => [
-			'merchantId' => 'A3C4BSI6HUJD6J',
-			'marketplaceId' => 'A1F83G8C2ARO7P',
-			'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
-			'platform' =>'GB',
-		],
-		'AMZDE' => [
-			'merchantId' => 'A3C4BSI6HUJD6J',
-			'marketplaceId' => 'A1PA6795UKMFR9',
-			'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.de/',
-			'platform' =>'DE',
-		],
-		'AMZES' => [
-			'merchantId' => 'A3C4BSI6HUJD6J',
-			'marketplaceId' => 'A1RKKUPIHCS9HS',
-			'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.es/',
-			'platform' =>'ES',
-		],
-		'AMZFR' => [
-			'merchantId' => 'A3C4BSI6HUJD6J',
-			'marketplaceId' => 'A13V1IB3VIYZZH',
-			'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
-			'platform' =>'FR',
-		],
-		'AMZIT' => [
-			'merchantId' => 'A3C4BSI6HUJD6J',
-			'marketplaceId' => 'APJ6JRA9NG5V4',
-			'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.it/',
-			'platform' =>'IT',
-		],
-		'AMZJP' => [
-			'merchantId' => 'A31MKVVQWZLA3D',
-			'marketplaceId' => 'A1VC38T7YXB528',
-			'keyId' => 'AKIAJ7FBNDUIX7XLPNZQ',
-			'secretKey' => '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',
-			'amazonServiceUrl' => 'https://mws.amazonservices.jp/',
-			'platform' =>'JP',
-		],
-	],
+        'AC-BCAZ-MX' => [
+            'merchantId' => 'A31GWB3ZYX0LWJ',
+            'marketplaceId' => 'A1AM78C64UM0Y8',
+            'keyId' => 'AKIAJV4DKBKNNPD4EXEA',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
+            'platform' =>'MX',
+        ],
+        'AC-BCAZ-GB' => [
+            'merchantId' => 'A3C4BSI6HUJD6J',
+            'marketplaceId' => 'A1F83G8C2ARO7P',
+            'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
+            'platform' =>'GB',
+        ],
+        'AC-BCAZ-DE' => [
+            'merchantId' => 'A3C4BSI6HUJD6J',
+            'marketplaceId' => 'A1PA6795UKMFR9',
+            'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.de/',
+            'platform' =>'DE',
+        ],
+        'AC-BCAZ-ES' => [
+            'merchantId' => 'A3C4BSI6HUJD6J',
+            'marketplaceId' => 'A1RKKUPIHCS9HS',
+            'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.es/',
+            'platform' =>'ES',
+        ],
+        'AC-BCAZ-FR' => [
+            'merchantId' => 'A3C4BSI6HUJD6J',
+            'marketplaceId' => 'A13V1IB3VIYZZH',
+            'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
+            'platform' =>'FR',
+        ],
+        'AC-BCAZ-IT' => [
+            'merchantId' => 'A3C4BSI6HUJD6J',
+            'marketplaceId' => 'APJ6JRA9NG5V4',
+            'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.it/',
+            'platform' =>'IT',
+        ],
+        'AC-BCAZ-JP' => [
+            'merchantId' => 'A31MKVVQWZLA3D',
+            'marketplaceId' => 'A1VC38T7YXB528',
+            'keyId' => 'AKIAJ7FBNDUIX7XLPNZQ',
+            'secretKey' => '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',
+            'amazonServiceUrl' => 'https://mws.amazonservices.jp/',
+            'platform' =>'JP',
+        ],
 
-	// Default service URL
-	'AMAZON_SERVICE_URL' => 'https://mws.amazonservices.com/',
+        // 'AC-3DAZ-US' => [
+        //     'merchantId' => 'A596P66U645JG',
+        //     'marketplaceId' => 'ATVPDKIKX0DER',
+        //     'keyId' => 'AKIAJKXSW24CHZEO64WQ',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.com/',
+        //     'platform' =>'US',
+        // ],
+        // 'AC-3DAZ-CA' => [
+        //     'merchantId' => 'A596P66U645JG',
+        //     'marketplaceId' => 'A2EUQ1WTGCTBG2',
+        //     'keyId' => 'AKIAJKXSW24CHZEO64WQ',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
+        //     'platform' =>'CA',
+        // ],
+        // 'AC-3DAZ-MX' => [
+        //     'merchantId' => 'A596P66U645JG',
+        //     'marketplaceId' => 'A1AM78C64UM0Y8',
+        //     'keyId' => 'AKIAJKXSW24CHZEO64WQ',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
+        //     'platform' =>'MX',
+        // ],
+        // 'AC-3DAZ-GB' => [
+        //     'merchantId' => 'A2LTPCO6A3S9S4',
+        //     'marketplaceId' => 'A1F83G8C2ARO7P',
+        //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
+        //     'platform' =>'GB',
+        // ],
+        // 'AC-3DAZ-DE' => [
+        //     'merchantId' => 'A2LTPCO6A3S9S4',
+        //     'marketplaceId' => 'A1PA6795UKMFR9',
+        //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.de/',
+        //     'platform' =>'DE',
+        // ],
+        // 'AC-3DAZ-ES' => [
+        //     'merchantId' => 'A2LTPCO6A3S9S4',
+        //     'marketplaceId' => 'A1RKKUPIHCS9HS',
+        //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.es/',
+        //     'platform' =>'ES',
+        // ],
+        // 'AC-3DAZ-FR' => [
+        //     'merchantId' => 'A2LTPCO6A3S9S4',
+        //     'marketplaceId' => 'A13V1IB3VIYZZH',
+        //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
+        //     'platform' =>'FR',
+        // ],
+        // 'AC-3DAZ-IT' => [
+        //     'merchantId' => 'A2LTPCO6A3S9S4',
+        //     'marketplaceId' => 'APJ6JRA9NG5V4',
+        //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
+        //     'secretKey' => '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',
+        //     'amazonServiceUrl' => 'https://mws.amazonservices.it/',
+        //     'platform' =>'IT',
+        // ],
+    ],
 
-	'muteLog' => true
+    // Default service URL
+    'AMAZON_SERVICE_URL' => 'https://mws.amazonservices.com/',
+
+    'muteLog' => true
 ];

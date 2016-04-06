@@ -67,21 +67,27 @@ class OrderRetrieve extends Command
                 $previousSchedule = $currentSchedule;
             }
 
-            $result = $this->retrieveOrder($storeName, $previousSchedule);
+            $amazonOrderList = new AmazonOrderList($storeName);
 
+            $result = $this->retrieveOrder($storeName, $amazonOrderList, $previousSchedule);
             if ($result) {
                 $currentSchedule->status = 'C';
+            } else {
+                $currentSchedule->status = 'F';
+                $currentSchedule->remark = json_encode($amazonOrderList->getLastResponse());
             }
             $currentSchedule->save();
         }
     }
 
-    public function retrieveOrder($storeName, Schedule $schedule)
+    public function retrieveOrder($storeName, AmazonOrderList $amazonOrderList, Schedule $schedule)
     {
-        $amazonOrderList = new AmazonOrderList($storeName);
         $amazonOrderList->setLimits('Modified', $schedule->last_access_time);
         $amazonOrderList->setUseToken();
-        $amazonOrderList->fetchOrders();
+        $fetchResult = $amazonOrderList->fetchOrders();
+        if ($fetchResult === false) {
+            return false;
+        }
         $originOrders = $amazonOrderList->getList();
         $amazonOrderItemList = new AmazonOrderItemList($storeName);
 
