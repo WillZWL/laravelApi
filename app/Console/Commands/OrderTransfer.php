@@ -461,6 +461,13 @@ class OrderTransfer extends Command
                     ->where('weight_id', '=', $weightId)
                     ->orderBy('quotation', $sort)
                     ->first();
+
+                if ($order->hasInternalBattery() && ($quotation->courierInfo->allow_builtin_battery != 1)) {
+                    $quotation = '';
+                }
+                if ($order->hasExternalBattery() && ($quotation->courierInfo->allow_external_battery != 1)) {
+                    $quotation = '';
+                }
             }
 
             if (empty($quotation)) {
@@ -470,8 +477,8 @@ class OrderTransfer extends Command
             $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
             $order->esg_quotation_courier_id = $quotation->courier_id;
             $order->esg_delivery_cost = $quotation->cost * $currencyRate;
-            $order->esg_delivery_offer = $quotation->cost * $currencyRate;
-            $order->delivery_charge = $quotation->quotation * $currencyRate * 1.0125;   // 1.0125 is exchange rate mark up.
+            $order->esg_delivery_offer = $quotation->cost * $currencyRate * 1.0125; // 1.0125 is exchange rate mark up.
+            $order->delivery_charge = $order->esg_delivery_offer;
             $order->save();
         }
     }
@@ -492,8 +499,8 @@ class OrderTransfer extends Command
                 $deliveryChargeInHKD = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
 
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
-                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate;
-                $order->delivery_charge = 1.0125 * $order->esg_delivery_offer;
+                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate * 1.0125;
+                $order->delivery_charge = $order->esg_delivery_offer;
                 $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
                 return $order->save();
             }
