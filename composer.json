@@ -9,7 +9,8 @@
         "laravel/framework": "5.2.*",
         "peron/laravel5-amazon-mws": "^2.0",
         "doctrine/dbal": "^2.5",
-        "barryvdh/laravel-ide-helper": "^2.1"
+        "barryvdh/laravel-ide-helper": "^2.1",
+        "barryvdh/laravel-debugbar": "^2.2"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
