@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Quotaton extends Model
+class Quotation extends Model
 {
     public $connection = 'mysql_esg';
 
