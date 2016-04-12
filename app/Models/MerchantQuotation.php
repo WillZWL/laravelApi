@@ -13,9 +13,13 @@ class MerchantQuotation extends Model
 
     public $timestamps = false;
 
-    public $incrementing = false;
-
     protected $guarded = ['create_at'];
+
+    public function merchant()
+    {
+        return $this->belongsTo('App\Models\Merchant', 'id', 'merchant_id');
+    }
+
 
     /**
      * @param $query

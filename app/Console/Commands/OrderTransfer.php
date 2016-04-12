@@ -15,7 +15,7 @@ use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
-use App\Models\Quotaton;
+use App\Models\Quotation;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
@@ -458,7 +458,7 @@ class OrderTransfer extends Command
                 } else {
                     $sort = 'ASC';              // use cheaper quotation of STD.
                 }
-                $quotation = Quotaton::whereIn('quotn_version_id', $quotationVersionIds)
+                $quotation = Quotation::whereIn('quotn_version_id', $quotationVersionIds)
                     ->where('dest_country_id', '=', $order->delivery_country_id)
                     ->where('dest_state_id', '=', $order->delivery_state)
                     ->where('weight_id', '=', $weightId)
