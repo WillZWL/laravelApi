@@ -27,6 +27,5 @@ Route::get('/', function () {
 */
 
 Route::group(['middleware' => ['web']], function () {
-    Route::get('/getorders/{store}', 'RetrieveOrdersController@getAmazonOrders');
-    Route::get('/listorders/{store}/{timestamp}', 'ListOrders@index');
+    Route::get('/pricing/{sellingPlatform}/{sku}/{price}', 'PricingController@getPricingInfo');
 });

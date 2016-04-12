@@ -27,4 +27,9 @@ class Product extends Model
     {
         return $this->hasMany('App\Models\ProductComplementaryAcc', 'sku', 'accessory_sku');
     }
+
+    public function merchantProductMapping()
+    {
+        return $this->hasOne('App\Models\MerchantProductMapping', 'sku', 'sku');
+    }
 }

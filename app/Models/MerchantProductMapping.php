@@ -12,8 +12,15 @@ class MerchantProductMapping extends Model
 
     public $timestamps = false;
 
+    protected $guarded = ['create_at'];
+
     public function merchant()
     {
-        return $this->belongsTo('App\Models\Merchant', 'id', 'merchant_id');
+        return $this->belongsTo('App\Models\Merchant', 'merchant_id', 'id');
+    }
+
+    public function product()
+    {
+        return $this->hasOne('App\Models\Product', 'sku', 'sku');
     }
 }
