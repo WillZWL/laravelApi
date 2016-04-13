@@ -496,6 +496,15 @@ class OrderTransfer extends Command
 
         $weightId = WeightCourier::getWeightId($order->weight);
 
+        // if only one split order, group order follow split order.
+        if (count($splitOrders) === 1) {
+            $order->esg_delivery_cost = $splitOrders[0]->esg_delivery_cost;
+            $order->esg_delivery_offer = $splitOrders[0]->esg_delivery_offer;
+            $order->delivery_charge = $order->esg_delivery_offer;
+            $order->esg_quotation_courier_id = $splitOrders[0]->esg_quotation_courier_id;
+            return $order->save();
+        }
+
         if ($splitOrders[0]->courierInfo) {
             $courierCost = $this->getCourierCost($order->delivery_country_id, $order->delivery_state, $weightId, $splitOrders[0]->courierInfo->courier_id);
 
