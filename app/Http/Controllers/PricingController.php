@@ -136,7 +136,7 @@ class PricingController extends Controller
             $esgCommission = $request->price * $merchantInfo->revenue_value;
         }
 
-        return round($esgCommission);
+        return round($esgCommission, 2);
     }
 
     public function getDeclaredValue(Request $request)
@@ -163,22 +163,25 @@ class PricingController extends Controller
             $declaredValue = $exception->default_declaration_percent * $request->price / 100;
         }
 
-        return round($declaredValue);
+        return round($declaredValue, 2);
     }
 
     public function getTax(Request $request, $declaredValue)
     {
+        $tax = 0;
         $countryTax = CountryTax::where('country_id', '=', $this->destination->country_id)
             ->select(['tax_percentage', 'critical_point_threshold'])
             ->where('state_id', '=', $this->destination->state_id)
-            ->firstOrFail();
+            ->first();
 
-        $tax = $countryTax->tax_percentage * $declaredValue / 100;
-        if ($request->price > $countryTax->critical_point_threshold) {
-            $tax = $countryTax->absolute_amount + $tax;
+        if ($countryTax) {
+            $tax = $countryTax->tax_percentage * $declaredValue / 100;
+            if ($request->price > $countryTax->critical_point_threshold) {
+                $tax = $countryTax->absolute_amount + $tax;
+            }
         }
 
-        return round($tax);
+        return round($tax, 2);
     }
 
     public function getDuty(Request $request, $declaredValue)
