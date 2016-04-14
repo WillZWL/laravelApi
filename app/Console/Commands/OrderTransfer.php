@@ -259,8 +259,12 @@ class OrderTransfer extends Command
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
         $newOrder->weight = $this->calculateOrderWeight($orderItems);
-        $newOrder->amount = $orderItems->pluck('item_price')->sum();
-        $newOrder->cost = $newOrder->amount;   // temporary as amount, should get data from price table.
+        $newOrder->delivery_charge = $orderItems->pluck('shipping_price')->sum()
+            - $orderItems->pluck('shipping_discount')->sum();
+        $newOrder->discount = $orderItems->pluck('promotion_discount')->sum();
+        $newOrder->amount = $newOrder->delivery_charge
+            + $orderItems->pluck('item_price')->sum()
+            - $newOrder->discount;
         $newOrder->currency_id = $order->currency;
         $newOrder->rate = ExchangeRate::where('from_currency_id', '=', $order->currency)
             ->where('to_currency_id', '=', 'USD')
@@ -268,7 +272,6 @@ class OrderTransfer extends Command
             ->rate;
         $newOrder->vat_percent = 0;     // not sure.
         $newOrder->vat = 0;             // not sure.
-        $newOrder->delivery_address = $orderItems->pluck('shipping_price')->sum();
 
         if ($order->fulfillment_channel === 'AFN') {
             $newOrder->delivery_type_id = 'FBA';
@@ -483,7 +486,6 @@ class OrderTransfer extends Command
             $order->esg_quotation_courier_id = $quotation->courier_id;
             $order->esg_delivery_cost = $quotation->cost * $currencyRate;
             $order->esg_delivery_offer = $quotation->cost * $currencyRate * 1.0125; // 1.0125 is exchange rate mark up.
-            $order->delivery_charge = $order->esg_delivery_offer;
             $order->save();
         }
     }
@@ -500,7 +502,6 @@ class OrderTransfer extends Command
         if (count($splitOrders) === 1) {
             $order->esg_delivery_cost = $splitOrders[0]->esg_delivery_cost;
             $order->esg_delivery_offer = $splitOrders[0]->esg_delivery_offer;
-            $order->delivery_charge = $order->esg_delivery_offer;
             $order->esg_quotation_courier_id = $splitOrders[0]->esg_quotation_courier_id;
             return $order->save();
         }
@@ -514,7 +515,6 @@ class OrderTransfer extends Command
 
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
                 $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate * 1.0125;
-                $order->delivery_charge = $order->esg_delivery_offer;
                 $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
                 return $order->save();
             }
