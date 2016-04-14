@@ -25,6 +25,6 @@ class Merchant extends Model
 
     public function merchantQuotation()
     {
-        return $this->hasMany('App\Models\merchantQuotation', 'merchant_id', 'id');
+        return $this->hasMany('App\Models\MerchantQuotation', 'merchant_id', 'id');
     }
 }
