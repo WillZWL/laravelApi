@@ -192,7 +192,7 @@ class PricingController extends Controller
             ->where('hscode_duty_country.country_id', '=', $this->destination->country_id)
             ->firstOrFail();
 
-        return round($declaredValue * $dutyInfo->duty_in_percent / 100);
+        return round($declaredValue * $dutyInfo->duty_in_percent / 100, 2);
     }
 
     public function getMarketplaceCommission(Request $request)
@@ -215,7 +215,7 @@ class PricingController extends Controller
             ->where('to_price', '>', $request->price)
             ->firstOrFail();
 
-        $marketplaceCommission = min($request->price * $categoryCommission->mp_commission, $categoryCommission->maximum);
+        $marketplaceCommission = min($request->price * $categoryCommission->mp_commission / 100, $categoryCommission->maximum);
 
         return round($marketplaceCommission, 2);
     }
