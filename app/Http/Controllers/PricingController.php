@@ -29,27 +29,26 @@ class PricingController extends Controller
     private $product;
     private $destination;
     private $exchangeRate;
+    private $marketplaceControl;
 
     private $adjustRate = 0.9725;
 
     public function __construct(Request $request)
     {
         $this->product = Product::findOrFail($request->sku);
-        $this->destination = new CountryState();
         $countryCode = strtoupper(substr($request->sellingPlatform, -2));
-        $countryCode = ($countryCode == 'UK') ? 'GB' : $countryCode;
-        $this->destination->country_id = $countryCode;
-        $this->destination->state_id = '';
+        $this->destination = CountryState::firstOrNew(['country_id' => $countryCode, 'is_default_state' => 1]);
+        if ($this->destination->state_id === null) {
+            $this->destination->state_id = '';
+        }
 
         $marketplaceId = strtoupper(substr($request->sellingPlatform, 0, -2));
-        $currencyId = MpControl::select(['currency_id'])
-            ->where('marketplace_id', '=', $marketplaceId)
-            ->where('country_id', '=', $this->destination->country_id)
-            ->firstOrFail()
-            ->currency_id;
+        $this->marketplaceControl = MpControl::whereMarketplaceId($marketplaceId)
+            ->whereCountryId($this->destination->country_id)
+            ->firstOrFail();
 
         $this->exchangeRate = ExchangeRate::whereFromCurrencyId('HKD')
-            ->whereToCurrencyId($currencyId)
+            ->whereToCurrencyId($this->marketplaceControl->currency_id)
             ->firstOrFail();
     }
 
@@ -198,16 +197,11 @@ class PricingController extends Controller
     public function getMarketplaceCommission(Request $request)
     {
         $marketplaceId = strtoupper(substr($request->sellingPlatform, 0, -2));
-        $controlId = MpControl::select(['control_id'])
-            ->where('marketplace_id', '=', $marketplaceId)
-            ->where('country_id', '=', $this->destination->country_id)
-            ->firstOrFail()
-            ->control_id;
 
         $product = Product::find($request->sku);
         $categoryCommission = MpCategoryCommission::join('mp_category', 'mp_category.id', '=', 'mp_category_commission.mp_id')
             ->select(['mp_commission', 'maximum'])
-            ->where('mp_category.control_id', '=', $controlId)
+            ->where('mp_category.control_id', '=', $this->marketplaceControl->control_id)
             ->where('mp_category.esg_cat_id', '=', $product->cat_id)
             ->where('mp_category.esg_sub_cat_id', '=', $product->sub_cat_id)
             ->where('mp_category.esg_sub_sub_cat_id', '=', $product->sub_sub_cat_id)
@@ -270,7 +264,8 @@ class PricingController extends Controller
     {
         $account = substr($request->sellingPlatform, 0, 2);
         $marketplaceId = substr($request->sellingPlatform, 2, -2);
-        $countryCode = substr($request->sellingPlatform, -2);
+        $countryCode = strtolower(substr($request->sellingPlatform, -2));
+        $countryCode = ($countryCode == 'gb') ? 'uk' : $countryCode;
 
         $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
         $paymentGatewayRate = PaymentGateway::findOrFail($paymentGatewayId)->payment_gateway_rate;
@@ -282,7 +277,8 @@ class PricingController extends Controller
     {
         $account = substr($request->sellingPlatform, 0, 2);
         $marketplaceId = substr($request->sellingPlatform, 2, -2);
-        $countryCode = substr($request->sellingPlatform, -2);
+        $countryCode = strtolower(substr($request->sellingPlatform, -2));
+        $countryCode = ($countryCode == 'gb') ? 'uk' : $countryCode;
 
         $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
         $paymentGateway = PaymentGateway::findOrFail($paymentGatewayId);
