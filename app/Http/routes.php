@@ -15,6 +15,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::post('/pricing/save', 'PricingController@save');
+
 /*
 |--------------------------------------------------------------------------
 | Application Routes
@@ -28,4 +30,6 @@ Route::get('/', function () {
 
 Route::group(['middleware' => ['web']], function () {
     Route::get('/pricing/{sellingPlatform}/{sku}/{price}', 'PricingController@getPricingInfo');
+    Route::get('/pricing/list', 'PricingController@getListSku');
+    Route::get('/pricing', 'PricingController@index');
 });
