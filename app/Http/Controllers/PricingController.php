@@ -7,6 +7,7 @@ use App\Models\CountryTax;
 use App\Models\Declaration;
 use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
+use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantClientType;
 use App\Models\MerchantProductMapping;
 use App\Models\MerchantQuotation;
@@ -33,7 +34,67 @@ class PricingController extends Controller
 
     private $adjustRate = 0.9725;
 
-    public function __construct(Request $request)
+    public function index(Request $request)
+    {
+        $marketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplace_sku)
+            ->where('marketplace_id', '=', 'BCAMAZON')
+            ->get();
+
+        $result = [$request->marketplace_sku => []];
+        foreach ($marketplaceSkuMapping as $mapping_item) {
+            $innerRequest = new Request();
+            $innerRequest->sellingPlatform = $mapping_item->marketplace_id.$mapping_item->country_id;
+            $innerRequest->marketplaceSku = $request->marketplace_sku;
+            $innerRequest->price = $mapping_item->price;
+            $this->product = $mapping_item->product;
+            $innerRequest->sku = $this->product->sku;
+            $result[$request->marketplace_sku][$innerRequest->sellingPlatform] = $this->getPricingInfo($innerRequest);
+        }
+
+        echo json_encode($result);
+        die();
+    }
+
+    public function save(Request $request)
+    {
+        $countryCode = substr($request->sellingPlatform, -2);
+        $marketplaceId = substr($request->sellingPlatform, 0, -2);
+
+        $mapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplace_sku)
+            ->whereMarketplaceId($marketplaceId)
+            ->whereCountryId($countryCode)
+            ->firstOrFail();
+
+        $mapping->delivery_type = $request->delivery_type;
+        $mapping->price = $request->price;
+        $mapping->profit = $request->profit;
+        $mapping->margin = $request->margin;
+        if ($mapping->save()) {
+            echo json_encode(['success'=>$request->price]);
+        } else {
+            echo json_encode(['save failure']);
+        }
+
+    }
+
+    public function getListSku(Request $request)
+    {
+        $marketplace = $request->marketplace;
+        $masterSku = $request->master_sku;
+        $esgSku = $request->sku;
+        $productName = $request->product_name;
+
+        $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+            ->select(['marketplace_sku', 'product.sku', 'name', 'price'])
+            ->where('product.sku', '=', $esgSku)
+            ->whereMarketplaceId($marketplace)
+            ->groupBy('marketplace_sku')
+            ->get();
+
+        echo json_encode($marketplaceSkuMapping->toJson());
+    }
+
+    public function getPricingInfo(Request $request)
     {
         $this->product = Product::findOrFail($request->sku);
         $countryCode = strtoupper(substr($request->sellingPlatform, -2));
@@ -50,10 +111,7 @@ class PricingController extends Controller
         $this->exchangeRate = ExchangeRate::whereFromCurrencyId('HKD')
             ->whereToCurrencyId($this->marketplaceControl->currency_id)
             ->firstOrFail();
-    }
 
-    public function getPricingInfo(Request $request)
-    {
         $declaredValue = $this->getDeclaredValue($request);
         $tax = $this->getTax($request, $declaredValue);
         $duty = $this->getDuty($request, $declaredValue);
@@ -71,7 +129,7 @@ class PricingController extends Controller
 
         $pricingType = $this->getMerchantType($request);
 
-        $totalCharge = $request->price + $deliveryCharge;
+        $totalCharged = $request->price + $deliveryCharge;
 
         $priceInfo = [];
         $deliveryOptions = ['STD', 'EXPED', 'EXP', 'FBA', 'MCF'];
@@ -90,20 +148,27 @@ class PricingController extends Controller
                 $priceInfo[$deliveryType]['supplier_cost'] = $supplierCost;
                 $priceInfo[$deliveryType]['accessory_cost'] = $accessoryCost;
                 $priceInfo[$deliveryType]['delivery_charge'] = $deliveryCharge;
-
                 $priceInfo[$deliveryType]['total_cost'] = array_sum($priceInfo[$deliveryType]);
-                $priceInfo[$deliveryType]['total_charge'] = $totalCharge;
 
-                if ($pricingType == 'revenue') {
-                    $priceInfo[$deliveryType]['profit'] = $esgCommission;
-                } elseif ($pricingType == 'cost') {
-                    $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['total_charge'] - $priceInfo[$deliveryType]['total_cost'];
+                $priceInfo[$deliveryType]['price'] = $request->price;
+                $priceInfo[$deliveryType]['declared_value'] = $declaredValue;
+                $priceInfo[$deliveryType]['total_charged'] = $totalCharged;
+
+                if ($request->price > 0) {
+                    if ($pricingType == 'revenue') {
+                        $priceInfo[$deliveryType]['profit'] = $esgCommission;
+                    } elseif ($pricingType == 'cost') {
+                        $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['total_charged'] - $priceInfo[$deliveryType]['total_cost'];
+                    }
+                    $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->price * 100, 2);
+                } else {
+                    $priceInfo[$deliveryType]['profit'] = 'N/A';
+                    $priceInfo[$deliveryType]['margin'] = 'N/A';
                 }
-                $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->price * 100, 2);
             }
         }
 
-        echo json_encode($priceInfo);
+        return $priceInfo;
     }
 
     public function getMerchantType(Request $request)
@@ -205,8 +270,8 @@ class PricingController extends Controller
             ->where('mp_category.esg_cat_id', '=', $product->cat_id)
             ->where('mp_category.esg_sub_cat_id', '=', $product->sub_cat_id)
             ->where('mp_category.esg_sub_sub_cat_id', '=', $product->sub_sub_cat_id)
-            ->where('from_price', '<=', $request->price)
-            ->where('to_price', '>', $request->price)
+            //->where('from_price', '<=', $request->price)
+            //->where('to_price', '>', $request->price)
             ->firstOrFail();
 
         $marketplaceCommission = min($request->price * $categoryCommission->mp_commission / 100, $categoryCommission->maximum);

@@ -32,4 +32,9 @@ class Product extends Model
     {
         return $this->hasOne('App\Models\MerchantProductMapping', 'sku', 'sku');
     }
+
+    public function marketplaceSkuMapping()
+    {
+        return $this->hasMany('App\Models\MarketplaceSkuMapping', 'sku', 'sku');
+    }
 }
