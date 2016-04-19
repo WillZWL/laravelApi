@@ -32,4 +32,5 @@ Route::group(['middleware' => ['web']], function () {
     Route::get('/pricing/{sellingPlatform}/{sku}/{price}', 'PricingController@getPricingInfo');
     Route::get('/pricing/list', 'PricingController@getListSku');
     Route::get('/pricing', 'PricingController@index');
+    Route::get('/pricing/calculate', 'PricingController@preCalculateProfit');
 });
