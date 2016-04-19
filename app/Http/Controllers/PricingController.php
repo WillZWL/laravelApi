@@ -42,18 +42,16 @@ class PricingController extends Controller
 
         $result = [$request->marketplace_sku => []];
         foreach ($marketplaceSkuMapping as $mapping_item) {
-            $innerRequest = new Request();
-            $innerRequest->sellingPlatform = $mapping_item->marketplace_id.$mapping_item->country_id;
-            $innerRequest->marketplaceSku = $request->marketplace_sku;
-            $innerRequest->price = $mapping_item->price;
+            //$innerRequest = new Request();
+            $request->sellingPlatform = $mapping_item->marketplace_id.$mapping_item->country_id;
+            $request->marketplaceSku = $request->marketplace_sku;
+            $request->price = $mapping_item->price;
             $this->product = $mapping_item->product;
-            $innerRequest->sku = $this->product->sku;
-            $innerRequest->deliveryTypeSelected = $mapping_item->delivery_type;
-            $result[$request->marketplace_sku][$innerRequest->sellingPlatform] = $this->getPricingInfo($innerRequest);
+            $request->sku = $this->product->sku;
+            $request->deliveryTypeSelected = $mapping_item->delivery_type;
+            $result[$request->marketplace_sku][$request->sellingPlatform] = $this->getPricingInfo($request);
         }
-
-        echo json_encode($result);
-        die();
+        return response()->json($result);
     }
 
     public function preCalculateProfit(Request $request)
@@ -69,8 +67,7 @@ class PricingController extends Controller
         $result = [$request->marketplaceSku => []];
         $result[$request->marketplaceSku][$request->sellingPlatform] = $this->getPricingInfo($request);
 
-        echo json_encode($result);
-        die();
+        return response()->json($result);
     }
 
     public function save(Request $request)
@@ -108,8 +105,7 @@ class PricingController extends Controller
             ->whereMarketplaceId($marketplace)
             ->groupBy('marketplace_sku')
             ->get();
-
-        echo json_encode($marketplaceSkuMapping->toJson());
+        return response()->json($marketplaceSkuMapping);
     }
 
     public function getPricingInfo(Request $request)

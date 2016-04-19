@@ -12,10 +12,8 @@
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    //return view('welcome');
 });
-
-Route::post('/pricing/save', 'PricingController@save');
 
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +28,11 @@ Route::post('/pricing/save', 'PricingController@save');
 
 Route::group(['middleware' => ['web']], function () {
     Route::get('/pricing/{sellingPlatform}/{sku}/{price}', 'PricingController@getPricingInfo');
-    Route::get('/pricing/list', 'PricingController@getListSku');
+});
+
+Route::group(['middleware' => ['cors']], function () {
     Route::get('/pricing', 'PricingController@index');
+    Route::get('/pricing/list', 'PricingController@getListSku');
     Route::get('/pricing/calculate', 'PricingController@preCalculateProfit');
+    Route::post('/pricing/save', 'PricingController@save');
 });
