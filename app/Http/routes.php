@@ -31,8 +31,14 @@ Route::group(['middleware' => ['web']], function () {
 });
 
 Route::group(['middleware' => ['cors']], function () {
-    Route::get('/pricing', 'PricingController@index');
-    Route::get('/pricing/list', 'PricingController@getListSku');
-    Route::get('/pricing/calculate', 'PricingController@preCalculateProfit');
-    Route::post('/pricing/save', 'PricingController@save');
+    Route::get('pricing/info', 'PricingController@getPriceInfo');
+    Route::get('pricing/skuList', 'PricingController@getSkuList');
+    Route::get('pricing/simulate', 'PricingController@simulate');
+    Route::post('pricing/save', 'PricingController@save');
+
+    //Route::get('pricing/info', 'PricingController@getPriceInfo');
+    //Route::get('/pricing', 'PricingController@index');
+    //Route::get('/pricing/list', 'PricingController@getListSku');
+    //Route::get('/pricing/calculate', 'PricingController@preCalculateProfit');
+    //Route::post('/pricing/save', 'PricingController@save');
 });
