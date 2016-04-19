@@ -48,6 +48,7 @@ class PricingController extends Controller
             $innerRequest->price = $mapping_item->price;
             $this->product = $mapping_item->product;
             $innerRequest->sku = $this->product->sku;
+            $innerRequest->deliveryTypeSelected = $mapping_item->delivery_type;
             $result[$request->marketplace_sku][$innerRequest->sellingPlatform] = $this->getPricingInfo($innerRequest);
         }
 
@@ -64,6 +65,7 @@ class PricingController extends Controller
             ->whereCountryId($countryCode)
             ->firstOrFail();
         $request->sku = $marketplaceMapping->product->sku;
+        $request->deliveryTypeSelected = $marketplaceMapping->delivery_type;
         $result = [$request->marketplaceSku => []];
         $result[$request->marketplaceSku][$request->sellingPlatform] = $this->getPricingInfo($request);
 
@@ -151,6 +153,9 @@ class PricingController extends Controller
         $deliveryOptions = ['STD', 'EXPED', 'EXP', 'FBA', 'MCF'];
         foreach ($deliveryOptions as $deliveryType) {
             if (in_array($deliveryType, array_keys($freightCost))) {
+
+
+
                 $priceInfo[$deliveryType] = [];
                 $priceInfo[$deliveryType]['tax'] = $tax;
                 $priceInfo[$deliveryType]['duty'] = $duty;
@@ -169,6 +174,12 @@ class PricingController extends Controller
                 $priceInfo[$deliveryType]['price'] = $request->price;
                 $priceInfo[$deliveryType]['declared_value'] = $declaredValue;
                 $priceInfo[$deliveryType]['total_charged'] = $totalCharged;
+
+                if ($request->deliveryTypeSelected == $deliveryType) {
+                    $priceInfo[$deliveryType]['selected'] = 1;
+                } else {
+                    $priceInfo[$deliveryType]['selected'] = 0;
+                }
 
                 if ($request->price > 0) {
                     if ($pricingType == 'revenue') {
