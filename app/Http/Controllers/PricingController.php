@@ -55,6 +55,22 @@ class PricingController extends Controller
         die();
     }
 
+    public function preCalculateProfit(Request $request)
+    {
+        $countryCode = substr($request->sellingPlatform, -2);
+        $marketplaceId = substr($request->sellingPlatform, 0, -2);
+        $marketplaceMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplaceSku)
+            ->whereMarketplaceId($marketplaceId)
+            ->whereCountryId($countryCode)
+            ->firstOrFail();
+        $request->sku = $marketplaceMapping->product->sku;
+        $result = [$request->marketplaceSku => []];
+        $result[$request->marketplaceSku][$request->sellingPlatform] = $this->getPricingInfo($request);
+
+        echo json_encode($result);
+        die();
+    }
+
     public function save(Request $request)
     {
         $countryCode = substr($request->sellingPlatform, -2);
