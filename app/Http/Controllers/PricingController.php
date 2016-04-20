@@ -7,6 +7,7 @@ use App\Models\CountryTax;
 use App\Models\Declaration;
 use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
+use App\Models\HscodeDutyCountry;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantClientType;
 use App\Models\MerchantProductMapping;
@@ -34,43 +35,44 @@ class PricingController extends Controller
 
     private $adjustRate = 0.9725;
 
-    public function index(Request $request)
+    public function getPriceInfo(Request $request)
     {
-        $marketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplace_sku)
-            ->where('marketplace_id', '=', 'BCAMAZON')
+        $marketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->input('marketplaceSku'))
+            ->whereMarketplaceId($request->input('marketplace'))
             ->get();
 
-        $result = [$request->marketplace_sku => []];
-        foreach ($marketplaceSkuMapping as $mapping_item) {
-            $innerRequest = new Request();
-            $innerRequest->sellingPlatform = $mapping_item->marketplace_id.$mapping_item->country_id;
-            $innerRequest->marketplaceSku = $request->marketplace_sku;
-            $innerRequest->price = $mapping_item->price;
-            $this->product = $mapping_item->product;
-            $innerRequest->sku = $this->product->sku;
-            $innerRequest->deliveryTypeSelected = $mapping_item->delivery_type;
-            $result[$request->marketplace_sku][$innerRequest->sellingPlatform] = $this->getPricingInfo($innerRequest);
-        }
+        $result = [];
+        foreach ($marketplaceSkuMapping as $mappingItem) {
+            $request->merge([
+                'country' => $mappingItem->country_id,
+                'price' => $mappingItem->price,
+                'sku' => $mappingItem->product->sku,
+                'selectedDeliveryType' => $mappingItem->delivery_type,
+            ]);
 
-        echo json_encode($result);
-        die();
+            $result[$request->input('marketplace').$request->input('country')] = $this->getPricingInfo($request);
+        }
+        return response()->view('pricing.pricing-table', ['data' => $result]);
+        //return response()->json($result);
     }
 
-    public function preCalculateProfit(Request $request)
+    public function simulate(Request $request)
     {
-        $countryCode = substr($request->sellingPlatform, -2);
-        $marketplaceId = substr($request->sellingPlatform, 0, -2);
-        $marketplaceMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplaceSku)
+        $countryCode = substr($request->input('sellingPlatform'), -2);
+        $marketplaceId = substr($request->input('sellingPlatform'), 0, -2);
+        $marketplaceMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->input('marketplaceSku'))
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($countryCode)
             ->firstOrFail();
-        $request->sku = $marketplaceMapping->product->sku;
-        $request->deliveryTypeSelected = $marketplaceMapping->delivery_type;
-        $result = [$request->marketplaceSku => []];
-        $result[$request->marketplaceSku][$request->sellingPlatform] = $this->getPricingInfo($request);
 
-        echo json_encode($result);
-        die();
+        $request->merge([
+            'marketplace' => $marketplaceMapping->marketplace_id,
+            'country' => $marketplaceMapping->country_id,
+            'sku' => $marketplaceMapping->product->sku,
+            'selectedDeliveryType' => $marketplaceMapping->delivery_type,
+        ]);
+        $result[$request->input('sellingPlatform')] = $this->getPricingInfo($request);
+        return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
 
     public function save(Request $request)
@@ -88,41 +90,32 @@ class PricingController extends Controller
         $mapping->profit = $request->profit;
         $mapping->margin = $request->margin;
         if ($mapping->save()) {
-            echo json_encode(['success'=>$request->price]);
+            echo json_encode('success');
         } else {
-            echo json_encode(['save failure']);
+            echo json_encode('save failure');
         }
-
     }
 
-    public function getListSku(Request $request)
+    public function getSkuList(Request $request)
     {
-        $marketplace = $request->marketplace;
-        $masterSku = $request->master_sku;
-        $esgSku = $request->sku;
-        $productName = $request->product_name;
-
         $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
-            ->select(['marketplace_sku', 'product.sku', 'name', 'price'])
-            ->where('product.sku', '=', $esgSku)
-            ->whereMarketplaceId($marketplace)
+            ->select(['marketplace_sku', 'marketplace_id', 'product.sku', 'name', 'price'])
+            ->where('product.sku', '=', $request->input('sku'))
+            ->whereMarketplaceId($request->input('marketplace'))
             ->groupBy('marketplace_sku')
             ->get();
-
-        echo json_encode($marketplaceSkuMapping->toJson());
+        return response()->view('pricing.listing-sku', ['data' => $marketplaceSkuMapping]);
     }
 
     public function getPricingInfo(Request $request)
     {
-        $this->product = Product::findOrFail($request->sku);
-        $countryCode = strtoupper(substr($request->sellingPlatform, -2));
-        $this->destination = CountryState::firstOrNew(['country_id' => $countryCode, 'is_default_state' => 1]);
+        $this->product = Product::findOrFail($request->input('sku'));
+        $this->destination = CountryState::firstOrNew(['country_id' => $request->input('country'), 'is_default_state' => 1]);
         if ($this->destination->state_id === null) {
             $this->destination->state_id = '';
         }
 
-        $marketplaceId = strtoupper(substr($request->sellingPlatform, 0, -2));
-        $this->marketplaceControl = MpControl::whereMarketplaceId($marketplaceId)
+        $this->marketplaceControl = MpControl::whereMarketplaceId($marketplaceId = $request->input('marketplace'))
             ->whereCountryId($this->destination->country_id)
             ->firstOrFail();
 
@@ -147,47 +140,45 @@ class PricingController extends Controller
 
         $pricingType = $this->getMerchantType($request);
 
-        $totalCharged = $request->price + $deliveryCharge;
+        $totalCharged = $request->input('price') + $deliveryCharge;
 
         $priceInfo = [];
         $deliveryOptions = ['STD', 'EXPED', 'EXP', 'FBA', 'MCF'];
         foreach ($deliveryOptions as $deliveryType) {
             if (in_array($deliveryType, array_keys($freightCost))) {
-
-
-
                 $priceInfo[$deliveryType] = [];
                 $priceInfo[$deliveryType]['tax'] = $tax;
                 $priceInfo[$deliveryType]['duty'] = $duty;
-                $priceInfo[$deliveryType]['esg_commission'] = $esgCommission;
-                $priceInfo[$deliveryType]['marketplace_commission'] = $marketplaceCommission;
-                $priceInfo[$deliveryType]['marketplace_listing_fee'] = $marketplaceListingFee;
-                $priceInfo[$deliveryType]['marketplace_fixed_fee'] = $marketplaceFixedFee;
-                $priceInfo[$deliveryType]['payment_gateway_fee'] = $paymentGatewayFee;
-                $priceInfo[$deliveryType]['payment_gateway_admin_fee'] = $paymentGatewayAdminFee;
-                $priceInfo[$deliveryType]['freight_cost'] = $freightCost[$deliveryType];
-                $priceInfo[$deliveryType]['supplier_cost'] = $supplierCost;
-                $priceInfo[$deliveryType]['accessory_cost'] = $accessoryCost;
-                $priceInfo[$deliveryType]['delivery_charge'] = $deliveryCharge;
-                $priceInfo[$deliveryType]['total_cost'] = array_sum($priceInfo[$deliveryType]);
+                $priceInfo[$deliveryType]['esgCommission'] = $esgCommission;
+                $priceInfo[$deliveryType]['marketplaceCommission'] = $marketplaceCommission;
+                $priceInfo[$deliveryType]['marketplaceListingFee'] = $marketplaceListingFee;
+                $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
+                $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
+                $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
+                $priceInfo[$deliveryType]['freightCost'] = $freightCost[$deliveryType];
+                $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
+                $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
+                $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
+                $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
 
-                $priceInfo[$deliveryType]['price'] = $request->price;
-                $priceInfo[$deliveryType]['declared_value'] = $declaredValue;
-                $priceInfo[$deliveryType]['total_charged'] = $totalCharged;
+                $priceInfo[$deliveryType]['price'] = $request->input('price');
+                $priceInfo[$deliveryType]['declaredValue'] = $declaredValue;
+                $priceInfo[$deliveryType]['totalCharged'] = $totalCharged;
+                $priceInfo[$deliveryType]['marketplaceSku'] = $request->input('marketplaceSku');
 
-                if ($request->deliveryTypeSelected == $deliveryType) {
-                    $priceInfo[$deliveryType]['selected'] = 1;
+                if ($request->input('selectedDeliveryType') == $deliveryType) {
+                    $priceInfo[$deliveryType]['checked'] = 'checked';
                 } else {
-                    $priceInfo[$deliveryType]['selected'] = 0;
+                    $priceInfo[$deliveryType]['checked'] = '';
                 }
 
-                if ($request->price > 0) {
+                if ($request->input('price') > 0) {
                     if ($pricingType == 'revenue') {
                         $priceInfo[$deliveryType]['profit'] = $esgCommission;
                     } elseif ($pricingType == 'cost') {
-                        $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['total_charged'] - $priceInfo[$deliveryType]['total_cost'];
+                        $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
                     }
-                    $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->price * 100, 2);
+                    $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->input('price') * 100, 2);
                 } else {
                     $priceInfo[$deliveryType]['profit'] = 'N/A';
                     $priceInfo[$deliveryType]['margin'] = 'N/A';
@@ -235,8 +226,8 @@ class PricingController extends Controller
         $exception = DeclarationException::where('platform_type', '=', 'ACCELERATOR')
             ->select(['absolute_value', 'declared_ratio', 'max_absolute_value'])
             ->where('delivery_country_id', '=', $this->destination->country_id)
-            ->where('ref_from_amt', '>=', $request->price)
-            ->where('ref_to_amt_exclusive', '<', $request->price)
+            ->where('ref_from_amt', '>=', $request->input('price'))
+            ->where('ref_to_amt_exclusive', '<', $request->input('price'))
             ->where('status', '=', 1)
             ->first();
 
@@ -244,14 +235,14 @@ class PricingController extends Controller
             if ($exception->absolute_value > 0) {
                 $declaredValue = $exception->absolute_value;
             } else {
-                $declaredValue = $exception->declared_ratio * $request->price / 100;
+                $declaredValue = $exception->declared_ratio * $request->input('price') / 100;
                 $declaredValue = ($exception->max_absolute_value > 0) ? min($declaredValue, $exception->max_absolute_value) : $declaredValue;
             }
         } else {
             $exception = Declaration::where('platform_type', '=', 'ACCELERATOR')
                 ->select(['default_declaration_percent'])
                 ->firstOrFail();
-            $declaredValue = $exception->default_declaration_percent * $request->price / 100;
+            $declaredValue = $exception->default_declaration_percent * $request->input('price') / 100;
         }
 
         return round($declaredValue, 2);
@@ -267,7 +258,7 @@ class PricingController extends Controller
 
         if ($countryTax) {
             $tax = $countryTax->tax_percentage * $declaredValue / 100;
-            if ($request->price > $countryTax->critical_point_threshold) {
+            if ($request->input('price') > $countryTax->critical_point_threshold) {
                 $tax = $countryTax->absolute_amount + $tax;
             }
         }
@@ -277,7 +268,7 @@ class PricingController extends Controller
 
     public function getDuty(Request $request, $declaredValue)
     {
-        $dutyInfo = Product::join('hscode_duty_country', 'product.hscode_cat_id', '=', 'hscode_duty_country.hscode_cat_id')
+        $dutyInfo = HscodeDutyCountry::join('product', 'product.hscode_cat_id', '=', 'hscode_duty_country.hscode_cat_id')
             ->select(['hscode_duty_country.duty_in_percent'])
             ->where('sku', '=', $request->sku)
             ->where('hscode_duty_country.country_id', '=', $this->destination->country_id)
@@ -288,20 +279,18 @@ class PricingController extends Controller
 
     public function getMarketplaceCommission(Request $request)
     {
-        $marketplaceId = strtoupper(substr($request->sellingPlatform, 0, -2));
-
-        $product = Product::find($request->sku);
         $categoryCommission = MpCategoryCommission::join('mp_category', 'mp_category.id', '=', 'mp_category_commission.mp_id')
             ->select(['mp_commission', 'maximum'])
             ->where('mp_category.control_id', '=', $this->marketplaceControl->control_id)
-            ->where('mp_category.esg_cat_id', '=', $product->cat_id)
-            ->where('mp_category.esg_sub_cat_id', '=', $product->sub_cat_id)
-            ->where('mp_category.esg_sub_sub_cat_id', '=', $product->sub_sub_cat_id)
+            ->where('mp_category.esg_cat_id', '=', $this->product->cat_id)
+            ->where('mp_category.esg_sub_cat_id', '=', $this->product->sub_cat_id)
+            ->where('mp_category.esg_sub_sub_cat_id', '=', $this->product->sub_sub_cat_id)
             //->where('from_price', '<=', $request->price)
             //->where('to_price', '>', $request->price)
             ->firstOrFail();
 
-        $marketplaceCommission = min($request->price * $categoryCommission->mp_commission / 100, $categoryCommission->maximum);
+
+        $marketplaceCommission = min($request->input('price') * $categoryCommission->mp_commission / 100, $categoryCommission->maximum);
 
         return round($marketplaceCommission, 2);
     }
@@ -309,17 +298,16 @@ class PricingController extends Controller
     public function getMarketplaceListingFee(Request $request)
     {
         $marketplaceListingFee = 0;
-        $marketplaceId = strtoupper(substr($request->sellingPlatform, 0, -2));
         $controlId = MpControl::select(['control_id'])
-            ->where('marketplace_id', '=', $marketplaceId)
+            ->where('marketplace_id', '=', $request->input('marketplace'))
             ->where('country_id', '=', $this->destination->country_id)
             ->firstOrFail()
             ->control_id;
 
         $mpListingFee = MpListingFee::select('mp_listing_fee')
             ->where('control_id', '=', $controlId)
-            ->where('from_price', '<=', $request->price)
-            ->where('to_price', '>', $request->price)
+            ->where('from_price', '<=', $request->input('price'))
+            ->where('to_price', '>', $request->input('price'))
             ->first();
 
         if ($mpListingFee) {
@@ -332,17 +320,16 @@ class PricingController extends Controller
     public function getMarketplaceFixedFee(Request $request)
     {
         $marketplaceFixedFee = 0;
-        $marketplaceId = strtoupper(substr($request->sellingPlatform, 0, -2));
         $controlId = MpControl::select(['control_id'])
-            ->where('marketplace_id', '=', $marketplaceId)
+            ->where('marketplace_id', '=', $request->input('marketplace'))
             ->where('country_id', '=', $this->destination->country_id)
             ->firstOrFail()
             ->control_id;
 
         $mpFixedFee =  MpFixedFee::select('mp_fixed_fee')
             ->where('control_id', '=', $controlId)
-            ->where('from_price', '<=', $request->price)
-            ->where('to_price', '>', $request->price)
+            ->where('from_price', '<=', $request->input('price'))
+            ->where('to_price', '>', $request->input('price'))
             ->first();
 
         if ($mpFixedFee) {
@@ -354,27 +341,27 @@ class PricingController extends Controller
 
     public function getPaymentGatewayFee(Request $request)
     {
-        $account = substr($request->sellingPlatform, 0, 2);
-        $marketplaceId = substr($request->sellingPlatform, 2, -2);
-        $countryCode = strtolower(substr($request->sellingPlatform, -2));
-        $countryCode = ($countryCode == 'gb') ? 'uk' : $countryCode;
+        $account = substr($request->input('marketplace'), 0, 2);
+        $marketplaceId = substr($request->input('marketplace'), 2);
+        $countryCode = $request->input('country');
+        $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
 
         $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
         $paymentGatewayRate = PaymentGateway::findOrFail($paymentGatewayId)->payment_gateway_rate;
 
-        return round($request->price * $paymentGatewayRate / 100, 2);
+        return round($request->input('price') * $paymentGatewayRate / 100, 2);
     }
 
     public function getPaymentGatewayAdminFee(Request $request)
     {
-        $account = substr($request->sellingPlatform, 0, 2);
-        $marketplaceId = substr($request->sellingPlatform, 2, -2);
-        $countryCode = strtolower(substr($request->sellingPlatform, -2));
-        $countryCode = ($countryCode == 'gb') ? 'uk' : $countryCode;
+        $account = substr($request->input('marketplace'), 0, 2);
+        $marketplaceId = substr($request->input('marketplace'), 2);
+        $countryCode = $request->input('country');
+        $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
 
         $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
         $paymentGateway = PaymentGateway::findOrFail($paymentGatewayId);
-        $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $request->price * $paymentGateway->admin_fee_percent / 100;
+        $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $request->input('price') * $paymentGateway->admin_fee_percent / 100;
 
         return round($paymentGatewayAdminFee, 2);
     }
