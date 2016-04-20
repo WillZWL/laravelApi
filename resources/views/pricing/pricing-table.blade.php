@@ -44,8 +44,8 @@
                                         <label><input type="radio" {{ $item['checked'] }} name="delivery_type_{{ $platform }}" value="{{ $deliveryType }}">{{ $deliveryType }}</label>
                                     </div>
                                 </td>
-                                <td data-marketplace-sku="{{ $item['marketplaceSku'] }}" data-selling-platform="{{ $platform }}" data-name="price" class="editable">
-                                    <input name="price" style="width: 70px" value="{{ $item['price'] }}">
+                                <td>
+                                    <input  name="price" style="width: 70px" value="{{ $item['price'] }}" data-marketplace-sku="{{ $item['marketplaceSku'] }}" data-selling-platform="{{ $platform }}">
                                 </td>
                                 <td>{{ $item['declaredValue'] }}</td>
                                 <td>{{ $item['tax'] }}</td>
@@ -83,13 +83,51 @@
     </div>
 </div>
 <script>
-    $(document).on('click', '#sku-listing-info .save_price_info', function (e) {
+    $('.collapse:first').collapse('show');
+
+    $(document).off('click', '.save_price_info').on('click', '.save_price_info', function (e) {
         e.preventDefault();
-        var trElement = $('#'+e.target.data('platform') + ' input[name*="delivery_type"]:checked').closest('tr');
-        var price = trElement.find('input[name=price]').text();
+        var trElement = $('#'+$(this).data('platform') + ' input[name*="delivery_type"]:checked').closest('tr');
+        var deliveryType = $('#'+$(this).data('platform') + ' input[name*="delivery_type"]:checked').val();
+        var price = trElement.find('input[name=price]').val();
+        var sellingPlatform = trElement.find('input[name=price]').data('sellingPlatform');
+        var marketplaceSku = trElement.find('input[name=price]').data('marketplaceSku');
         var profit = trElement.find('td[data-name=profit]').text();
         var margin = trElement.find('td[data-name=margin]').text();
-        var sellingPlatform = trElement.find('td[data=sellingPlatform]').data('sellingPlatform');
-        var marketplaceSku = trElement.find('td[name=marketplaceSku]').data('marketplaceSku');
-    })
+
+        $.ajax({
+            method: "POST",
+            url: "{{ url('/pricing/save') }}",
+            dataType: 'json',
+            data: {delivery_type: deliveryType, price: price, profit: profit, margin: margin, sellingPlatform:sellingPlatform, marketplace_sku:marketplaceSku}
+        }).done(function (msg) {
+            console.log(msg);
+            if (msg === 'success') {
+                alert('Saved success');
+            } else {
+                alert('Save failed');
+            }
+        }).fail(function (jqXHR, textStatus) {
+            alert('Save failed');
+        })
+    });
+
+    $(document).off('blur', 'input[name=price]').on('blur', 'input[name=price]', function () {
+        var marketplaceSku = $(this).data('marketplaceSku');
+        var sellingPlatform = $(this).data('sellingPlatform');
+        var price = $(this).val();
+        var $self = $(this);
+        $.ajax({
+            method: 'GET',
+            url: "{{ url('/pricing/simulate') }}",
+            data: {marketplaceSku: marketplaceSku, sellingPlatform: sellingPlatform, price: price},
+            dataType: 'html'
+        }).done(function (responseText) {
+            console.log('debug');
+            $self.closest('.panel').html(responseText);
+            $self.closest('.panel').find('.collapse').collapse('show');
+        }).fail(function () {
+            alert("Can't get the new profit");
+        })
+    });
 </script>

@@ -58,18 +58,21 @@ class PricingController extends Controller
 
     public function simulate(Request $request)
     {
-        $countryCode = substr($request->sellingPlatform, -2);
-        $marketplaceId = substr($request->sellingPlatform, 0, -2);
-        $marketplaceMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplaceSku)
+        $countryCode = substr($request->input('sellingPlatform'), -2);
+        $marketplaceId = substr($request->input('sellingPlatform'), 0, -2);
+        $marketplaceMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->input('marketplaceSku'))
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($countryCode)
             ->firstOrFail();
-        $request->sku = $marketplaceMapping->product->sku;
-        $request->deliveryTypeSelected = $marketplaceMapping->delivery_type;
-        $result = [$request->marketplaceSku => []];
-        $result[$request->marketplaceSku][$request->sellingPlatform] = $this->getPricingInfo($request);
 
-        return response()->json($result);
+        $request->merge([
+            'marketplace' => $marketplaceMapping->marketplace_id,
+            'country' => $marketplaceMapping->country_id,
+            'sku' => $marketplaceMapping->product->sku,
+            'selectedDeliveryType' => $marketplaceMapping->delivery_type,
+        ]);
+        $result[$request->input('sellingPlatform')] = $this->getPricingInfo($request);
+        return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
 
     public function save(Request $request)
@@ -87,27 +90,20 @@ class PricingController extends Controller
         $mapping->profit = $request->profit;
         $mapping->margin = $request->margin;
         if ($mapping->save()) {
-            echo json_encode(['success'=>$request->price]);
+            echo json_encode('success');
         } else {
-            echo json_encode(['save failure']);
+            echo json_encode('save failure');
         }
-
     }
 
     public function getSkuList(Request $request)
     {
-        $marketplace = $request->marketplace;
-        $masterSku = $request->master_sku;
-        $esgSku = $request->sku;
-        $productName = $request->product_name;
-
         $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
             ->select(['marketplace_sku', 'marketplace_id', 'product.sku', 'name', 'price'])
-            ->where('product.sku', '=', $esgSku)
-            ->whereMarketplaceId($marketplace)
+            ->where('product.sku', '=', $request->input('sku'))
+            ->whereMarketplaceId($request->input('marketplace'))
             ->groupBy('marketplace_sku')
             ->get();
-        //dd($marketplaceSkuMapping);
         return response()->view('pricing.listing-sku', ['data' => $marketplaceSkuMapping]);
     }
 

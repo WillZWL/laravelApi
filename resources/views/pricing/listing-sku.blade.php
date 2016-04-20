@@ -16,7 +16,7 @@
     </ul>
 </div>
 <script>
-    $(document).on('click', '#sku-list a', function(e) {
+    $(document).off('click', '#sku-list a').on('click', '#sku-list a', function(e) {
         e.preventDefault();
         $.ajax({
             method: 'GET',
