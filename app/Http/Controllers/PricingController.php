@@ -117,7 +117,7 @@ class PricingController extends Controller
         }
 
         if ($request->input('esg_sku')) {
-            $sql = $sql->whereSku($request->input('esg_sku'));
+            $sql = $sql->where('product.sku', '=', $request->input('esg_sku'));
         }
 
         if ($request->input('product_name')) {

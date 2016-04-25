@@ -19,7 +19,7 @@
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="esg_sku">ESG SKU:</label>
-                            <input type="text" class="input-sm" id="esg_sku" name="sku" value="">
+                            <input type="text" class="input-sm" id="esg_sku" name="esg_sku" value="">
                         </div>
 
                     </div>
