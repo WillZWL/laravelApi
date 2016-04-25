@@ -82,7 +82,7 @@
         @endforeach
     </div>
 </div>
-<script>
+<script type="text/javascript">
     $('.collapse:first').collapse('show');
 
     $(document).off('click', '.save_price_info').on('click', '.save_price_info', function (e) {

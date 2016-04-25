@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Brand;
 use App\Models\CountryState;
 use App\Models\CountryTax;
 use App\Models\Declaration;
 use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
 use App\Models\HscodeDutyCountry;
+use App\Models\Marketplace;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantClientType;
 use App\Models\MerchantProductMapping;
@@ -20,6 +22,7 @@ use App\Models\PaymentGateway;
 use App\Models\Product;
 use App\Models\ProductComplementaryAcc;
 use App\Models\Quotation;
+use App\Models\SkuMapping;
 use App\Models\SupplierProd;
 use App\Models\WeightCourier;
 use Illuminate\Http\Request;
@@ -34,6 +37,14 @@ class PricingController extends Controller
     private $marketplaceControl;
 
     private $adjustRate = 0.9725;
+
+    public function index()
+    {
+        $data = [];
+        $data['brands'] = Brand::whereStatus(1)->get(['id', 'brand_name']);
+        $data['marketplaces'] = Marketplace::whereStatus(1)->get(['id']);
+        return response()->view('pricing.pricing-index', $data);
+    }
 
     public function getPriceInfo(Request $request)
     {
@@ -98,12 +109,32 @@ class PricingController extends Controller
 
     public function getSkuList(Request $request)
     {
-        $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
-            ->select(['marketplace_sku', 'marketplace_id', 'product.sku', 'name', 'price'])
-            ->where('product.sku', '=', $request->input('sku'))
-            ->whereMarketplaceId($request->input('marketplace'))
-            ->groupBy('marketplace_sku')
-            ->get();
+        $sql = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku');
+
+        if ($request->input('master_sku')) {
+            $sql = $sql->join('sku_mapping', 'sku_mapping.sku', '=', 'product.sku')
+                        ->where('sku_mapping.ext_sku', '=', $request->input('master_sku'));
+        }
+
+        if ($request->input('esg_sku')) {
+            $sql = $sql->whereSku($request->input('esg_sku'));
+        }
+
+        if ($request->input('product_name')) {
+            $sql = $sql->where('product.name', 'like', '%'.$request->input('product_name').'%');
+        }
+
+        if ($request->input('brand_id')) {
+            $sql = $sql->where('product.brand_id', '=', $request->input('brand_id'));
+        }
+
+        if ($request->input('marketplace')) {
+            $sql = $sql->whereMarketplaceId($request->input('marketplace'));
+        }
+
+        $marketplaceSkuMapping = $sql->groupBy('marketplace_sku')
+            ->get(['marketplace_sku', 'marketplace_id', 'product.sku', 'name', 'price']);
+
         return response()->view('pricing.listing-sku', ['data' => $marketplaceSkuMapping]);
     }
 
