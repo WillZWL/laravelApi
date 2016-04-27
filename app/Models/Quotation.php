@@ -29,7 +29,7 @@ class Quotation extends Model
             && $item->is_approved == 1
             && $item->status == 1
             && $item->expire_date >= Carbon::today()
-            && in_array($item->quotation_type, ['acc_builtin_postage', 'acc_external_postage', 'acc_courier', 'acc_courier_exp', 'acc_fbmp'])) {
+            && in_array($item->quotation_type, ['acc_builtin_postage', 'acc_external_postage', 'acc_courier', 'acc_courier_exp', 'acc_fba'])) {
                 return true;
             }
         });
