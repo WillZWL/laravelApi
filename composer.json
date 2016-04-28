@@ -4,10 +4,16 @@
     "keywords": ["framework", "laravel"],
     "license": "MIT",
     "type": "project",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/zhanbing/amazon-mws-laravel.git"
+        }
+    ],
     "require": {
         "php": ">=5.5.9",
         "laravel/framework": "5.2.*",
-        "peron/laravel5-amazon-mws": "^2.0",
+        "zhanbing/amazon-mws-laravel": "dev-stable",
         "doctrine/dbal": "^2.5",
         "barryvdh/laravel-ide-helper": "^2.1",
         "barryvdh/laravel-debugbar": "^2.2"

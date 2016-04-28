@@ -61,7 +61,8 @@ class PricingController extends Controller
                 'selectedDeliveryType' => $mappingItem->delivery_type,
             ]);
 
-            $result[$request->input('marketplace').$request->input('country')] = $this->getPricingInfo($request);
+            $result[$request->input('marketplace').$request->input('country')]['deliveryOptions'] = $this->getPricingInfo($request);
+            $result[$request->input('marketplace').$request->input('country')]['listingStatus'] = $mappingItem->listing_status;
         }
         return response()->view('pricing.pricing-table', ['data' => $result]);
         //return response()->json($result);
@@ -82,29 +83,10 @@ class PricingController extends Controller
             'sku' => $marketplaceMapping->product->sku,
             'selectedDeliveryType' => $marketplaceMapping->delivery_type,
         ]);
-        $result[$request->input('sellingPlatform')] = $this->getPricingInfo($request);
+        $result[$request->input('sellingPlatform')]['deliveryOptions'] = $this->getPricingInfo($request);
+        $result[$request->input('sellingPlatform')]['listingStatus'] = $marketplaceMapping->listing_status;
+
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
-    }
-
-    public function save(Request $request)
-    {
-        $countryCode = substr($request->sellingPlatform, -2);
-        $marketplaceId = substr($request->sellingPlatform, 0, -2);
-
-        $mapping = MarketplaceSkuMapping::whereMarketplaceSku($request->marketplace_sku)
-            ->whereMarketplaceId($marketplaceId)
-            ->whereCountryId($countryCode)
-            ->firstOrFail();
-
-        $mapping->delivery_type = $request->delivery_type;
-        $mapping->price = $request->price;
-        $mapping->profit = $request->profit;
-        $mapping->margin = $request->margin;
-        if ($mapping->save()) {
-            echo json_encode('success');
-        } else {
-            echo json_encode('save failure');
-        }
     }
 
     public function getSkuList(Request $request)

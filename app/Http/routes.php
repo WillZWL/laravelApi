@@ -12,7 +12,7 @@
 */
 
 Route::get('/', function () {
-    //return view('welcome');
+    return view('welcome');
 });
 
 /*
@@ -35,5 +35,16 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('pricing/info', 'PricingController@getPriceInfo');
     Route::get('pricing/skuList', 'PricingController@getSkuList');
     Route::get('pricing/simulate', 'PricingController@simulate');
-    Route::post('pricing/save', 'PricingController@save');
+
+    Route::get('listingSku/index', 'ListingSkuManagement@index');
+    Route::get('listingSku/search', 'ListingSkuManagement@getListing');
+    Route::get('listingSku/update', 'ListingSkuManagement@update');
+    Route::get('listingSku/getListing', 'ListingSkuManagement@getListing');
+
+    Route::get('listingSku/getCategory', 'ListingSkuManagement@getCategory');
+    Route::post('listingSku/add', 'ListingSkuManagement@add');
+    Route::post('listingSku/save', 'ListingSkuManagement@save');
+
+    Route::get('amazon/product', 'AmazonProduct@getMatchProductForId');
+    Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
 });

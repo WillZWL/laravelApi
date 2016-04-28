@@ -10,7 +10,6 @@ use App\Models\AmazonOrder;
 use App\Models\So;
 use Illuminate\Console\Command;
 use Peron\AmazonMws\AmazonFeed;
-use Peron\AmazonMws\AmazonFeedResult;
 
 class SubmitOrderFulfillmentFeed extends Command
 {
