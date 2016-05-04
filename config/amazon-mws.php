@@ -2,7 +2,7 @@
 
 return [
     'store' => [
-        'AC-BCAZ-US' => [
+        'BCAMAZONUS' => [
             'merchantId' => 'A31GWB3ZYX0LWJ',
             'marketplaceId' => 'ATVPDKIKX0DER',
             'keyId' => 'AKIAJV4DKBKNNPD4EXEA', // Access Key ID.
@@ -10,7 +10,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.com/',
             'platform' => 'US',
         ],
-        'AC-BCAZ-CA' => [
+        'BCAMAZONCA' => [
             'merchantId' => 'A31GWB3ZYX0LWJ',
             'marketplaceId' => 'A2EUQ1WTGCTBG2',
             'keyId' => 'AKIAJV4DKBKNNPD4EXEA',
@@ -18,7 +18,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
             'platform' =>'CA',
         ],
-        'AC-BCAZ-MX' => [
+        'BCAMAZONMX' => [
             'merchantId' => 'A31GWB3ZYX0LWJ',
             'marketplaceId' => 'A1AM78C64UM0Y8',
             'keyId' => 'AKIAJV4DKBKNNPD4EXEA',
@@ -26,7 +26,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
             'platform' =>'MX',
         ],
-        'AC-BCAZ-GB' => [
+        'BCAMAZONGB' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
             'marketplaceId' => 'A1F83G8C2ARO7P',
             'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
@@ -34,7 +34,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
             'platform' =>'GB',
         ],
-        'AC-BCAZ-DE' => [
+        'BCAMAZONDE' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
             'marketplaceId' => 'A1PA6795UKMFR9',
             'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
@@ -42,7 +42,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.de/',
             'platform' =>'DE',
         ],
-        'AC-BCAZ-ES' => [
+        'BCAMAZONES' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
             'marketplaceId' => 'A1RKKUPIHCS9HS',
             'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
@@ -50,7 +50,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.es/',
             'platform' =>'ES',
         ],
-        'AC-BCAZ-FR' => [
+        'BCAMAZONFR' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
             'marketplaceId' => 'A13V1IB3VIYZZH',
             'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
@@ -58,7 +58,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
             'platform' =>'FR',
         ],
-        'AC-BCAZ-IT' => [
+        'BCAMAZONIT' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
             'marketplaceId' => 'APJ6JRA9NG5V4',
             'keyId' => 'AKIAIYWCWNJO3QP2BNZQ',
@@ -66,7 +66,7 @@ return [
             'amazonServiceUrl' => 'https://mws.amazonservices.it/',
             'platform' =>'IT',
         ],
-        'AC-BCAZ-JP' => [
+        'BCAMAZONJP' => [
             'merchantId' => 'A31MKVVQWZLA3D',
             'marketplaceId' => 'A1VC38T7YXB528',
             'keyId' => 'AKIAJ7FBNDUIX7XLPNZQ',
@@ -75,7 +75,7 @@ return [
             'platform' =>'JP',
         ],
 
-        // 'AC-3DAZ-US' => [
+        // '3DAMAZONUS' => [
         //     'merchantId' => 'A596P66U645JG',
         //     'marketplaceId' => 'ATVPDKIKX0DER',
         //     'keyId' => 'AKIAJKXSW24CHZEO64WQ',
@@ -83,7 +83,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.com/',
         //     'platform' =>'US',
         // ],
-        // 'AC-3DAZ-CA' => [
+        // '3DAMAZONCA' => [
         //     'merchantId' => 'A596P66U645JG',
         //     'marketplaceId' => 'A2EUQ1WTGCTBG2',
         //     'keyId' => 'AKIAJKXSW24CHZEO64WQ',
@@ -91,7 +91,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
         //     'platform' =>'CA',
         // ],
-        // 'AC-3DAZ-MX' => [
+        // '3DAMAZONMX' => [
         //     'merchantId' => 'A596P66U645JG',
         //     'marketplaceId' => 'A1AM78C64UM0Y8',
         //     'keyId' => 'AKIAJKXSW24CHZEO64WQ',
@@ -99,7 +99,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
         //     'platform' =>'MX',
         // ],
-        // 'AC-3DAZ-GB' => [
+        // '3DAMAZONGB' => [
         //     'merchantId' => 'A2LTPCO6A3S9S4',
         //     'marketplaceId' => 'A1F83G8C2ARO7P',
         //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
@@ -107,7 +107,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
         //     'platform' =>'GB',
         // ],
-        // 'AC-3DAZ-DE' => [
+        // '3DAMAZONDE' => [
         //     'merchantId' => 'A2LTPCO6A3S9S4',
         //     'marketplaceId' => 'A1PA6795UKMFR9',
         //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
@@ -115,7 +115,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.de/',
         //     'platform' =>'DE',
         // ],
-        // 'AC-3DAZ-ES' => [
+        // '3DAMAZONES' => [
         //     'merchantId' => 'A2LTPCO6A3S9S4',
         //     'marketplaceId' => 'A1RKKUPIHCS9HS',
         //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
@@ -123,7 +123,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.es/',
         //     'platform' =>'ES',
         // ],
-        // 'AC-3DAZ-FR' => [
+        // '3DAMAZONFR' => [
         //     'merchantId' => 'A2LTPCO6A3S9S4',
         //     'marketplaceId' => 'A13V1IB3VIYZZH',
         //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',
@@ -131,7 +131,7 @@ return [
         //     'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
         //     'platform' =>'FR',
         // ],
-        // 'AC-3DAZ-IT' => [
+        // '3DAMAZONIT' => [
         //     'merchantId' => 'A2LTPCO6A3S9S4',
         //     'marketplaceId' => 'APJ6JRA9NG5V4',
         //     'keyId' => 'AKIAJXJU4CCFR7SQWZUA',

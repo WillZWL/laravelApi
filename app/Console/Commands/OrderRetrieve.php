@@ -50,14 +50,13 @@ class OrderRetrieve extends Command
         $stores = Config::get('amazon-mws.store');
 
         foreach ($stores as $storeName => $store) {
-            $previousSchedule = Schedule::where('type', '=', $storeName)
+            $previousSchedule = Schedule::where('store_name', '=', $storeName)
                                         ->where('status', '=', 'C')
                                         ->orderBy('last_access_time', 'desc')
                                         ->first();
 
-
             $currentSchedule = Schedule::create([
-                    'type' => $storeName,
+                    'store_name' => $storeName,
                     'status' => 'N',
                     // MWS API requested: Must be no later than two minutes before the time that the request was submitted.
                     'last_access_time' => Carbon::now()->subMinutes(2)
@@ -121,7 +120,7 @@ class OrderRetrieve extends Command
             );
 
             $amazonOrderRecord = [
-                'platform' => $schedule->type,
+                'platform' => $schedule->store_name,
                 'amazon_order_id' => $orderData['AmazonOrderId'],
                 'purchase_date' => $orderData['PurchaseDate'],
                 'last_update_date' => $orderData['LastUpdateDate'],
