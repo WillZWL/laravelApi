@@ -107,10 +107,12 @@ class OrderTransfer extends Command
         }
 
         // check selling platform is exist or not.
+
         $countryCode = strtoupper(substr($order->platform, -2));
-        $platformId = strtoupper(substr($order->platform, 0, -2));
-        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($platformId, $countryCode) {
-            return $platformId.$item.$countryCode;
+        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+
+        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($amazonAccount, $countryCode) {
+            return 'AC-'.$amazonAccount.'AZ-'.$item.$countryCode;
         })->toArray();
         $platformIdFromDB = PlatformBizVar::whereIn('selling_platform_id', $sellingPlatformId)
             ->get()
@@ -156,8 +158,8 @@ class OrderTransfer extends Command
         $so = $this->createOrder($order, $order->amazonOrderItem);
 
         $countryCode = strtoupper(substr($order->platform, -2));
-        $platformId = strtoupper(substr($order->platform, 0, -2));
-        $so->platform_id = $platformId.'GROUP'.$countryCode;
+        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+        $so->platform_id = 'AC-'.$amazonAccount.'AZ-GROUP'.$countryCode;
         $so->save();
 
         $this->saveSoItem($so, $order->amazonOrderItem);
@@ -189,9 +191,8 @@ class OrderTransfer extends Command
             $so = $this->createOrder($order, $items);
 
             $countryCode = strtoupper(substr($order->platform, -2));
-            //$countryCode = ($countryCode === 'UK') ? 'GB' : $countryCode;
-            $platformId = strtoupper(substr($order->platform, 0, -2));
-            $so->platform_id = $platformId.$merchantShortId.$countryCode;
+            $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+            $so->platform_id = 'AC-'.$amazonAccount.'AZ-'.$merchantShortId.$countryCode;
             $so->is_platform_split_order = 1;
             $so->save();
             $this->saveSoItem($so, $items);
