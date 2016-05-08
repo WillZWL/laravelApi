@@ -1,6 +1,6 @@
 <div id="sku-listing-info">
     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-        @foreach($data as $platform => $deliveryItems)
+        @foreach($data as $platform => $platformInfo)
             <div class="panel panel-default">
                 <div class="panel-heading" role="tab" id="head_{{ $platform }}">
                     <h4 class="panel-title">
@@ -11,7 +11,7 @@
                 </div>
                 <div id="{{ $platform }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="head_{{ $platform }}">
                     <div class="panel-body">
-                        @if(count($deliveryItems) > 0)
+                        @if(count($platformInfo['deliveryOptions']) > 0)
                         <table class="table table-bordered table-condensed">
                             <tbody>
                             <tr class="info">
@@ -36,7 +36,7 @@
                                 <th>Proft</th>
                                 <th>Margin</th>
                             </tr>
-                            @foreach($deliveryItems as $deliveryType => $item)
+                            @foreach($platformInfo['deliveryOptions'] as $deliveryType => $item)
                             <tr>
                                 <td>Cost</td>
                                 <td>
@@ -67,6 +67,16 @@
                             </tr>
                             @endforeach
                             <tr>
+                                <td>Listing Status:</td>
+                                <td>
+                                    <select name="listingStatus" required="required">
+                                        <option value="">-- Select --</option>
+                                        <option value="Y" {{ ($platformInfo['listingStatus'] == 'Y') ? 'selected' : '' }}>Listed</option>
+                                        <option value="N" {{ ($platformInfo['listingStatus'] == 'N') ? 'selected' : '' }}>Not listed</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
                                 <td colspan="20" align="center">
                                     <button type="button" data-platform="{{ $platform }}" class="btn btn-danger save_price_info"> Save </button>
                                 </td>
@@ -87,8 +97,9 @@
 
     $(document).off('click', '.save_price_info').on('click', '.save_price_info', function (e) {
         e.preventDefault();
-        var trElement = $('#'+$(this).data('platform') + ' input[name*="delivery_type"]:checked').closest('tr');
-        var deliveryType = $('#'+$(this).data('platform') + ' input[name*="delivery_type"]:checked').val();
+        var trElement = $('#' + $(this).data('platform') + ' input[name*="delivery_type"]:checked').closest('tr');
+        var deliveryType = $('#' + $(this).data('platform') + ' input[name*="delivery_type"]:checked').val();
+        var listingStatus = $('#' + $(this).data('platform') + ' select[name=listingStatus]').val();
         var price = trElement.find('input[name=price]').val();
         var sellingPlatform = trElement.find('input[name=price]').data('sellingPlatform');
         var marketplaceSku = trElement.find('input[name=price]').data('marketplaceSku');
@@ -97,9 +108,17 @@
 
         $.ajax({
             method: "POST",
-            url: "{{ url('/pricing/save') }}",
+            url: "{{ url('/listingSku/save') }}",
             dataType: 'json',
-            data: {delivery_type: deliveryType, price: price, profit: profit, margin: margin, sellingPlatform:sellingPlatform, marketplace_sku:marketplaceSku}
+            data: {
+                delivery_type: deliveryType,
+                price: price,
+                profit: profit,
+                margin: margin,
+                sellingPlatform: sellingPlatform,
+                marketplace_sku: marketplaceSku,
+                listingStatus: listingStatus
+            }
         }).done(function (msg) {
             console.log(msg);
             if (msg === 'success') {

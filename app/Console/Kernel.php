@@ -17,6 +17,9 @@ class Kernel extends ConsoleKernel
         Commands\OrderRetrieve::class,
         Commands\OrderTransfer::class,
         Commands\SubmitOrderFulfillmentFeed::class,
+        Commands\SubmitProductFeed::class,
+        Commands\SubmitPriceFeed::class,
+        Commands\SubmitInventoryFeed::class,
     ];
 
     /**
