@@ -75,7 +75,7 @@ class OrderTransfer extends Command
                 } catch (\Exception $e) {
                     \DB::connection('mysql_esg')->rollBack();
                     \DB::rollBack();
-                    mail('handy.hon@eservicesgroup.com', '[BrandsConnect] - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                    mail('handy.hon@eservicesgroup.com', 'Amazon order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                 }
             }
         }
@@ -87,6 +87,23 @@ class OrderTransfer extends Command
      */
     public function validateAmazonOrder(AmazonOrder $order)
     {
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+
+        $alertEmail = 'it@eservicesgroup.net';
+        $amazonAccountName = '';
+        switch ($amazonAccount) {
+            case 'BC':
+                $amazonAccountName = 'BrandsConnect';
+                $alertEmail = 'amazon_us@brandsconnect.net';
+                break;
+
+            case 'PX':
+                $amazonAccountName = 'ProductXpress';
+                $alertEmail = 'amazoneu@productxpress.com';
+                break;
+        }
+
         $skuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
 
         // check sku is belong to which merchant.
@@ -98,19 +115,15 @@ class OrderTransfer extends Command
         if ($notMatchSku) {
             // TODO: need rewrite this part, should move it to mail queue.
             foreach ($notMatchSku as $sku) {
-                $subject = '[BrandsConnect] Amazon Order Import Failed!';
+                $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
                 $message .= "SKU <{$sku}> not match between amazon and esg, please note it. Thanks";
-                mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
 
         // check selling platform is exist or not.
-
-        $countryCode = strtoupper(substr($order->platform, -2));
-        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
-
         $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($amazonAccount, $countryCode) {
             return 'AC-'.$amazonAccount.'AZ-'.$item.$countryCode;
         })->toArray();
@@ -121,10 +134,10 @@ class OrderTransfer extends Command
         $notExistPlatform = array_diff($sellingPlatformId, $platformIdFromDB);
         if ($notExistPlatform) {
             foreach ($notExistPlatform as $platformId) {
-                $subject = '[BrandsConnect] Amazon Order Import Failed!';
+                $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
                 $message .= "Selling Platform Id <{$platformId}> not exist in esg system, please add it. Thanks";
-                mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
@@ -139,10 +152,10 @@ class OrderTransfer extends Command
         $notHaveDeliveryType = array_diff($skuList, $skuHaveDeliveryScore);
         if ($notHaveDeliveryType) {
             foreach ($notHaveDeliveryType as $sku) {
-                $subject = '[BrandsConnect] Amazon Order Import Failed!';
+                $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
                 $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
                 $message .= "SKU <{$sku}> not set delivery type to {$countryCode} in esg system, please add it. Thanks";
-                mail('amazon_us@brandsconnect.net, handy.hon@eservicesgroup.com', $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
             }
             return false;
         }
