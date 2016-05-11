@@ -135,7 +135,7 @@ class ListingSkuManagement extends Controller
 
         $marketplaceSkuMapping->save();
 
-        return redirect('http://a.s.esg/marketing/listing_sku_management');
+        return redirect('http://admincentre.eservicesgroup.com/marketing/listing_sku_management');
     }
 
     public function save(Request $request)
