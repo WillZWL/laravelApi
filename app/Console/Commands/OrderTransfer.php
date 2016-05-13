@@ -104,6 +104,11 @@ class OrderTransfer extends Command
                 $amazonAccountName = 'ProductXpress';
                 $alertEmail = 'amazoneu@productxpress.com';
                 break;
+
+            case 'CV':
+                $amazonAccountName = 'ChatAndVision';
+                $alertEmail = 'amazonus@chatandvision.com';
+                break;
         }
 
         $alertEmail = 'handy.hon@eservicesgroup.com';
