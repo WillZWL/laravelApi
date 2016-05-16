@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\CountryState;
 use App\Models\CourierCost;
 use App\Models\ExchangeRate;
+use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\MerchantQuotation;
 use App\Models\PlatformBizVar;
@@ -89,6 +90,7 @@ class OrderTransfer extends Command
     {
         $countryCode = strtoupper(substr($order->platform, -2));
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $alertEmail = 'it@eservicesgroup.net';
         $amazonAccountName = '';
@@ -104,22 +106,40 @@ class OrderTransfer extends Command
                 break;
         }
 
-        $skuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
+        $alertEmail = 'handy.hon@eservicesgroup.com';
 
-        // check sku is belong to which merchant.
-        $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
-            ->whereIn('sku', $skuList)
+        // check marketplace sku mapping
+        $marketplaceSkuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
+        $marketplaceSkuMapping = MarketplaceSkuMapping::whereIn('marketplace_sku', $marketplaceSkuList)
+            ->whereMarketplaceId($marketplaceId)
+            ->whereCountryId($countryCode)
             ->get();
-        $merchantSku = $merchantProductMapping->pluck('sku')->toArray();
-        $notMatchSku = array_diff($skuList, $merchantSku);
-        if ($notMatchSku) {
-            // TODO: need rewrite this part, should move it to mail queue.
-            foreach ($notMatchSku as $sku) {
-                $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-                $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "SKU <{$sku}> not match between amazon and esg, please note it. Thanks";
-                mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
-            }
+        $mappedMarketplaceSkuList = $marketplaceSkuMapping->pluck('marketplace_sku')->toArray();
+        $notMappedMarketplaceSkuList = array_diff($marketplaceSkuList, $mappedMarketplaceSkuList);
+        if ($notMappedMarketplaceSkuList) {
+            $missingSku = implode(',', $notMappedMarketplaceSkuList);
+            $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
+            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message .= "Marketplace SKU <{$missingSku}> not exist in esg admin. please add listing sku mapping first. Thanks";
+            mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+
+            return false;
+        }
+
+        // Does sku have a merchant?
+        $esgSkuList = $marketplaceSkuMapping->pluck('sku')->toArray();
+        $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
+            ->whereIn('sku', $esgSkuList)
+            ->get();
+        $mappedEsgSkuList = $merchantProductMapping->pluck('sku')->toArray();
+        $notMappedEskSkuList = array_diff($esgSkuList, $mappedEsgSkuList);
+        if ($notMappedEskSkuList) {
+            $missingSku = implode(',', $notMappedEskSkuList);
+            $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
+            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message .= "ESG SKU <{$missingSku}> not belong to any merchant. please add merchant sku mapping first. Thanks";
+            mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+
             return false;
         }
 
@@ -133,30 +153,30 @@ class OrderTransfer extends Command
             ->toArray();
         $notExistPlatform = array_diff($sellingPlatformId, $platformIdFromDB);
         if ($notExistPlatform) {
-            foreach ($notExistPlatform as $platformId) {
-                $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-                $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "Selling Platform Id <{$platformId}> not exist in esg system, please add it. Thanks";
-                mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
-            }
+            $missingSellingPlatform = implode(',', $notExistPlatform);
+            $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
+            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message .= "Selling Platform Id <{$missingSellingPlatform}> not exists in esg system, please add it. Thanks";
+            mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+
             return false;
         }
 
         // check sku delivery type.
         $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
-        $skuHaveDeliveryScore = PlatformOrderDeliveryScore::whereIn('sku', $skuList)
+        $skuHaveDeliveryScore = PlatformOrderDeliveryScore::whereIn('sku', $esgSkuList)
             ->where('country_id', '=', $countryCode)
             ->get()
             ->pluck('sku')
             ->toArray();
-        $notHaveDeliveryType = array_diff($skuList, $skuHaveDeliveryScore);
+        $notHaveDeliveryType = array_diff($esgSkuList, $skuHaveDeliveryScore);
         if ($notHaveDeliveryType) {
-            foreach ($notHaveDeliveryType as $sku) {
-                $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-                $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-                $message .= "SKU <{$sku}> not set delivery type to {$countryCode} in esg system, please add it. Thanks";
-                mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
-            }
+            $missingDeliveryTypeSku = implode(',', $notHaveDeliveryType);
+            $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
+            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message .= "ESG SKU <{$missingDeliveryTypeSku}> not set delivery type to {$countryCode} in esg system, please add it. Thanks";
+            mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+
             return false;
         }
 
@@ -168,6 +188,26 @@ class OrderTransfer extends Command
      */
     public function createGroupOrder(AmazonOrder $order)
     {
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
+
+        $merchant = [];
+        foreach ($order->amazonOrderItem as $item) {
+
+            $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
+                ->where('marketplace_id', '=', $marketplaceId)
+                ->where('country_id', '=', $countryCode)
+                ->select('sku')
+                ->firstOrFail();
+
+            $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
+                ->where('sku', '=', $mapping->sku)
+                ->firstOrFail();
+
+            $item->seller_sku = $mapping->sku;
+        }
+
         $so = $this->createOrder($order, $order->amazonOrderItem);
 
         $countryCode = strtoupper(substr($order->platform, -2));
@@ -187,16 +227,29 @@ class OrderTransfer extends Command
 
     public function createSplitOrder(AmazonOrder $order)
     {
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
+        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
+
         $merchant = [];
         foreach ($order->amazonOrderItem as $item) {
+
+            $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
+                ->where('marketplace_id', '=', $marketplaceId)
+                ->where('country_id', '=', $countryCode)
+                ->select('sku')
+                ->firstOrFail();
+
             $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
-                ->where('sku', '=', $item->seller_sku)
+                ->where('sku', '=', $mapping->sku)
                 ->firstOrFail();
 
             // group items by merchant (short id).
             if (!array_key_exists($merchantProductMapping->short_id, $merchant)) {
                 $merchant[$merchantProductMapping->short_id] = new Collection();
             }
+
+            $item->seller_sku = $mapping->sku;
             $merchant[$merchantProductMapping->short_id]->add($item);
         }
 
@@ -267,7 +320,7 @@ class OrderTransfer extends Command
         $client = $this->createOrUpdateClient($order);
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
-        $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set this.
+        $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set it this.
         $newOrder->is_platform_split_order = 0;
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
