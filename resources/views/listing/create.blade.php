@@ -79,7 +79,7 @@
     $('#inputMarketplace').change(function() {
         $.ajax({
             method: "GET",
-            url: 'http://vanguard.sites.dev/listingSku/getListing',
+            url: 'http://admincentre.eservicesgroup.com:7890/listingSku/getListing',
             data: {esgSku: $('#esgSku').val(), marketplace: $('#inputMarketplace').val()},
             dataType: 'html'
         }).done(function () {
