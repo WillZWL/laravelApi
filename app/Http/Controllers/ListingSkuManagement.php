@@ -110,6 +110,7 @@ class ListingSkuManagement extends Controller
 
         $data['mpCategories'] = $mpCategories->groupBy('level');
 
+        //dd($marketplaceSKU);
         return response()->view('listing.category', $data);
     }
 
@@ -117,7 +118,15 @@ class ListingSkuManagement extends Controller
     {
         $country = Country::findOrFail($request->input('country'));
 
-        $marketplaceSkuMapping = new MarketplaceSkuMapping();
+        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $request->input('marketplaceSku'))
+            ->where('sku', $request->input('esgSku'))
+            ->where('marketplace_id', $request->input('marketplace'))
+            ->where('country_id', $request->input('country'))
+            ->first();
+
+        if (!$marketplaceSkuMapping) {
+            $marketplaceSkuMapping = new MarketplaceSkuMapping();
+        }
 
         $marketplaceSkuMapping->marketplace_sku = $request->input('marketplaceSku');
         $marketplaceSkuMapping->sku = $request->input('esgSku');
