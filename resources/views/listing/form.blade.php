@@ -114,7 +114,7 @@
     $('#inputCountry').change(function () {
         $.ajax({
             method: "GET",
-            url: 'http://admincentre.eservicesgroup.com:7890/listingSku/getCategory',
+            url: "{{ url('listingSku/getCategory') }}",
             data: {esgSKU: $('#inputEsgSku').val(), marketplace: $('#inputMarketplace').val(), country: $('#inputCountry').val()},
             dataType: 'html'
         }).done(function (responseText) {
@@ -126,7 +126,7 @@
         e.preventDefault();
         $.ajax({
             method: "GET",
-            url: 'http://admincentre.eservicesgroup.com:7890/amazon/getASIN',
+            url: "{{ url('amazon/getASIN') }}",
             data: {
                 EAN: $('input[name=EAN]').val(),
                 UPC: $('input[name=UPC]').val(),

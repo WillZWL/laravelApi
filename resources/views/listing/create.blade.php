@@ -79,7 +79,7 @@
     $('#inputMarketplace').change(function() {
         $.ajax({
             method: "GET",
-            url: 'http://admincentre.eservicesgroup.com:7890/listingSku/getListing',
+            url: "{{ url('listingSku/getListing') }}",
             data: {esgSku: $('#esgSku').val(), marketplace: $('#inputMarketplace').val()},
             dataType: 'html'
         }).done(function () {
