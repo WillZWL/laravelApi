@@ -111,7 +111,7 @@ class OrderTransfer extends Command
                 break;
         }
 
-        $alertEmail = 'handy.hon@eservicesgroup.com';
+        //$alertEmail = 'handy.hon@eservicesgroup.com';
 
         // check marketplace sku mapping
         $marketplaceSkuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
