@@ -83,6 +83,30 @@ class ListingSkuManagement extends Controller
         return response()->view('listing.form', $data);
     }
 
+    public function getData(Request $request)
+    {
+        $esgSku = $request->input('esgSku');
+        $marketplaceId = $request->input('marketplace');
+        $countryId = $request->input('country');
+        //$marketplaceSku = $request->input('marketplaceSku');
+
+        $marketplaceSkus = MarketplaceSkuMapping::whereSku($esgSku)
+            ->whereMarketplaceId($marketplaceId)
+            ->whereCountryId($countryId)
+            ->get();
+        $data['marketplaceSkus'] = $marketplaceSkus;
+
+
+        $mpCategories = MpCategory::join('mp_control', 'mp_control.control_id', '=', 'mp_category.control_id')
+            ->where('mp_control.marketplace_id', '=', $marketplaceId)
+            ->where('mp_control.country_id', '=', $countryId)
+            ->get(['mp_category.*']);
+
+        $data['mpCategories'] = $mpCategories->groupBy('level');
+
+        return response()->json($data);
+    }
+
     public function getCategory(Request $request)
     {
         $esgSKU = $request->input('esgSKU');

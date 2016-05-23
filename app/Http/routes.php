@@ -40,6 +40,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('listingSku/search', 'ListingSkuManagement@getListing');
     Route::get('listingSku/update', 'ListingSkuManagement@update');
     Route::get('listingSku/getListing', 'ListingSkuManagement@getListing');
+    Route::get('listingSku/getData', 'ListingSkuManagement@getData');
 
     Route::get('listingSku/getCategory', 'ListingSkuManagement@getCategory');
     Route::post('listingSku/add', 'ListingSkuManagement@add');

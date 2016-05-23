@@ -20,29 +20,15 @@
                 </div>
             </div>
 
-            <div class="form-group form-group-sm">
-                @if(isset($marketplaceSkus) && !$marketplaceSkus->isEmpty())
-                    <label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label>
-                    <div class="col-sm-2">
-                        <select name="marketplaceSku" id="inputMarketplaceSku" class="form-control" required="required">
-                            @foreach($marketplaceSkus as $marketplaceSku)
-                                <option value="{{ $marketplaceSku->marketplace_sku }}">{{ $marketplaceSku->marketplace_sku }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-sm-1">
-                        <button type="button" class="btn btn-info btn-sm">Add New Listing</button>
-                    </div>
-                @else
-                    <label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label>
-                    <div class="col-sm-2">
-                        <input type="text" name="marketplaceSku" id="inputMarketplaceSku" class="form-control" value="" required="required" title="">
-                    </div>
-                    <label for="inputInventory" class="col-sm-1 control-label">Inventory</label>
-                    <div class="col-sm-2">
-                        <input type="text" name="inventory" id="inputInventory" class="form-control" value="0">
-                    </div>
-                @endif
+            <div class="form-group form-group-sm" data-group="marketplace">
+                <label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label>
+                <div class="col-sm-2">
+                    <input type="text" name="marketplaceSku" id="inputMarketplaceSku" class="form-control" value="" required="required" title="">
+                </div>
+                <label for="inputInventory" class="col-sm-1 control-label">Inventory</label>
+                <div class="col-sm-2">
+                    <input type="text" name="inventory" id="inputInventory" class="form-control" value="0">
+                </div>
             </div>
 
             <div class="form-group form-group-sm">
@@ -110,17 +96,27 @@
         $('select[name=country]').html(countryOptions);
     });
 
-
-    $('#inputCountry').change(function () {
-        $.ajax({
-            method: "GET",
-            url: "{{ url('listingSku/getCategory') }}",
-            data: {esgSKU: $('#inputEsgSku').val(), marketplace: $('#inputMarketplace').val(), country: $('#inputCountry').val()},
-            dataType: 'html'
-        }).done(function (responseText) {
-            $('div[data=category]').replaceWith(responseText);
-        })
+    $('body').on('click', '#addNewListing', function (e) {
+        marketplaceInput = '<label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label><div class="col-sm-2"><input type="text" name="marketplaceSku" id="inputMarketplaceSku" class="form-control" value="" required="required" title=""></div><label for="inputInventory" class="col-sm-1 control-label">Inventory</label><div class="col-sm-2"><input type="text" name="inventory" id="inputInventory" class="form-control" value="0"></div>';
+        $('div[data-group="marketplace"]').html(marketplaceInput);
+        $('#inputEAN').val('');
+        $('#inputUPC').val('');
+        $('#inputASIN').val('');
     });
+
+    $('body').on('change', '#inputMarketplaceSku', function (e) {
+        inventory = $(this).find(':selected').data('inventory');
+        $('#inputInventory').val(inventory);
+
+        uuid = $(this).find(':selected').data('uuid').split('-');
+        $('#inputEAN').val(uuid[0]);
+        $('#inputUPC').val(uuid[1]);
+        $('#inputASIN').val(uuid[2]);
+
+        category = $(this).find(':selected').data('category').split('-');
+        $('#inputCategoryId').val(category[0]);
+        $('#inputSubCategoryId').val(category[1]);
+    })
 
     $('#getASIN').on('click', function (e) {
         e.preventDefault();
@@ -141,11 +137,61 @@
                 alert(responseJson.Error);
             }
         })
-    })
+    });
+
+    $('#inputCountry').change(function () {
+        getData();
+    });
 
     $('form button[type=submit]').on('submit', function (e) {
         e.preventDefault();
-    })
+    });
+
+    function getData() {
+        $.ajax({
+            method: "GET",
+            url: "{{ url('listingSku/getData') }}",
+            data: {
+                esgSku: $('#inputEsgSku').val(),
+                marketplace: $('#inputMarketplace').val(),
+                country: $('#inputCountry').val(),
+                marketplaceSku: $('#inputMarketplaceSku').val()
+            },
+            dataType: 'json'
+        }).done(function (responseJson) {
+
+            // marketplace sku input
+            if (responseJson.marketplaceSkus.length > 0) {
+                addMarketplace = $('div[data-group="marketplace"]').html();
+                marketplaceSelection = '<label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label><div class="col-sm-2"><select name="marketplaceSku" id="inputMarketplaceSku" class="form-control" required="required">';
+                marketplaceSelection += '<option value="">-- Select --</option>';
+                $.each(responseJson.marketplaceSkus, function (key, marketplaceSkuObj) {
+                    marketplaceSelection += '<option value="'+marketplaceSkuObj.marketplace_sku+'"';
+                    marketplaceSelection += 'data-category="'+marketplaceSkuObj.mp_category_id+'-'+marketplaceSkuObj.mp_sub_category_id+'"';
+                    marketplaceSelection += 'data-inventory="'+marketplaceSkuObj.inventory+'"';
+                    marketplaceSelection += 'data-uuid="'+marketplaceSkuObj.ean+'-'+marketplaceSkuObj.upc+'-'+marketplaceSkuObj.asin+'"';
+                    marketplaceSelection += '>'+marketplaceSkuObj.marketplace_sku+'</option>';
+                })
+                marketplaceSelection += '</select></div><label for="inputInventory" class="col-sm-1 control-label">Inventory</label><div class="col-sm-2"><input type="text" name="inventory" id="inputInventory" class="form-control" value="0"></div><div class="col-sm-1"><button type="button" id="addNewListing" class="btn btn-info btn-sm">Add New Listing</button></div>';
+                $('div[data-group="marketplace"]').html(marketplaceSelection);
+            }
+
+            // marketplace category select
+            categoryOptions = '<option value="">-- Select --</option>';
+            if (responseJson.mpCategories[1]) {
+                $.each(responseJson.mpCategories[1], function (key, categoryItems) {
+                  categoryOptions += '<option value="'+categoryItems.id+'">'+categoryItems.name+'</option>';
+                });
+            }
+            $('#inputCategoryId').html(categoryOptions);
+
+            subCategoryOptions = '<option value="">-- Select --</option>';
+            if (responseJson.mpCategories[2]) {
+                $.each(responseJson.mpCategories[2], function (key, subCategoryItems) {
+                  subCategoryOptions += '<option value="'+subCategoryItems.id+'">'+subCategoryItems.name+'</option>';
+                });
+            }
+            $('#inputSubCategoryId').html(subCategoryOptions);
+        })
+    }
 </script>
-
-
