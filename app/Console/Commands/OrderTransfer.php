@@ -198,20 +198,20 @@ class OrderTransfer extends Command
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
-        foreach ($order->amazonOrderItem as $item) {
-
-            $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
-                ->where('marketplace_id', '=', $marketplaceId)
-                ->where('country_id', '=', $countryCode)
-                ->select('sku')
-                ->firstOrFail();
-
-            $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
-                ->where('sku', '=', $mapping->sku)
-                ->firstOrFail();
-
-            $item->seller_sku = $mapping->sku;
-        }
+        //foreach ($order->amazonOrderItem as $item) {
+        //
+        //    $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
+        //        ->where('marketplace_id', '=', $marketplaceId)
+        //        ->where('country_id', '=', $countryCode)
+        //        ->select('sku')
+        //        ->firstOrFail();
+        //
+        //    $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
+        //        ->where('sku', '=', $mapping->sku)
+        //        ->firstOrFail();
+        //
+        //    $item->seller_sku = $mapping->sku;
+        //}
 
         $so = $this->createOrder($order, $order->amazonOrderItem);
 
