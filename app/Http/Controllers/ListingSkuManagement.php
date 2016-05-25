@@ -100,42 +100,29 @@ class ListingSkuManagement extends Controller
         $mpCategories = MpCategory::join('mp_control', 'mp_control.control_id', '=', 'mp_category.control_id')
             ->where('mp_control.marketplace_id', '=', $marketplaceId)
             ->where('mp_control.country_id', '=', $countryId)
+            ->where('mp_category.level', '=', '1')
             ->get(['mp_category.*']);
 
-        $data['mpCategories'] = $mpCategories->groupBy('level');
+        $data['mpCategories'] = $mpCategories;
 
         return response()->json($data);
     }
 
     public function getCategory(Request $request)
     {
-        $esgSKU = $request->input('esgSKU');
         $marketplaceId = $request->input('marketplace');
         $countryId = $request->input('country');
-
-        $data['marketplaces'] = Marketplace::whereStatus(1)->get();
-
-        $data['esgSku'] = $esgSKU;
-        $data['marketplaceId'] = $marketplaceId;
-        $data['country'] = $countryId;
-
-        if ($esgSKU) {
-            $marketplaceSKU = MarketplaceSkuMapping::whereSku($esgSKU)
-                ->whereMarketplaceId($marketplaceId)
-                ->whereCountryId($countryId)
-                ->first();
-            $data['marketplaceSKU'] = $marketplaceSKU;
-        }
+        $categoryId = $request->input('categoryId');
 
         $mpCategories = MpCategory::join('mp_control', 'mp_control.control_id', '=', 'mp_category.control_id')
             ->where('mp_control.marketplace_id', '=', $marketplaceId)
             ->where('mp_control.country_id', '=', $countryId)
+            ->where('mp_category.parent_cat_id', '=', $categoryId)
             ->get(['mp_category.*']);
 
-        $data['mpCategories'] = $mpCategories->groupBy('level');
+        $data['mpCategories'] = $mpCategories;
 
-        //dd($marketplaceSKU);
-        return response()->view('listing.category', $data);
+        return response()->json($data);
     }
 
     public function add(Request $request)

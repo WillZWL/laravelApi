@@ -118,6 +118,29 @@
         $('#inputSubCategoryId').val(category[1]);
     })
 
+    $('body').on('change', '#inputCategoryId', function () {
+        categoryId = $(this).find(':selected').val();
+        $.ajax({
+            method: "GET",
+            url: "{{ url('listingSku/getCategory') }}",
+            data: {
+                categoryId: categoryId,
+                marketplace: $('#inputMarketplace').val(),
+                country: $('#inputCountry').val(),
+            },
+            dataType: "json"
+        }).done(function(responseJson) {
+            subCategoryOptions = '<option value="">-- Select --</option>';
+            if (responseJson.mpCategories) {
+                $.each(responseJson.mpCategories, function (key, categoryItems) {
+                    subCategoryOptions += '<option value="'+categoryItems.id+'">'+categoryItems.name+'</option>';
+                });
+            }
+            $('#inputSubCategoryId').html(subCategoryOptions);
+        })
+
+    })
+
     $('#getASIN').on('click', function (e) {
         e.preventDefault();
         $.ajax({
@@ -159,7 +182,6 @@
             },
             dataType: 'json'
         }).done(function (responseJson) {
-
             // marketplace sku input
             if (responseJson.marketplaceSkus.length > 0) {
                 addMarketplace = $('div[data-group="marketplace"]').html();
@@ -178,20 +200,12 @@
 
             // marketplace category select
             categoryOptions = '<option value="">-- Select --</option>';
-            if (responseJson.mpCategories[1]) {
-                $.each(responseJson.mpCategories[1], function (key, categoryItems) {
+            if (responseJson.mpCategories) {
+                $.each(responseJson.mpCategories, function (key, categoryItems) {
                   categoryOptions += '<option value="'+categoryItems.id+'">'+categoryItems.name+'</option>';
                 });
             }
             $('#inputCategoryId').html(categoryOptions);
-
-            subCategoryOptions = '<option value="">-- Select --</option>';
-            if (responseJson.mpCategories[2]) {
-                $.each(responseJson.mpCategories[2], function (key, subCategoryItems) {
-                  subCategoryOptions += '<option value="'+subCategoryItems.id+'">'+subCategoryItems.name+'</option>';
-                });
-            }
-            $('#inputSubCategoryId').html(subCategoryOptions);
         })
     }
 </script>
