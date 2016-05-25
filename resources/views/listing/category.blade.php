@@ -4,7 +4,7 @@
     <div class="col-sm-2">
         <select name="categoryId" id="inputCategoryId" class="form-control">
             <option value="">-- Select --</option>
-            @foreach($mpCategories[1] as $category)
+            @foreach($mpCategories[0] as $category)
                 <option value="{{ $category->id }}" {{ ($category->id == $marketplaceSKU->mp_category_id) ? 'selected' : '' }}>{{ $category->name }}</option>
             @endforeach
         </select>
@@ -14,9 +14,9 @@
     <div class="col-sm-2">
         <select name="subCategoryId" id="inputSubCategoryId" class="form-control">
             <option value="">-- Select --</option>
-            @foreach($mpCategories[2] as $category)
-                <option value="{{ $category->id }}" {{ ($category->id == $marketplaceSKU->mp_sub_category_id) ? 'selected' : '' }}>{{ $category->name }}</option>
-            @endforeach
+            {{--@foreach($mpCategories[2] as $category)--}}
+                {{--<option value="{{ $category->id }}" {{ ($category->id == $marketplaceSKU->mp_sub_category_id) ? 'selected' : '' }}>{{ $category->name }}</option>--}}
+            {{--@endforeach--}}
         </select>
     </div>
 </div>
