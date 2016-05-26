@@ -209,9 +209,9 @@ class PricingController extends Controller
             ->where('sku', '=', $request->sku)
             ->where('merchant_client_type.client_type', '=', 'ACCELERATOR')
             ->firstOrFail();
-        if ($merchantInfo->revenue_value) {
+        if ($merchantInfo->revenue_value !== null) {
             return 'revenue';
-        } elseif ($merchantInfo->cost_value) {
+        } elseif ($merchantInfo->cost_value !== null) {
             return 'cost';
         } else {
             return false;
@@ -292,18 +292,17 @@ class PricingController extends Controller
 
     public function getMarketplaceCommission(Request $request)
     {
-        $categoryCommission = MpCategoryCommission::join('mp_category', 'mp_category.id', '=', 'mp_category_commission.mp_id')
+        $marketplaceCommission = 0;
+
+        $categoryCommission = MpCategoryCommission::join('marketplace_sku_mapping', 'mp_id', '=', 'mp_category_id')
+            ->where('marketplace_sku', '=', $request->input('marketplace_sku'))
+            ->where('marketplace_id', '=', $request->input('marketplace_id'))
+            ->where('country_id', '=', $request->input('country'))
             ->select(['mp_commission', 'maximum'])
-            ->where('mp_category.control_id', '=', $this->marketplaceControl->control_id)
-            ->where('mp_category.esg_cat_id', '=', $this->product->cat_id)
-            ->where('mp_category.esg_sub_cat_id', '=', $this->product->sub_cat_id)
-            ->where('mp_category.esg_sub_sub_cat_id', '=', $this->product->sub_sub_cat_id)
-            //->where('from_price', '<=', $request->price)
-            //->where('to_price', '>', $request->price)
-            ->firstOrFail();
-
-
-        $marketplaceCommission = min($request->input('price') * $categoryCommission->mp_commission / 100, $categoryCommission->maximum);
+            ->first();
+        if ($categoryCommission) {
+            $marketplaceCommission = min($request->input('price') * $categoryCommission->mp_commission / 100, $categoryCommission->maximum);
+        }
 
         return round($marketplaceCommission, 2);
     }
