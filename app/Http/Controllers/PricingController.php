@@ -209,9 +209,9 @@ class PricingController extends Controller
             ->where('sku', '=', $request->sku)
             ->where('merchant_client_type.client_type', '=', 'ACCELERATOR')
             ->firstOrFail();
-        if ($merchantInfo->revenue_value) {
+        if ($merchantInfo->revenue_value !== null) {
             return 'revenue';
-        } elseif ($merchantInfo->cost_value) {
+        } elseif ($merchantInfo->cost_value !== null) {
             return 'cost';
         } else {
             return false;
