@@ -48,4 +48,12 @@ Route::group(['middleware' => ['cors']], function () {
 
     Route::get('amazon/product', 'AmazonProduct@getMatchProductForId');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
+
+    Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
+
+});
+
+Route::group(['middleware' => ['cors']], function () {
+    Route::resource('api/v1/marketplaceProduct', 'MarketplaceProductController');
+    Route::resource('api/v1/marketplaceCategory', 'MarketplaceCategoryController');
 });
