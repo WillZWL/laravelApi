@@ -128,9 +128,14 @@ class ListingSkuManagement extends Controller
     public function add(Request $request)
     {
         $country = Country::findOrFail($request->input('country'));
+        $marketplaceSku = trim($request->input('marketplaceSku'));
+        $esgSku = trim($request->input('esgSku'));
+        $ean = trim($request->input('EAN'));
+        $upc = trim($request->input('UPC'));
+        $asin = trim($request->input('ASIN'));
 
-        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $request->input('marketplaceSku'))
-            ->where('sku', $request->input('esgSku'))
+        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku )
+            ->where('sku', $esgSku)
             ->where('marketplace_id', $request->input('marketplace'))
             ->where('country_id', $request->input('country'))
             ->first();
@@ -144,9 +149,9 @@ class ListingSkuManagement extends Controller
         $marketplaceSkuMapping->marketplace_id = $request->input('marketplace');
         $marketplaceSkuMapping->country_id = $request->input('country');
         $marketplaceSkuMapping->inventory = $request->input('inventory');
-        $marketplaceSkuMapping->ean = $request->input('EAN');
-        $marketplaceSkuMapping->upc = $request->input('UPC');
-        $marketplaceSkuMapping->asin = $request->input('ASIN');
+        $marketplaceSkuMapping->ean = $ean;
+        $marketplaceSkuMapping->upc = $upc;
+        $marketplaceSkuMapping->asin = $asin;
         $marketplaceSkuMapping->process_status = self::PRODUCT_UPDATED | self::INVENTORY_UPDATED;     // waiting for post product feed to amazon.
         $marketplaceSkuMapping->mp_category_id = $request->input('categoryId');
         $marketplaceSkuMapping->mp_sub_category_id = $request->input('subCategoryId');
