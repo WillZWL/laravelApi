@@ -218,6 +218,7 @@ class OrderTransfer extends Command
         $countryCode = strtoupper(substr($order->platform, -2));
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $so->platform_id = 'AC-'.$amazonAccount.'AZ-GROUP'.$countryCode;
+        $so->platform_split_order = 0;
         $so->save();
 
         $this->saveSoItem($so, $order->amazonOrderItem);
@@ -264,7 +265,7 @@ class OrderTransfer extends Command
             $countryCode = strtoupper(substr($order->platform, -2));
             $amazonAccount = strtoupper(substr($order->platform, 0, 2));
             $so->platform_id = 'AC-'.$amazonAccount.'AZ-'.$merchantShortId.$countryCode;
-            $so->is_platform_split_order = 1;
+            $so->platform_group_order = 0;
             $so->save();
             $this->saveSoItem($so, $items);
             $this->saveSoItemDetail($so, $items);
@@ -326,7 +327,6 @@ class OrderTransfer extends Command
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
         $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set it this.
-        $newOrder->is_platform_split_order = 0;
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
@@ -347,6 +347,7 @@ class OrderTransfer extends Command
 
         if ($order->fulfillment_channel === 'AFN') {
             $newOrder->delivery_type_id = 'FBA';
+            $newOrder->dispatch_date = $order->latest_ship_date;
         } else {
             $countryCode = strtoupper($order->amazonShippingAddress->country_code);
             $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
