@@ -49,8 +49,8 @@
                         <div class="form-group">
                             <label for="marketplace" class="col-sm-3 control-label">Marketplace:</label>
                             <div class="col-sm-6">
-                                <select name="marketplace" id="marketplace" class="form-control input-sm">
-                                    <option value="">ALL</option>
+                                <select name="marketplace" id="marketplace" class="form-control input-sm" required="required">
+                                    <option value="">--Select--</option>
                                     @foreach($marketplaces as $marketplace)
                                         <option value="{{ $marketplace->id }}">{{ $marketplace->id }}</option>
                                     @endforeach
