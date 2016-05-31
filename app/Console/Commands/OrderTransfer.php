@@ -566,7 +566,7 @@ class OrderTransfer extends Command
     private function setGroupOrderRecommendCourierAndCharge(So $order)
     {
         $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
-            ->where('is_platform_split_order', '=', '1')
+            ->where('platform_split_order', '=', '1')
             ->get();
 
         $weightId = WeightCourier::getWeightId($order->weight);
