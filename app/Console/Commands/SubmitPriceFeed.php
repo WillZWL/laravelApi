@@ -25,6 +25,10 @@ class SubmitPriceFeed extends Command
      */
     protected $description = 'Post price feed to amazon';
 
+
+    const PENDING_PRICE = 2;
+    const COMPLETE_PRICE = 8;
+
     /**
      * Create a new command instance.
      *
@@ -44,7 +48,7 @@ class SubmitPriceFeed extends Command
     {
         $stores = Config::get('amazon-mws.store');
 
-        $pendingSkus = MarketplaceSkuMapping::where('process_status', '&', 2)
+        $pendingSkus = MarketplaceSkuMapping::where('process_status', '&', self::PENDING_PRICE)
             ->where('marketplace_sku_mapping.listing_status', '=', 'Y')
             ->where('marketplace_id', 'like', '%AMAZON')
             ->get();
@@ -88,6 +92,11 @@ class SubmitPriceFeed extends Command
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
+                $pendingSkuGroup->transform(function($pendingSku) {
+                    $pendingSku->process_status ^= (1 << 1);
+                    $pendingSku->process_status |= (1 << 3);
+                    $pendingSku->save();
+                });
                 $response = $feed->getResponse();
                 $platformProductFeed->feed_submission_id = $response['FeedSubmissionId'];
                 $platformProductFeed->submitted_date = $response['SubmittedDate'];
