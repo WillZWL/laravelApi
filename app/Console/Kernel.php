@@ -20,6 +20,7 @@ class Kernel extends ConsoleKernel
         Commands\SubmitProductFeed::class,
         Commands\SubmitPriceFeed::class,
         Commands\SubmitInventoryFeed::class,
+        Commands\GetAmazonFeedResult::class,
     ];
 
     /**
