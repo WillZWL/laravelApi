@@ -115,7 +115,26 @@
 
         category = $(this).find(':selected').data('category').split('-');
         $('#inputCategoryId').val(category[0]);
-        $('#inputSubCategoryId').val(category[1]);
+
+        $.ajax({
+            method: "GET",
+            url: "{{ url('listingSku/getCategory') }}",
+            data: {
+                categoryId: category[0],
+                marketplace: $('#inputMarketplace').val(),
+                country: $('#inputCountry').val(),
+            },
+            dataType: "json"
+        }).done(function(responseJson) {
+            subCategoryOptions = '<option value="">-- Select --</option>';
+            if (responseJson.mpCategories) {
+                $.each(responseJson.mpCategories, function (key, categoryItems) {
+                    subCategoryOptions += '<option value="'+categoryItems.id+'">'+categoryItems.name+'</option>';
+                });
+            }
+            $('#inputSubCategoryId').html(subCategoryOptions);
+            $('#inputSubCategoryId').val(category[1]);
+        })
     })
 
     $('body').on('change', '#inputCategoryId', function () {
