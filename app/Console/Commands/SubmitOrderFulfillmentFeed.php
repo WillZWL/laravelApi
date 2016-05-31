@@ -53,7 +53,7 @@ class SubmitOrderFulfillmentFeed extends Command
         $platformOrderIdList = $amazonOrderList->pluck('platform', 'amazon_order_id')->toArray();
 
         $esgOrders = So::whereIn('platform_order_id', array_keys($platformOrderIdList))
-            ->where('is_platform_split_order', '=', '0')
+            ->where('platform_group_order', '=', '1')
             ->where('status', '=', '6')
             ->get();
 
@@ -109,9 +109,10 @@ class SubmitOrderFulfillmentFeed extends Command
     public function markSplitOrderShipped(So $order)
     {
         $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
-            ->where('is_platform_split_order', '=', 1)->get();
+            ->where('platform_split_order', '=', 1)->get();
 
-        $splitOrders->map(function($splitOrder) {
+        $splitOrders->map(function($splitOrder) use($order) {
+            $splitOrder->dispatch_date = $order->dispatch_date;
             $splitOrder->status = 6;
             $splitOrder->save();
         });
