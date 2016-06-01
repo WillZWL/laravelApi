@@ -134,6 +134,10 @@ class ListingSkuManagement extends Controller
         $upc = trim($request->input('UPC'));
         $asin = trim($request->input('ASIN'));
 
+        $marketplaceControl = MpControl::where('marketplace_id', '=', $request->input('marketplace'))
+            ->where('country_id', '=', $request->input('country'))
+            ->firstOrFail();
+
         $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku )
             ->where('sku', $esgSku)
             ->where('marketplace_id', $request->input('marketplace'))
@@ -146,6 +150,7 @@ class ListingSkuManagement extends Controller
 
         $marketplaceSkuMapping->marketplace_sku = $request->input('marketplaceSku');
         $marketplaceSkuMapping->sku = $request->input('esgSku');
+        $marketplaceSkuMapping->mp_control_id = $marketplaceControl->control_id;
         $marketplaceSkuMapping->marketplace_id = $request->input('marketplace');
         $marketplaceSkuMapping->country_id = $request->input('country');
         $marketplaceSkuMapping->inventory = $request->input('inventory');
