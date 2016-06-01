@@ -2,7 +2,7 @@
     <table class="table table-condensed table-responsive table-striped table-hover table-bordered">
         <thead>
             <tr>
-                <th>SKU</th>
+                <th>Ref.SKU</th>
                 <th>Name</th>
             </tr>
         </thead>
