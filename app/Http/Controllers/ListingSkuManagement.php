@@ -148,8 +148,8 @@ class ListingSkuManagement extends Controller
             $marketplaceSkuMapping = new MarketplaceSkuMapping();
         }
 
-        $marketplaceSkuMapping->marketplace_sku = $request->input('marketplaceSku');
-        $marketplaceSkuMapping->sku = $request->input('esgSku');
+        $marketplaceSkuMapping->marketplace_sku = $marketplaceSku;
+        $marketplaceSkuMapping->sku = $esgSku;
         $marketplaceSkuMapping->mp_control_id = $marketplaceControl->control_id;
         $marketplaceSkuMapping->marketplace_id = $request->input('marketplace');
         $marketplaceSkuMapping->country_id = $request->input('country');
