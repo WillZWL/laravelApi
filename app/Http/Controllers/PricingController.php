@@ -294,9 +294,9 @@ class PricingController extends Controller
     {
         $marketplaceCommission = 0;
 
-        $categoryCommission = MpCategoryCommission::join('marketplace_sku_mapping', 'mp_id', '=', 'mp_category_id')
-            ->where('marketplace_sku', '=', $request->input('marketplace_sku'))
-            ->where('marketplace_id', '=', $request->input('marketplace_id'))
+        $categoryCommission = MpCategoryCommission::join('marketplace_sku_mapping', 'mp_id', '=', 'mp_sub_category_id')
+            ->where('marketplace_sku', '=', $request->input('marketplaceSku'))
+            ->where('marketplace_id', '=', $request->input('marketplace'))
             ->where('country_id', '=', $request->input('country'))
             ->select(['mp_commission', 'maximum'])
             ->first();
