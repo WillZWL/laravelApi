@@ -86,6 +86,7 @@ class PricingController extends Controller
         ]);
         $result[$request->input('sellingPlatform')]['deliveryOptions'] = $this->getPricingInfo($request);
         $result[$request->input('sellingPlatform')]['listingStatus'] = $marketplaceMapping->listing_status;
+        $result[$request->input('sellingPlatform')]['inventory'] = $marketplaceMapping->inventory;
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
