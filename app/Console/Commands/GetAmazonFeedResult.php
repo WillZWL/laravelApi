@@ -45,18 +45,55 @@ class GetAmazonFeedResult extends Command
             $storeName = $pendingFeed->platform;
             $feedResultRequest = new AmazonFeedResult($storeName);
             $feedResultRequest->setFeedId($pendingFeed->feed_submission_id);
-            $feedResultRequest->fetchFeedResult();
 
-            $feedResultRequest->saveFeed('/tmp/amazon_feed_result/'.$pendingFeed->feed_submission_id);
+            if ($feedResultRequest->fetchFeedResult() !== false) {
+                $feedResultRequest->saveFeed('/tmp/amazon_feed_result/'.$pendingFeed->feed_submission_id);
 
-            $pendingFeed->feed_processing_status = '_COMPLETE_';
-            $pendingFeed->save();
-            //$feedResult = simplexml_load_string($feedResultRequest->getRawFeed());
+                $feedResult = simplexml_load_string($feedResultRequest->getRawFeed());
+                if ( (int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithError > 0) {
+                    $pendingFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
 
-            // TODO::
-            // 1, change price status to failure.
-            // 2, send alert mail to user.
 
+                    $alertEmail = 'it@eservicesgroup.net';
+                    $amazonAccountName = '';
+                    switch (substr($pendingFeed->platform, 0, 2)) {
+                        case 'BC':
+                            $amazonAccountName = 'BrandsConnect';
+                            $alertEmail = 'amazon_us@brandsconnect.net';
+                            break;
+
+                        case 'PX':
+                            $amazonAccountName = 'ProductXpress';
+                            $alertEmail = 'amazoneu@productxpress.com';
+                            break;
+
+                        case 'CV':
+                            $amazonAccountName = 'ChatAndVision';
+                            $alertEmail = 'amazonus@chatandvision.com';
+                            break;
+                    }
+
+                    //$alertEmail = "handy.hon@eservicesgroup.com";
+
+                    foreach ($feedResult->Message->ProcessingReport->Result as $itemResult) {
+
+                        if ((string) $itemResult->ResutlCode === 'Error') {
+                            $subject = "[{$amazonAccountName}] Product Feed ". (string) $itemResult->ResultCode;
+                            $message = 'marketplace SKU : <'. (string) $itemResult->AdditionalInfo->SKU . ">\r\n";
+                            $message .= 'MessageCode : '. (string) $itemResult->ResultMessageCode . "\r\n";
+                            $message .= 'Description : '. (string) $itemResult->ResultDescription . "\r\n";
+
+                            mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+                        }
+                    }
+
+                } elseif ( (int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithWarning > 0) {
+                    $pendingFeed->feed_processing_status = '_COMPLETE_WITH_WARNING_';
+                } else {
+                    $pendingFeed->feed_processing_status = '_COMPLETE_';
+                }
+                $pendingFeed->save();
+            }
         }
 
     }

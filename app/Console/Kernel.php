@@ -42,7 +42,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
 
+        $schedule->command('feed:product')
+            ->everyTenMinutes();
+
         $schedule->command('feed:price')
+            ->everyTenMinutes();
+
+        $schedule->command('feed:inventory')
             ->everyTenMinutes();
 
         $schedule->command('feed:check')

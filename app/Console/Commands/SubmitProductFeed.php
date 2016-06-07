@@ -74,7 +74,7 @@ class SubmitProductFeed extends Command
 
             foreach ($pendingSkuGroup as $index => $pendingSku) {
                 $messageNode =     '<Message>';
-                $messageNode .=         '<MessageID>1</MessageID>';
+                $messageNode .=         '<MessageID>'.++$index.'</MessageID>';
                 $messageNode .=         '<OperationType>Update</OperationType>';
                 $messageNode .=         '<Product>';
                 $messageNode .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
