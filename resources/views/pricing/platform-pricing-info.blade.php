@@ -76,6 +76,10 @@
                                 <option value="N" {{ ($platformInfo['listingStatus'] == 'N') ? 'selected' : '' }}>Not listed</option>
                             </select>
                         </td>
+                        <td>Inventory</td>
+                        <td>
+                            <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
+                        </td>
                     </tr>
                     <tr>
                         <td colspan="20" align="center">
