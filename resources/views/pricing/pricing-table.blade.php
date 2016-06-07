@@ -75,6 +75,10 @@
                                         <option value="N" {{ ($platformInfo['listingStatus'] == 'N') ? 'selected' : '' }}>Not listed</option>
                                     </select>
                                 </td>
+                                <td>Inventory</td>
+                                <td>
+                                    <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
+                                </td>
                             </tr>
                             <tr>
                                 <td colspan="20" align="center">
@@ -100,11 +104,18 @@
         var trElement = $('#' + $(this).data('platform') + ' input[name*="delivery_type"]:checked').closest('tr');
         var deliveryType = $('#' + $(this).data('platform') + ' input[name*="delivery_type"]:checked').val();
         var listingStatus = $('#' + $(this).data('platform') + ' select[name=listingStatus]').val();
+        var inventory = $('#' + $(this).data('platform') + ' input[name=inventory]').val();
         var price = trElement.find('input[name=price]').val();
         var sellingPlatform = trElement.find('input[name=price]').data('sellingPlatform');
         var marketplaceSku = trElement.find('input[name=price]').data('marketplaceSku');
         var profit = trElement.find('td[data-name=profit]').text();
         var margin = trElement.find('td[data-name=margin]').text();
+
+        console.log(inventory);
+
+        if (inventory == 0 || inventory === undefined) {
+            alert('Please mind the inventory is no greater than 0');
+        }
 
         $.ajax({
             method: "POST",
@@ -113,6 +124,7 @@
             data: {
                 delivery_type: deliveryType,
                 price: price,
+                inventory: inventory,
                 profit: profit,
                 margin: margin,
                 sellingPlatform: sellingPlatform,

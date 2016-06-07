@@ -25,10 +25,6 @@
                 <div class="col-sm-2">
                     <input type="text" name="marketplaceSku" id="inputMarketplaceSku" class="form-control" value="" required="required" title="">
                 </div>
-                <label for="inputInventory" class="col-sm-1 control-label">Inventory</label>
-                <div class="col-sm-2">
-                    <input type="text" name="inventory" id="inputInventory" class="form-control" value="0">
-                </div>
             </div>
 
             <div class="form-group form-group-sm">
@@ -97,7 +93,7 @@
     });
 
     $('body').on('click', '#addNewListing', function (e) {
-        marketplaceInput = '<label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label><div class="col-sm-2"><input type="text" name="marketplaceSku" id="inputMarketplaceSku" class="form-control" value="" required="required" title=""></div><label for="inputInventory" class="col-sm-1 control-label">Inventory</label><div class="col-sm-2"><input type="text" name="inventory" id="inputInventory" class="form-control" value="0"></div>';
+        marketplaceInput = '<label for="inputMarketplaceSku" class="col-sm-1 control-label">M.P. SKU:</label><div class="col-sm-2"><input type="text" name="marketplaceSku" id="inputMarketplaceSku" class="form-control" value="" required="required" title=""></div>';
         $('div[data-group="marketplace"]').html(marketplaceInput);
         $('#inputEAN').val('');
         $('#inputUPC').val('');
@@ -106,7 +102,6 @@
 
     $('body').on('change', '#inputMarketplaceSku', function (e) {
         inventory = $(this).find(':selected').data('inventory');
-        $('#inputInventory').val(inventory);
 
         uuid = $(this).find(':selected').data('uuid').split('-');
         $('#inputEAN').val(uuid[0]);
@@ -213,7 +208,7 @@
                     marketplaceSelection += 'data-uuid="'+marketplaceSkuObj.ean+'-'+marketplaceSkuObj.upc+'-'+marketplaceSkuObj.asin+'"';
                     marketplaceSelection += '>'+marketplaceSkuObj.marketplace_sku+'</option>';
                 })
-                marketplaceSelection += '</select></div><label for="inputInventory" class="col-sm-1 control-label">Inventory</label><div class="col-sm-2"><input type="text" name="inventory" id="inputInventory" class="form-control" value="0"></div><div class="col-sm-1"><button type="button" id="addNewListing" class="btn btn-info btn-sm">Add New Listing</button></div>';
+                marketplaceSelection += '</select></div><div class="col-sm-1"><button type="button" id="addNewListing" class="btn btn-info btn-sm">Add New Listing</button></div>';
                 $('div[data-group="marketplace"]').html(marketplaceSelection);
             }
 
