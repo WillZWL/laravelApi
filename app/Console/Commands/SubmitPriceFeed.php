@@ -93,8 +93,8 @@ class SubmitPriceFeed extends Command
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
                 $pendingSkuGroup->transform(function($pendingSku) {
-                    $pendingSku->process_status ^= (1 << 1);
-                    $pendingSku->process_status |= (1 << 3);
+                    $pendingSku->process_status ^= self::PENDING_PRICE;
+                    $pendingSku->process_status |= self::COMPLETE_PRICE;
                     $pendingSku->save();
                 });
                 $response = $feed->getResponse();

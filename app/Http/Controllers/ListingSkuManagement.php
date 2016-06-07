@@ -19,7 +19,7 @@ class ListingSkuManagement extends Controller
     const PRODUCT_UPDATED = 1;
     const PRICE_UPDATED = 2;
     const INVENTORY_UPDATED = 4;
-    const PRODUCT_DISCONTINUED = 8;
+    const PRODUCT_DISCONTINUED = 64;
 
     public function index(Request $request)
     {
@@ -177,7 +177,7 @@ class ListingSkuManagement extends Controller
             ->whereCountryId($countryCode)
             ->firstOrFail();
 
-        $mapping->process_status = $mapping->process_status | self::PRICE_UPDATED;
+        $mapping->process_status = $mapping->process_status | self::PRICE_UPDATED | self::INVENTORY_UPDATED;
         $mapping->listing_status = $request->input('listingStatus');
         if ($mapping->listing_status === 'N') {
             $mapping->process_status = $mapping->process_status | self::PRODUCT_DISCONTINUED;
