@@ -153,7 +153,6 @@ class ListingSkuManagement extends Controller
         $marketplaceSkuMapping->mp_control_id = $marketplaceControl->control_id;
         $marketplaceSkuMapping->marketplace_id = $request->input('marketplace');
         $marketplaceSkuMapping->country_id = $request->input('country');
-        $marketplaceSkuMapping->inventory = $request->input('inventory');
         $marketplaceSkuMapping->ean = $ean;
         $marketplaceSkuMapping->upc = $upc;
         $marketplaceSkuMapping->asin = $asin;
@@ -194,6 +193,7 @@ class ListingSkuManagement extends Controller
         }
 
         $mapping->price = $request->input('price');
+        $mapping->inventory = $request->input('inventory');
         $mapping->profit = $request->input('profit');
         $mapping->margin = $request->input('margin');
         if ($mapping->save()) {

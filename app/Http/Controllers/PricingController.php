@@ -63,6 +63,7 @@ class PricingController extends Controller
 
             $result[$request->input('marketplace').$request->input('country')]['deliveryOptions'] = $this->getPricingInfo($request);
             $result[$request->input('marketplace').$request->input('country')]['listingStatus'] = $mappingItem->listing_status;
+            $result[$request->input('marketplace').$request->input('country')]['inventory'] = $mappingItem->inventory;
         }
         return response()->view('pricing.pricing-table', ['data' => $result]);
         //return response()->json($result);
