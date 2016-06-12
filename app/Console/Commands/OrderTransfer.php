@@ -243,7 +243,6 @@ class OrderTransfer extends Command
             $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
                 ->where('marketplace_id', '=', $marketplaceId)
                 ->where('country_id', '=', $countryCode)
-                ->select('sku')
                 ->firstOrFail();
 
             $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
@@ -256,6 +255,7 @@ class OrderTransfer extends Command
             }
 
             $item->seller_sku = $mapping->sku;
+            $item->mapping = $mapping;
             $merchant[$merchantProductMapping->short_id]->add($item);
         }
 
@@ -421,6 +421,8 @@ class OrderTransfer extends Command
             $newOrderItemDetail->outstanding_qty = $item->quantity_ordered;
             $newOrderItemDetail->unit_price = $item->item_price;
             $newOrderItemDetail->vat_total = 0;   // not sure.
+            $newOrderItemDetail->profit = $item->mapping->profit;
+            $newOrderItemDetail->margin = $item->mapping->margin;
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
             $newOrderItemDetail->modify_on = Carbon::now();
