@@ -396,7 +396,7 @@ class OrderTransfer extends Command
             $newOrderItem->prod_name = $item->title;
             $newOrderItem->ext_item_cd = $item->order_item_id;
             $newOrderItem->qty = $item->quantity_ordered;
-            $newOrderItem->unit_price = $item->item_price;
+            $newOrderItem->unit_price = $item->item_price / $item->quantity_ordered;
             $newOrderItem->vat_total = 0;   // not sure.
             $newOrderItem->amount = $item->item_price;
             $newOrderItem->create_on = Carbon::now();
@@ -419,9 +419,9 @@ class OrderTransfer extends Command
             $newOrderItemDetail->line_no = $lineNumber++;
             $newOrderItemDetail->qty = $item->quantity_ordered;
             $newOrderItemDetail->outstanding_qty = $item->quantity_ordered;
-            $newOrderItemDetail->unit_price = $item->item_price;
+            $newOrderItemDetail->unit_price = $item->item_price / $item->quantity_ordered;
             $newOrderItemDetail->vat_total = 0;   // not sure.
-            $newOrderItemDetail->profit = $item->mapping->profit;
+            $newOrderItemDetail->profit = $item->mapping->profit * $item->quantity_ordered;
             $newOrderItemDetail->margin = $item->mapping->margin;
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
