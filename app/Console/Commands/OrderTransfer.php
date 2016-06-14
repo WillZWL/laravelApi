@@ -107,7 +107,7 @@ class OrderTransfer extends Command
 
             case 'CV':
                 $amazonAccountName = 'ChatAndVision';
-                $alertEmail = 'amazonus@chatandvision.com';
+                $alertEmail = 'amazonus-group@chatandvision.com';
                 break;
         }
 
