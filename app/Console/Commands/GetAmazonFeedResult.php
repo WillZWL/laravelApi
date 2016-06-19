@@ -76,8 +76,7 @@ class GetAmazonFeedResult extends Command
                     //$alertEmail = "handy.hon@eservicesgroup.com";
 
                     foreach ($feedResult->Message->ProcessingReport->Result as $itemResult) {
-
-                        if ((string) $itemResult->ResutlCode === 'Error') {
+                        if ((string) $itemResult->ResultCode === 'Error') {
                             $subject = "[{$amazonAccountName}] Product Feed ". (string) $itemResult->ResultCode;
                             $message = 'marketplace SKU : <'. (string) $itemResult->AdditionalInfo->SKU . ">\r\n";
                             $message .= 'MessageCode : '. (string) $itemResult->ResultMessageCode . "\r\n";

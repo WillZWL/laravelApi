@@ -51,6 +51,9 @@ class SubmitProductFeed extends Command
             ->join('product_content', function ($q) {
                 $q->on('product.sku', '=', 'product_content.prod_sku')
                     ->on('marketplace_sku_mapping.lang_id', '=', 'product_content.lang_id');
+            })->join('product_content_extend', function ($q) {
+                $q->on('product.sku', '=', 'product_content_extend.prod_sku')
+                    ->on('marketplace_sku_mapping.lang_id', '=', 'product_content_extend.lang_id');
             })
             ->join('brand', 'brand.id', '=', 'product.brand_id')
             ->where('marketplace_sku_mapping.marketplace_id', 'like', '%AMAZON')
@@ -91,10 +94,24 @@ class SubmitProductFeed extends Command
                 $messageNode .=                 '<Title><![CDATA['.$pendingSku->prod_name.']]></Title>';
                 $messageNode .=                 '<Brand><![CDATA['.$pendingSku->brand_name.']]></Brand>';
                 $messageNode .=                 '<Description>';
+                $messageNode .=                     '<![CDATA['.$pendingSku->detail_desc.']]>';
                 $messageNode .=                     '<![CDATA['.$pendingSku->contents.']]>';
                 $messageNode .=                 '</Description>';
+                foreach (explode("\n", $pendingSku->feature) as $bulletPoint) {
+                    $messageNode .=             '<BulletPoint>';
+                    $messageNode .=                 '<![CDATA['. $bulletPoint .']]>';
+                    $messageNode .=             '</BulletPoint>';
+                }
+                $messageNode .=                 '<ItemDimensions>';
+                $messageNode .=                     '<Length unitOfMeasure="CM">'.$pendingSku->length.'</Length>';
+                $messageNode .=                     '<Width unitOfMeasure="CM">'.$pendingSku->width.'</Width>';
+                $messageNode .=                     '<Height unitOfMeasure="CM">'.$pendingSku->height.'</Height>';
+                $messageNode .=                 '</ItemDimensions>';
                 $messageNode .=                 '<ShippingWeight unitOfMeasure="KG">'.number_format($pendingSku->weight, 2, '.', '').'</ShippingWeight>';
                 $messageNode .=                 '<Manufacturer><![CDATA['.$pendingSku->brand_name.']]></Manufacturer>';
+                foreach (explode("\n", $pendingSku->keywords) as $keyword) {
+                    $messageNode .=                 '<SearchTerms>'.$keyword.'</SearchTerms>';
+                }
                 $messageNode .=                 '<IsGiftWrapAvailable>false</IsGiftWrapAvailable>';
                 $messageNode .=                 '<IsGiftMessageAvailable>false</IsGiftMessageAvailable>';
                 $messageNode .=                 '<DeliveryChannel>direct_ship</DeliveryChannel>';
