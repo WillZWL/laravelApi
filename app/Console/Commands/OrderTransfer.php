@@ -88,7 +88,8 @@ class OrderTransfer extends Command
      */
     public function validateAmazonOrder(AmazonOrder $order)
     {
-        $countryCode = strtoupper(substr($order->platform, -2));
+        //$countryCode = strtoupper(substr($order->platform, -2));
+        $countryCode = $order->amazonShippingAddress->country_code;
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
