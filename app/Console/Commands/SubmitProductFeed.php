@@ -89,6 +89,7 @@ class SubmitProductFeed extends Command
                 $messageNode .=             '<LaunchDate>2014-04-22T04:00:00</LaunchDate>';
                 $messageNode .=             '<Condition>';
                 $messageNode .=                 '<ConditionType>'.$pendingSku->condition.'</ConditionType>';
+                $messageNode .=                 '<ConditionNote>'.$pendingSku->condition_note.'</ConditionNote>';
                 $messageNode .=             '</Condition>';
                 $messageNode .=             '<DescriptionData>';
                 $messageNode .=                 '<Title><![CDATA['.$pendingSku->prod_name.']]></Title>';
