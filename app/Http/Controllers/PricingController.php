@@ -64,6 +64,9 @@ class PricingController extends Controller
             $result[$request->input('marketplace').$request->input('country')]['deliveryOptions'] = $this->getPricingInfo($request);
             $result[$request->input('marketplace').$request->input('country')]['listingStatus'] = $mappingItem->listing_status;
             $result[$request->input('marketplace').$request->input('country')]['inventory'] = $mappingItem->inventory;
+            $result[$request->input('marketplace').$request->input('country')]['platformBrand'] = $mappingItem->brand;
+            $result[$request->input('marketplace').$request->input('country')]['condition'] = $mappingItem->condition;
+            $result[$request->input('marketplace').$request->input('country')]['conditionNote'] = $mappingItem->condition_note;
         }
         return response()->view('pricing.pricing-table', ['data' => $result]);
         //return response()->json($result);
@@ -87,6 +90,9 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['deliveryOptions'] = $this->getPricingInfo($request);
         $result[$request->input('sellingPlatform')]['listingStatus'] = $marketplaceMapping->listing_status;
         $result[$request->input('sellingPlatform')]['inventory'] = $marketplaceMapping->inventory;
+        $result[$request->input('sellingPlatform')]['platformBrand'] = $marketplaceMapping->brand;
+        $result[$request->input('sellingPlatform')]['condition'] = $marketplaceMapping->condition;
+        $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }

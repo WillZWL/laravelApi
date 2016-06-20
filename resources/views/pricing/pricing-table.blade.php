@@ -79,6 +79,38 @@
                                 <td>
                                     <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
                                 </td>
+                                <td>
+                                    Amazon Brand
+                                </td>
+                                <td>
+                                    <input type="text" name="platformBrand" id="inputPlatformBrand" value="{{ $platformInfo['platformBrand'] }}">
+                                </td>
+                                <td>
+                                    Condition
+                                </td>
+                                <td>
+                                    <select name="condition" id="condition">
+                                        <option value="New" {{ ($platformInfo['condition'] == 'New') ? 'selected' : '' }}>New</option>
+                                        <option value="UsedLikeNew" {{ ($platformInfo['condition'] == 'UsedLikeNew') ? 'selected' : '' }}>UsedLikeNew</option>
+                                        <option value="UsedVeryGood" {{ ($platformInfo['condition'] == 'UsedVeryGood') ? 'selected' : '' }}>UsedVeryGood</option>
+                                        <option value="UsedGood" {{ ($platformInfo['condition'] == 'UsedGood') ? 'selected' : '' }}>UsedGood</option>
+                                        <option value="UsedAcceptable" {{ ($platformInfo['condition'] == 'UsedAcceptable') ? 'selected' : '' }}>UsedAcceptable</option>
+                                        <option value="CollectibleLikeNew" {{ ($platformInfo['condition'] == 'CollectibleLikeNew') ? 'selected' : '' }}>CollectibleLikeNew</option>
+                                        <option value="CollectibleVeryGood" {{ ($platformInfo['condition'] == 'CollectibleVeryGood') ? 'selected' : '' }}>CollectibleVeryGood</option>
+                                        <option value="CollectibleGood" {{ ($platformInfo['condition'] == 'CollectibleGood') ? 'selected' : '' }}>CollectibleGood</option>
+                                        <option value="CollectibleAcceptable" {{ ($platformInfo['condition'] == 'CollectibleAcceptable') ? 'selected' : '' }}>CollectibleAcceptable</option>
+                                        <option value="Refurbished" {{ ($platformInfo['condition'] == 'Refurbished') ? 'selected' : '' }}>Refurbished</option>
+                                        <option value="Club" {{ ($platformInfo['condition'] == 'Club') ? 'selected' : '' }}>Club</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    Condition Note
+                                </td>
+                                <td colspan="19">
+                                    <input type="text" name="conditionNote" id="conditionNote" value="{{ $platformInfo['conditionNote'] }}">
+                                </td>
                             </tr>
                             <tr>
                                 <td colspan="20" align="center">
@@ -104,6 +136,9 @@
         var trElement = $('#' + $(this).data('platform') + ' input[name*="delivery_type"]:checked').closest('tr');
         var deliveryType = $('#' + $(this).data('platform') + ' input[name*="delivery_type"]:checked').val();
         var listingStatus = $('#' + $(this).data('platform') + ' select[name=listingStatus]').val();
+        var platformBrand = $('#' + $(this).data('platform') + ' input[name=platformBrand]').val();
+        var condition = $('#' + $(this).data('platform') + ' select[name=condition]').val();
+        var conditionNote = $('#' + $(this).data('platform') + ' input[name=conditionNote]').val();
         var inventory = $('#' + $(this).data('platform') + ' input[name=inventory]').val();
         var price = trElement.find('input[name=price]').val();
         var sellingPlatform = trElement.find('input[name=price]').data('sellingPlatform');
@@ -129,7 +164,10 @@
                 margin: margin,
                 sellingPlatform: sellingPlatform,
                 marketplace_sku: marketplaceSku,
-                listingStatus: listingStatus
+                listingStatus: listingStatus,
+                platformBrand: platformBrand,
+                condition: condition,
+                conditionNote: conditionNote
             }
         }).done(function (msg) {
             console.log(msg);
