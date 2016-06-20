@@ -88,7 +88,7 @@ class SubmitProductFeed extends Command
                 $messageNode .=             '<ProductTaxCode>A_GEN_NOTAX</ProductTaxCode>';
                 $messageNode .=             '<LaunchDate>2014-04-22T04:00:00</LaunchDate>';
                 $messageNode .=             '<Condition>';
-                $messageNode .=                 '<ConditionType>New</ConditionType>';
+                $messageNode .=                 '<ConditionType>'.$pendingSku->condition.'</ConditionType>';
                 $messageNode .=             '</Condition>';
                 $messageNode .=             '<DescriptionData>';
                 $messageNode .=                 '<Title><![CDATA['.$pendingSku->prod_name.']]></Title>';
