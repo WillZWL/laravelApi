@@ -134,10 +134,15 @@ class SubmitProductFeed extends Command
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-                $pendingSkuGroup->transform(function ($pendingSku) {
-                    $pendingSku->process_status ^= self::PENDING_PRODUCT;
-                    $pendingSku->process_status |= self::COMPLETE_PRODUCT;
-                    $pendingSku->save();
+                $pendingSkuGroup->each(function ($pendingSku) {
+                    $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $pendingSku->marketplace_sku)
+                        ->where('mp_control_id', '=', $pendingSku->mp_control_id)
+                        ->where('sku', '=', $pendingSku->sku)
+                        ->first();
+
+                    $mapping->process_status ^= self::PENDING_PRODUCT;
+                    $mapping->process_status |= self::COMPLETE_PRODUCT;
+                    $mapping->save();
                 });
                 $response = $feed->getResponse();
                 $platformProductFeed->feed_submission_id = $response['FeedSubmissionId'];
