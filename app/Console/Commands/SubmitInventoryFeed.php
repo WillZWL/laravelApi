@@ -77,13 +77,25 @@ class SubmitInventoryFeed extends Command
                 $messageNode =      '<Message>';
                 $messageNode .=         '<MessageID>'.++$index.'</MessageID>';
                 $messageNode .=         '<OperationType>Update</OperationType>';
-                $messageNode .=         '<Inventory>';
-                $messageNode .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                $messageNode .=             '<FulfillmentCenterID>DEFAULT</FulfillmentCenterID>';
-                $messageNode .=             '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-                //$messageNode .=           '<FulfillmentLatency>18</FulfillmentLatency>';
-                $messageNode .=             '<SwitchFulfillmentTo>'.$pendingSku->fulfillment.'</SwitchFulfillmentTo>';
-                $messageNode .=         '</Inventory>';
+
+                if ($pendingSku->fulfillment === 'AFN') {
+                    $inventory = '';
+                    $inventory .=         '<Inventory>';
+                    $inventory .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                    $inventory .=             '<FulfillmentCenterID>AMAZON_NA</FulfillmentCenterID>';
+                    $inventory .=             '<Lookup>FulfillmentNetwork</Lookup>';
+                    $inventory .=             '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
+                    $inventory .=         '</Inventory>';
+                } else {
+                    $inventory = '';
+                    $inventory .=         '<Inventory>';
+                    $inventory .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                    $inventory .=             '<Quantity>'.$pendingSku->inventory.'</Quantity>';
+                    //$inventory .=           '<FulfillmentLatency>18</FulfillmentLatency>';
+                    $inventory .=         '</Inventory>';
+                }
+
+                $messageNode .= $inventory;
                 $messageNode .=     '</Message>';
 
                 $xml .= $messageNode;
