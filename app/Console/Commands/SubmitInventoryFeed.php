@@ -80,19 +80,20 @@ class SubmitInventoryFeed extends Command
 
                 if ($pendingSku->fulfillment === 'AFN') {
                     $inventory = '';
-                    $inventory .=         '<Inventory>';
-                    $inventory .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                    $inventory .=             '<FulfillmentCenterID>AMAZON_NA</FulfillmentCenterID>';
-                    $inventory .=             '<Lookup>FulfillmentNetwork</Lookup>';
-                    $inventory .=             '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
-                    $inventory .=         '</Inventory>';
+                    $inventory .=       '<Inventory>';
+                    $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                    $inventory .=           '<Lookup>FulfillmentNetwork</Lookup>';
+                    $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
+                    $inventory .=           '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
+                    $inventory .=       '</Inventory>';
                 } else {
                     $inventory = '';
-                    $inventory .=         '<Inventory>';
-                    $inventory .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                    $inventory .=             '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-                    //$inventory .=           '<FulfillmentLatency>18</FulfillmentLatency>';
-                    $inventory .=         '</Inventory>';
+                    $inventory .=       '<Inventory>';
+                    $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                    $inventory .=           '<Quantity>'.$pendingSku->inventory.'</Quantity>';
+                    $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
+                    $inventory .=           '<SwitchFulfillmentTo>MFN</SwitchFulfillmentTo>';
+                    $inventory .=       '</Inventory>';
                 }
 
                 $messageNode .= $inventory;
