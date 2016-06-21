@@ -81,6 +81,13 @@
                             <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
                         </td>
                         <td>
+                            Latency
+                        </td>
+                        <td>
+                            <input type="text" name="latency" id="inputLatency" value="{{ $platformInfo['fulfillmentLatency'] }}" required="required">
+                        </td>
+
+                        <td>
                             Amazon Brand
                         </td>
                         <td>
