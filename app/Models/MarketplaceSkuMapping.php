@@ -18,4 +18,14 @@ class MarketplaceSkuMapping extends Model
     {
         return $this->belongsTo('App\Models\Product', 'sku', 'sku');
     }
+
+    public function FulfillmentCenter($fulfillment = null)
+    {
+        $relation = $this->hasMany('App\Models\FulfillmentCenter', 'mp_control_id', 'mp_control_id');
+        if ($fulfillment) {
+            $relation->where('fulfillment_method', '=', $fulfillment);
+        }
+
+        return $relation;
+    }
 }

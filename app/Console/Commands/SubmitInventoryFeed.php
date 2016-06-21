@@ -82,6 +82,7 @@ class SubmitInventoryFeed extends Command
                     $inventory = '';
                     $inventory .=       '<Inventory>';
                     $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                    $inventory .=           '<FulfillmentCenterID>'.$pendingSku->FulfillmentCenter('AFN')->first()->name.'</FulfillmentCenterID>';
                     $inventory .=           '<Lookup>FulfillmentNetwork</Lookup>';
                     $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
                     $inventory .=           '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
@@ -90,6 +91,7 @@ class SubmitInventoryFeed extends Command
                     $inventory = '';
                     $inventory .=       '<Inventory>';
                     $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                    $inventory .=           '<FulfillmentCenterID>DEFAULT</FulfillmentCenterID>';
                     $inventory .=           '<Quantity>'.$pendingSku->inventory.'</Quantity>';
                     $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
                     $inventory .=           '<SwitchFulfillmentTo>MFN</SwitchFulfillmentTo>';
