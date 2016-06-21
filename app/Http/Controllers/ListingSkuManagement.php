@@ -180,6 +180,7 @@ class ListingSkuManagement extends Controller
         $mapping->brand = $request->input('platformBrand');
         $mapping->condition = $request->input('condition');
         $mapping->condition_note = $request->input('conditionNote');
+        $mapping->fulfillment_latency= $request->input('fulfillmentLatency');
 
         $mapping->process_status = $mapping->process_status | self::PRICE_UPDATED | self::INVENTORY_UPDATED | self::PRODUCT_UPDATED;
         $mapping->listing_status = $request->input('listingStatus');

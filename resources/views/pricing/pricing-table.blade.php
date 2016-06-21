@@ -80,6 +80,12 @@
                                     <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
                                 </td>
                                 <td>
+                                    Latency
+                                </td>
+                                <td>
+                                    <input type="text" name="latency" id="inputLatency" value="{{ $platformInfo['fulfillmentLatency'] }}" required="required">
+                                </td>
+                                <td>
                                     Amazon Brand
                                 </td>
                                 <td>
@@ -138,6 +144,7 @@
         var listingStatus = $('#' + $(this).data('platform') + ' select[name=listingStatus]').val();
         var platformBrand = $('#' + $(this).data('platform') + ' input[name=platformBrand]').val();
         var condition = $('#' + $(this).data('platform') + ' select[name=condition]').val();
+        var latency = $('#' + $(this).data('platform') + ' input[name=latency]').val();
         var conditionNote = $('#' + $(this).data('platform') + ' input[name=conditionNote]').val();
         var inventory = $('#' + $(this).data('platform') + ' input[name=inventory]').val();
         var price = trElement.find('input[name=price]').val();
@@ -167,7 +174,8 @@
                 listingStatus: listingStatus,
                 platformBrand: platformBrand,
                 condition: condition,
-                conditionNote: conditionNote
+                conditionNote: conditionNote,
+                fulfillmentLatency: latency
             }
         }).done(function (msg) {
             console.log(msg);
