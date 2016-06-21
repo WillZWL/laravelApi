@@ -65,14 +65,14 @@ class SubmitPriceFeed extends Command
             $xml .=         '<DocumentVersion>1.01</DocumentVersion>';
             $xml .=         '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
             $xml .=     '</Header>';
-            $xml .=     '<MessageType>Product</MessageType>';
+            $xml .=     '<MessageType>Price</MessageType>';
 
             foreach ($pendingSkuGroup as $index => $pendingSku) {
                 $messageDom  =  '<Message>';
                 $messageDom .=      '<MessageID>'.++$index.'</MessageID>';
                 $messageDom .=      '<Price>';
                 $messageDom .=          '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                $messageDom .=          '<StandardPrice currency="'.$pendingSku->currency.'">'.$pendingSku->price.'</StandardPrice>';
+                $messageDom .=          '<StandardPrice currency="DEFAULT">'.$pendingSku->price.'</StandardPrice>';
                 $messageDom .=      '</Price>';
                 $messageDom .=  '</Message>';
 
