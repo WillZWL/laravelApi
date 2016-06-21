@@ -74,34 +74,37 @@ class SubmitInventoryFeed extends Command
             $xml .=     '<MessageType>Product</MessageType>';
 
             foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageNode =      '<Message>';
-                $messageNode .=         '<MessageID>'.++$index.'</MessageID>';
-                $messageNode .=         '<OperationType>Update</OperationType>';
+                try {
+                    $messageNode =      '<Message>';
+                    $messageNode .=         '<MessageID>'.++$index.'</MessageID>';
+                    $messageNode .=         '<OperationType>Update</OperationType>';
 
-                if ($pendingSku->fulfillment === 'AFN') {
-                    $inventory = '';
-                    $inventory .=       '<Inventory>';
-                    $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                    $inventory .=           '<FulfillmentCenterID>'.$pendingSku->FulfillmentCenter('AFN')->first()->name.'</FulfillmentCenterID>';
-                    $inventory .=           '<Lookup>FulfillmentNetwork</Lookup>';
-                    $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
-                    $inventory .=           '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
-                    $inventory .=       '</Inventory>';
-                } else {
-                    $inventory = '';
-                    $inventory .=       '<Inventory>';
-                    $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                    $inventory .=           '<FulfillmentCenterID>DEFAULT</FulfillmentCenterID>';
-                    $inventory .=           '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-                    $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
-                    $inventory .=           '<SwitchFulfillmentTo>MFN</SwitchFulfillmentTo>';
-                    $inventory .=       '</Inventory>';
+                    if ($pendingSku->fulfillment === 'AFN') {
+                        $inventory = '';
+                        $inventory .=       '<Inventory>';
+                        $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                        $inventory .=           '<FulfillmentCenterID>'.$pendingSku->fulfillmentCenter('AFN')->first()->name.'</FulfillmentCenterID>';
+                        $inventory .=           '<Lookup>FulfillmentNetwork</Lookup>';
+                        $inventory .=           '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
+                        $inventory .=       '</Inventory>';
+                    } else {
+                        $inventory = '';
+                        $inventory .=       '<Inventory>';
+                        $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                        $inventory .=           '<FulfillmentCenterID>DEFAULT</FulfillmentCenterID>';
+                        $inventory .=           '<Quantity>'.$pendingSku->inventory.'</Quantity>';
+                        $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
+                        $inventory .=           '<SwitchFulfillmentTo>MFN</SwitchFulfillmentTo>';
+                        $inventory .=       '</Inventory>';
+                    }
+
+                    $messageNode .= $inventory;
+                    $messageNode .=     '</Message>';
+
+                    $xml .= $messageNode;
+                } catch (\Exception $e) {
+                    mail('handy.hon@eservciesgroup.com', 'SOS', 'Invenotry Feed Error');
                 }
-
-                $messageNode .= $inventory;
-                $messageNode .=     '</Message>';
-
-                $xml .= $messageNode;
             }
             $xml .= '</AmazonEnvelope>';
 
