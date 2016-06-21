@@ -14,12 +14,12 @@ class MarketplaceSkuMapping extends Model
 
     public $incrementing = false;
 
-    public function Product()
+    public function product()
     {
         return $this->belongsTo('App\Models\Product', 'sku', 'sku');
     }
 
-    public function FulfillmentCenter($fulfillment = null)
+    public function fulfillmentCenter($fulfillment = null)
     {
         $relation = $this->hasMany('App\Models\FulfillmentCenter', 'mp_control_id', 'mp_control_id');
         if ($fulfillment) {
