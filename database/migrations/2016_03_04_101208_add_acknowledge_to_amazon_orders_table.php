@@ -25,7 +25,7 @@ class AddAcknowledgeToAmazonOrdersTable extends Migration
     public function down()
     {
         Schema::table('amazon_orders', function (Blueprint $table) {
-            //
+            $table->dropColumn('acknowledge');
         });
     }
 }

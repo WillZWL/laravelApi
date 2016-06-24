@@ -25,7 +25,7 @@ class AddColumnToAmazonShippingAddressesTable extends Migration
     public function down()
     {
         Schema::table('amazon_shipping_addresses', function (Blueprint $table) {
-            //
+            $table->dropColumn('amazon_order_id');
         });
     }
 }

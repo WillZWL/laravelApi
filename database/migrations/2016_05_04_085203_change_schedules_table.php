@@ -25,7 +25,7 @@ class ChangeSchedulesTable extends Migration
     public function down()
     {
         Schema::table('schedules', function (Blueprint $table) {
-            //
+            $table->renameColumn('store_name', 'type');
         });
     }
 }
