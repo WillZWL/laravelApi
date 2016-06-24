@@ -25,7 +25,7 @@ class AlterSchedulesRemarkColumn extends Migration
     public function down()
     {
         Schema::table('schedules', function (Blueprint $table) {
-            //
+            $table->string('remark')->change();
         });
     }
 }
