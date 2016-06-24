@@ -25,7 +25,7 @@ class RenameColumnAmazonOrderItemsTable extends Migration
     public function down()
     {
         Schema::table('amazon_order_items', function (Blueprint $table) {
-            //
+            $table->renameColumn('amazon_order_id', 'order_id');
         });
     }
 }

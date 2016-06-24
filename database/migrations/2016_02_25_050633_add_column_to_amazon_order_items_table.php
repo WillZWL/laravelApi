@@ -25,7 +25,7 @@ class AddColumnToAmazonOrderItemsTable extends Migration
     public function down()
     {
         Schema::table('amazon_order_items', function (Blueprint $table) {
-            //
+            $table->dropColumn('order_id');
         });
     }
 }
