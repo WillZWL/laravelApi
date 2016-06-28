@@ -23,6 +23,7 @@ use App\Models\SoExtend;
 use App\Models\SoItem;
 use App\Models\SoItemDetail;
 use App\Models\SoPaymentStatus;
+use App\Models\SpIncoterm;
 use App\Models\WeightCourier;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -220,6 +221,12 @@ class OrderTransfer extends Command
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $so->platform_id = 'AC-'.$amazonAccount.'AZ-GROUP'.$countryCode;
         $so->platform_split_order = 0;
+
+        $splitOrder = So::where('platform_order_id', '=', $so->platform_order_id)
+            ->where('platform_split_order', '=', '1')
+            ->first();
+        $so->incoterm = $splitOrder->incoterm;
+
         $so->save();
 
         $this->saveSoItem($so, $order->amazonOrderItem);
@@ -267,6 +274,12 @@ class OrderTransfer extends Command
             $amazonAccount = strtoupper(substr($order->platform, 0, 2));
             $so->platform_id = 'AC-'.$amazonAccount.'AZ-'.$merchantShortId.$countryCode;
             $so->platform_group_order = 0;
+
+            $spIncoterm = SpIncoterm::wherePlatformId($so->platform_id)->whereDeliveryTypeId($so->delivery_type_id)->first();
+            if ($spIncoterm) {
+                $so->incoterm = $spIncoterm->incoterm;
+            }
+
             $so->save();
             $this->saveSoItem($so, $items);
             $this->saveSoItemDetail($so, $items);
