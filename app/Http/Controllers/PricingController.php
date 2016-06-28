@@ -68,6 +68,8 @@ class PricingController extends Controller
             $result[$request->input('marketplace').$request->input('country')]['condition'] = $mappingItem->condition;
             $result[$request->input('marketplace').$request->input('country')]['conditionNote'] = $mappingItem->condition_note;
             $result[$request->input('marketplace').$request->input('country')]['fulfillmentLatency'] = $mappingItem->fulfillment_latency;
+            $result[$request->input('marketplace').$request->input('country')]['asin'] = $mappingItem->asin;
+
         }
         return response()->view('pricing.pricing-table', ['data' => $result]);
         //return response()->json($result);
@@ -95,6 +97,7 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['condition'] = $marketplaceMapping->condition;
         $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
         $result[$request->input('sellingPlatform')]['fulfillmentLatency'] = $marketplaceMapping->fulfillment_latency;
+        $result[$request->input('sellingPlatform')]['asin'] = $marketplaceMapping->asin;
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
