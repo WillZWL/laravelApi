@@ -69,7 +69,10 @@ class PricingController extends Controller
             $result[$request->input('marketplace').$request->input('country')]['conditionNote'] = $mappingItem->condition_note;
             $result[$request->input('marketplace').$request->input('country')]['fulfillmentLatency'] = $mappingItem->fulfillment_latency;
             $result[$request->input('marketplace').$request->input('country')]['asin'] = $mappingItem->asin;
-
+            $result[$request->input('marketplace').$request->input('country')]['currency'] = $mappingItem->currency;
+            $result[$request->input('marketplace').$request->input('country')]['price'] = $mappingItem->price;
+            $result[$request->input('marketplace').$request->input('country')]['delivery_type'] = $mappingItem->delivery_type;
+            $result[$request->input('marketplace').$request->input('country')]['margin'] = $mappingItem->margin;
         }
         return response()->view('pricing.pricing-table', ['data' => $result]);
         //return response()->json($result);
@@ -98,6 +101,10 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
         $result[$request->input('sellingPlatform')]['fulfillmentLatency'] = $marketplaceMapping->fulfillment_latency;
         $result[$request->input('sellingPlatform')]['asin'] = $marketplaceMapping->asin;
+        $result[$request->input('sellingPlatform')]['currency'] = $marketplaceMapping->currency;
+        $result[$request->input('sellingPlatform')]['price'] = $marketplaceMapping->price;
+        $result[$request->input('sellingPlatform')]['delivery_type'] = $marketplaceMapping->delivery_type;
+        $result[$request->input('sellingPlatform')]['margin'] = $marketplaceMapping->margin;
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
