@@ -81,7 +81,9 @@
                             <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
                         </td>
                         <td>
-                            Latency
+                            <a href="/images/amazon_latency.jpg" target="_blank">
+                                Latency
+                            </a>
                         </td>
                         <td>
                             <input type="text" name="latency" id="inputLatency" value="{{ $platformInfo['fulfillmentLatency'] }}" required="required">
