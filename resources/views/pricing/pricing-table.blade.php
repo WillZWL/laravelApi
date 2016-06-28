@@ -44,11 +44,35 @@ $link = [
             <div class="panel panel-default">
                 <div class="panel-heading" role="tab" id="head_{{ $platform }}">
                     <h4 class="panel-title">
-                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#{{ $platform }}" aria-expanded="false" aria-controls="collapseTwo">
-                            {{ $platform }}
-                        </a>
-
-                        <a href="{{ $link[$platform].$platformInfo['asin'] }}" target="_blank">{{ $link[$platform].$platformInfo['asin'] }}</a>
+                        <span>
+                            <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#{{ $platform }}" aria-expanded="false" aria-controls="collapseTwo">
+                                {{ $platform }}
+                            </a>
+                        </span>
+                        <span>
+                            &nbsp;|&nbsp;
+                            {{ $platformInfo['currency'] }}
+                            &nbsp;|&nbsp;
+                        </span>
+                        <span>
+                            {{ $platformInfo['price'] }}
+                            &nbsp;|&nbsp;
+                        </span>
+                        <span>
+                            {{ $platformInfo['delivery_type'] }}
+                            &nbsp;|&nbsp;
+                        </span>
+                        <span>
+                            {{ ($platformInfo['listingStatus'] === 'Y') ? 'Listed' : 'Not Listed' }}
+                            &nbsp;|&nbsp;
+                        </span>
+                        <span class="price {{ ($platformInfo['margin'] > 0) ? 'text-success' : 'text-danger' }}">
+                            {{ $platformInfo['margin'] }}%
+                        </span>
+                        <span>
+                            &nbsp;|&nbsp;
+                            <a href="{{ $link[$platform].$platformInfo['asin'] }}" target="_blank">{{ $link[$platform].$platformInfo['asin'] }}</a>
+                        </span>
                     </h4>
                 </div>
                 <div id="{{ $platform }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="head_{{ $platform }}">
