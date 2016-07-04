@@ -1,0 +1,22 @@
+* {
+    font-size: 11px;
+}
+
+body {
+    background: #FF8F37
+}
+
+#header {
+    background: #00DC45;
+}
+
+#header .title {
+    font-size: 16px;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 30px;
+}
+
+.form-group {
+    margin-bottom:2px;
+}
