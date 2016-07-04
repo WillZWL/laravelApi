@@ -57,3 +57,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::resource('api/v1/marketplaceProduct', 'MarketplaceProductController');
     Route::resource('api/v1/marketplaceCategory', 'MarketplaceCategoryController');
 });
+
+Route::auth();
+
+Route::get('/home', 'HomeController@index');
