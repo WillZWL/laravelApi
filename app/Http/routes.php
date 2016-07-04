@@ -49,3 +49,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('amazon/product', 'AmazonProduct@getMatchProductForId');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
 });
+
+Route::auth();
+
+Route::get('/home', 'HomeController@index');
