@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\V2;
 
+use App\Http\Controllers\MarketplaceProductController;
 use App\Models\Brand;
 use App\Models\CountryState;
 use App\Models\CountryTax;
@@ -10,6 +11,7 @@ use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
 use App\Models\HscodeDutyCountry;
 use App\Models\Marketplace;
+use App\Models\MarketplaceProduct;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantClientType;
 use App\Models\MerchantProductMapping;
@@ -41,12 +43,16 @@ class PricingController extends Controller
 
     public function index(Request $request)
     {
-        $data = [];
-        $data['brands'] = Brand::whereStatus(1)->get(['id', 'brand_name']);
-        $data['marketplaces'] = Marketplace::whereStatus(1)->get(['id']);
-        $data['skuList'] = $this->getSkuList($request);
+        $request->flash();
+        $marketplaces = Marketplace::whereStatus(1)->get(['id']);
+        $skuList = $this->getSkuList($request);
 
-        return response()->view('v2.pricing.search-form', $data);
+        $data = [];
+        if ($request->input('marketplaceSku')) {
+            $data = $this->getPriceInfo($request);
+        }
+
+        return response()->view('v2.pricing.index', compact('marketplaces', 'skuList', 'data'));
     }
 
     public function getPriceInfo(Request $request)
@@ -60,7 +66,7 @@ class PricingController extends Controller
             $request->merge([
                 'country' => $mappingItem->country_id,
                 'price' => $mappingItem->price,
-                'sku' => $mappingItem->product->sku,
+                'sku' => $mappingItem->sku,
                 'selectedDeliveryType' => $mappingItem->delivery_type,
             ]);
 
@@ -71,8 +77,15 @@ class PricingController extends Controller
             $result[$request->input('marketplace').$request->input('country')]['condition'] = $mappingItem->condition;
             $result[$request->input('marketplace').$request->input('country')]['conditionNote'] = $mappingItem->condition_note;
             $result[$request->input('marketplace').$request->input('country')]['fulfillmentLatency'] = $mappingItem->fulfillment_latency;
+            $result[$request->input('marketplace').$request->input('country')]['asin'] = $mappingItem->asin;
+            $result[$request->input('marketplace').$request->input('country')]['currency'] = $mappingItem->currency;
+            $result[$request->input('marketplace').$request->input('country')]['price'] = $mappingItem->price;
+            $result[$request->input('marketplace').$request->input('country')]['delivery_type'] = $mappingItem->delivery_type;
+            $result[$request->input('marketplace').$request->input('country')]['margin'] = $mappingItem->margin;
         }
-        return response()->view('pricing.pricing-table', ['data' => $result]);
+
+        return $result;
+        //return response()->view('v2.pricing.pricing-table', ['data' => $result]);
         //return response()->json($result);
     }
 
@@ -104,33 +117,24 @@ class PricingController extends Controller
 
     public function getSkuList(Request $request)
     {
-        $sql = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku');
+        $search = $request->input('search');
 
-        if ($request->input('master_sku')) {
-            $sql = $sql->join('sku_mapping', 'sku_mapping.sku', '=', 'product.sku')
-                        ->where('sku_mapping.ext_sku', '=', $request->input('master_sku'));
-        }
+        $marketplaceProducts = MarketplaceSkuMapping::select('product.sku', 'name', 'marketplace_sku', 'mp_control_id', 'asin', 'mp_category_id', 'mp_sub_category_id')
+            ->join('atomesg.mp_control', 'mp_control_id', '=', 'control_id')
+            ->join('atomesg.product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+            ->join('atomesg.sku_mapping', 'product.sku', '=', 'sku_mapping.sku')
+            ->where('mp_control.marketplace_id', '=', $request->input('marketplace'))
+            ->where(function ($sql) use ($search) {
+                return $sql->where('product.sku', 'like', "%{$search}%")
+                    ->orWhere('product.name', 'like', "%{$search}%")
+                    ->orWhere('sku_mapping.ext_sku', 'like', "%{$search}%");
+            })
+            ->groupBy(['marketplace_sku', 'mp_control.marketplace_id'])
+            ->orderBy('marketplace_sku');
 
-        if ($request->input('esg_sku')) {
-            $sql = $sql->where('product.sku', '=', $request->input('esg_sku'));
-        }
+        $products = $marketplaceProducts->paginate(1000);
 
-        if ($request->input('product_name')) {
-            $sql = $sql->where('product.name', 'like', '%'.$request->input('product_name').'%');
-        }
-
-        if ($request->input('brand_id')) {
-            $sql = $sql->where('product.brand_id', '=', $request->input('brand_id'));
-        }
-
-        if ($request->input('marketplace')) {
-            $sql = $sql->whereMarketplaceId($request->input('marketplace'));
-        }
-
-        $marketplaceSkuMapping = $sql->groupBy('marketplace_sku')
-            ->get(['marketplace_sku', 'marketplace_id', 'product.sku', 'name', 'price']);
-
-        return $marketplaceSkuMapping;
+        return $products;
     }
 
     public function getPricingInfo(Request $request)

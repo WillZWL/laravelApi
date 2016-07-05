@@ -54,8 +54,9 @@ Route::group(['middleware' => ['cors']], function () {
 
 Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
     Route::get('pricing/index', 'PricingController@index');
-    Route::get('pricing/skuList', 'PricingController@getSkuList');
+    //Route::get('pricing/skuList', 'PricingController@getSkuList');
     Route::get('pricing/info', 'PricingController@getPriceInfo');
+    Route::post('listingSku/save', 'ListingSkuManagement@save');
 
 });
 

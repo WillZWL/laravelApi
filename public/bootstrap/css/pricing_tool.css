@@ -1,25 +1,36 @@
 * {
-    font-size: 8pt;
+    font-size: 10px;
 }
-.top {
+
+#header {
     background: #00DC45;
-    height: 37px;
 }
-.top p {
+
+#header .title {
+    font-size: 16px;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 30px;
+}
+
+.form-group {
+    margin-bottom:2px;
+}
+
+#search-form {
+    margin-bottom: 15px;
+}
+
+.table tbody>tr>td.vert-align{
+    vertical-align: middle;
+}
+
+table .radio, table .checkbox {
     margin: 0;
 }
 
-.editing {
-    background-color: #fff !important;
-}
-
-.sub_top {
-    background: #FF8F37;
-    padding-top: 3px;
-}
-
-#search .form-group {
-    margin-bottom: 2px;
+.pointer {
+    cursor: pointer
 }
 
 #sku-list .title {
