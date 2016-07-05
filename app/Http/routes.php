@@ -48,6 +48,21 @@ Route::group(['middleware' => ['cors']], function () {
 
     Route::get('amazon/product', 'AmazonProduct@getMatchProductForId');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
+
+    Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
+});
+
+Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
+    Route::get('pricing/index', 'PricingController@index');
+    //Route::get('pricing/skuList', 'PricingController@getSkuList');
+    Route::get('pricing/info', 'PricingController@getPriceInfo');
+    Route::post('listingSku/save', 'ListingSkuManagement@save');
+
+});
+
+Route::group(['middleware' => ['cors']], function () {
+    Route::resource('api/v1/marketplaceProduct', 'MarketplaceProductController');
+    Route::resource('api/v1/marketplaceCategory', 'MarketplaceCategoryController');
 });
 
 Route::auth();
