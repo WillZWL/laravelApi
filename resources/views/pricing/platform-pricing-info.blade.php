@@ -80,9 +80,9 @@ $link = [
                 <table class="table table-bordered table-condensed" style="table-layout: fixed">
                     <colgroup>
                         <col width="7%">
-                        <col width="8%">
-                        <col width="4%">
-                        <col width="4%">
+                        <col width="8%" class="hidden">
+                        <col width="4%" class="hidden">
+                        <col width="4%" class="hidden">
                         <col width="4%">
                         <col width="5%">
                         <col width="5%">
@@ -103,9 +103,9 @@ $link = [
                     <tr class="info">
                         <th>Delivery Type</th>
                         <th>Price</th>
-                        <th>Decl.</th>
-                        <th>Tax</th>
-                        <th>Duty</th>
+                        <th class="hidden">Decl.</th>
+                        <th class="hidden">Tax</th>
+                        <th class="hidden">Duty</th>
                         <th>esg COMM.</th>
                         <th>MP. COMM.</th>
                         <th>Listing Fee</th>
@@ -133,9 +133,9 @@ $link = [
                             <td>
                                 <input name="price" style="width: 100%" value="{{ $item['price'] }}" data-marketplace-sku="{{ $item['marketplaceSku'] }}" data-selling-platform="{{ $platform }}">
                             </td>
-                            <td>{{ $item['declaredValue'] }}</td>
-                            <td>{{ $item['tax'] }}</td>
-                            <td>{{ $item['duty'] }}</td>
+                            <td class="hidden">{{ $item['declaredValue'] }}</td>
+                            <td class="hidden">{{ $item['tax'] }}</td>
+                            <td class="hidden">{{ $item['duty'] }}</td>
                             <td>{{ $item['esgCommission'] }}</td>
                             <td>{{ $item['marketplaceCommission'] }}</td>
                             <td>{{ $item['marketplaceListingFee'] }}</td>
@@ -154,7 +154,7 @@ $link = [
                     @endforeach
                     <tr>
                         <td colspan="2">Listing Status</td>
-                        <td colspan="7">
+                        <td colspan="4">
                             <select name="listingStatus" required="required">
                                 <option value="">-- Select --</option>
                                 <option value="Y" {{ ($platformInfo['listingStatus'] == 'Y') ? 'selected' : '' }}>Listed</option>
@@ -172,7 +172,7 @@ $link = [
                                 Latency
                             </a>
                         </td>
-                        <td colspan="7">
+                        <td colspan="4">
                             <input type="text" name="latency" id="inputLatency" value="{{ $platformInfo['fulfillmentLatency'] }}" required="required">
                         </td>
 
@@ -187,7 +187,7 @@ $link = [
                         <td colspan="2">
                             Condition
                         </td>
-                        <td colspan="7">
+                        <td colspan="4">
                             <select name="condition" id="condition">
                                 <option value="New" {{ ($platformInfo['condition'] == 'New') ? 'selected' : '' }}>New</option>
                                 <option value="UsedLikeNew" {{ ($platformInfo['condition'] == 'UsedLikeNew') ? 'selected' : '' }}>UsedLikeNew</option>
@@ -210,7 +210,7 @@ $link = [
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="19" align="center">
+                        <td colspan="16" align="center">
                             <button type="button" data-platform="{{ $platform }}"
                                     class="btn btn-danger save_price_info"> Save
                             </button>
