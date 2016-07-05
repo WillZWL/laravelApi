@@ -83,7 +83,7 @@ $link = [
                         <col width="8%" class="hidden">
                         <col width="4%" class="hidden">
                         <col width="4%" class="hidden">
-                        <col width="4%">
+                        <col width="8%">
                         <col width="5%">
                         <col width="5%">
                         <col width="5%">
