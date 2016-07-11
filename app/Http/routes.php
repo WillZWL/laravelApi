@@ -57,11 +57,15 @@ Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic
     //Route::get('pricing/skuList', 'PricingController@getSkuList');
     Route::get('pricing/info', 'PricingController@getPriceInfo');
     Route::post('listingSku/save', 'ListingSkuManagement@save');
+});
 
+Route::group(['middleware' => 'auth.basic.once'], function () {
+    Route::resource('tracer', 'TracerSkuController');
 });
 
 Route::group(['middleware' => ['cors']], function () {
     Route::resource('api/v1/marketplaceProduct', 'MarketplaceProductController');
+    Route::get('api/v1/marketplaceCategory/marketplace/{id}', 'MarketplaceCategoryController@showTopCategoriesForControlId');
     Route::resource('api/v1/marketplaceCategory', 'MarketplaceCategoryController');
 });
 
