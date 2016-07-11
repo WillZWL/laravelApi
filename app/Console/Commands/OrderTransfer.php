@@ -89,8 +89,8 @@ class OrderTransfer extends Command
      */
     public function validateAmazonOrder(AmazonOrder $order)
     {
-        //$countryCode = strtoupper(substr($order->platform, -2));
-        $countryCode = $order->amazonShippingAddress->country_code;
+        $countryCode = strtoupper(substr($order->platform, -2));
+        //$countryCode = $order->amazonShippingAddress->country_code;
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
@@ -126,7 +126,7 @@ class OrderTransfer extends Command
         if ($notMappedMarketplaceSkuList) {
             $missingSku = implode(',', $notMappedMarketplaceSkuList);
             $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message = "MarketPlace: {$order->platform}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
             $message .= "Marketplace SKU <{$missingSku}> not exist in esg admin. please add listing sku mapping first. Thanks";
             mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
 
@@ -143,7 +143,7 @@ class OrderTransfer extends Command
         if ($notMappedEskSkuList) {
             $missingSku = implode(',', $notMappedEskSkuList);
             $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message = "MarketPlace: {$order->platform}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
             $message .= "ESG SKU <{$missingSku}> not belong to any merchant. please add merchant sku mapping first. Thanks";
             mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
 
@@ -162,7 +162,7 @@ class OrderTransfer extends Command
         if ($notExistPlatform) {
             $missingSellingPlatform = implode(',', $notExistPlatform);
             $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+            $message = "MarketPlace: {$order->platform}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
             $message .= "Selling Platform Id <{$missingSellingPlatform}> not exists in esg system, please add it. Thanks";
             mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
 
@@ -170,18 +170,18 @@ class OrderTransfer extends Command
         }
 
         // check sku delivery type.
-        $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
-        $skuHaveDeliveryScore = PlatformOrderDeliveryScore::whereIn('sku', $esgSkuList)
-            ->where('country_id', '=', $countryCode)
-            ->get()
-            ->pluck('sku')
-            ->toArray();
-        $notHaveDeliveryType = array_diff($esgSkuList, $skuHaveDeliveryScore);
-        if ($notHaveDeliveryType) {
-            $missingDeliveryTypeSku = implode(',', $notHaveDeliveryType);
-            $subject = "[{$amazonAccountName}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$order->sales_channel}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
-            $message .= "ESG SKU <{$missingDeliveryTypeSku}> not set delivery type to {$countryCode} in esg system, please add it. Thanks";
+        $notHaveDeliveryTypeSku = $marketplaceSkuMapping->where('delivery_type', '');
+        if ( ! $notHaveDeliveryTypeSku->isEmpty()) {
+            $notHaveDeliveryTypeSku->load('product');
+            $subject = "[{$amazonAccountName}] Delivery Type Missing - Amazon Order Import Failed!";
+            $message = "MarketPlace: {$order->platform}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
+
+            $message = $notHaveDeliveryTypeSku->reduce(function ($message, $marketplaceProduct) {
+                return $message .= "Marketplace SKU <{$marketplaceProduct->marketplace_sku}>, product title <{$marketplaceProduct->product->name}>\r\n";
+            }, $message);
+
+            $message .= "Please set delivery type in pricing tool, Thanks.";
+
             mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
 
             return false;
@@ -280,6 +280,17 @@ class OrderTransfer extends Command
                 $so->incoterm = $spIncoterm->incoterm;
             }
 
+            if ($order->fulfillment_channel === 'AFN') {
+                $so->delivery_type_id = 'FBA';
+                $so->dispatch_date = $order->latest_ship_date;
+            } else {
+                $so->delivery_type_id = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
+                    ->whereMpControlId($items->first()->mapping->mp_control_id)
+                    ->orderBy(\DB::raw('FIELD(delivery_type, "EXP", "EXPED", "STD", "MCF")'))
+                    ->first()
+                    ->delivery_type;
+            }
+
             $so->save();
             $this->saveSoItem($so, $items);
             $this->saveSoItemDetail($so, $items);
@@ -358,20 +369,7 @@ class OrderTransfer extends Command
             ->rate;
         $newOrder->vat_percent = 0;     // not sure.
         $newOrder->vat = 0;             // not sure.
-
-        if ($order->fulfillment_channel === 'AFN') {
-            $newOrder->delivery_type_id = 'FBA';
-            $newOrder->dispatch_date = $order->latest_ship_date;
-        } else {
-            $countryCode = strtoupper($order->amazonShippingAddress->country_code);
-            $countryCode = ($countryCode === 'GB') ? 'UK' : $countryCode;
-            $newOrder->delivery_type_id = PlatformOrderDeliveryScore::whereIn('sku', $orderItems->pluck('seller_sku'))
-                ->where('country_id', '=', $countryCode)
-                ->orderBy('score', 'desc')
-                ->first()
-                ->delivery_type_id;
-        }
-
+        $newOrder->delivery_type_id = 'MCF';
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
         $newOrder->delivery_address = implode(' | ', array_filter([
             $order->amazonShippingAddress->address_line_1,
@@ -589,6 +587,7 @@ class OrderTransfer extends Command
 
         // if only one split order, group order follow split order.
         if (count($splitOrders) === 1) {
+            $order->delivery_type_id = $splitOrders[0]->delivery_type_id;
             $order->esg_delivery_cost = $splitOrders[0]->esg_delivery_cost;
             $order->esg_delivery_offer = $splitOrders[0]->esg_delivery_offer;
             $order->esg_quotation_courier_id = $splitOrders[0]->esg_quotation_courier_id;
