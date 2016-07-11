@@ -62,6 +62,7 @@ class TracerSkuController extends Controller
      */
     public function edit($id)
     {
+        $id = 2100;
         $tracerSku = MarketplaceSkuMapping::find($id);
 
         $mpControls = MpControl::whereStatus(1)->get(['control_id', 'marketplace_id', 'country_id']);
@@ -81,6 +82,7 @@ class TracerSkuController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $id = 2100;
         $marketplaceProduct = MarketplaceSkuMapping::find($id);
         $marketplaceProduct->mp_category_id = $request->input('category');
         $marketplaceProduct->mp_sub_category_id = $request->input('subCategory');
