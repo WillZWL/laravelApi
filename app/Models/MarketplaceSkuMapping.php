@@ -28,4 +28,9 @@ class MarketplaceSkuMapping extends Model
 
         return $relation;
     }
+
+    public function mpControl()
+    {
+        return $this->belongsTo('App\Models\MpControl', 'mp_control_id', 'control_id');
+    }
 }
