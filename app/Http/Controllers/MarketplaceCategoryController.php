@@ -62,6 +62,13 @@ class MarketplaceCategoryController extends Controller
         return response()->json($data);
     }
 
+    public function showTopCategoriesForControlId($id)
+    {
+        $data = MpCategory::whereControlId($id)->whereLevel('1')->get(['id', 'name']);
+
+        return $data;
+    }
+
     /**
      * Show the form for editing the specified resource.
      *

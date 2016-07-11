@@ -15,4 +15,9 @@ class SupplierProd extends Model
     public $incrementing = false;
 
     protected $guarded = ['create_at'];
+
+    public function product()
+    {
+        return $this->belongsTo('App\Models\Product', 'sku', 'prod_sku');
+    }
 }
