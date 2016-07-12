@@ -284,11 +284,18 @@ class OrderTransfer extends Command
                 $so->delivery_type_id = 'FBA';
                 $so->dispatch_date = $order->latest_ship_date;
             } else {
-                $so->delivery_type_id = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
+
+                $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
-                    ->orderBy(\DB::raw('FIELD(delivery_type, "EXP", "EXPED", "STD", "MCF")'))
-                    ->first()
-                    ->delivery_type;
+                    ->whereIn('delivery_type', ["EXP", "EXPED", "STD"])
+                    ->orderBy(\DB::raw('FIELD(delivery_type, "EXP", "EXPED", "STD")'))
+                    ->first();
+
+                if ($marketplaceProduct) {
+                    $so->delivery_type_id = $marketplaceProduct->delivery_type;
+                } else {
+                    $so->delivery_type_id = 'STD';
+                }
             }
 
             $so->save();
