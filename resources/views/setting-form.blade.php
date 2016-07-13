@@ -11,56 +11,59 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="inputCost" class="col-sm-2 control-label">Cost Price (HKD):</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="costhkd" id="inputCost" class="form-control" value="{{ $tracerSku->product->supplierProduct->pricehkd}}"
+                        <label for="inputCost" class="col-sm-3 control-label">Cost Price (HKD):</label>
+                        <div class="col-sm-7">
+                            <input type="number" name="costhkd" id="inputCost" class="form-control" value="{{ $tracerSku->product->supplierProduct->pricehkd}}"
                                    required="required" title="">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="inputWeight" class="col-sm-2 control-label">Weight (Kg):</label>
-                        <div class="col-sm-10">
+                        <label for="inputLength" class="col-sm-3 control-label">Length (cm):</label>
+                        <div class="col-sm-7">
+                            <input type="number" name="length" id="inputLength" class="form-control" value="{{ $tracerSku->product->length }}" required="required" title="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputWidth" class="col-sm-3 control-label">Width (cm):</label>
+                        <div class="col-sm-7">
+                            <input type="number" name="width" id="inputWidth" class="form-control" value="{{ $tracerSku->product->width }}" required="required" title="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputHeight" class="col-sm-3 control-label">Height (cm):</label>
+                        <div class="col-sm-7">
+                            <input type="number" name="height" id="inputHeight" class="form-control" value="{{ $tracerSku->product->height }}" required="required" title="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputFactor" class="col-sm-3 control-label">Chargeable Weight Factor:</label>
+                        <div class="col-sm-7">
+                            <input type="number" name="factor" id="inputFactor" class="form-control" value="" title="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputVolumetricWeight" class="col-sm-3 control-label">Volumetric Weight (Kg):</label>
+                        <div class="col-sm-7">
+                            <input type="text" name="volumetricWeight" id="inputVolumetricWeight" class="form-control" value="{{ $tracerSku->product->vol_weight }}"  title="">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="inputWeight" class="col-sm-3 control-label">Weight (Kg):</label>
+                        <div class="col-sm-7">
                             <input type="text" name="weight" id="inputWeight" class="form-control" value="{{ $tracerSku->product->weight }}"
                                    required="required" title="">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="inputVolumetricWeight" class="col-sm-2 control-label">Volumetric Weight
-                            (Kg):</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="volumetricWeight" id="inputVolumetricWeight" class="form-control"
-                                   value="{{ $tracerSku->product->vol_weight }}" required="required" title="">
-                        </div>
-                    </div>
 
                     <div class="form-group">
-                        <label for="inputLength" class="col-sm-2 control-label">Length (cm):</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="length" id="inputLength" class="form-control" value="{{ $tracerSku->product->length }}"
-                                   required="required" title="">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="inputWidth" class="col-sm-2 control-label">Width (cm):</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="width" id="inputWidth" class="form-control" value="{{ $tracerSku->product->width }}"
-                                   required="required" title="">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="inputHeight" class="col-sm-2 control-label">Height (cm):</label>
-                        <div class="col-sm-10">
-                            <input type="text" name="height" id="inputHeight" class="form-control" value="{{ $tracerSku->product->height }}"
-                                   required="required" title="">
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="inputMarketplace" class="col-sm-2 control-label">Marketplace:</label>
+                        <label for="inputMarketplace" class="col-sm-3 control-label">Marketplace:</label>
                         <div class="col-sm-3">
                             <select name="marketplace" id="inputMarketplace" class="form-control" required="required">
                                 @foreach($mpControls as $mpControl)
@@ -73,7 +76,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="inputCategory" class="col-sm-2 control-label">Category:</label>
+                        <label for="inputCategory" class="col-sm-3 control-label">Category:</label>
                         <div class="col-sm-4">
                             <select name="category" id="inputCategory" class="form-control" required="required">
                                 @foreach($topCategories as $topCategory)
@@ -84,7 +87,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="inputSubCategory" class="col-sm-2 control-label">SubCategory:</label>
+                        <label for="inputSubCategory" class="col-sm-3 control-label">SubCategory:</label>
                         <div class="col-sm-4">
                             <select name="subCategory" id="inputSubCategory" class="form-control" required="required">
                                 <option value="{{ $selectedSubCategory->id }}" selected>{{ $selectedSubCategory->name }}</option>
@@ -93,7 +96,7 @@
                     </div>
 
                     <div class="form-group">
-                        <div class="col-sm-10 col-sm-offset-2">
+                        <div class="col-sm-7 col-sm-offset-3">
                             <button type="submit" class="btn btn-primary">Submit</button>
                         </div>
                     </div>
