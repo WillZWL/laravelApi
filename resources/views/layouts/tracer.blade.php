@@ -7,6 +7,10 @@
     <title>Pricing Tool</title>
     <link rel="stylesheet" href="{{ asset('/bootstrap/css/bootstrap.css') }}" type="text/css" media="all"/>
     <style type="text/css">
+        #header {
+            background: #00DC45;
+        }
+
         .title {
             font-size: 16px;
             height: 30px;
