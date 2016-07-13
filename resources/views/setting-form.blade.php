@@ -42,7 +42,7 @@
                     <div class="form-group">
                         <label for="inputFactor" class="col-sm-3 control-label">Chargeable Weight Factor:</label>
                         <div class="col-sm-7">
-                            <input type="number" name="factor" id="inputFactor" class="form-control" value="" title="">
+                            <input type="number" name="factor" id="inputFactor" class="form-control" value="6000" disabled="disabled" title="">
                         </div>
                     </div>
 
