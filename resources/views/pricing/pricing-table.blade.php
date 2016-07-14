@@ -120,7 +120,7 @@ $link = [
                                 <th>Total Cost</th>
                                 <th>Delivery Charge</th>
                                 <th>Total Charged</th>
-                                <th>Proft</th>
+                                <th>Profit</th>
                                 <th>Margin</th>
                             </tr>
                             @foreach($platformInfo['deliveryOptions'] as $deliveryType => $item)
