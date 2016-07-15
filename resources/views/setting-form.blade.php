@@ -49,14 +49,14 @@
                     <div class="form-group">
                         <label for="inputVolumetricWeight" class="col-sm-3 control-label">Volumetric Weight (Kg):</label>
                         <div class="col-sm-7">
-                            <input type="text" name="volumetricWeight" id="inputVolumetricWeight" class="form-control" value="{{ $tracerSku->product->vol_weight }}"  title="">
+                            <input type="number" name="volumetricWeight" id="inputVolumetricWeight" class="form-control" value="{{ $tracerSku->product->vol_weight }}" max="30" step="any" title="">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="inputWeight" class="col-sm-3 control-label">Weight (Kg):</label>
                         <div class="col-sm-7">
-                            <input type="text" name="weight" id="inputWeight" class="form-control" value="{{ $tracerSku->product->weight }}"
+                            <input type="number" name="weight" id="inputWeight" class="form-control" value="{{ $tracerSku->product->weight }}" max="30" step="any"
                                    required="required" title="">
                         </div>
                     </div>
