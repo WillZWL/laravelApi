@@ -11,8 +11,21 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('/', function () {
+        return view('welcome');
+    });
+    Route::get('/index/{id}', function () {
+        return view('welcome');
+    });
+});
+
+Route::group(['prefix' => 'v3', 'namespace' => 'V3', 'middleware' => 'auth'], function () {
+    Route::get('pricing/index/{mp?}', 'PricingController@index');
+    //Route::get('pricing/skuList', 'PricingController@getSkuList');
+    Route::get('pricing/info', 'PricingController@getPriceInfo');
+    Route::post('listingSku/save', 'ListingSkuManagement@save');
+    Route::resource('tracer', 'TracerSkuController');
 });
 
 /*
@@ -70,5 +83,3 @@ Route::group(['middleware' => ['cors']], function () {
 });
 
 Route::auth();
-
-Route::get('/home', 'HomeController@index');
