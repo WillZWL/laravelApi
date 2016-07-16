@@ -20,7 +20,6 @@
 
     <!-- Custom Theme Style -->
     <link href="/css/custom.min.css" rel="stylesheet">
-    <!-- <link href="{{ elixir('css/all.css') }}" rel="stylesheet"> -->
     <style>
         body {
             font-family: 'Lato';
