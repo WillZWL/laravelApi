@@ -46,24 +46,18 @@ class PlatformMarketOrder extends Model
      * @param $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeUnshippedOrder($query)
-    {
-        return $query->where('fulfillment_channel', '=', 'MFN')
-            ->where('order_status', '=', 'Unshipped')
-            ->where('acknowledge', '=', '1');
-    }
-
-
     public function scopeAmazonUnshippedOrder($query)
     {
         return $query->where('fulfillment_channel', '=', 'MFN')
             ->where('order_status', '=', 'Unshipped')
+            ->where('biz_type','=',"Amazon")
             ->where('acknowledge', '=', '1');
     }
 
     public function scopeLazadaUnshippedOrder($query)
     {
-        return $query->where('order_status', '=', 'Unshipped')
+        return $query->where('order_status', '=', 'Pending')
+            ->where('biz_type',"=","Lazada")
             ->where('acknowledge', '=', '1');
     }
 

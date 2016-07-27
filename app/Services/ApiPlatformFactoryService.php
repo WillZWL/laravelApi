@@ -3,7 +3,13 @@ namespace App\Services;
 
 use App\Contracts\ApiPlatformInterface;
 use App\Models\Schedule;
+use App\Models\PlatformOrderFeed;
+use App\Models\So;
 use Carbon\Carbon;
+
+use App\Models\PlatformMarketOrder;
+
+
 
 class ApiPlatformFactoryService
 {
@@ -43,19 +49,37 @@ class ApiPlatformFactoryService
 		return $this->apiPlatformInterface->getProductList($storeName);
 	}
 
+	public function submitOrderFufillment($bizType)
+	{
+		$platformOrderIdList=$this->getPlatformOrderIdList($bizType);
+        $esgOrders=$this->getEsgOrders($platformOrderIdList);
+		if($esgOrders){
+			foreach ($esgOrders as $esgOrder) {
+				$esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no."-01")->where('status', '=', '2')->first();
+				$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
+				if($response){
+					$this->markSplitOrderShipped($esgOrder);
+					if($bizType=="amazon"){
+						$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
+					}
+				}
+			}
+		}
+	}
+
 	public function setStatusToCanceled($storeName,$orderItemId)
 	{
 		return $this->apiPlatformInterface->setStatusToCanceled($storeName,$orderItemId);
 	}
 
-	public function setStatusToPackedByMarketplace($storeName,$orderItemId)
-	{
-		return $this->apiPlatformInterface->setStatusToPackedByMarketplace($storeName,$orderItemId);
-	}
-
 	public function setStatusToReadyToShip($storeName,$orderItemId)
 	{
 		return $this->apiPlatformInterface->setStatusToReadyToShip($storeName,$orderItemId);
+	}
+
+	public function setStatusToPackedByMarketplace($storeName,$orderItemId)
+	{
+		return $this->apiPlatformInterface->setStatusToPackedByMarketplace($storeName,$orderItemId);
 	}
 
 	public function setStatusToShipped($storeName,$orderItemId)
@@ -90,5 +114,57 @@ class ApiPlatformFactoryService
         }
         return $previousSchedule;
 	}
+
+	private function updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response)
+	{
+		$platformOrderFeed = PlatformOrderFeed::firstOrNew(['platform_order_id' => $esgOrder->platform_order_id]);
+		$platformOrderFeed->platform = $platformOrderIdList[$esgOrder->platform_order_id];
+		$platformOrderFeed->feed_type = '_POST_ORDER_FULFILLMENT_DATA_';
+		if($response){
+			$platformOrderFeed->feed_submission_id = $response['FeedSubmissionId'];
+		    $platformOrderFeed->submitted_date = $response['SubmittedDate'];
+		    $platformOrderFeed->feed_processing_status = $response['FeedProcessingStatus'];
+		}else{
+		    $platformOrderFeed->feed_processing_status = '_SUBMITTED_FAILED';
+		}
+		$platformOrderFeed->save();
+	}
+
+	private function getPlatformOrderIdList($bizType)
+	{
+		switch ($bizType) {
+			case 'amazon':
+				$platformOrderList = PlatformMarketOrder::amazonUnshippedOrder()
+	            ->leftJoin('platform_order_feeds', 'platform_market_order.platform_order_id', '=', 'platform_order_feeds.platform_order_id')
+	            ->whereNull('platform_order_feeds.platform_order_id')
+	            ->select('platform_market_order.*')
+	            ->get();
+				break;
+			case 'lazada':
+				$platformOrderList = PlatformMarketOrder::lazadaUnshippedOrder();
+				break;
+		}
+        $platformOrderIdList = $platformOrderList->pluck('platform', 'platform_order_id')->toArray();
+        return $platformOrderIdList;
+	}
+
+	private function getEsgOrders($platformOrderIdList)
+	{
+		 $esgOrders = So::whereIn('platform_order_id', array_keys($platformOrderIdList))
+	        ->where('platform_group_order', '=', '1')
+	        ->where('status', '=', '6')
+	        ->get();
+	}
+
+	private function markSplitOrderShipped($order)
+	{
+        $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
+            ->where('platform_split_order', '=', 1)->get();
+        $splitOrders->map(function($splitOrder) use($order) {
+            $splitOrder->dispatch_date = $order->dispatch_date;
+            $splitOrder->status = 6;
+            $splitOrder->save();
+        });
+    }
 
 }

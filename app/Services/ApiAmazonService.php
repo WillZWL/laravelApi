@@ -7,11 +7,13 @@ use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
+use Config;
 
 use Peron\AmazonMws\AmazonOrder;
 use Peron\AmazonMws\AmazonOrderList;
 use Peron\AmazonMws\AmazonOrderItemList;
 use Peron\AmazonMws\AmazonProductList;
+use Peron\AmazonMws\AmazonFeed;
 
 class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface 
 {
@@ -77,6 +79,44 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
     	$originOrderItemList = $this->amazonOrderItemList->getItems();
     	$this->saveDataToFile(serialize($originOrderItemList),"getOrderItemList");
     	return $originOrderItemList;
+	}
+
+	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
+	{
+		$stores = Config::get('amazon-mws.store');
+        if ($esgOrderShipment) {
+            $xml = '<?xml version="1.0" encoding="utf-8"?>';
+            $xml .= '<AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">';
+            $xml .= '<Header>';
+            $xml .= '<DocumentVersion>1.01</DocumentVersion>';
+            $xml .= '<MerchantIdentifier>'.$stores[$platformOrderIdList[$esgOrder->platform_order_id]]['merchantId'].'</MerchantIdentifier>';
+            $xml .= '</Header>';
+            $xml .= '<MessageType>OrderFulfillment</MessageType>';
+            $xml .= '<Message>';
+            $xml .= '<MessageID>1</MessageID>';
+            $xml .= '<OrderFulfillment>';
+            $xml .= '<AmazonOrderID>'.$esgOrder->platform_order_id.'</AmazonOrderID>';
+            $xml .= '<MerchantFulfillmentID>'.$esgOrder->so_no.'</MerchantFulfillmentID>';
+            $xml .= '<FulfillmentDate>'.Carbon::parse($esgOrder->dispatch_date)->format('c').'</FulfillmentDate>';
+            $xml .= '<FulfillmentData>';
+            $xml .= '<CarrierName>'.$esgOrderShipment->courierInfo->courier_name.'</CarrierName>';
+            $xml .= '<ShippingMethod>Standard</ShippingMethod>';
+            $xml .= '<ShipperTrackingNumber>'.$esgOrderShipment->tracking_no.'</ShipperTrackingNumber>';
+            $xml .= '</FulfillmentData>';
+            $xml .= '</OrderFulfillment>';
+            $xml .= '</Message>';
+            $xml .= '</AmazonEnvelope>';
+
+            $feed = new AmazonFeed($platformOrderIdList[$esgOrder->platform_order_id]);
+            $feed->setFeedType('_POST_ORDER_FULFILLMENT_DATA_');
+            $feed->setFeedContent($xml);
+
+            if ($feed->submitFeed() === false) {
+               return false;
+            } else {
+               return $feed->getResponse();
+            }
+        }  
 	}
 
 	//update or insert data to database

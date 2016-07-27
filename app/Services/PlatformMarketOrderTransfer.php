@@ -139,7 +139,6 @@ class PlatformMarketOrderTransfer
             if (!array_key_exists($merchantProductMapping->short_id, $merchant)) {
                 $merchant[$merchantProductMapping->short_id] = new Collection();
             }
-
             $item->seller_sku = $mapping->sku;
             $item->mapping = $mapping;
             $merchant[$merchantProductMapping->short_id]->add($item);
@@ -291,7 +290,8 @@ class PlatformMarketOrderTransfer
     private function saveSoItem(So $so, Collection $orderItem)
     {
         $lineNumber = 1;
-        foreach ($orderItem as $item) {
+        $_orderItem = $this->groupPlatformMarketOrderItem($orderItem);
+        foreach ($_orderItem as $item) {
             $newOrderItem = new SoItem;
             $newOrderItem->so_no = $so->so_no;
             $newOrderItem->line_no = $lineNumber++;
@@ -614,5 +614,17 @@ class PlatformMarketOrderTransfer
         }
     }
 
-
+    public function groupPlatformMarketOrderItem($orderItems)
+    {
+        $gourpOrderItems=array();
+        foreach($orderItems as $orderItem){
+            if(isset($gourpOrderItems[$orderItem->seller_sku])){
+                $gourpOrderItems[$orderItem->seller_sku]->quantity_ordered += $orderItem->quantity_ordered;
+                $gourpOrderItems[$orderItem->seller_sku]->order_item_id.="||".$orderItem->order_item_id;
+            }else{
+                $gourpOrderItems[$orderItem->seller_sku]=$orderItem;
+            }
+        }
+        return $gourpOrderItems;
+    }
 }

@@ -87,6 +87,24 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $orginProductList;
 	}
 
+	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
+	{
+		$storeName=$platformOrderIdList[$esgOrder->platform_order_id];
+        if ($esgOrderShipment) {
+            $this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
+			$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
+			$this->lazadaOrderStatus->setDeliveryType("dropship");
+			$this->lazadaOrderStatus->setShippingProvider($esgOrderShipment->courierInfo->courier_name);
+			$result=$this->lazadaOrderStatus->setStatusToReadyToShip();
+			$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
+	       	if ($result === false) {
+               return false;
+            } else {
+               return $result;
+            }
+        }
+	}
+
 	public function setStatusToCanceled($storeName,$orderItemId)
 	{
 		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
@@ -156,7 +174,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		if(is_array($order['Statuses']["Status"])){
 			$orderStatus=implode("||",$order['Statuses']["Status"]);
 		}else{
-			$orderStatus=$order['Statuses']["Status"];
+			$orderStatus=studly_case($order['Statuses']["Status"]);
 		}
 		$object = [
             'platform' => $storeName,
@@ -226,7 +244,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	        $object['promotion_discount'] = $orderItem['VoucherAmount'];
 	    }
 	    if (isset($orderItem['Status'])) {
-	        $object['status'] = $orderItem['Status'];
+	        $object['status'] = studly_case($orderItem['Status']);
 	    }
 	    if (isset($orderItem['ShippingProviderType'])) {
 	        $object['ship_service_level'] = $orderItem['ShippingProviderType'];

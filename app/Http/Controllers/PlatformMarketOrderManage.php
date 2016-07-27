@@ -28,6 +28,9 @@ class  PlatformMarketOrderManage extends Controller
         }else if($apiPlatform=="lazada"){
             $data["orderList"]=PlatformMarketOrder::lazadaOrder()->with("platformMarketOrderItem")->paginate(30);
         }
+        foreach($data["orderList"] as $order){
+            $this->platformMarketOrderTransfer->groupPlatformMarketOrderItem($order->platformMarketOrderItem);
+        }
         $data["apiPlatform"]=$apiPlatform;
         $dispatchType =$request->input("dispatch_type");
         $functionArr=array(

@@ -43,7 +43,7 @@ class ApiPlatformServiceProvider extends ServiceProvider
             $apiPlatform = strtolower($request->get('api_platform'));
         }
         $service = $apiPlatform ? $this->availableServices[$apiPlatform]:'ApiLazadaService';
-        $this->app->bind('App\Contracts\ApiPlatformInterface', "App\Services\\{$service}");
+        $this->app->bind('App\Contracts\ApiPlatformInterface', "App\Services\\{$service}"); 
     }
 
 }
