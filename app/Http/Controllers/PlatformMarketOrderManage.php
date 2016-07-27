@@ -53,7 +53,7 @@ class  PlatformMarketOrderManage extends Controller
     {
         $orderIds=$request->input("check");
         if($orderIds){
-            $this->platformMarketOrderTransfer->transferOrder($orderIds);
+            $this->platformMarketOrderTransfer->transferOrderById($orderIds);
             return redirect('platform-market/index');
         }
         $orderList=PlatformMarketOrder::readyOrder()->paginate(30);

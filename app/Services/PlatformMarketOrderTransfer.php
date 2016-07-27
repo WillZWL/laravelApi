@@ -45,13 +45,23 @@ class PlatformMarketOrderTransfer
 		
 	}
 
-	public function transferOrder($orderIds)
+    public function transferReadyOrder()
+    {
+        $orderList = PlatformMarketOrder::readyOrder()->get();
+        $this->transferOrder($orderList);
+    }
+
+    public function transferOrderById($orderIds)
+    {
+        $orderList = PlatformMarketOrder::whereIn('id',$orderIds);
+        $this->transferOrder($orderList);
+    }
+
+	public function transferOrder($orderList)
 	{
-		$orderList = PlatformMarketOrder::whereIn('id',$orderIds);
         if($orderList){
             foreach ($orderList as $order) {
                 if (!$this->getPlatformMarketValidateService($order)->validateOrder()) {
-                    
                     \DB::beginTransaction();
                     \DB::connection('mysql_esg')->beginTransaction();
                     try {
