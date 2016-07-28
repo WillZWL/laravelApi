@@ -4,7 +4,7 @@
 <!-- page content -->
 <div class="right_col" role="main">
   	<div class="row main">
-		<form  method="post" name="edit-form" id="order">
+		<form  action="#" name="edit-form" id="order">
 			<table class="table table-bordered">
 				<thead>
 					<tr>

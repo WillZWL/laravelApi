@@ -5,6 +5,7 @@ use App\Contracts\ApiPlatformInterface;
 use App\Models\Schedule;
 use App\Models\PlatformOrderFeed;
 use App\Models\So;
+use App\Models\SoShipment;
 use Carbon\Carbon;
 
 use App\Models\PlatformMarketOrder;
@@ -55,11 +56,13 @@ class ApiPlatformFactoryService
 		if($esgOrders){
 			foreach ($esgOrders as $esgOrder) {
 				$esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no."-01")->where('status', '=', '2')->first();
-				$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
-				if($response){
-					$this->markSplitOrderShipped($esgOrder);
-					if($bizType=="amazon"){
-						$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
+				if($esgOrderShipment){
+					$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
+					if($response){
+						$this->markSplitOrderShipped($esgOrder);
+						if($bizType=="amazon"){
+							$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
+						}
 					}
 				}
 			}
@@ -149,7 +152,8 @@ class ApiPlatformFactoryService
 
 	private function getEsgOrders($platformOrderIdList)
 	{
-		 $esgOrders = So::whereIn('platform_order_id', array_keys($platformOrderIdList))
+
+		return $esgOrders = So::whereIn('platform_order_id', array_keys($platformOrderIdList))
 	        ->where('platform_group_order', '=', '1')
 	        ->where('status', '=', '6')
 	        ->get();

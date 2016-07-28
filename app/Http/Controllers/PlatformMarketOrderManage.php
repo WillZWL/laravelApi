@@ -24,13 +24,11 @@ class  PlatformMarketOrderManage extends Controller
         $data=array();
         $apiPlatform=$request->input("api_platform");
     	if($apiPlatform =="amazon"){
-           // $data["orderList"]=PlatformMarketOrder::amazonUnshipedOrder()->paginate(30);
+            $data["orderList"]=PlatformMarketOrder::amazonUnshippedOrder()->with("platformMarketOrderItem")->paginate(30);
         }else if($apiPlatform=="lazada"){
-            $data["orderList"]=PlatformMarketOrder::lazadaOrder()->with("platformMarketOrderItem")->paginate(30);
+            $data["orderList"]=PlatformMarketOrder::lazadaUnshippedOrder()->with("platformMarketOrderItem")->paginate(30);
         }
-        foreach($data["orderList"] as $order){
-            $this->platformMarketOrderTransfer->groupPlatformMarketOrderItem($order->platformMarketOrderItem);
-        }
+       
         $data["apiPlatform"]=$apiPlatform;
         $dispatchType =$request->input("dispatch_type");
         $functionArr=array(
@@ -54,7 +52,7 @@ class  PlatformMarketOrderManage extends Controller
         $orderIds=$request->input("check");
         if($orderIds){
             $this->platformMarketOrderTransfer->transferOrderById($orderIds);
-            return redirect('platform-market/index');
+            return redirect('platform-market/transfer-order');
         }
         $orderList=PlatformMarketOrder::readyOrder()->paginate(30);
         $data=array('orderList' => $orderList );

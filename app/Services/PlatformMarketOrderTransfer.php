@@ -53,15 +53,16 @@ class PlatformMarketOrderTransfer
 
     public function transferOrderById($orderIds)
     {
-        $orderList = PlatformMarketOrder::whereIn('id',$orderIds);
+        $orderList = PlatformMarketOrder::whereIn('id',$orderIds)->get();
         $this->transferOrder($orderList);
     }
 
 	public function transferOrder($orderList)
 	{
+
         if($orderList){
             foreach ($orderList as $order) {
-                if (!$this->getPlatformMarketValidateService($order)->validateOrder()) {
+                if ($this->getPlatformMarketValidateService($order)->validateOrder()) {
                     \DB::beginTransaction();
                     \DB::connection('mysql_esg')->beginTransaction();
                     try {
@@ -74,8 +75,8 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        //$message=$e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine();
-                        //print_r($message);exit();
+                        $message=$e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine();
+                        print_r($message);exit();
                         mail('jimmy.gao@eservicesgroup.com', 'Amazon order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                     }
                 }

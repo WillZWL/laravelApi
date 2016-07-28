@@ -39,11 +39,9 @@ class BaseValidateService
          // 2 check marketplace sku mapping
         $valid=$this->checkSkuMerchant($esgSkuList,$merchantProductMapping);
         if($valid==false) return false;
-		
 		//3 check selling platform is exist or not.
 		$valid=$this->checkSellingPlatform($merchantProductMapping);
 		if($valid==false) return false;
-		
 		// 4 check sku delivery type.
 		$valid=$this->checkSkuDeliveryType($marketplaceSkuMapping);
 		if($valid==false) return false;
