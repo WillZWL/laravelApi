@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Builder;
 
+use App\Services\PlatformOrderService;
+
 class PlatformMarketOrder extends Model
 {
 	protected $table='platform_market_order';
@@ -37,8 +39,8 @@ class PlatformMarketOrder extends Model
     public function scopeReadyOrder($query)
     {
         return $query->where('acknowledge', '=', '0')
-            ->where('order_status', '!=', 'Canceled')
-            ->where('order_status', '!=', 'Pending');
+            ->where('esg_order_status', '!=', PlatformOrderService::ORDER_STATUS_CANCEL)
+            ->where('esg_order_status', '!=', PlatformOrderService::ORDER_STATUS_PENDING);
     }
 
     /**
@@ -49,14 +51,14 @@ class PlatformMarketOrder extends Model
     public function scopeAmazonUnshippedOrder($query)
     {
         return $query->where('fulfillment_channel', '=', 'MFN')
-            ->where('order_status', '=', 'Unshipped')
+            ->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_UNSHIPPED)
             ->where('biz_type','=',"Amazon")
             ->where('acknowledge', '=', '1');
     }
 
     public function scopeLazadaUnshippedOrder($query)
     {
-        return $query->where('order_status', '=', 'Pending')
+        return $query->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_UNSHIPPED)
             ->where('biz_type',"=","Lazada")
             ->where('acknowledge', '=', '1');
     }

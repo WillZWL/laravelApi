@@ -90,6 +90,12 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
 	{
 		$storeName=$platformOrderIdList[$esgOrder->platform_order_id];
+		$orderItemIds=array();
+		$itemIds=$esgOrder->soItem->pluck("ext_item_cd");
+		foreach($itemIds as $itemId){
+			$itemIdArr=explode("||",$itemId);
+			$orderItemIds[]=$itemIdArr;
+		}
         if ($esgOrderShipment) {
             $this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
 			$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
@@ -183,6 +189,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             'purchase_date' => $order['CreatedAt'],
             'last_update_date' => $order['UpdatedAt'],
             'order_status' => $orderStatus,
+            'esg_order_status'=>$this->getSoOrderStatus($orderStatus),
             'buyer_email' => $order['OrderId']."@lazada-api.com",
             'currency' => $this->storeCurrency,
             'shipping_address_id' => $addressId
@@ -304,6 +311,32 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 			$error["code"]=$this->lazadaOrderStatus->errorCode();
 			return $error;
 		}
+	}
+
+	public function getSoOrderStatus($orderStatus)
+	{
+		switch ($orderStatus) {
+			case 'Canceled':
+				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
+				break;
+			case 'Shipped':
+				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
+				break;
+			case 'Unshipped':
+			case 'Pending':
+			case 'Processing':
+				$status=PlatformOrderService::ORDER_STATUS_UNSHIPPED;
+				break;
+			case 'Delivered':
+				$status=PlatformOrderService::ORDER_STATUS_DELIVERED;
+				break;
+			case 'Failed':
+				$status=PlatformOrderService::ORDER_STATUS_FAIL;
+				break;
+			default:
+				return null;
+		}
+		return $status;
 	}
 
 }

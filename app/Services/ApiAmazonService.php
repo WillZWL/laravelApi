@@ -129,6 +129,7 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
             'purchase_date' => $order['PurchaseDate'],
             'last_update_date' => $order['LastUpdateDate'],
             'order_status' => $order['OrderStatus'],
+            'esg_order_status' => $this->getSoOrderStatus($order['OrderStatus']),
             'shipping_address_id' => $addressId
         ];
         if (isset($order['FulfillmentChannel'])){
@@ -248,6 +249,33 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
         $amazonOrderShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['AmazonOrderId']],$object
         );
         return $amazonOrderShippingAddress->id;
+	}
+
+	public function getSoOrderStatus($orderStatus)
+	{
+		switch ($orderStatus) {
+			case 'Canceled':
+				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
+				break;
+			case 'Pending':
+				$status=PlatformOrderService::ORDER_STATUS_PENDING;
+				break;
+			case 'Shipped':
+				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
+				break;
+			case 'Unshipped':
+				$status=PlatformOrderService::ORDER_STATUS_UNSHIPPED;
+				break;
+			case 'Delivered':
+				$status=PlatformOrderService::ORDER_STATUS_DELIVERED;
+				break;
+			case 'Failed':
+				$status=PlatformOrderService::ORDER_STATUS_FAIL;
+				break;
+			default:
+				$status=1;
+		}
+		return $status;
 	}
 
 }

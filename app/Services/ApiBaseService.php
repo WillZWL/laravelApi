@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-class ApiBaseService
+class ApiBaseService extends PlatformOrderService
 {
 	private $request;
 	private $schedule;

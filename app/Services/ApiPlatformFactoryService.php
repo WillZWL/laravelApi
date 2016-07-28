@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use App\Models\PlatformMarketOrder;
 
 
-
 class ApiPlatformFactoryService
 {
 	private $_requestData;

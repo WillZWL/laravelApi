@@ -32,7 +32,70 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
         ],
-        'VBLAZADAMY' => [
+        'CSLAZADAMY' => [
+            'userId' => 'cambridgesoundworks@aheaddigital.net', 
+            'apiToken' => 'b0e69bc90bfe709b078066864532c7f8f39eb754',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'currency'=>'MYR',
+        ],
+        'CSLAZADASG' => [
+            'userId' => 'cambridgesoundworks@aheaddigital.net', 
+            'apiToken' => '2426c81661c652cde833fc580735eb27c1553e20',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'currency'=>'SGD',
+        ],
+        'CSLAZADATH' => [
+            'userId' => 'cambridgesoundworks@aheaddigital.net', 
+            'apiToken' => '533bdb068f20d310aca7b9cea6df3e8ff98f6501',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
+            'currency'=>'THB',
+        ],
+        'CSLAZADAPH' => [
+            'userId' => 'cambridgesoundworks@aheaddigital.net', 
+            'apiToken' => '81ccf5c473cc53c990d3fbdd0c0facdb8f1c754f',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
+            'currency'=>'PHP',
+        ],
+        'CSLAZADAID' => [
+            'userId' => 'cambridgesoundworks@aheaddigital.net', 
+            'apiToken' => 'a5db4b917dda27071c18bd96a9c9c30b14a042e5',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
+            'currency'=>'IDR',
+        ],
+
+       /* 'PXLAZADAMY' => [
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'currency'=>'MYR',
+        ],
+        'PXLAZADASG' => [
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'currency'=>'SGD',
+        ],
+        'PXLAZADATH' => [
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
+            'currency'=>'THB',
+        ],
+        'PXLAZADAPH' => [
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
+            'currency'=>'PHP',
+        ],
+        'PXLAZADAID' => [
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
+            'currency'=>'IDR',
+        ],
+        */
+        
+        /*'VBLAZADAMY' => [
             'userId' => 'lazada@valuebasket.com', 
             'apiToken' => '03daeeb3ca4894a4b08ec27aa867a1c5b3eaa8ba',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
@@ -61,7 +124,7 @@ return [
             'apiToken' => '71f73342f5590237a093697034e6fc1e5ffa383e',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
-        ],
+        ],*/
     ],
 
     // Default service URL
