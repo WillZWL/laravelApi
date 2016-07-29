@@ -54,10 +54,10 @@ class Kernel extends ConsoleKernel
         //    ->everyTenMinutes();
 
         $schedule->command('feed:price')
-            ->everyTenMinutes();
+            ->everyThirtyMinutes();
 
         $schedule->command('feed:inventory')
-            ->everyTenMinutes();
+            ->everyThirtyMinutes();
 
         $schedule->command('feed:check')
             ->everyThirtyMinutes();
