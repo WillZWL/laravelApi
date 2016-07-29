@@ -61,6 +61,9 @@ Route::group(['middleware' => ['cors']], function () {
 
     Route::get('amazon/product', 'AmazonProduct@getMatchProductForId');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
+    
+    Route::get('platform-market/index', 'PlatformMarketOrderManage@index');
+    Route::get('platform-market/transfer-order', 'PlatformMarketOrderManage@transferOrder');
 
     Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
 });
