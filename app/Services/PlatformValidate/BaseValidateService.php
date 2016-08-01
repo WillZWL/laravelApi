@@ -55,8 +55,8 @@ class BaseValidateService
         $notMappedMarketplaceSkuList = array_diff($marketplaceSkuList, $mappedMarketplaceSkuList);
         if ($notMappedMarketplaceSkuList) {
             $missingSku = implode(',', $notMappedMarketplaceSkuList);
-            $subject = "[{$this->accountInfo['accountName']}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n Amazon Order Id: {$this->order->platform_order_id}\r\n";
+            $subject = "[{$this->accountInfo['accountName']}] {$this->order->biz_type} Order Import Failed!";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
             $message .= "Marketplace SKU <{$missingSku}> not exist in esg admin. please add listing sku mapping first. Thanks";
             $this->addMailMessage($this->accountInfo['alertEmail'],$subject,$message);
             return false;
@@ -71,8 +71,8 @@ class BaseValidateService
         $notMappedEsgSkuList = array_diff($esgSkuList, $mappedEsgSkuList);
         if ($notMappedEsgSkuList) {
             $missingSku = implode(',', $notMappedEsgSkuList);
-            $subject = "[{$this->accountInfo['accountName']}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n Amazon Order Id: {$this->order->platform_order_id}\r\n";
+            $subject = "[{$this->accountInfo['accountName']}] {$this->order->biz_type} Order Import Failed!";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
             $message .= "ESG SKU <{$missingSku}> not belong to any merchant. please add merchant sku mapping first. Thanks";
             $this->addMailMessage($this->accountInfo['alertEmail'],$subject,$message);
             return false;
@@ -93,8 +93,8 @@ class BaseValidateService
         $notExistPlatform = array_diff($sellingPlatformId, $platformIdFromDB);
         if ($notExistPlatform) {
             $missingSellingPlatform = implode(',', $notExistPlatform);
-            $subject = "[{$this->accountInfo['accountName']}] Amazon Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n Amazon Order Id: {$this->order->platform_order_id}\r\n";
+            $subject = "[{$this->accountInfo['accountName']}] {$this->order->biz_type} Order Import Failed!";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
             $message .= "Selling Platform Id <{$missingSellingPlatform}> not exists in esg system, please add it. Thanks";
            $this->addMailMessage($this->accountInfo['alertEmail'],$subject,$message);
             return false;
@@ -108,8 +108,8 @@ class BaseValidateService
         $notHaveDeliveryTypeSku = $marketplaceSkuMapping->where('delivery_type', '');
         if ( ! $notHaveDeliveryTypeSku->isEmpty()) {
             $notHaveDeliveryTypeSku->load('product');
-            $subject = "[{$this->accountInfo['accountName']}] Delivery Type Missing - Amazon Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n Amazon Order Id: {$this->order->platform_order_id}\r\n";
+            $subject = "[{$this->accountInfo['accountName']}] Delivery Type Missing - {$this->order->biz_type} Order Import Failed!";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
 
             $message = $notHaveDeliveryTypeSku->reduce(function ($message, $marketplaceProduct) {
                 return $message .= "Marketplace SKU <{$marketplaceProduct->marketplace_sku}>, product title <{$marketplaceProduct->product->name}>\r\n";
