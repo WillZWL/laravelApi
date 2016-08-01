@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Builder;
+use Illuminate\Database\Eloquent\Builder;
 
 class AmazonOrderItem extends Model
 {
