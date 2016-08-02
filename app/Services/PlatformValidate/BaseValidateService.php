@@ -11,11 +11,13 @@ class BaseValidateService
 	private $order;
 	private $platformAccount;
 	private $countryCode;
+    private $platformShortName;
 
-	public function __construct($order,$accountInfo)
+	public function __construct($order,$accountInfo,$platformShortName)
 	{
 		$this->order=$order;
 		$this->accountInfo=$accountInfo;
+        $this->platformShortName=$platformShortName;
 	}
 
 	public function validate()
@@ -36,7 +38,7 @@ class BaseValidateService
         $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
             ->whereIn('sku', $esgSkuList)
             ->get();
-         // 2 check marketplace sku mapping
+         // 2check  Merchant Sku Mapping
         $valid=$this->checkSkuMerchant($esgSkuList,$merchantProductMapping);
         if($valid==false) return false;
 		//3 check selling platform is exist or not.
@@ -84,8 +86,9 @@ class BaseValidateService
 	{
 		// check selling platform is exist or not.
 		$sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item){ 
-            return 'AC-'.$this->platformAccount.'AZ-'.$item.$this->countryCode;
+            return 'AC-'.$this->platformAccount.$this->platformShortName.'-'.$item.$this->countryCode;
         })->toArray();
+
         $platformIdFromDB = PlatformBizVar::whereIn('selling_platform_id', $sellingPlatformId)
             ->get()
             ->pluck('selling_platform_id')

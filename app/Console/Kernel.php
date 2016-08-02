@@ -23,6 +23,7 @@ class Kernel extends ConsoleKernel
         Commands\GetAmazonFeedResult::class,
         Commands\PlatformMarketOrderRetrieve::class,
         Commands\PlatformMarketReadyOrderTransfer::class,
+        Commands\PlatformMarketplaceSkuMapping::class,
         Commands\SubmitPlatformOrderFufillment::class
     ];
 

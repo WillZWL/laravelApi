@@ -27,7 +27,9 @@ class ApiPlatformServiceProvider extends ServiceProvider
 
     protected $availableServices = array(
                 'amazon'=>'ApiAmazonService',
-                'lazada'=>'ApiLazadaService'
+                'lazada'=>'ApiLazadaService',
+                'amazon_product'=>'ApiAmazonProductService',
+                'lazada_product'=>'ApiLazadaProductService'
             );
 
     public function register()
@@ -42,7 +44,7 @@ class ApiPlatformServiceProvider extends ServiceProvider
         } else{
             $apiPlatform = strtolower($request->get('api_platform'));
         }
-        $service = $apiPlatform ? $this->availableServices[$apiPlatform]:'ApiLazadaService';
+        $service = $apiPlatform ? $this->availableServices[$apiPlatform]:'ApiLazadaProductService';
         $this->app->bind('App\Contracts\ApiPlatformInterface', "App\Services\\{$service}"); 
     }
 

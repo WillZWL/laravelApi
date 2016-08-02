@@ -7,16 +7,17 @@ namespace App\Repository\LazadaMws;
 class LazadaProductList extends LazadaProductsCore
 {
  
-  	private $_requestParams;
+  	private $_requestParams=array();
 
     function __construct($store)
     {
         parent::__construct($store);
+        $this->getRequestParams();
     }
 
     public function fetchProductList()
 	{
-		return parent::query($this->getRequestParams());
+		return parent::query($this->_requestParams);
 	}
 
 	public function getRequestParams()
