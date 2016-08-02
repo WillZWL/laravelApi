@@ -14,6 +14,9 @@ class MarketplaceSkuMapping extends Model
 
     public $incrementing = false;
 
+    //protected $fillable = array('marketplace_sku','sku','mp_control_id');
+    protected $guarded = [];
+
     public function product()
     {
         return $this->belongsTo('App\Models\Product', 'sku', 'sku');
@@ -25,7 +28,6 @@ class MarketplaceSkuMapping extends Model
         if ($fulfillment) {
             $relation->where('fulfillment_method', '=', $fulfillment);
         }
-
         return $relation;
     }
 

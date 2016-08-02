@@ -29,6 +29,21 @@ class LazadaCore
       return $this->prepare($data);
   }
 
+  public function curlPostDataToApi($requestParams,$xmlData)
+  {
+      $apiHeader=array(
+          "headers"=>array(
+            'Content-Type' =>'text/xml; charset=UTF8',
+          ),
+      );
+      $signRequestParams = $this->signature($requestParams);
+      $queryString = http_build_query($signRequestParams, '', '&', PHP_QUERY_RFC3986);
+      $client = new \GuzzleHttp\Client($apiHeader);
+      $response=$client->request('POST', $this->urlbase . "?" . $queryString, ['body' => $xmlData]);
+      $returnContent=$response->getBody()->getContents();
+      return $returnContent;
+  }
+
     /**
      * Return error message for last API call
      * @return string
