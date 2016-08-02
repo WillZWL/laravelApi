@@ -315,6 +315,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function getSoOrderStatus($orderStatus)
 	{
+		
 		switch ($orderStatus) {
 			case 'Canceled':
 				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
@@ -322,6 +323,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 			case 'Shipped':
 				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
 				break;
+			case 'ReadyToShip':
 			case 'Unshipped':
 			case 'Pending':
 			case 'Processing':
