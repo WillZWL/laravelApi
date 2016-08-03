@@ -38,8 +38,7 @@
 			{{ $orderList->links() }}
 			<div><input type="submit" value="Transfer Order"  name=""/></div>
 		</form>
-  	</div>	
-  	
+  	</div>
 </div>
 <!-- /page content -->
 @endsection

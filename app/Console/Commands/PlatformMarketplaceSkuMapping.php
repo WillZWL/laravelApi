@@ -47,7 +47,7 @@ class PlatformMarketplaceSkuMapping extends Command
         //
         if($stores=$this->getStores()){
             foreach ($stores as $storeName => $store) {
-                $result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store);
+                //$result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store);
                 $this->apiPlatformFactoryService->updateOrCreateSellingPlatform($storeName,$store);
                 $this->apiPlatformFactoryService->updateOrCreatePlatformBizVar($storeName,$store);
             }
@@ -59,8 +59,6 @@ class PlatformMarketplaceSkuMapping extends Command
         $apiName = $this->option('api');
         if($apiName=="lazada"){
             $stores = Config::get('lazada-mws.store');
-        }else if($apiName=="amazon"){
-            $stores = Config::get('amazon-mws.store');
         }
         return $stores;
     }

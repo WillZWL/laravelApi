@@ -73,43 +73,152 @@ return [
             'currency'=>'IDR',
         ],
 
-       /* 'PXLAZADAMY' => [
-            'name'=>'Product Xpress Lazada',
-            'userId' => 'lazada@eservicesgroup.com', 
-            'apiToken' => '',
+        'MLLAZADAMY' => [
+            'name'=>'Mattel Lazada',
+            'userId' => 'mattel@apresslink.com', 
+            'apiToken' => '820f616e3e10a4f9982973c9d113027525519d2d',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
             'currency'=>'MYR',
         ],
-        'PXLAZADASG' => [
+        /*'MLLAZADASG' => [
+            'name'=>'Mattel Lazada',
+            'userId' => 'mattel@apresslink.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'currency'=>'SGD',
+        ],
+        'MLLAZADATH' => [
+            'name'=>'Mattel Lazada',
+            'userId' => 'mattel@apresslink.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
+            'currency'=>'THB',
+        ],
+        'MLLAZADAPH' => [
+            'name'=>'Mattel Lazada',
+            'userId' => 'mattel@apresslink.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
+            'currency'=>'PHP',
+        ],
+        'MLLAZADAID' => [
+            'name'=>'Mattel Lazada',
+            'userId' => 'mattel@apresslink.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
+            'currency'=>'IDR',
+        ],*/
+        
+        'PXLAZADAMY' => [
+            'name'=>'Product Xpress Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '575f613e83fee7f0a2b3098110b177109a20fa47',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'currency'=>'MYR',
+        ],
+        /*'PXLAZADASG' => [
             'name'=>'Product Xpress Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
             'currency'=>'SGD',
-        ],
+        ],*/
         'PXLAZADATH' => [
             'name'=>'Product Xpress Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
-            'apiToken' => '',
+            'apiToken' => '0f42c6115fe80506ce52d7c452fe5991ede50e1f',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
             'currency'=>'THB',
         ],
         'PXLAZADAPH' => [
             'name'=>'Product Xpress Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
-            'apiToken' => '',
+            'apiToken' => '73fb06dc02628a9797dc2759945e372a745f0a4d',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
             'currency'=>'PHP',
         ],
-        'PXLAZADAID' => [
+        /*'PXLAZADAID' => [
             'name'=>'Product Xpress Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
+        ],*/
+
+        /*'3DLAZADAMY' => [
+            'name'=>'3Doodler Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'currency'=>'MYR',
         ],
-        */
-        
+        '3DLAZADASG' => [
+            'name'=>'3Doodler Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'currency'=>'SGD',
+        ],
+        '3DLAZADATH' => [
+            'name'=>'3Doodler Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
+            'currency'=>'THB',
+        ],
+        '3DLAZADAPH' => [
+            'name'=>'3Doodler Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
+            'currency'=>'PHP',
+        ],
+        '3DLAZADAID' => [
+            'name'=>'3Doodler Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
+            'currency'=>'IDR',
+        ],*/
+
+        /*'BMLAZADAMY' => [
+            'name'=>'Blue Microphones Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'currency'=>'MYR',
+        ],
+        'BMLAZADASG' => [
+            'name'=>'Blue Microphones Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'currency'=>'SGD',
+        ],
+        'BMLAZADATH' => [
+            'name'=>'Blue Microphones Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
+            'currency'=>'THB',
+        ],
+        'BMLAZADAPH' => [
+            'name'=>'Blue Microphones Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
+            'currency'=>'PHP',
+        ],
+        'BMLAZADAID' => [
+            'name'=>'Blue Microphones Lazada',
+            'userId' => 'lazada@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
+            'currency'=>'IDR',
+        ],*/
+
+
+
         /*'VBLAZADAMY' => [
             'userId' => 'lazada@valuebasket.com', 
             'apiToken' => '03daeeb3ca4894a4b08ec27aa867a1c5b3eaa8ba',

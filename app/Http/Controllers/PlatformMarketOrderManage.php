@@ -10,6 +10,7 @@ use App\Models\Marketplace;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
+use Config;
 
 class  PlatformMarketOrderManage extends Controller
 {
@@ -59,4 +60,25 @@ class  PlatformMarketOrderManage extends Controller
         //$data['marketplaces'] = Marketplace::whereStatus(1)->get();
         return response()->view('platform-manager.transfer-order', $data);   
     }
+
+    public function uploadMarketplacdeSkuMapping(Request $request)
+    {
+        $platform=$request->input("check");
+        if($platform=="lazada" && $request->hasFile('sku_file')){
+            $file=$request->file('sku_file');
+            $extension = $file->getClientOriginalExtension();
+            $destinationPath = storage_path()."/marketplace-sku-mapping";
+            $fileName=$file->getFilename().'.'.$extension;
+            $request->file('sku_file')->move($destinationPath,$fileName);
+            $stores = Config::get('lazada-mws.store');
+
+            foreach ($stores as $storeName => $store) {
+                $result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store,$fileName);
+            }
+            return redirect('platform-market/upload-mapping');
+        }
+        return response()->view('platform-manager.uplaod-mapping'); 
+    }
+
+
 }

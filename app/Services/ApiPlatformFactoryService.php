@@ -53,6 +53,11 @@ class ApiPlatformFactoryService
 		return $this->apiPlatformInterface->getProductList($storeName);
 	}
 
+	public function submitProductPriceOrInventory($action)
+	{	
+		return $this->apiPlatformInterface->submitProductPriceOrInventory($action);
+	}
+	
 	public function submitOrderFufillment($bizType)
 	{
 		$platformOrderIdList=$this->getPlatformOrderIdList($bizType);
@@ -174,8 +179,8 @@ class ApiPlatformFactoryService
         });
     }
 
-    //init Marketplace SKU Mapping
-    public function initMarketplaceSkuMapping($storeName,$store)
+    //1 init Marketplace SKU Mapping 
+    public function initMarketplaceSkuMapping($storeName,$store,$fileName="")
     {
     	$this->countryCode = strtoupper(substr($storeName, -2));
     	$this->platformAccount = strtoupper(substr($storeName, 0, 2));
@@ -186,7 +191,11 @@ class ApiPlatformFactoryService
     					->where("status",'=','1')
     					->first()
     					->control_id;
-    	$filePath = 'storage/marketplace-sku-mapping/skus2016-08-01.xlsx';
+    	if($fileName){
+			$filePath = 'storage/marketplace-sku-mapping/'.$fileName;
+    	}else{
+    		$filePath = 'storage/marketplace-sku-mapping/skus2016-08-01.xlsx';	
+    	}
 	    Excel::load($filePath, function($reader) {
 	        $data = $reader->all();
 	        foreach($data as $sheetItem){
@@ -206,7 +215,7 @@ class ApiPlatformFactoryService
 	    	}
 	    });
     }
-
+ 	//2 init Marketplace SKU Mapping 
     public function updateOrCreateSellingPlatform($storeName,$store)
     {
     	$countryCode = strtoupper(substr($storeName, -2));
@@ -226,7 +235,7 @@ class ApiPlatformFactoryService
         );
         return $sellingPlatform;
     }
-
+    //3 init Marketplace SKU Mapping 
     public function updateOrCreatePlatformBizVar($storeName,$store)
     {
     	$countryCode = strtoupper(substr($storeName, -2));
@@ -246,7 +255,7 @@ class ApiPlatformFactoryService
         );
         return $platformBizVar;
     }
-
+	//4 init Marketplace SKU Mapping 
     public function updateOrCreateMarketplaceSkuMapping($mappingData)
 	{
 		$object=array();
