@@ -16,14 +16,14 @@ class  PlatformMarketProductManage extends Controller
     {
         $storeName="BCLAZADAMY";
         //$schedule=$this->apiPlatformFactoryService->getStoreSchedule($storeName);
-        $order=$this->apiPlatformFactoryService->getProductList($storeName);
+        $productList=$this->apiPlatformFactoryService->getProductList($storeName);
     }
 
-    public function updateProductPrice(Request $request)
+    public function submitProductPriceOrInventory(Request $request)
     {
-        $storeName="BCLAZADAMY";
+        $action="pendingInventory";
         //$schedule=$this->apiPlatformFactoryService->getStoreSchedule($storeName);
-        $order=$this->apiPlatformFactoryService->updateProductPrice($storeName);
+        $order=$this->apiPlatformFactoryService->submitProductPriceOrInventory($action);
     }
 
 }
