@@ -14,6 +14,9 @@ class MarketplaceSkuMapping extends Model
 
     public $incrementing = false;
 
+    //protected $fillable = array('marketplace_sku','sku','mp_control_id');
+    protected $guarded = [];
+
     public function product()
     {
         return $this->belongsTo('App\Models\Product', 'sku', 'sku');
@@ -25,12 +28,29 @@ class MarketplaceSkuMapping extends Model
         if ($fulfillment) {
             $relation->where('fulfillment_method', '=', $fulfillment);
         }
-
         return $relation;
     }
 
     public function mpControl()
     {
         return $this->belongsTo('App\Models\MpControl', 'mp_control_id', 'control_id');
+    }
+
+    public function scopePendingProductSkuGroups($query,$marketplaceId)
+    {
+       return $query->join('product', 'marketplace_sku_mapping.sku', '=', 'product.sku')
+                    ->join('product_content', function ($q) {
+                        $q->on('product.sku', '=', 'product_content.prod_sku')
+                            ->on('marketplace_sku_mapping.lang_id', '=', 'product_content.lang_id');
+                    })->join('product_content_extend', function ($q) {
+                        $q->on('product.sku', '=', 'product_content_extend.prod_sku')
+                            ->on('marketplace_sku_mapping.lang_id', '=', 'product_content_extend.lang_id');
+                    })
+                    ->join('brand', 'brand.id', '=', 'product.brand_id')
+                    ->where('marketplace_sku_mapping.marketplace_id', 'like', $marketplaceId)
+                    ->where('marketplace_sku_mapping.listing_status', '=', 'Y')
+                    ->where('marketplace_sku_mapping.process_status', '&', self::PENDING_PRODUCT)  // bit 1, PRODUCT_UPDATED
+                    ->get()
+                    ->groupBy('mp_control_id');
     }
 }

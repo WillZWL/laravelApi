@@ -9,7 +9,11 @@ use App\Models\SoShipment;
 use Carbon\Carbon;
 
 use App\Models\PlatformMarketOrder;
-
+use App\Models\MpControl;
+use App\Models\MarketplaceSkuMapping;
+use App\Models\SellingPlatform;
+use App\Models\PlatformBizVar;
+use Excel;
 
 class ApiPlatformFactoryService
 {
@@ -49,6 +53,11 @@ class ApiPlatformFactoryService
 		return $this->apiPlatformInterface->getProductList($storeName);
 	}
 
+	public function submitProductPriceOrInventory($action)
+	{	
+		return $this->apiPlatformInterface->submitProductPriceOrInventory($action);
+	}
+	
 	public function submitOrderFufillment($bizType)
 	{
 		$platformOrderIdList=$this->getPlatformOrderIdList($bizType);
@@ -170,4 +179,104 @@ class ApiPlatformFactoryService
         });
     }
 
+    //1 init Marketplace SKU Mapping 
+    public function initMarketplaceSkuMapping($storeName,$store,$fileName="")
+    {
+    	$this->countryCode = strtoupper(substr($storeName, -2));
+    	$this->platformAccount = strtoupper(substr($storeName, 0, 2));
+    	$this->marketplaceId = strtoupper(substr($storeName, 0, -2));
+    	$this->store=$store;
+    	$this->mpControlId=MpControl::where("marketplace_id",$this->marketplaceId)
+    					->where("country_id",'=',$this->countryCode)
+    					->where("status",'=','1')
+    					->first()
+    					->control_id;
+    	/*if($fileName){
+			$filePath = 'storage/marketplace-sku-mapping/'.$fileName;
+    	}else{
+    		$filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';	
+    	}*/
+    	$filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';	
+	    Excel::load($filePath, function($reader) {
+	        $data = $reader->all();
+	        foreach($data as $sheetItem){
+	        	$mappingData=null;
+	        	foreach($sheetItem as $item){
+	        		$mappingData=array(
+	        			'marketplace_sku' =>$item ,
+	        			'sku' => $item,
+	        			'mp_control_id'=>$this->mpControlId,
+	        			'marketplace_id' => $this->marketplaceId,
+	        			'country_id' => $this->countryCode,
+	        			'lang_id'=>'en',
+	        			'currency'=>$this->store['currency']
+	        			);
+	        		$this->updateOrCreateMarketplaceSkuMapping($mappingData);
+	        	}
+	    	}
+	    });
+    }
+ 	//2 init Marketplace SKU Mapping 
+    public function updateOrCreateSellingPlatform($storeName,$store)
+    {
+    	$countryCode = strtoupper(substr($storeName, -2));
+    	$platformAccount = strtoupper(substr($storeName, 0, 2));
+    	$marketplaceId = strtoupper(substr($storeName, 0, -2));
+    	$id="AC-".$platformAccount."LZ"."-GROUP".$countryCode;
+    	$object=array();
+		$object['id']=$id;
+        $object['type'] ='ACCELERATOR';
+        $object['marketplace'] =$marketplaceId;
+        $object['merchant_id'] = 'ESG';
+        $object['name'] = $store['name']." GROU ".$countryCode;
+        $object['description'] = $store['name']." GROU ".$countryCode;
+        $object['create_on'] = date("Y-m-d H:i:s");
+        $sellingPlatform = SellingPlatform::updateOrCreate(
+        	['id' => $id],$object
+        );
+        return $sellingPlatform;
+    }
+    //3 init Marketplace SKU Mapping 
+    public function updateOrCreatePlatformBizVar($storeName,$store)
+    {
+    	$countryCode = strtoupper(substr($storeName, -2));
+    	$platformAccount = strtoupper(substr($storeName, 0, 2));
+    	$marketplaceId = strtoupper(substr($storeName, 0, -2));
+    	$sellingPlatformId="AC-".$platformAccount."LZ"."-GROUP".$countryCode;
+    	$object=array();
+		$object['selling_platform_id']=$sellingPlatformId;
+        $object['platform_country_id'] =$countryCode;
+        $object['dest_country'] = $countryCode;
+        $object['platform_currency_id'] =$store["currency"];
+        $object['language_id'] = 'en';
+        $object['delivery_type'] = 'EXP';
+        $object['create_on'] = date("Y-m-d H:i:s");
+        $platformBizVar = PlatformBizVar::updateOrCreate(
+        	['selling_platform_id' => $sellingPlatformId],$object
+        );
+        return $platformBizVar;
+    }
+	//4 init Marketplace SKU Mapping 
+    public function updateOrCreateMarketplaceSkuMapping($mappingData)
+	{
+		$object=array();
+		$object['marketplace_sku']=$mappingData['marketplace_sku'];
+        $object['sku'] = $mappingData['sku'];
+        $object['mp_control_id'] =$mappingData['mp_control_id'];
+        $object['marketplace_id'] = $mappingData['marketplace_id'];
+        $object['country_id'] = $mappingData['country_id'];
+        $object['lang_id'] = $mappingData['lang_id'];
+        $object['condition'] = 'New';
+        $object['delivery_type'] ='EXP';
+        $object['currency'] =$mappingData['currency'];
+        $object['status'] = 1;
+        $object['create_on'] = date("Y-m-d H:i:s");
+        $marketplaceSkuMapping = MarketplaceSkuMapping::updateOrCreate(
+        	[
+        	'marketplace_sku' => $mappingData['marketplace_sku'],
+        	'mp_control_id' => $mappingData['mp_control_id'],
+        	],$object
+        );
+        return $marketplaceSkuMapping;
+	}
 }

@@ -12,7 +12,7 @@ class LazadaValidateService extends BaseValidateService
 	function __construct(PlatformMarketOrder $order)
 	{
 		$this->order=$order;
-		parent::__construct($order,$this->getPlatformAccountInfo($order));
+		parent::__construct($order,$this->getPlatformAccountInfo($order),"LZ");
 	}
 
 	/**

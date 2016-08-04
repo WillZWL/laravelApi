@@ -64,7 +64,9 @@ Route::group(['middleware' => ['cors']], function () {
     
     Route::get('platform-market/index', 'PlatformMarketOrderManage@index');
     Route::get('platform-market/transfer-order', 'PlatformMarketOrderManage@transferOrder');
-
+    Route::get('platform-market/product',  'PlatformMarketProductManage@getProductList');
+    Route::get('platform-market/update-product-price',  'PlatformMarketProductManage@submitProductPriceOrInventory');
+    Route::resource('platform-market/upload-mapping', 'PlatformMarketOrderManage@uploadMarketplacdeSkuMapping');
     Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
 });
 
