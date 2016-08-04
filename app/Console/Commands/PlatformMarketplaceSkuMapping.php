@@ -47,9 +47,9 @@ class PlatformMarketplaceSkuMapping extends Command
         //
         if($stores=$this->getStores()){
             foreach ($stores as $storeName => $store) {
-                //$result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store);
-                $this->apiPlatformFactoryService->updateOrCreateSellingPlatform($storeName,$store);
-                $this->apiPlatformFactoryService->updateOrCreatePlatformBizVar($storeName,$store);
+                $result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store);
+                //$this->apiPlatformFactoryService->updateOrCreateSellingPlatform($storeName,$store);
+               // $this->apiPlatformFactoryService->updateOrCreatePlatformBizVar($storeName,$store);
             }
         }
     }
