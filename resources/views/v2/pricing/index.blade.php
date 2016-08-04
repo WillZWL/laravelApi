@@ -241,11 +241,11 @@ $link = [
                 <tr>
                   <td colspan="2">Weight</td>
                   <td colspan="4">
-                      {{ $platformInfo['weight'] }}kg
+                      {{ $platformInfo['weight'] }} kg
                   </td>
                   <td colspan="3">Volumetric Weight</td>
                   <td colspan="7">
-                      {{ $platformInfo['vol_weight'] }}kg
+                      {{ $platformInfo['vol_weight'] }} kg
                   </td>
                 </tr>
                 <tr>
