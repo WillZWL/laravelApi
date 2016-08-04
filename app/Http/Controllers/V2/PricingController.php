@@ -70,6 +70,8 @@ class PricingController extends Controller
                 'selectedDeliveryType' => $mappingItem->delivery_type,
             ]);
 
+            $productObj = Product::where('sku', '=', $mappingItem->sku)->first();
+
             $result[$request->input('marketplace').$request->input('country')]['deliveryOptions'] = $this->getPricingInfo($request);
             $result[$request->input('marketplace').$request->input('country')]['listingStatus'] = $mappingItem->listing_status;
             $result[$request->input('marketplace').$request->input('country')]['inventory'] = $mappingItem->inventory;
@@ -82,6 +84,8 @@ class PricingController extends Controller
             $result[$request->input('marketplace').$request->input('country')]['price'] = $mappingItem->price;
             $result[$request->input('marketplace').$request->input('country')]['delivery_type'] = $mappingItem->delivery_type;
             $result[$request->input('marketplace').$request->input('country')]['margin'] = $mappingItem->margin;
+            $result[$request->input('marketplace').$request->input('country')]['weight'] = $productObj->weight;
+            $result[$request->input('marketplace').$request->input('country')]['vol_weight'] = $productObj->vol_weight;
         }
 
         return $result;
@@ -104,6 +108,7 @@ class PricingController extends Controller
             'sku' => $marketplaceMapping->product->sku,
             'selectedDeliveryType' => $marketplaceMapping->delivery_type,
         ]);
+
         $result[$request->input('sellingPlatform')]['deliveryOptions'] = $this->getPricingInfo($request);
         $result[$request->input('sellingPlatform')]['listingStatus'] = $marketplaceMapping->listing_status;
         $result[$request->input('sellingPlatform')]['inventory'] = $marketplaceMapping->inventory;
@@ -111,6 +116,8 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['condition'] = $marketplaceMapping->condition;
         $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
         $result[$request->input('sellingPlatform')]['fulfillmentLatency'] = $marketplaceMapping->fulfillment_latency;
+        $result[$request->input('sellingPlatform')]['weight'] = $marketplaceMapping->product->weight;
+        $result[$request->input('sellingPlatform')]['vol_weight'] = $marketplaceMapping->product->vol_weight;
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
