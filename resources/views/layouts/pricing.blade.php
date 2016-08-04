@@ -131,7 +131,24 @@
       //   });
       // })
 
-      $(document).pjax('.marketplaceSku a[data-pjax]', '#sku-listing-info-wrap');
+//      $(document).pjax('.marketplaceSku a[data-pjax]', '#sku-listing-info-wrap');
+//      $('.marketplaceSku').click(function () {
+//        console.log('fasdf');
+//          $(this).pjax('a[data-pjax]', '#sku-listing-info-wrap');
+//      });
+
+      $('.marketplaceSku').hover(function(){
+          $(this).addClass('pointer');
+      }, function () {
+          $(this).removeClass('pointer');
+      })
+
+      $('.marketplaceSku').click(function () {
+          $.pjax({
+              url: $(this).find('a').attr('href'),
+              container: '#sku-listing-info-wrap'
+          });
+      });
 
       // $(document).on('click', '#sku-list a', function(e) {
       //   e.preventDefault();
