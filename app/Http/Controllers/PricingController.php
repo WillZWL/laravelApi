@@ -105,6 +105,8 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['price'] = $marketplaceMapping->price;
         $result[$request->input('sellingPlatform')]['delivery_type'] = $marketplaceMapping->delivery_type;
         $result[$request->input('sellingPlatform')]['margin'] = $marketplaceMapping->margin;
+        $result[$request->input('sellingPlatform')]['weight'] = $marketplaceMapping->product->weight;
+        $result[$request->input('sellingPlatform')]['vol_weight'] = $marketplaceMapping->product->vol_weight;
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }

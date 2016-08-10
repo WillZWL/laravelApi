@@ -87,6 +87,7 @@ class SubmitPriceFeed extends Command
 
             $feed = new AmazonFeed($marketplace);
             $feed->setFeedType('_POST_PRODUCT_PRICING_DATA_');
+            $feed->setMarketplaceIds($stores[$marketplace]['marketplaceId']);
             $feed->setFeedContent($xml);
 
             if ($feed->submitFeed() === false) {

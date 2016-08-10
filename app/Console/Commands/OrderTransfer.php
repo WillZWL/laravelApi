@@ -282,7 +282,7 @@ class OrderTransfer extends Command
 
             if ($order->fulfillment_channel === 'AFN') {
                 $so->delivery_type_id = 'FBA';
-                $so->dispatch_date = $order->latest_ship_date;
+                $so->dispatch_date = Carbon::now();
             } else {
 
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
@@ -384,6 +384,7 @@ class OrderTransfer extends Command
             $order->amazonShippingAddress->address_line_3
         ]));
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
+        $newOrder->dispatch_date = Carbon::now();
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
         $newOrder->delivery_country_id = $order->amazonShippingAddress->country_code;
         $newOrder->delivery_state = CountryState::getStateId($order->amazonShippingAddress->country_code, $order->amazonShippingAddress->state_or_region);
