@@ -191,11 +191,12 @@ class ApiPlatformFactoryService
     					->where("status",'=','1')
     					->first()
     					->control_id;
-    	if($fileName){
+    	/*if($fileName){
 			$filePath = 'storage/marketplace-sku-mapping/'.$fileName;
     	}else{
-    		$filePath = 'storage/marketplace-sku-mapping/skus2016-08-01.xlsx';	
-    	}
+    		$filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';	
+    	}*/
+    	$filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';	
 	    Excel::load($filePath, function($reader) {
 	        $data = $reader->all();
 	        foreach($data as $sheetItem){
