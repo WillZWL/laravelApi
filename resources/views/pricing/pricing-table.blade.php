@@ -36,6 +36,7 @@ $link = [
         '3DAMAZONES' => 'https://www.amazon.es/dp/',
         '3DAMAZONIT' => 'https://www.amazon.it/dp/',
         '3DAMAZONJP' => 'https://www.amazon.jp/dp/',
+
 ];
 ?>
 <div id="sku-listing-info">
@@ -69,10 +70,12 @@ $link = [
                         <span class="price {{ ($platformInfo['margin'] > 0) ? 'text-success' : 'text-danger' }}">
                             {{ $platformInfo['margin'] }}%
                         </span>
+                        @if($platformInfo['link'])
                         <span>
                             &nbsp;|&nbsp;
-                            <a href="{{ $link[$platform].$platformInfo['asin'] }}" target="_blank">{{ $link[$platform].$platformInfo['asin'] }}</a>
+                            <a href="{{ $platformInfo['link'] }}" target="_blank">{{ $platformInfo['link'] }}</a>
                         </span>
+                        @endif
                     </h4>
                 </div>
                 <div id="{{ $platform }}" class="panel-collapse collapse" role="tabpanel" aria-labelledby="head_{{ $platform }}">

@@ -97,7 +97,6 @@ class ListingSkuManagement extends Controller
             ->get();
         $data['marketplaceSkus'] = $marketplaceSkus;
 
-
         $mpCategories = MpCategory::join('mp_control', 'mp_control.control_id', '=', 'mp_category.control_id')
             ->where('mp_control.marketplace_id', '=', $marketplaceId)
             ->where('mp_control.country_id', '=', $countryId)
@@ -182,21 +181,14 @@ class ListingSkuManagement extends Controller
         $mapping->condition = $request->input('condition');
         $mapping->condition_note = $request->input('conditionNote');
         $mapping->fulfillment_latency= $request->input('fulfillmentLatency');
-
+        //process_status位进制计算
         $mapping->process_status = $mapping->process_status | self::PRICE_UPDATED | self::INVENTORY_UPDATED | self::PRODUCT_UPDATED;
         $mapping->listing_status = $request->input('listingStatus');
         if ($mapping->listing_status === 'N') {
             $mapping->process_status = $mapping->process_status | self::PRODUCT_DISCONTINUED;
         }
         $mapping->delivery_type = $request->input('delivery_type');
-        switch ($mapping->delivery_type) {
-            case 'FBA':
-                $mapping->fulfillment = 'AFN';
-                break;
-            default :
-                $mapping->fulfillment = 'MFN';
-                break;
-        }
+        $mapping->fulfillment=$this->getMappingFulfillment($marketplaceId,$mapping->delivery_type);
 
         $mapping->price = $request->input('price');
         $mapping->inventory = $request->input('inventory');
@@ -207,5 +199,21 @@ class ListingSkuManagement extends Controller
         } else {
             echo json_encode('save failure');
         }
+    }
+
+    public function getMappingFulfillment($makertplace,$deliveryType)
+    {
+        $fulfillment=null;
+        if(strstr($makertplace,"AMAZON")){
+            switch ($deliveryType) {
+                case 'FBA':
+                    $fulfillment = 'AFN';
+                    break;
+                default :
+                    $fulfillment = 'MFN';
+                    break;
+            }
+        }
+        return $fulfillment;
     }
 }

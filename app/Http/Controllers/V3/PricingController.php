@@ -59,7 +59,8 @@ class PricingController extends Controller
     public function getPriceInfo(Request $request)
     {
         $marketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->input('marketplaceSku'))
-            ->whereMarketplaceId($request->input('marketplace'))
+            ->join('atomesg.mp_control', 'mp_control_id', '=', 'control_id')
+            ->where('mp_control.marketplace_id', '=', $request->input('marketplace'))
             ->get();
 
         $result = [];
@@ -98,6 +99,10 @@ class PricingController extends Controller
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($countryCode)
             ->firstOrFail();
+        $mpControl=MpControl::select(['link'])
+            ->where('marketplace_id', '=', $marketplaceId)
+            ->where('country_id', '=', $countryCode)
+            ->firstOrFail();
 
         $request->merge([
             'marketplace' => $marketplaceMapping->marketplace_id,
@@ -112,6 +117,8 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['condition'] = $marketplaceMapping->condition;
         $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
         $result[$request->input('sellingPlatform')]['fulfillmentLatency'] = $marketplaceMapping->fulfillment_latency;
+        $result[$request->input('sellingPlatform')]['link'] = $mpControl->link.$marketplaceMapping->asin;
+
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
