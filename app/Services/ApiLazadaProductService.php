@@ -46,6 +46,7 @@ class ApiLazadaProductService extends ApiBaseService  implements ApiPlatformInte
 		$dateTime=date(\DateTime::ISO8601, strtotime("2016-07-31"));
 		$this->lazadaProductList->setCreatedBefore($dateTime);
 		$orginProductList=$this->lazadaProductList->fetchProductList();
+        print_r($orginProductList);exit();
 		$this->saveDataToFile(serialize($orginProductList),"getProductList");
         return $orginProductList;
 	}

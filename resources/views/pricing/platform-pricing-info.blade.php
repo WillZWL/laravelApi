@@ -1,44 +1,3 @@
-<?php
-$link = [
-        'BCAMAZONGB' => 'https://www.amazon.co.uk/dp/',
-        'BCAMAZONUS' => 'https://www.amazon.com/dp/',
-        'BCAMAZONFR' => 'https://www.amazon.fr/dp/',
-        'BCAMAZONCA' => 'https://www.amazon.ca/dp/',
-        'BCAMAZONMX' => 'https://www.amazon.com.mx/dp/',
-        'BCAMAZONDE' => 'https://www.amazon.de/dp/',
-        'BCAMAZONES' => 'https://www.amazon.es/dp/',
-        'BCAMAZONIT' => 'https://www.amazon.it/dp/',
-        'BCAMAZONJP' => 'https://www.amazon.jp/dp/',
-        'PXAMAZONGB' => 'https://www.amazon.co.uk/dp/',
-        'PXAMAZONUS' => 'https://www.amazon.com/dp/',
-        'PXAMAZONFR' => 'https://www.amazon.fr/dp/',
-        'PXAMAZONCA' => 'https://www.amazon.ca/dp/',
-        'PXAMAZONMX' => 'https://www.amazon.com.mx/dp/',
-        'PXAMAZONDE' => 'https://www.amazon.de/dp/',
-        'PXAMAZONES' => 'https://www.amazon.es/dp/',
-        'PXAMAZONIT' => 'https://www.amazon.it/dp/',
-        'PXAMAZONJP' => 'https://www.amazon.jp/dp/',
-        'CVAMAZONGB' => 'https://www.amazon.co.uk/dp/',
-        'CVAMAZONUS' => 'https://www.amazon.com/dp/',
-        'CVAMAZONFR' => 'https://www.amazon.fr/dp/',
-        'CVAMAZONCA' => 'https://www.amazon.ca/dp/',
-        'CVAMAZONMX' => 'https://www.amazon.com.mx/dp/',
-        'CVAMAZONDE' => 'https://www.amazon.de/dp/',
-        'CVAMAZONES' => 'https://www.amazon.es/dp/',
-        'CVAMAZONIT' => 'https://www.amazon.it/dp/',
-        'CVAMAZONJP' => 'https://www.amazon.jp/dp/',
-        '3DAMAZONGB' => 'https://www.amazon.co.uk/dp/',
-        '3DAMAZONUS' => 'https://www.amazon.com/dp/',
-        '3DAMAZONFR' => 'https://www.amazon.fr/dp/',
-        '3DAMAZONCA' => 'https://www.amazon.ca/dp/',
-        '3DAMAZONMX' => 'https://www.amazon.com.mx/dp/',
-        '3DAMAZONDE' => 'https://www.amazon.de/dp/',
-        '3DAMAZONES' => 'https://www.amazon.es/dp/',
-        '3DAMAZONIT' => 'https://www.amazon.it/dp/',
-        '3DAMAZONJP' => 'https://www.amazon.jp/dp/',
-];
-
-?>
 @foreach($data as $platform => $platformInfo)
     <div class="panel-heading" role="tab" id="head_{{ $platform }}">
         <h4 class="panel-title">
@@ -67,10 +26,12 @@ $link = [
             <span class="price {{ ($platformInfo['margin'] > 0) ? 'text-success' : 'text-danger' }}">
                 {{ $platformInfo['margin'] }}%
             </span>
+            @if($platformInfo['link'])
             <span>
                 &nbsp;|&nbsp;
-                <a href="{{ $link[$platform].$platformInfo['asin'] }}" target="_blank">{{ $link[$platform].$platformInfo['asin'] }}</a>
+                <a href="{{ $platformInfo['link'] }}" target="_blank">{{ $platformInfo['link'] }}</a>
             </span>
+            @endif
         </h4>
     </div>
     <div id="{{ $platform }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="head_{{ $platform }}"
