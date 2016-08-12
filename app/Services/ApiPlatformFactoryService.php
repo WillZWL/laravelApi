@@ -180,42 +180,54 @@ class ApiPlatformFactoryService
     }
 
     //1 init Marketplace SKU Mapping 
-    public function initMarketplaceSkuMapping($storeName,$store,$fileName="")
+    public function initMarketplaceSkuMapping($stores,$fileName="")
     {
-    	$this->countryCode = strtoupper(substr($storeName, -2));
-    	$this->platformAccount = strtoupper(substr($storeName, 0, 2));
-    	$this->marketplaceId = strtoupper(substr($storeName, 0, -2));
-    	$this->store=$store;
-    	$this->mpControl=MpControl::where("marketplace_id",$this->marketplaceId)
-    					->where("country_id",'=',$this->countryCode)
-    					->where("status",'=','1')
-    					->first();		
-    	if($this->mpControl){
-    		if($fileName){
-				$filePath = 'storage/marketplace-sku-mapping/'.$fileName;
-	    	}else{
-	    		$filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';	
-	    	}
-		    Excel::load($filePath, function($reader) {
-		        $data = $reader->all();
-		        foreach($data as $sheetItem){
-		        	$mappingData=null;
-		        	foreach($sheetItem as $item){
-		        		$mappingData=array(
-		        			'marketplace_sku' =>$item ,
-		        			'sku' => $item,
-		        			'mp_control_id'=>$this->mpControl->control_id,
-		        			'marketplace_id' => $this->marketplaceId,
-		        			'country_id' => $this->countryCode,
-		        			'lang_id'=>'en',
-		        			'currency'=>$this->store['currency']
-		        			);
-		        		$this->firstOrCreateMarketplaceSkuMapping($mappingData);
-		        	}
-		    	}
-		    });
+    	$this->stores=$stores;
+    	if($fileName){
+			$filePath = 'storage/marketplace-sku-mapping/'.$fileName;
+    	}else{
+    		$filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';	
     	}
-    	
+		Excel::load($filePath, function($reader){
+		    $sheetItem = $reader->all();
+		    $mappingData=null;
+		    foreach($sheetItem as $item){
+		    	$itemData=$item->toArray();
+		    	foreach ($this->stores as $storeName => $store) {
+		   			$this->countryCode = strtoupper(substr($storeName, -2));
+					$this->platformAccount = strtoupper(substr($storeName, 0, 2));
+					$this->marketplaceId = strtoupper(substr($storeName, 0, -2));
+					$this->store=$store;
+					$this->mpControl=MpControl::where("marketplace_id",$this->marketplaceId)
+									->where("country_id",'=',$this->countryCode)
+									->where("status",'=','1')
+									->first();	
+					$insertActive=false;
+					if($this->mpControl){
+						if($itemData["country_id"]){
+			    			if($itemData["country_id"]==$this->countryCode){
+			    				$insertActive=true;
+				    		}
+					    }else{
+					    	$insertActive=true;
+					    }
+					    if($insertActive){
+					    	$mappingData=array(
+							'marketplace_sku' =>$itemData["marketplace_sku"] ,
+							'sku' => $itemData["esg_sku"],
+							'mp_control_id'=>$this->mpControl->control_id,
+							'marketplace_id' => $this->marketplaceId,
+							'country_id' => $this->countryCode,
+							'lang_id'=>'en',
+							'currency'=>$this->store['currency']
+							);
+							//print_r($mappingData);
+							$this->firstOrCreateMarketplaceSkuMapping($mappingData);
+					    }
+			        }
+		        }
+		    }
+		});
     }
  	//2 init Marketplace SKU Mapping 
     public function updateOrCreateSellingPlatform($storeName,$store)

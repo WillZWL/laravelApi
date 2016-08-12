@@ -68,6 +68,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('platform-market/update-product-price',  'PlatformMarketProductManage@submitProductPriceOrInventory');
     Route::resource('platform-market/upload-mapping', 'PlatformMarketOrderManage@uploadMarketplacdeSkuMapping');
     Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
+    Route::get('platform-market/download-xlsx/{file}',  'PlatformMarketOrderManage@getMarketplacdeSkuMappingFile');
 });
 
 Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
