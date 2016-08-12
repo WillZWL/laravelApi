@@ -71,14 +71,16 @@ class  PlatformMarketOrderManage extends Controller
             $fileName=$file->getFilename().'.'.$extension;
             $request->file('sku_file')->move($destinationPath,$fileName);
             $stores = Config::get('lazada-mws.store');
-
-            foreach ($stores as $storeName => $store) {
-                $result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store,$fileName);
-            }
+            $this->apiPlatformFactoryService->initMarketplaceSkuMapping($stores,$fileName);
             return redirect('platform-market/upload-mapping');
         }
         return response()->view('platform-manager.uplaod-mapping'); 
     }
 
+    public function getMarketplacdeSkuMappingFile($filename)
+    {
+        $file = \Storage::disk('skuMapping')->get($filename);
+        return response($file, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    }
 
 }
