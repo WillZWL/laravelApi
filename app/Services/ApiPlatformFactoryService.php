@@ -210,7 +210,7 @@ class ApiPlatformFactoryService
 		        			'lang_id'=>'en',
 		        			'currency'=>$this->store['currency']
 		        			);
-		        		$this->updateOrCreateMarketplaceSkuMapping($mappingData);
+		        		$this->firstOrCreateMarketplaceSkuMapping($mappingData);
 		        	}
 		    	}
 		    });
@@ -258,7 +258,7 @@ class ApiPlatformFactoryService
         return $platformBizVar;
     }
 	//4 init Marketplace SKU Mapping 
-    public function updateOrCreateMarketplaceSkuMapping($mappingData)
+    public function firstOrCreateMarketplaceSkuMapping($mappingData)
 	{
 		$object=array();
 		$object['marketplace_sku']=$mappingData['marketplace_sku'];
@@ -271,13 +271,7 @@ class ApiPlatformFactoryService
         $object['delivery_type'] ='EXP';
         $object['currency'] =$mappingData['currency'];
         $object['status'] = 1;
-        $object['create_on'] = date("Y-m-d H:i:s");
-        $marketplaceSkuMapping = MarketplaceSkuMapping::updateOrCreate(
-        	[
-        	'marketplace_sku' => $mappingData['marketplace_sku'],
-        	'mp_control_id' => $mappingData['mp_control_id'],
-        	],$object
-        );
-        return $marketplaceSkuMapping;
+        //$object['create_on'] = date("Y-m-d H:i:s");
+        MarketplaceSkuMapping::firstOrCreate($object);
 	}
 }

@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use App\Models\Schedule;
 use Config;
 
-class PlatformMarketplaceSkuMapping extends Command
+class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
 {
     /**
      * The name and signature of the console command.
@@ -31,10 +31,9 @@ class PlatformMarketplaceSkuMapping extends Command
      *
      * @return void
      */
-    public function __construct(ApiPlatformFactoryService $apiPlatformFactoryService)
+    public function __construct()
     {
         parent::__construct();
-        $this->apiPlatformFactoryService=$apiPlatformFactoryService;
     }
 
     /**
@@ -45,8 +44,21 @@ class PlatformMarketplaceSkuMapping extends Command
     public function handle()
     {
         //
-        if($stores=$this->getStores()){
+        $apiOption = $this->option('api');
+        if($apiOption=="all"){
+            foreach($this->platfromMakert as $apiName){
+                $this->runSkuMapping($this->getStores($apiName),$apiName);
+            }
+        }else{
+            $this->runSkuMapping($this->getStores($apiOption),$apiOption);
+        } 
+    }
+
+    public function runSkuMapping($stores,$apiName)
+    {
+        if($stores){
             foreach ($stores as $storeName => $store) {
+               $this->apiPlatformFactoryService= $this->getApiPlatformFactoryService($apiName);
                 //$result = $this->apiPlatformFactoryService->initMarketplaceSkuMapping($storeName,$store);
                 $this->apiPlatformFactoryService->updateOrCreateSellingPlatform($storeName,$store);
                 $this->apiPlatformFactoryService->updateOrCreatePlatformBizVar($storeName,$store);
@@ -54,11 +66,12 @@ class PlatformMarketplaceSkuMapping extends Command
         }
     }
 
-    public function getStores()
+    public function getStores($apiName)
     {
-        $apiName = $this->option('api');
         if($apiName=="lazada"){
             $stores = Config::get('lazada-mws.store');
+        }else if($apiName=="amazon"){
+            $stores = Config::get('amazon-mws.store');
         }
         return $stores;
     }

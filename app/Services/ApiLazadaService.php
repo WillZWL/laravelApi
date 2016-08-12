@@ -61,7 +61,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		$this->lazadaOrderList=new LazadaOrderList($storeName);
 		$this->storeCurrency=$this->lazadaOrderList->getStoreCurrency();
 		$dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
-		$this->lazadaOrderList->setCreatedAfter($dateTime);
+		$this->lazadaOrderList->setUpdatedAfter($dateTime);
 		$orginOrderList=$this->lazadaOrderList->fetchOrderList();
 		$this->saveDataToFile(serialize($orginOrderList),"getOrderList");
         return $orginOrderList;

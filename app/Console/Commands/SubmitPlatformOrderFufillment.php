@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use App\Models\Schedule;
 use Config;
 
-class SubmitPlatformOrderFufillment extends Command
+class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
 {
     /**
      * The name and signature of the console command.
@@ -30,10 +30,9 @@ class SubmitPlatformOrderFufillment extends Command
      *
      * @return void
      */
-    public function __construct(ApiPlatformFactoryService $apiPlatformFactoryService)
+    public function __construct()
     {
         parent::__construct();
-        $this->apiPlatformFactoryService=$apiPlatformFactoryService;
     }
 
     /**
@@ -43,8 +42,14 @@ class SubmitPlatformOrderFufillment extends Command
      */
     public function handle()
     {
-         $bizType=$this->option('api');
-         $this->apiPlatformFactoryService->submitOrderFufillment($bizType);
+        $apiOption = $this->option('api');
+        if($apiOption=="all"){
+            foreach($this->platfromMakert as $apiName){
+                $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
+            }
+        }else{
+           $this->getApiPlatformFactoryService($apiOption)->submitOrderFufillment($apiOption);
+        }
     }
 
 }
