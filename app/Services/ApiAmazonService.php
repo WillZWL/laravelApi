@@ -39,8 +39,10 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
 				}
 				$this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 				$originOrderItemList=$this->getOrderItemList($storeName,$order["AmazonOrderId"]);
-				foreach($originOrderItemList as $orderItem){
-					$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+				if($originOrderItemList){
+					foreach($originOrderItemList as $orderItem){
+						$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+					}
 				}
 			}
 			return true;
@@ -251,9 +253,9 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
         return $amazonOrderShippingAddress->id;
 	}
 
-	public function getSoOrderStatus($orderStatus)
+	public function getSoOrderStatus($platformOrderStatus)
 	{
-		switch ($orderStatus) {
+		switch ($platformOrderStatus) {
 			case 'Canceled':
 				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
 				break;
