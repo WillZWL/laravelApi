@@ -33,7 +33,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         if($orginOrderList){
         	foreach($orginOrderList as $order){
 				if (isset($order['AddressShipping'])) {
-					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order);
+					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
 				}
 				$this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 				$originOrderItemList=$this->getOrderItemList($storeName,$order["OrderId"]);
@@ -186,6 +186,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             'platform' => $storeName,
             'biz_type' => "Lazada",
             'platform_order_id' => $order['OrderId'],
+            'platform_order_no' => $order['OrderNumber'],
             'purchase_date' => $order['CreatedAt'],
             'last_update_date' => $order['UpdatedAt'],
             'order_status' => $orderStatus,
@@ -280,7 +281,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	    );
 	}
 
-	public function updateOrCreatePlatformMarketShippingAddress($order)
+	public function updateOrCreatePlatformMarketShippingAddress($order,$storeName)
 	{
 		$object=array();
 		$object['platform_order_id']=$order['OrderId'];
@@ -288,12 +289,25 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $object['address_line_1'] = $order['AddressShipping']['Address1'];
         $object['address_line_2'] = $order['AddressShipping']['Address2'];
         $object['address_line_3'] = $order['AddressShipping']['Address3']."-".$order['AddressShipping']['Address4']."-".$order['AddressShipping']['Address5'];
-        $object['city'] = $order['AddressShipping']['City'];
+        $object['city'] = $order['AddressShipping']['Address3'];
         $object['county'] = $order['AddressShipping']['Country'];
+        $object['country_code'] = strtoupper(substr($storeName, -2));
         $object['district'] = $order['AddressShipping']['Ward'];
         $object['state_or_region'] = $order['AddressShipping']['Region'];
         $object['postal_code'] = $order['AddressShipping']['PostCode'];
         $object['phone'] = $order['AddressShipping']['Phone'];
+
+        $object['bill_name'] = $order['AddressBilling']['FirstName']." ".$order['AddressBilling']['LastName'];
+        $object['bill_address_line_1'] = $order['AddressBilling']['Address1'];
+        $object['bill_address_line_2'] = $order['AddressBilling']['Address2'];
+        $object['bill_address_line_3'] = $order['AddressBilling']['Address3']."-".$order['AddressBilling']['Address4']."-".$order['AddressBilling']['Address5'];
+        $object['bill_city'] = $order['AddressBilling']['Address3'];
+        $object['bill_county'] = $order['AddressBilling']['Country'];
+        $object['bill_country_code'] = strtoupper(substr($storeName, -2));
+        $object['bill_district'] = $order['AddressBilling']['Ward'];
+        $object['bill_state_or_region'] = $order['AddressBilling']['Region'];
+        $object['bill_postal_code'] = $order['AddressBilling']['PostCode'];
+        $object['bill_phone'] = $order['AddressBilling']['Phone'];
 
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['OrderId']],$object
         ); 
@@ -313,10 +327,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		}
 	}
 
-	public function getSoOrderStatus($orderStatus)
+	public function getSoOrderStatus($platformOrderStatus)
 	{
-		
-		switch ($orderStatus) {
+		switch ($platformOrderStatus) {
 			case 'Canceled':
 				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
 				break;
