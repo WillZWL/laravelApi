@@ -17,7 +17,7 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
      *
      * @var string
      */
-    protected $signature = 'platformMaket:skuMapping  {--api= : amazon or lazada} ';
+    protected $signature = 'platformMarket:skuMapping  {--api= : amazon or lazada} ';
 
    /**
      * The console command description.
@@ -51,7 +51,7 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
             }
         }else{
             $this->runSkuMapping($this->getStores($apiOption),$apiOption);
-        } 
+        }
     }
 
     public function runSkuMapping($stores,$apiName)
