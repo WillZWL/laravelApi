@@ -3,27 +3,30 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\ApiPlatformFactoryService;
+use App\Services\ApiPlatformProductFactoryService;
 
 class  PlatformMarketProductManage extends Controller
 {
-    public function __construct(ApiPlatformFactoryService $apiPlatformFactoryService)
+    public function __construct(ApiPlatformProductFactoryService $apiPlatformProductFactoryService)
     {
-        $this->apiPlatformFactoryService=$apiPlatformFactoryService;
+        $this->apiPlatformProductFactoryService=$apiPlatformProductFactoryService;
     }
 
     public function getProductList(Request $request)
     {
         $storeName="BCLAZADAMY";
-        //$schedule=$this->apiPlatformFactoryService->getStoreSchedule($storeName);
-        $productList=$this->apiPlatformFactoryService->getProductList($storeName);
+        //$schedule=$this->apiPlatformProductFactoryService->getStoreSchedule($storeName);
+        $productList=$this->apiPlatformProductFactoryService->getProductList($storeName);
     }
 
-    public function submitProductPriceOrInventory(Request $request)
+    public function submitProductPrice(Request $request)
     {
-        $action="pendingInventory";
-        //$schedule=$this->apiPlatformFactoryService->getStoreSchedule($storeName);
-        $order=$this->apiPlatformFactoryService->submitProductPriceOrInventory($action);
+        $order=$this->apiPlatformProductFactoryService->submitProductPrice();
+    }
+
+    public function submitProductInventory(Request $request)
+    {
+        $order=$this->apiPlatformProductFactoryService->submitProductInventory();
     }
 
 }
