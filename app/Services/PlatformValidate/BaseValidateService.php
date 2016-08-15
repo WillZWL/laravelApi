@@ -6,12 +6,15 @@ use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\PlatformBizVar;
 
-class BaseValidateService 
+abstract class BaseValidateService 
 {
 	private $order;
 	private $platformAccount;
 	private $countryCode;
     private $platformShortName;
+
+    abstract public function validateOrder();
+    abstract public function getPlatformAccountInfo($order);
 
 	public function __construct($order,$accountInfo,$platformShortName)
 	{
@@ -58,7 +61,7 @@ class BaseValidateService
         if ($notMappedMarketplaceSkuList) {
             $missingSku = implode(',', $notMappedMarketplaceSkuList);
             $subject = "[{$this->accountInfo['accountName']}] {$this->order->biz_type} Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order NO: {$this->order->platform_order_no}\r\n";
             $message .= "Marketplace SKU <{$missingSku}> not exist in esg admin. please add listing sku mapping first. Thanks";
             $this->addMailMessage($this->accountInfo['alertEmail'],$subject,$message);
             return false;
@@ -74,7 +77,7 @@ class BaseValidateService
         if ($notMappedEsgSkuList) {
             $missingSku = implode(',', $notMappedEsgSkuList);
             $subject = "[{$this->accountInfo['accountName']}] {$this->order->biz_type} Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order NO: {$this->order->platform_order_no}\r\n";
             $message .= "ESG SKU <{$missingSku}> not belong to any merchant. please add merchant sku mapping first. Thanks";
             $this->addMailMessage($this->accountInfo['alertEmail'],$subject,$message);
             return false;
@@ -97,7 +100,7 @@ class BaseValidateService
         if ($notExistPlatform) {
             $missingSellingPlatform = implode(',', $notExistPlatform);
             $subject = "[{$this->accountInfo['accountName']}] {$this->order->biz_type} Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order NO: {$this->order->platform_order_no}\r\n";
             $message .= "Selling Platform Id <{$missingSellingPlatform}> not exists in esg system, please add it. Thanks";
            $this->addMailMessage($this->accountInfo['alertEmail'],$subject,$message);
             return false;

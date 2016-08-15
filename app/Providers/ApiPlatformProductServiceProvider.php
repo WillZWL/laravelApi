@@ -3,11 +3,10 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Services\ApiLazadaService;
 use Illuminate\Http\Request;
 use Symfony\Component\Console\Input\ArgvInput;
 
-class ApiPlatformServiceProvider extends ServiceProvider
+class ApiPlatformProductServiceProvider extends ServiceProvider
 {
     
     protected $defer = true;
@@ -28,27 +27,24 @@ class ApiPlatformServiceProvider extends ServiceProvider
      */
 
     protected $availableServices = array(
-                'amazon'=>'ApiAmazonService',
-                'lazada'=>'ApiLazadaService',
                 'amazon_product'=>'ApiAmazonProductService',
                 'lazada_product'=>'ApiLazadaProductService'
             );
 
     public function register()
     {
-        $this->app->call([$this, 'registerMyService']);
+        $this->app->call([$this, 'registerApiService']);
     }
 
-    public function registerMyService(Request $request)
+    public function registerApiService(Request $request)
     {
         $apiPlatform = strtolower($request->get('api_platform'));
-        $this->service = $apiPlatform ? $this->availableServices[$apiPlatform]:'ApiLazadaService';
+        $this->service = $apiPlatform ? $this->availableServices[$apiPlatform]:'ApiLazadaProductService';
         //$this->app->bind('App\Contracts\ApiPlatformInterface', "App\Services\\{$this->service}"); 
-        $this->app->bind('App\Services\ApiPlatformFactoryService', function($app,$parameters){ 
+        $this->app->bind('App\Services\ApiPlatformProductFactoryService', function($app,$parameters){ 
             //setcommand
-
             $this->service = $parameters ? $this->availableServices[$parameters["apiName"]]:$this->service;
-            return new \App\Services\ApiPlatformFactoryService($app->make("App\Services\\{$this->service}"));
+            return new \App\Services\ApiPlatformProductFactoryService($app->make("App\Services\\{$this->service}"));
         });
     }
 
@@ -59,7 +55,7 @@ class ApiPlatformServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return [\App\Services\ApiPlatformFactoryService::class];
+        return [\App\Services\ApiPlatformProductFactoryService::class];
     }
 
 }

@@ -47,16 +47,6 @@ class ApiPlatformFactoryService
 		$orderId="4274384";
 		return $this->apiPlatformInterface->getOrderItemList($storeName,$orderId);
 	}
-
-	public function getProductList($storeName)
-	{
-		return $this->apiPlatformInterface->getProductList($storeName);
-	}
-
-	public function submitProductPriceOrInventory($action)
-	{	
-		return $this->apiPlatformInterface->submitProductPriceOrInventory($action);
-	}
 	
 	public function submitOrderFufillment($bizType)
 	{

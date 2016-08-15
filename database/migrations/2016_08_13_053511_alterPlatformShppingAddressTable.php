@@ -36,7 +36,7 @@ class AlterPlatformShppingAddressTable extends Migration
     public function down()
     {
         //
-        Schema::table('schedules', function (Blueprint $table) {
+        Schema::table('platform_market_shipping_address', function (Blueprint $table){
             $table->dropColumn('bill_name');
             $table->dropColumn('bill_address_line_1');
             $table->dropColumn('bill_address_line_2');
