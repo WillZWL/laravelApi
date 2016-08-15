@@ -43,19 +43,19 @@ interface ApiPlatformInterface
 	public function updateOrCreatePlatformMarketOrderItem($order,$orderItem);
 	/******************************************
 	**  function updateOrCreatePlatformMarketOrderItem
-	**  this will return order items
+	**  this will update or create order item
 	********************************************/
 
 	public function updateOrCreatePlatformMarketShippingAddress($order,$storeName);
 	/******************************************
 	**  function updateOrCreatePlatformMarketShippingAddress
-	**  this will return order items
+	**  this will update or create order shippingAddress
 	********************************************/
 
 	public function getSoOrderStatus($platformOrderStatus);
 	/******************************************
 	**  function getSoOrderStatus
-	**  this will return order items
+	**  this will set atom_esg order so status
 	********************************************/
 
 }

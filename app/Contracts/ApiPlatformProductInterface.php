@@ -14,25 +14,25 @@ interface ApiPlatformProductInterface
 
 	public function getProductList($storeName);
 	/******************************************
-	**  function getPlatformId
-	**  this will return Store Name
+	**  function getProductList
+	**  this will return Marketplace product list
 	********************************************/
 
 	public function submitProductPrice();
 	/******************************************
-	**  function getPlatformId
-	**  this will return Store Name
+	**  function submitProductPrice
+	**  this will change Marketplace product price
 	********************************************/
 
 	public function submitProductInventory();
 	/******************************************
-	**  function getPlatformId
-	**  this will return Store Name
+	**  function submitProductInventory
+	**  this will change Marketplace product inventory
 	********************************************/
 	
 	public function submitProductCreate();
 	/******************************************
-	**  function getPlatformId
-	**  this will return Store Name
+	**  function submitProductCreate
+	**  this will create Marketplace Product
 	********************************************/
 }
