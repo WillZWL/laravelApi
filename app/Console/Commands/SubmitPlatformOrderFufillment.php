@@ -17,7 +17,7 @@ class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
      *
      * @var string
      */
-     protected $signature = 'platformMaket:updateShipment  {--api= : amazon or lazada}';
+     protected $signature = 'platformMarket:updateShipment  {--api= : amazon or lazada}';
     /**
      * The console command description.
      *

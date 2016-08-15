@@ -10,14 +10,14 @@ use Carbon\Carbon;
 use App\Models\Schedule;
 use Config;
 
-class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand  
+class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'platformMaket:orderRetrieve  {--api= : amazon or lazada}';
+    protected $signature = 'platformMarket:orderRetrieve  {--api= : amazon or lazada}';
 
     /**
      * The console command description.
@@ -51,7 +51,7 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
             }
         }else{
             $this->runRetrieveOrder($this->getStores($apiOption),$apiOption);
-        }   
+        }
     }
 
     public function runRetrieveOrder($stores,$apiName)
