@@ -16,7 +16,6 @@ use App\Http\Controllers\Controller;
 
 class PricingController extends Controller
 {
-    
     public function __construct(PricingToolService $pricingToolService)
     {
         $this->pricingToolService=$pricingToolService;
@@ -62,6 +61,7 @@ class PricingController extends Controller
         $marketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($request->input('marketplaceSku'))
             ->join('atomesg.mp_control', 'mp_control_id', '=', 'control_id')
             ->where('mp_control.marketplace_id', '=', $request->input('marketplace'))
+            ->orderBy(\DB::raw('FIELD(marketplace_sku_mapping.country_id, "MY", "PH", "SG", "TH", "JP", "DE", "ES", "FR", "GB", "ID", "IT", "MX", "CA", "US")'), 'DESC')
             ->get();
 
         $result = [];
@@ -130,8 +130,4 @@ class PricingController extends Controller
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
-
-    
-
-    
 }
