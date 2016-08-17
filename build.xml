@@ -52,7 +52,7 @@
 
     <target name="prepare"
             unless="prepare.done"
-            depends="clean,composer,create-env-file"
+            depends="clean,composer"
             description="Prepare for build">
         <mkdir dir="${basedir}/build/api" />
         <mkdir dir="${basedir}/build/coverage" />
@@ -69,21 +69,6 @@
             <arg value="--no-progress"/>
         </exec>
     </target>
-
-    <target name="check-env-exist" unless="env.exist">
-        <available file=".env" property="env.exist"/>
-    </target>
-
-    <target name="create-env-file" unless="env.exist" depends="check-env-exist">
-        <echo message="Copy .env.example to .env"/>
-        <copy file=".env.example" tofile=".env" />
-        <echo message="Generate application key"/>
-        <exec executable="php" failonerror="true">
-            <arg value="artisan"/>
-            <arg value="key:generate"/>
-        </exec>
-    </target>
-
 
     <target name="lint"
             unless="lint.done"
