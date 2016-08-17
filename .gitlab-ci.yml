@@ -1,0 +1,23 @@
+# cache
+cache:
+  paths:
+  - .env
+  - vendor/
+
+# Before Script
+before_script:
+  - composer self-update
+  - composer install --prefer-dist > /dev/null
+  - cp .env.example .env
+  - pwd
+  - sed -i "s/DB_DATABASE=homestead/DB_DATABASE=$CI_MYSQL_DATABASE/g" .env
+  - sed -i "s/DB_USERNAME=homestead/DB_USERNAME=$CI_MYSQL_USER/g" .env
+  - sed -i "s/DB_PASSWORD=secret/DB_PASSWORD=$CI_MYSQL_PASSWORD/g" .env
+  - php artisan key:generate
+  - php artisan migrate
+
+
+# PHP 7.0
+php:7.0:
+  script:
+    - ant
