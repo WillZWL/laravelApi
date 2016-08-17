@@ -156,6 +156,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\ApiPlatformServiceProvider::class,
+        App\Providers\ApiPlatformProductServiceProvider::class,
 
         /*
          * Customer Service Providers...

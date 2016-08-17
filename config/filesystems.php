@@ -61,6 +61,10 @@ return [
             'region' => 'your-region',
             'bucket' => 'your-bucket',
         ],
+        'skuMapping' => [
+            'driver' => 'local',
+            'root' => storage_path('marketplace-sku-mapping'),
+        ],
 
     ],
 

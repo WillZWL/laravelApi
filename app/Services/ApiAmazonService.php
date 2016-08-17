@@ -39,8 +39,10 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
 				}
 				$this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 				$originOrderItemList=$this->getOrderItemList($storeName,$order["AmazonOrderId"]);
-				foreach($originOrderItemList as $orderItem){
-					$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+				if($originOrderItemList){
+					foreach($originOrderItemList as $orderItem){
+						$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+					}
 				}
 			}
 			return true;
@@ -230,10 +232,11 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
 	    return $amazonOrderItem;
 	}
 
-	public function updateOrCreatePlatformMarketShippingAddress($order)
+	public function updateOrCreatePlatformMarketShippingAddress($order,$storeName=null)
 	{
 		$object=array();
 		$object['platform_order_id']=$order['AmazonOrderId'];
+		$object['platform_order_no']=$order['AmazonOrderId'];
         $object['name'] = $order['ShippingAddress']['Name'];
         $object['address_line_1'] = $order['ShippingAddress']['AddressLine1'];
         $object['address_line_2'] = $order['ShippingAddress']['AddressLine2'];
@@ -245,15 +248,16 @@ class ApiAmazonService extends ApiBaseService  implements ApiPlatformInterface
         $object['postal_code'] = $order['ShippingAddress']['PostalCode'];
         $object['country_code'] = $order['ShippingAddress']['CountryCode'];
         $object['phone'] = $order['ShippingAddress']['Phone'];
+        $object['bill_country_code'] = $order['ShippingAddress']['CountryCode'];
 
         $amazonOrderShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['AmazonOrderId']],$object
         );
         return $amazonOrderShippingAddress->id;
 	}
 
-	public function getSoOrderStatus($orderStatus)
+	public function getSoOrderStatus($platformOrderStatus)
 	{
-		switch ($orderStatus) {
+		switch ($platformOrderStatus) {
 			case 'Canceled':
 				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
 				break;

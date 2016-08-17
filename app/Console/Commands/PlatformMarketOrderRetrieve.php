@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use App\Models\Schedule;
 use Config;
 
-class PlatformMarketOrderRetrieve extends Command
+class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand  
 {
     /**
      * The name and signature of the console command.
@@ -31,10 +31,9 @@ class PlatformMarketOrderRetrieve extends Command
      *
      * @return void
      */
-    public function __construct(ApiPlatformFactoryService $apiPlatformFactoryService)
+    public function __construct()
     {
         parent::__construct();
-        $this->apiPlatformFactoryService=$apiPlatformFactoryService;
     }
 
     /**
@@ -45,12 +44,24 @@ class PlatformMarketOrderRetrieve extends Command
     public function handle()
     {
         //
-        if($stores=$this->getStores()){
+        $apiOption = $this->option('api');
+        if($apiOption=="all"){
+            foreach($this->platfromMakert as $apiName){
+                $this->runRetrieveOrder($this->getStores($apiName),$apiName);
+            }
+        }else{
+            $this->runRetrieveOrder($this->getStores($apiOption),$apiOption);
+        }   
+    }
+
+    public function runRetrieveOrder($stores,$apiName)
+    {
+         if($stores){
             foreach ($stores as $storeName => $store) {
                 $previousSchedule = Schedule::where('store_name', '=', $storeName)
-                                            ->where('status', '=', 'C')
-                                            ->orderBy('last_access_time', 'desc')
-                                            ->first();
+                                    ->where('status', '=', 'C')
+                                    ->orderBy('last_access_time', 'desc')
+                                    ->first();
                 $currentSchedule = Schedule::create([
                         'store_name' => $storeName,
                         'status' => 'N',
@@ -60,7 +71,8 @@ class PlatformMarketOrderRetrieve extends Command
                 if (!$previousSchedule) {
                     $previousSchedule = $currentSchedule;
                 }
-                $result = $this->apiPlatformFactoryService->retrieveOrder($storeName,$previousSchedule);
+                //print_r($this->getApiPlatformFactoryService($apiName));break;
+                $result = $this->getApiPlatformFactoryService($apiName)->retrieveOrder($storeName,$previousSchedule);
                 if ($result) {
                     $currentSchedule->status = 'C';
                 } else {
@@ -72,9 +84,8 @@ class PlatformMarketOrderRetrieve extends Command
         }
     }
 
-    public function getStores()
+    public function getStores($apiName)
     {
-        $apiName = $this->option('api');
         if($apiName=="lazada"){
             $stores = Config::get('lazada-mws.store');
         }else if($apiName=="amazon"){

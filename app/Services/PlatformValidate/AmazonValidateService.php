@@ -38,12 +38,10 @@ class AmazonValidateService extends BaseValidateService
                 $platform["accountName"] = 'BrandsConnect';
                 $platform["alertEmail"] = 'amazon_us@brandsconnect.net';
                 break;
-
             case 'PX':
                 $platform["accountName"] = 'ProductXpress';
                 $platform["alertEmail"] = 'amazoneu@productxpress.com';
                 break;
-
             case 'CV':
                 $platform["accountName"] = 'ChatAndVision';
                 $platform["alertEmail"] = 'amazonus-group@chatandvision.com';

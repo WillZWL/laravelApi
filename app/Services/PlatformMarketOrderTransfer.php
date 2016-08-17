@@ -38,6 +38,10 @@ class PlatformMarketOrderTransfer
 	private $platformGroup=array(
     		"Amazon"=>"AZ",
     		"Lazada"=>"LZ",
+            "Priceminister"=>"PM",
+            "Fnac"=>"FN",
+            "Qoo10"=>"QO",
+            "Newegg"=>"NE"
         );
 
 	public function __construct()
@@ -90,6 +94,21 @@ class PlatformMarketOrderTransfer
 			case 'Lazada':
 				$validateService =new LazadaValidateService($order);
 				break;
+           /* case 'Priceminister':
+                $validateService =new PriceministerValidateService($order);
+                break;
+            case 'Fnac':
+                $validateService =new FnacValidateService($order);
+                break;
+            case 'Qoo10':
+                $validateService =new Qoo10ValidateService($order);
+                break;
+            case 'Newegg':
+                $validateService =new NeweggValidateService($order);
+                break;
+            case 'Paytm':
+                $validateService =new PaytmValidateService($order);
+                break;*/
 		}
 		return $validateService;
 	}
@@ -244,7 +263,7 @@ class PlatformMarketOrderTransfer
         $newOrder = new So;
         $client = $this->createOrUpdateClient($order);
         $newOrder->so_no = $this->generateSoNumber();
-        $newOrder->platform_order_id = $order->platform_order_id;
+        $newOrder->platform_order_id = $order->platform_order_no;
         $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set it this.
         //need update platform_id
         $newOrder->txn_id = $order->platform_order_id;
@@ -282,7 +301,22 @@ class PlatformMarketOrderTransfer
          //need update status
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->platformMarketShippingAddress->phone;
-        $newOrder->bill_country_id = $order->platformMarketShippingAddress->country_code;
+        
+        if($order->platformMarketShippingAddress->bill_name){
+            $newOrder->bill_name = $order->platformMarketShippingAddress->bill_name;
+            $newOrder->bill_address = implode(' | ', array_filter([
+                $order->platformMarketShippingAddress->bill_address_line_1,
+                $order->platformMarketShippingAddress->bill_address_line_2,
+                $order->platformMarketShippingAddress->bill_address_line_3
+            ]));
+            $newOrder->bill_postcode = $order->platformMarketShippingAddress->bill_postal_code;
+            $newOrder->bill_city = $order->platformMarketShippingAddress->bill_city;
+            $newOrder->bill_country_id = $order->platformMarketShippingAddress->bill_country_code;
+            $newOrder->bill_state = CountryState::getStateId($order->platformMarketShippingAddress->bill_country_code, $order->platformMarketShippingAddress->bill_state_or_region);
+        }else{
+            $newOrder->bill_country_id = $order->platformMarketShippingAddress->country_code;
+        }
+
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
         $newOrder->save();

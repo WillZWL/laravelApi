@@ -3,7 +3,7 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddColumnPlatformMarketOrderTable extends Migration
+class AlterPlatformOrderTable extends Migration
 {
     /**
      * Run the migrations.
@@ -12,8 +12,9 @@ class AddColumnPlatformMarketOrderTable extends Migration
      */
     public function up()
     {
+        //
         Schema::table('platform_market_order', function (Blueprint $table) {
-            $table->string('esg_order_status')->after('order_status');
+            $table->string('platform_order_no')->after('platform_order_id');
         });
     }
 
@@ -24,8 +25,9 @@ class AddColumnPlatformMarketOrderTable extends Migration
      */
     public function down()
     {
+        //
         Schema::table('platform_market_order', function (Blueprint $table) {
-            $table->dropColumn('esg_order_status');
+            $table->dropColumn('platform_order_no');
         });
     }
 }

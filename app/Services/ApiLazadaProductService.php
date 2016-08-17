@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Contracts\ApiPlatformInterface;
+use App\Contracts\ApiPlatformProductInterface;
 use App\Models\Schedule;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
@@ -11,7 +11,7 @@ use App\Models\MpControl;
 use App\Repository\LazadaMws\LazadaProductList;
 use App\Repository\LazadaMws\LazadaProductUpdate;
 
-class ApiLazadaProductService extends ApiBaseService  implements ApiPlatformInterface 
+class ApiLazadaProductService extends ApiBaseService  implements ApiPlatformProductInterface 
 {	
 	const PENDING_PRICE = 2;
     const COMPLETE_PRICE = 8;
@@ -24,15 +24,6 @@ class ApiLazadaProductService extends ApiBaseService  implements ApiPlatformInte
 
 	}
 
-	public function retrieveOrder($storeName){
-
-	}
-	public function getOrderList($storeName){
-
-	}
-	public function getOrderItemList($storeName, $orderId){
-
-	}
 	public function getPlatformId()
 	{
 		return "Lazada";
@@ -51,44 +42,53 @@ class ApiLazadaProductService extends ApiBaseService  implements ApiPlatformInte
         return $orginProductList;
 	}
 
-	public function submitProductPriceOrInventory($action)
+	public function submitProductPrice()
 	{   
-		$processStatus=array(
-			"pendingPrice"=>self::PENDING_PRICE,
-			"pendingInventory"=>self::PENDING_INVENTORY
-		);
-		$pendingSkuGroups = MarketplaceSkuMapping::where('process_status', '&',$processStatus[$action])
+        return $this->runProductUpdate("pendingPrice");
+	}
+
+    public function submitProductInventory()
+    {
+        return $this->runProductUpdate("pendingInventory");
+    }
+
+    protected function runProductUpdate($action)
+    {
+        $processStatus=array(
+            "pendingPrice"=>self::PENDING_PRICE,
+            "pendingInventory"=>self::PENDING_INVENTORY
+        );
+        $pendingSkuGroups = MarketplaceSkuMapping::where('process_status', '&',$processStatus[$action])
             ->where('listing_status', '=', 'Y')
             ->where('marketplace_id', 'like', '%LAZADA')
             ->get()
             ->groupBy('mp_control_id');
         foreach ($pendingSkuGroups as $mpControlId => $pendingSkuGroup) {
-        	$marketplaceControl = MpControl::find($mpControlId);
+            $marketplaceControl = MpControl::find($mpControlId);
             $storeName = $marketplaceControl->marketplace_id.$marketplaceControl->country_id;
             $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xmlData .= '<Request>';
             foreach ($pendingSkuGroup as $index => $pendingSku) {
                 $messageDom  =  '<Product>';
                 $messageDom .=      '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-				if($processStatus[$action]==self::PENDING_PRICE){
-					$messageDom .=   '<Price>'.$pendingSku->price.'</Price>';
-				}
-				if($processStatus[$action]==self::PENDING_INVENTORY){
-					$messageDom .=   '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-				}
+                if($processStatus[$action]==self::PENDING_PRICE){
+                    $messageDom .=   '<Price>'.$pendingSku->price.'</Price>';
+                }
+                if($processStatus[$action]==self::PENDING_INVENTORY){
+                    $messageDom .=   '<Quantity>'.$pendingSku->inventory.'</Quantity>';
+                }
                 $messageDom .=  '</Product>';
                 $xmlData .= $messageDom;
             }
-        	$xmlData .= '</Request>';
-        	print_r($xmlData);exit();
-        	$this->lazadaProductUpdate=new LazadaProductUpdate($storeName);
-        	$this->storeCurrency=$this->lazadaProductUpdate->getStoreCurrency();
-			$result=$this->lazadaProductUpdate->submitXmlData($xmlData);
-			$this->saveDataToFile(serialize($result),"submitProductPriceOrInventory");
-			return $result;
-		}
-	}
-
+            $xmlData .= '</Request>';
+            print_r($xmlData);exit();
+            $this->lazadaProductUpdate=new LazadaProductUpdate($storeName);
+            $this->storeCurrency=$this->lazadaProductUpdate->getStoreCurrency();
+            $result=$this->lazadaProductUpdate->submitXmlData($xmlData);
+            $this->saveDataToFile(serialize($result),"submitProductPriceOrInventory");
+            return $result;
+        }
+    }
 
 	public function submitProductCreate()
 	{
@@ -127,9 +127,9 @@ class ApiLazadaProductService extends ApiBaseService  implements ApiPlatformInte
                 $xmlData .= $messageDom;
             }
         	$xmlData .= '</Request>';
-        	$this->lazadaProductUpdate=new LazadaProductCreate($storeName);
-        	$this->storeCurrency=$this->lazadaProductUpdate->getStoreCurrency();
-			$result=$this->lazadaProductUpdate->submitXmlData($xmlData);
+        	$this->lazadaProductCreate=new LazadaProductCreate($storeName);
+        	$this->storeCurrency=$this->lazadaProductCreate->getStoreCurrency();
+			$result=$this->lazadaProductCreate->submitXmlData($xmlData);
 			$this->saveDataToFile(serialize($result),"updateProduct");
 			//return $result;
 		}

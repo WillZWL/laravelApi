@@ -36,9 +36,17 @@ class LazadaValidateService extends BaseValidateService
                 $platform["accountName"] = 'BrandsConnect';
                 $platform["alertEmail"] = 'lazadamy@brandsconnect.net';
                 break;
-            case 'VB':
-                $platform["accountName"] = 'ValueBasket';
-                $platform["alertEmail"] = 'lazada@valuebasket.com';
+            case 'CS':
+                $platform["accountName"] = 'CambridgeSoundworks';
+                $platform["alertEmail"] = 'cambridgesoundworks@aheaddigital.net';
+                break;
+            case 'ML':
+                $platform["accountName"] = 'MattelLazada';
+                $platform["alertEmail"] = 'mattel@apresslink.com';
+                break;
+            case 'PX':
+                $platform["accountName"] = 'ProductXpress';
+                $platform["alertEmail"] = 'lazada@eservicesgroup.com';
                 break;
         }
      	return  $platform;
