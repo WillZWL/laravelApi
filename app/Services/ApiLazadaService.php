@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Services;
 
@@ -14,7 +14,7 @@ use App\Repository\LazadaMws\LazadaOrderList;
 use App\Repository\LazadaMws\LazadaOrderItemList;
 use App\Repository\LazadaMws\LazadaOrderStatus;
 
-class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface 
+class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 {
 	private $storeCurrency;
 	function __construct()
@@ -29,9 +29,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function retrieveOrder($storeName)
 	{
-		$orginOrderList=$this->getOrderList($storeName);
-        if($orginOrderList){
-        	foreach($orginOrderList as $order){
+		$originOrderList=$this->getOrderList($storeName);
+        if($originOrderList){
+        	foreach($originOrderList as $order){
 				if (isset($order['AddressShipping'])) {
 					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
 				}
@@ -48,7 +48,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	}
 
 	public function getOrder($storeName,$orderId)
-	{	
+	{
 		$this->lazadaOrder=new LazadaOrder($storeName);
 		$this->storeCurrency=$this->lazadaOrder->getStoreCurrency();
 		$this->lazadaOrder->setOrderId($orderId);
@@ -57,14 +57,14 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	}
 
 	public function getOrderList($storeName)
-	{	
+	{
 		$this->lazadaOrderList=new LazadaOrderList($storeName);
 		$this->storeCurrency=$this->lazadaOrderList->getStoreCurrency();
 		$dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
 		$this->lazadaOrderList->setUpdatedAfter($dateTime);
-		$orginOrderList=$this->lazadaOrderList->fetchOrderList();
-		$this->saveDataToFile(serialize($orginOrderList),"getOrderList");
-        return $orginOrderList;
+		$originOrderList=$this->lazadaOrderList->fetchOrderList();
+		$this->saveDataToFile(serialize($originOrderList),"getOrderList");
+        return $originOrderList;
 	}
 
 	public function getOrderItemList($storeName,$orderId)
@@ -310,7 +310,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $object['bill_phone'] = $order['AddressBilling']['Phone'];
 
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['OrderId']],$object
-        ); 
+        );
         return $platformMarketShippingAddress->id;
 	}
 
