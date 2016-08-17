@@ -115,7 +115,7 @@ abstract class BaseValidateService
         if ( ! $notHaveDeliveryTypeSku->isEmpty()) {
             $notHaveDeliveryTypeSku->load('product');
             $subject = "[{$this->accountInfo['accountName']}] Delivery Type Missing - {$this->order->biz_type} Order Import Failed!";
-            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_id}\r\n";
+            $message = "MarketPlace: {$this->order->platform}.\r\n {$this->order->biz_type} Order Id: {$this->order->platform_order_no}\r\n";
 
             $message = $notHaveDeliveryTypeSku->reduce(function ($message, $marketplaceProduct) {
                 return $message .= "Marketplace SKU <{$marketplaceProduct->marketplace_sku}>, product title <{$marketplaceProduct->product->name}>\r\n";
@@ -138,5 +138,15 @@ abstract class BaseValidateService
 		});*/
 	}
 
+    public function addMarketplaceFailOrder($marketplaceSku)
+    {
+        $failOrder=array(
+            "order_id"=>$this->order->platform_order_no,
+            "biz_type"=>$this->order->biz_type,
+            "platform"=>$this->order->platform,
+            "marketplace_sku"=>$marketplaceSku
+        );
+        return $failOrder;
+    }
 
 }
