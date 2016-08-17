@@ -10,7 +10,7 @@
       </thead>
       <tbody>
       @forelse($skuList as $item)
-        <tr class="marketplaceSku">
+        <tr class="marketplaceSku {{ $item->marketplace_sku == old('marketplaceSku') ? 'success' : '' }}">
           <td class="col-md-4">
             <a data-pjax id="{{ $item->marketplace_sku }}" href="{{ url('/v2/pricing/index').'?marketplace='.old('marketplace').'&search='.old('search').'&marketplaceSku='.$item->marketplace_sku }}">
               {{ $item->marketplace_sku }}
@@ -28,6 +28,13 @@
 @section('content')
 
 <div id="sku-listing-info">
+  <div class="row">
+    <div class="col-sm-12">
+      @if( $selectedSku = $skuList->where('marketplace_sku', old('marketplaceSku'))->pop())
+        <h5>ESG SKU : {{ $selectedSku->sku }}  |  Product Name : {{ $selectedSku->name }}</h5>
+      @endif
+    </div>
+  </div>
   <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
 
     @foreach($data as $platform => $platformInfo)
@@ -128,7 +135,7 @@
                     <td class="hidden">{{ $item['declaredValue'] }}</td>
                     <td class="hidden">{{ $item['tax'] }}</td>
                     <td class="hidden">{{ $item['duty'] }}</td>
-                    
+
                     <td>{{ $item['esgCommission'] }}</td>
                     <td>{{ $item['marketplaceCommission'] }}</td>
                     <td>{{ $item['marketplaceListingFee'] }}</td>
