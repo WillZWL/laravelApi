@@ -6,11 +6,7 @@ cache:
 
 # Before Script
 before_script:
-  - composer self-update
-  - composer install --prefer-dist > /dev/null
-  - php artisan migrate:reset
-  - php artisan migrate
-
+  - echo 'Building start...'
 
 # PHP 7.0
 php:7.0:
