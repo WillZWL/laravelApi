@@ -12,7 +12,7 @@ class PlatformMarketReadyOrderTransfer extends Command
      *
      * @var string
      */
-    protected $signature = 'platformMaket:orderTransfer';
+    protected $signature = 'platformMarket:orderTransfer';
 
     /**
      * The console command description.
