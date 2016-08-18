@@ -90,6 +90,8 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
             $stores = Config::get('lazada-mws.store');
         }else if($apiName=="amazon"){
             $stores = Config::get('amazon-mws.store');
+        } elseif ($apiName == 'priceminister') {
+            $stores = Config::get('priceminister-mws.store');
         }
         return $stores;
     }
