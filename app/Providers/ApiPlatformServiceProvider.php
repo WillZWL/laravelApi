@@ -9,7 +9,7 @@ use Symfony\Component\Console\Input\ArgvInput;
 
 class ApiPlatformServiceProvider extends ServiceProvider
 {
-    
+
     protected $defer = true;
     /**
      * Bootstrap the application services.
@@ -29,7 +29,8 @@ class ApiPlatformServiceProvider extends ServiceProvider
 
     protected $availableServices = array(
         'amazon'=>'ApiAmazonService',
-        'lazada'=>'ApiLazadaService'
+        'lazada'=>'ApiLazadaService',
+        'priceminister'=>'ApiPriceMinisterService',
     );
 
     public function register()
@@ -41,8 +42,8 @@ class ApiPlatformServiceProvider extends ServiceProvider
     {
         $apiPlatform = strtolower($request->get('api_platform'));
         $this->service = $apiPlatform ? $this->availableServices[$apiPlatform]:'ApiLazadaService';
-        //$this->app->bind('App\Contracts\ApiPlatformInterface', "App\Services\\{$this->service}"); 
-        $this->app->bind('App\Services\ApiPlatformFactoryService', function($app,$parameters){ 
+        //$this->app->bind('App\Contracts\ApiPlatformInterface', "App\Services\\{$this->service}");
+        $this->app->bind('App\Services\ApiPlatformFactoryService', function($app,$parameters){
             //setcommand
 
             $this->service = $parameters ? $this->availableServices[$parameters["apiName"]]:$this->service;
