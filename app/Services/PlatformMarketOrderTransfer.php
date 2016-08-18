@@ -38,6 +38,10 @@ class PlatformMarketOrderTransfer
 	private $platformGroup=array(
     		"Amazon"=>"AZ",
     		"Lazada"=>"LZ",
+            "Priceminister"=>"PM",
+            "Fnac"=>"FN",
+            "Qoo10"=>"QO",
+            "Newegg"=>"NE"
         );
 
 	public function __construct()
@@ -90,6 +94,21 @@ class PlatformMarketOrderTransfer
 			case 'Lazada':
 				$validateService =new LazadaValidateService($order);
 				break;
+           /* case 'Priceminister':
+                $validateService =new PriceministerValidateService($order);
+                break;
+            case 'Fnac':
+                $validateService =new FnacValidateService($order);
+                break;
+            case 'Qoo10':
+                $validateService =new Qoo10ValidateService($order);
+                break;
+            case 'Newegg':
+                $validateService =new NeweggValidateService($order);
+                break;
+            case 'Paytm':
+                $validateService =new PaytmValidateService($order);
+                break;*/
 		}
 		return $validateService;
 	}

@@ -1,0 +1,14 @@
+# cache
+cache:
+  paths:
+  - .env
+  - vendor/
+
+# Before Script
+before_script:
+  - echo 'Building start...'
+
+# PHP 7.0
+php:7.0:
+  script:
+    - ant

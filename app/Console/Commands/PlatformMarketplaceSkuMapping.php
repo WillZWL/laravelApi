@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use App\Services\ApiPlatformFactoryService;
+use App\Services\PlatformMarketSkuMappingService;
 
 use Carbon\Carbon;
 use App\Models\Schedule;
@@ -31,8 +31,9 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(PlatformMarketSkuMappingService $platformMarketSkuMappingService)
     {
+        $this->platformMarketSkuMappingService=$platformMarketSkuMappingService;
         parent::__construct();
     }
 
@@ -57,11 +58,10 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
     public function runSkuMapping($stores,$apiName)
     {
         if($stores){
-            $this->apiPlatformFactoryService= $this->getApiPlatformFactoryService($apiName);
-            //$this->apiPlatformFactoryService->initMarketplaceSkuMapping($stores);
+            //$this->platformMarketSkuMappingService->initMarketplaceSkuMapping($stores);
             foreach ($stores as $storeName => $store){
-                $this->apiPlatformFactoryService->updateOrCreateSellingPlatform($storeName,$store);
-                $this->apiPlatformFactoryService->updateOrCreatePlatformBizVar($storeName,$store);
+                $this->platformMarketSkuMappingService->updateOrCreateSellingPlatform($storeName,$store);
+                $this->platformMarketSkuMappingService->updateOrCreatePlatformBizVar($storeName,$store);
             }
         }
     }

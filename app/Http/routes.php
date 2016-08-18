@@ -66,9 +66,9 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('platform-market/transfer-order', 'PlatformMarketOrderManage@transferOrder');
     Route::get('platform-market/product',  'PlatformMarketProductManage@getProductList');
     Route::get('platform-market/update-product-price',  'PlatformMarketProductManage@submitProductPrice');
-    Route::resource('platform-market/upload-mapping', 'PlatformMarketOrderManage@uploadMarketplacdeSkuMapping');
+    Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
     Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
-    Route::get('platform-market/download-xlsx/{file}',  'PlatformMarketOrderManage@getMarketplacdeSkuMappingFile');
+    Route::get('platform-market/download-xlsx/{file}',  'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
 });
 
 Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
