@@ -5,6 +5,7 @@ namespace App\Repository\PriceMinisterMws;
 class PriceMinisterOrderList extends PriceMinisterOrderCore
 {
     private $version = '2016-03-16';
+    private $updatedAfter;
 
     public function __construct($store)
     {
@@ -22,6 +23,7 @@ class PriceMinisterOrderList extends PriceMinisterOrderCore
         $requestParams = parent::initRequestParams();
         $requestParams["action"] = "getcurrentsales";
         $requestParams['version'] = $this->version;
+        $requestParams['purchasedate'] = $this->getUpdatedAfter();
         return $requestParams;
     }
 
@@ -37,5 +39,15 @@ class PriceMinisterOrderList extends PriceMinisterOrderCore
     {
         $url = $this->urlbase."sales_ws";
         $this->urlbase = $url;
+    }
+
+    public function getUpdatedAfter()
+    {
+        return $this->updatedAfter;
+    }
+
+    public function setUpdatedAfter($value)
+    {
+        $this->updatedAfter=$value;
     }
 }

@@ -31,8 +31,8 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
     public function retrieveOrder($storeName)
     {
-        $originOrderList = $this->getOrderList($storeName, "2016-08-17-06-07.txt");
-        // $originOrderList = $this->getOrderList($storeName);
+        // $originOrderList = $this->getOrderList($storeName, "2016-08-17-06-07.txt");
+        $originOrderList = $this->getOrderList($storeName);
         if ($originOrderList) {
             foreach ($originOrderList as $order) {
                 if (isset($order['deliveryinformation']['deliveryaddress'])) {
@@ -77,6 +77,8 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
             $originOrderList = $this->getFileData($fileName);
             $originOrderList = unserialize($originOrderList);
         } else {
+            $dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
+            $this->priceMinisterOrderList->setUpdatedAfter($dateTime);
             $originOrderList = $this->priceMinisterOrderList->fetchOrderList();
             $this->saveDataToFile(serialize($originOrderList), "getOrderList");
         }
