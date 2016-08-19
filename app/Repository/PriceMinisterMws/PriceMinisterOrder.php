@@ -16,11 +16,6 @@ class PriceMinisterOrder extends PriceMinisterOrderCore
         return parent::query($this->getRequestParams());
     }
 
-    public function fetchOrder()
-    {
-        return parent::query($this->getRequestParams());
-    }
-
     protected function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
