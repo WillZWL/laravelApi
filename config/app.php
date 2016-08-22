@@ -157,6 +157,7 @@ return [
         App\Providers\RouteServiceProvider::class,
         App\Providers\ApiPlatformServiceProvider::class,
         App\Providers\ApiPlatformProductServiceProvider::class,
+        App\Providers\OAuthServiceProvider::class,
 
         /*
          * Customer Service Providers...
@@ -168,6 +169,7 @@ return [
         Maatwebsite\Excel\ExcelServiceProvider::class,
         LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider::class,
         LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class,
+        Dingo\Api\Provider\LaravelServiceProvider::class,
     ],
 
     /*
