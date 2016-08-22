@@ -21,21 +21,21 @@
                     <div class="form-group">
                         <label for="inputLength" class="col-sm-3 control-label">Length (cm):</label>
                         <div class="col-sm-7">
-                            <input type="number" name="length" id="inputLength" class="form-control" value="{{ $tracerSku->product->length }}" required="required" title="">
+                            <input type="number" step="0.1" name="length" id="inputLength" class="form-control" value="{{ $tracerSku->product->length }}" required="required" title="">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="inputWidth" class="col-sm-3 control-label">Width (cm):</label>
                         <div class="col-sm-7">
-                            <input type="number" name="width" id="inputWidth" class="form-control" value="{{ $tracerSku->product->width }}" required="required" title="">
+                            <input type="number" step="0.1" name="width" id="inputWidth" class="form-control" value="{{ $tracerSku->product->width }}" required="required" title="">
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label for="inputHeight" class="col-sm-3 control-label">Height (cm):</label>
                         <div class="col-sm-7">
-                            <input type="number" name="height" id="inputHeight" class="form-control" value="{{ $tracerSku->product->height }}" required="required" title="">
+                            <input type="number" step="0.1" name="height" id="inputHeight" class="form-control" value="{{ $tracerSku->product->height }}" required="required" title="">
                         </div>
                     </div>
 
