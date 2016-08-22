@@ -54,7 +54,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                     }
                 }
                 //update order qty shipped && qty unshipped && total_amout
-                $this->updatePlatformMarketOrderByPlatformMarketOrderItem($order['purchaseid']);
+                $this->updateToConfirmSalesOrderByOrderItem($storeName,$order['purchaseid']);
             }
             return true;
         }
@@ -69,18 +69,24 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         return $this->priceMinisterOrder->fetchOrder();
     }
 
-    public function getOrderList($storeName, $fileName = '')
+    public function confirmSalesOrder($storeName,$itemId)
     {
+        $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
+        $this->priceMinisterOrderList->setConfirmItemId($itemId);
+        $result = $this->priceMinisterOrderList->confirmSalesOrder();
+        return $result;
+    }
+
+    public function getOrderList($storeName, $fileName = '')
+    {    
         $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
         $this->storeCurrency = $this->priceMinisterOrderList->getStoreCurrency();
         if ($fileName) {
             $originOrderList = $this->getFileData($fileName);
             $originOrderList = unserialize($originOrderList);
         } else {
-            $dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
-            $this->priceMinisterOrderList->setUpdatedAfter($dateTime);
-            $originOrderList = $this->priceMinisterOrderList->fetchOrderList();
-            $this->saveDataToFile(serialize($originOrderList), "getOrderList");
+            $originOrderList = $this->priceMinisterOrderList->getNewSales();
+            $this->saveDataToFile(serialize($originOrderList), "getNewSales");
         }
         return $originOrderList;
     }
@@ -160,6 +166,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                 ],
                 $object
             );
+        return $platformMarketOrderItem;
     }
 
     // update or insert shipping address
@@ -182,14 +189,14 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         return $platformMarketShippingAddress->id;
     }
 
-    public function updatePlatformMarketOrderByPlatformMarketOrderItem($purchaseid)
+    public function updateToConfirmSalesOrderByOrderItem($storeName,$purchaseid)
     {
         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', $purchaseid)->first();
         $platformMarketOrderItemList = $platformMarketOrder->platformMarketOrderItem;
-
         $item_shipped = $item_unshiped = 0;
         $total_amount = 0.00;
         foreach ($platformMarketOrderItemList as $platformMarketOrderItem) {
+
             $quantity_shipped = $platformMarketOrderItem->quantity_shipped;
             $quantity_ordered = $platformMarketOrderItem->quantity_ordered;
 
@@ -198,8 +205,13 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
             $item_price = $platformMarketOrderItem->item_price;
             $total_amount += $item_price;
+
+            $result=$this->confirmSalesOrder($storeName,$platformMarketOrderItem->order_item_id);
         }
         $platformMarketOrder->total_amount = $total_amount;
+        $platformMarketOrder->total_amount = $total_amount;
+        $platformMarketOrder->order_status = "ACCEPTED";
+        $platformMarketOrder->esg_order_status =$this->getSoOrderStatus("ACCEPTED");
         $platformMarketOrder->number_of_items_shipped = $item_shipped;
         $platformMarketOrder->number_of_items_unshipped = $item_unshiped;
         $platformMarketOrder->save();
@@ -214,6 +226,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
             case 'PENDING':
                 $status = PlatformOrderService::ORDER_STATUS_PENDING;
                 break;
+            case 'ACCEPTED':
             case 'ON_HOLD':
                 $status = PlatformOrderService::ORDER_STATUS_UNSHIPPED;
                 break;
