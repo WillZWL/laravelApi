@@ -31,8 +31,8 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
     public function retrieveOrder($storeName)
     {
-        $originOrderList = $this->getOrderList($storeName, "2016-08-17-06-07.txt");
-        // $originOrderList = $this->getOrderList($storeName);
+        // $originOrderList = $this->getOrderList($storeName, "2016-08-17-06-07.txt");
+        $originOrderList = $this->getOrderList($storeName);
         if ($originOrderList) {
             foreach ($originOrderList as $order) {
                 if (isset($order['deliveryinformation']['deliveryaddress'])) {
@@ -45,9 +45,11 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                         foreach ($originOrderItemList as $orderItem) {
                             if (Arr::isAssoc($orderItem)) {
                                 $this->updateOrCreatePlatformMarketOrderItem($order, $orderItem);
+                                $this->confirmSalesOrder($storeName,$orderItem['itemid']);
                             } else {
                                 foreach ($orderItem as $orderItemItem) {
                                     $this->updateOrCreatePlatformMarketOrderItem($order, $orderItemItem);
+                                    $this->confirmSalesOrder($storeName,$orderItemItem['itemid']);
                                 }
                             }
                         }
@@ -69,16 +71,24 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         return $this->priceMinisterOrder->fetchOrder();
     }
 
-    public function getOrderList($storeName, $fileName = '')
+    public function confirmSalesOrder($storeName,$itemId)
     {
+        $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
+        $this->priceMinisterOrderList->setConfirmItemId($itemId);
+        $result = $this->priceMinisterOrderList->confirmSalesOrder();
+        $this->saveDataToFile(serialize($result), "confirmSalesOrder");
+    }
+
+    public function getOrderList($storeName, $fileName = '')
+    {    
         $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
         $this->storeCurrency = $this->priceMinisterOrderList->getStoreCurrency();
         if ($fileName) {
             $originOrderList = $this->getFileData($fileName);
             $originOrderList = unserialize($originOrderList);
         } else {
-            $originOrderList = $this->priceMinisterOrderList->fetchOrderList();
-            $this->saveDataToFile(serialize($originOrderList), "getOrderList");
+            $originOrderList = $this->priceMinisterOrderList->getNewSales();
+            $this->saveDataToFile(serialize($originOrderList), "getNewSales");
         }
         return $originOrderList;
     }
@@ -158,6 +168,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                 ],
                 $object
             );
+        return $platformMarketOrderItem;
     }
 
     // update or insert shipping address
@@ -198,6 +209,9 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
             $total_amount += $item_price;
         }
         $platformMarketOrder->total_amount = $total_amount;
+        $platformMarketOrder->total_amount = $total_amount;
+        //$platformMarketOrder->order_status = "COMMITTED";
+        //$platformMarketOrder->esg_order_status =$this->getSoOrderStatus("COMMITTED");
         $platformMarketOrder->number_of_items_shipped = $item_shipped;
         $platformMarketOrder->number_of_items_unshipped = $item_unshiped;
         $platformMarketOrder->save();
