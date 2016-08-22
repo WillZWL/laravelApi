@@ -49,7 +49,7 @@ class PriceMinisterOrderList extends PriceMinisterOrderCore
         if (isset($data["response"]) && isset($data["response"]["sales"]) && isset($data["response"]["sales"]["sale"])) {
             return parent::fix($data["response"]["sales"]["sale"]);
         }else if(isset($data["response"]) && isset($data["response"]["status"])){
-            return parent::fix($data["response"]["status"];
+            return parent::fix($data["response"]["status"]);
         }
         return null;
     }
