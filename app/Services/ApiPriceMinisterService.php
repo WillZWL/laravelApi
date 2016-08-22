@@ -45,18 +45,16 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                         foreach ($originOrderItemList as $orderItem) {
                             if (Arr::isAssoc($orderItem)) {
                                 $this->updateOrCreatePlatformMarketOrderItem($order, $orderItem);
-                                $this->confirmSalesOrder($storeName,$orderItem['itemid']);
                             } else {
                                 foreach ($orderItem as $orderItemItem) {
                                     $this->updateOrCreatePlatformMarketOrderItem($order, $orderItemItem);
-                                    $this->confirmSalesOrder($storeName,$orderItemItem['itemid']);
                                 }
                             }
                         }
                     }
                 }
                 //update order qty shipped && qty unshipped && total_amout
-                $this->updatePlatformMarketOrderByPlatformMarketOrderItem($order['purchaseid']);
+                $this->updateToConfirmSalesOrderByOrderItem($storeName,$order['purchaseid']);
             }
             return true;
         }
@@ -76,7 +74,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
         $this->priceMinisterOrderList->setConfirmItemId($itemId);
         $result = $this->priceMinisterOrderList->confirmSalesOrder();
-        $this->saveDataToFile(serialize($result), "confirmSalesOrder");
+        return $result;
     }
 
     public function getOrderList($storeName, $fileName = '')
@@ -181,8 +179,11 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $object['address_line_1'] = (string)$deliveryInfo['address1'];
         $object['address_line_2'] = (string)$deliveryInfo['address2'];
         $object['city'] = (string)$deliveryInfo['city'];
-        $object['county'] = '';
-        $object['country_code'] = strtoupper(substr((string)$deliveryInfo['country'], -2));
+        $object['county'] = (string)$deliveryInfo['country'];
+        $object['country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
+        $object['bill_country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
+
+
         $object['postal_code'] = $deliveryInfo['zipcode'];
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
             ['platform_order_id' => $order['purchaseid']],
@@ -191,14 +192,14 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         return $platformMarketShippingAddress->id;
     }
 
-    public function updatePlatformMarketOrderByPlatformMarketOrderItem($purchaseid)
+    public function updateToConfirmSalesOrderByOrderItem($storeName,$purchaseid)
     {
         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', $purchaseid)->first();
         $platformMarketOrderItemList = $platformMarketOrder->platformMarketOrderItem;
-
         $item_shipped = $item_unshiped = 0;
         $total_amount = 0.00;
         foreach ($platformMarketOrderItemList as $platformMarketOrderItem) {
+
             $quantity_shipped = $platformMarketOrderItem->quantity_shipped;
             $quantity_ordered = $platformMarketOrderItem->quantity_ordered;
 
@@ -207,11 +208,13 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
             $item_price = $platformMarketOrderItem->item_price;
             $total_amount += $item_price;
+
+            $result=$this->confirmSalesOrder($storeName,$platformMarketOrderItem->order_item_id);
         }
         $platformMarketOrder->total_amount = $total_amount;
         $platformMarketOrder->total_amount = $total_amount;
-        //$platformMarketOrder->order_status = "COMMITTED";
-        //$platformMarketOrder->esg_order_status =$this->getSoOrderStatus("COMMITTED");
+        $platformMarketOrder->order_status = "ACCEPTED";
+        $platformMarketOrder->esg_order_status =$this->getSoOrderStatus("ACCEPTED");
         $platformMarketOrder->number_of_items_shipped = $item_shipped;
         $platformMarketOrder->number_of_items_unshipped = $item_unshiped;
         $platformMarketOrder->save();
@@ -226,6 +229,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
             case 'PENDING':
                 $status = PlatformOrderService::ORDER_STATUS_PENDING;
                 break;
+            case 'ACCEPTED':
             case 'ON_HOLD':
                 $status = PlatformOrderService::ORDER_STATUS_UNSHIPPED;
                 break;
@@ -245,5 +249,18 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $file = $filePath."/".$fileName;
         $data = file_get_contents($file);
         return $data;
+    }
+
+    public function getEsgCountryCode($countryalpha2)
+    {
+        $countryCode=array(
+            "FX" => "FR",
+            "DE" => "DE"
+         );
+        if(isset($countryCode[$countryalpha2])){
+            return $countryCode[$countryalpha2];
+        }else{
+            return $countryalpha2;
+        }
     }
 }
