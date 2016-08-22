@@ -13,6 +13,9 @@
     "require": {
         "php": ">=5.5.9",
         "laravel/framework": "5.2.*",
+        "dingo/api": "1.0.*@dev",
+        "lucadegasperi/oauth2-server-laravel": "5.1.*",
+        "zizaco/entrust": "5.2.x-dev",
         "zhanbing/amazon-mws-laravel": "dev-stable",
         "doctrine/dbal": "^2.5",
         "guzzlehttp/guzzle": "6.*",
