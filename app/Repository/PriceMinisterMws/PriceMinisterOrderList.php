@@ -5,32 +5,51 @@ namespace App\Repository\PriceMinisterMws;
 class PriceMinisterOrderList extends PriceMinisterOrderCore
 {
     private $version = '2016-03-16';
-    private $updatedAfter;
+    private $purchaseDate;
+    private $confirmItemId;
+    private $_requestParams;
 
     public function __construct($store)
     {
-      parent::__construct($store);
-      $this->setUrlBase();
+        parent::__construct($store);
+        $this->setUrlBase();
+        $this->getRequestParams();
     }
 
-    public function fetchOrderList()
+    public function getNewSales()
     {
-        return parent::query($this->getRequestParams());
+        $this->_requestParams["action"] = "getnewsales";
+        $this->_requestParams['version'] = '2010-09-20';
+        return parent::query($this->_requestParams);
+    }
+
+    public function confirmSalesOrder()
+    {
+        $this->_requestParams["action"] = "acceptsale";
+        $this->_requestParams['version'] = '2010-09-20';
+        $this->_requestParams['itemid'] = $this->getConfirmItemId();
+        return parent::query($this->_requestParams);
+    }
+
+    public function getCurrentSales()
+    {
+        $this->_requestParams["action"] = "getcurrentsales";
+        $this->_requestParams['version'] = '2016-03-16';
+        $this->_requestParams['purchasedate'] = $this->getPurchaseDate();
+        return parent::query($this->_requestParams);
     }
 
     protected function getRequestParams()
     {
-        $requestParams = parent::initRequestParams();
-        $requestParams["action"] = "getcurrentsales";
-        $requestParams['version'] = $this->version;
-        $requestParams['purchasedate'] = $this->getUpdatedAfter();
-        return $requestParams;
+        $this->_requestParams = parent::initRequestParams();
     }
 
     protected function prepare($data = array())
     {
         if (isset($data["response"]) && isset($data["response"]["sales"]) && isset($data["response"]["sales"]["sale"])) {
             return parent::fix($data["response"]["sales"]["sale"]);
+        }else if(isset($data["response"]) && isset($data["response"]["status"])){
+            return parent::fix($data["response"]["status"];
         }
         return null;
     }
@@ -41,13 +60,23 @@ class PriceMinisterOrderList extends PriceMinisterOrderCore
         $this->urlbase = $url;
     }
 
-    public function getUpdatedAfter()
+    public function setConfirmItemId($value)
     {
-        return $this->updatedAfter;
+        $this->confirmItemId = $value;
     }
 
-    public function setUpdatedAfter($value)
+    public function getConfirmItemId()
     {
-        $this->updatedAfter=$value;
+        return  $this->confirmItemId;
+    }
+
+    public function setPurchaseDate($value)
+    {
+        $this->purchaseDate = $value;
+    }
+
+    public function getPurchaseDate()
+    {
+        return  $this->purchaseDate;
     }
 }
