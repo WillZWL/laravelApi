@@ -39,7 +39,7 @@ class PlatformMarketOrderTransfer
 	private $platformGroup=array(
     		"Amazon"=>"AZ",
     		"Lazada"=>"LZ",
-            "Priceminister"=>"PM",
+            "PriceMinister"=>"PM",
             "Fnac"=>"FN",
             "Qoo10"=>"QO",
             "Newegg"=>"NE"
