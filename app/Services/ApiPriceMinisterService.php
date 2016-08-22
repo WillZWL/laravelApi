@@ -179,8 +179,11 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $object['address_line_1'] = (string)$deliveryInfo['address1'];
         $object['address_line_2'] = (string)$deliveryInfo['address2'];
         $object['city'] = (string)$deliveryInfo['city'];
-        $object['county'] = '';
-        $object['country_code'] = strtoupper(substr((string)$deliveryInfo['country'], -2));
+        $object['county'] = (string)$deliveryInfo['country'];
+        $object['country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
+        $object['bill_country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
+
+
         $object['postal_code'] = $deliveryInfo['zipcode'];
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
             ['platform_order_id' => $order['purchaseid']],
@@ -246,5 +249,18 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $file = $filePath."/".$fileName;
         $data = file_get_contents($file);
         return $data;
+    }
+
+    public function getEsgCountryCode($countryalpha2)
+    {
+        $countryCode=array(
+            "FX" => "FR",
+            "DE" => "DE"
+         );
+        if(isset($countryCode[$countryalpha2])){
+            return $countryCode[$countryalpha2];
+        }else{
+            return $countryalpha2;
+        }
     }
 }
