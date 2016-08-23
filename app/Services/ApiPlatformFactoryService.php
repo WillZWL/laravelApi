@@ -141,8 +141,8 @@ class ApiPlatformFactoryService
 	            ->select('platform_market_order.*')
 	            ->get();
 				break;
-			case 'lazada':
-				$platformOrderList = PlatformMarketOrder::lazadaUnshippedOrder();
+			default:
+				$platformOrderList = PlatformMarketOrder::unshippedOrder()->where('biz_type',"=",$bizType);
 				break;
 		}
         $platformOrderIdList = $platformOrderList->pluck('platform', 'platform_order_no')->toArray();

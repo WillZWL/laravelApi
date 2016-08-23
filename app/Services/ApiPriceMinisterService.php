@@ -100,7 +100,48 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
+        $storeName=$platformOrderIdList[$esgOrder->platform_order_id];
+        $itemIds=$esgOrder->soItem->pluck("ext_item_cd");
+        foreach($itemIds as $itemId){
+            if ($esgOrderShipment) {
+                $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->courier_name);
+                $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
+                $this->priceMinisterOrderTracking->setItemId($itemId);
+                $this->priceMinisterOrderTracking->setTransporterName($courier["transporter_name"]);
+                $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
+                if(isset($courier["tracking_url"]))
+                $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
+                print_r($this->priceMinisterOrderTracking);exit();
+                $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
+            }
+        }
+        return $result;
+    }
 
+    public function getPriceMinisterCourier($courier)
+    {
+        switch ($courier) {
+            case 'DHL':
+            case 'dhl-global-mail':
+                $courier=["transporter_name"=>$courier];
+                break;
+            case 'DPD NL':
+                $courier=["transporter_name"=>'DPD'];
+                break;
+            case 'dpd-uk':
+                $courier=["transporter_name"=>'DPD',"tracking_url"=>'https://www.deutschepost.de/sendung/simpleQueryResult.html'];
+                break;
+            case 'Deutsche Post':
+                $courier=["transporter_name"=>'Autre',"tracking_url"=>'https://www.aftership.com/'];
+                break;
+            case 'chronopost-france':
+                $courier=["transporter_name"=>'CHRONOPOST',"tracking_url"=>'https://www.aftership.com/'];
+                break;
+            default:
+                # code...
+                break;
+        }
+        return $courier;
     }
 
     // update or insert data to databse

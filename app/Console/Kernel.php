@@ -43,15 +43,15 @@ class Kernel extends ConsoleKernel
         $schedule->command('order:transfer')
             ->dailyAt('01:00');
 
-        $schedule->command('platformMarket:orderRetrieve',array('--api'=>'lazada'))
+        $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
             ->dailyAt('10:45');
         $schedule->command('platformMarket:orderTransfer')
             ->dailyAt('11:00');
 
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
-        $schedule->command('platformMarket:updateShipment',array('--api'=>'lazada'))
-            ->dailyAt('13:00');
+        //$schedule->command('platformMarket:updateShipment',array('--api'=>'lazada'))
+            //->dailyAt('13:00');
 
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
