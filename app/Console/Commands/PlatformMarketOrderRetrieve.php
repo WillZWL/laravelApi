@@ -86,13 +86,15 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
 
     public function getStores($apiName)
     {
-        if($apiName=="lazada"){
-            $stores = Config::get('lazada-mws.store');
-        }else if($apiName=="amazon"){
-            $stores = Config::get('amazon-mws.store');
-        } elseif ($apiName == 'priceminister') {
-            $stores = Config::get('priceminister-mws.store');
-        }
+        $config = [
+            'lazada' => Config::get('lazada-mws.store'),
+            'amazon' => Config::get('amazon-mws.store'),
+            'priceminister' => Config::get('priceminister-mws.store'),
+            'tanga' => Config::get('tanga-mws.store'),
+        ];
+
+        $stores = $config[$apiName] ?: null;
+
         return $stores;
     }
 }
