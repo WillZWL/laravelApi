@@ -42,12 +42,13 @@ class PlatformMarketOrderTransfer
             "PriceMinister"=>"PM",
             "Fnac"=>"FN",
             "Qoo10"=>"QO",
-            "Newegg"=>"NE"
+            "Newegg"=>"NE",
+            "Tanga"=>"TG",
         );
 
 	public function __construct()
 	{
-		
+
 	}
 
     public function transferReadyOrder()
@@ -101,6 +102,9 @@ class PlatformMarketOrderTransfer
            /* case 'Fnac':
                 $validateService =new FnacValidateService($order);
                 break;
+            case 'Tanga':
+                $validateService =new TangaValidateService($order);
+                break;
             case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
                 break;
@@ -122,7 +126,7 @@ class PlatformMarketOrderTransfer
         $countryCode = strtoupper(substr($order->platform, -2));
         $platformAccount = strtoupper(substr($order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
-        
+
         $merchant = [];
         $so = $this->createOrder($order, $order->platformMarketOrderItem);
 
@@ -136,7 +140,7 @@ class PlatformMarketOrderTransfer
             ->first();
         $so->incoterm = $splitOrder->incoterm;
         $so->save();
-  
+
         $this->saveSoItem($so, $order->platformMarketOrderItem);
         $this->saveSoItemDetail($so, $order->platformMarketOrderItem);
         $this->saveSoPaymentStatus($so,$order);
@@ -285,7 +289,7 @@ class PlatformMarketOrderTransfer
         $newOrder->vat_percent = 0;     // not sure.
         $newOrder->vat = 0;             // not sure.
         $newOrder->delivery_type_id = 'MCF';
-        //this value will be update 
+        //this value will be update
         //need update delivery_type_id
         $newOrder->delivery_name = $order->platformMarketShippingAddress->name;
         $newOrder->delivery_address = implode(' | ', array_filter([
@@ -302,7 +306,7 @@ class PlatformMarketOrderTransfer
          //need update status
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->platformMarketShippingAddress->phone;
-        
+
         if($order->platformMarketShippingAddress->bill_name){
             $newOrder->bill_name = $order->platformMarketShippingAddress->bill_name;
             $newOrder->bill_address = implode(' | ', array_filter([
@@ -352,7 +356,7 @@ class PlatformMarketOrderTransfer
 
             $newOrderItem->create_on = Carbon::now();
             $newOrderItem->modify_on = Carbon::now();
-            $newOrderItem->save();	
+            $newOrderItem->save();
         }
     }
 
