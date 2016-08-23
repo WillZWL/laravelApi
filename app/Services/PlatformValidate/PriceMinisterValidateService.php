@@ -13,7 +13,7 @@ class PriceMinisterValidateService extends BaseValidateService
     function __construct(PlatformMarketOrder $order)
     {
         $this->order=$order;
-        parent::__construct($order,$this->getPlatformAccountInfo($order),"LZ");
+        parent::__construct($order,$this->getPlatformAccountInfo($order),"PM");
     }
 
     /**

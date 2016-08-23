@@ -14,6 +14,7 @@
 				<select name="check">
 					<option value="">select platform</option>
 					<option value="lazada">LAZADA</option>
+					<option value="priceminister">PriceMinister</option>
 				</select>
 			</div>
 			<input type="hidden" name="_token" value="{{ csrf_token() }}">
