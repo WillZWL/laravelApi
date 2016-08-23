@@ -60,6 +60,8 @@ class PlatformMarketSkuMappingService
 					    	$mappingData=array(
 							'marketplace_sku' =>$itemData["marketplace_sku"] ,
 							'sku' => $itemData["esg_sku"],
+                            'mp_category_id' => $itemData["mp_category_id"],
+                            'mp_sub_category_id' => $itemData["mp_sub_category_id"],
 							'mp_control_id'=>$this->mpControl->control_id,
 							'marketplace_id' => $this->marketplaceId,
 							'country_id' => $this->countryCode,
@@ -125,6 +127,8 @@ class PlatformMarketSkuMappingService
         $object['marketplace_id'] = $mappingData['marketplace_id'];
         $object['country_id'] = $mappingData['country_id'];
         $object['lang_id'] = $mappingData['lang_id'];
+        $object['mp_category_id'] = $mappingData['mp_category_id'];
+        $object['mp_sub_category_id'] = $mappingData['mp_sub_category_id'];
         $object['condition'] = 'New';
         $object['delivery_type'] ='EXP';
         $object['currency'] =$mappingData['currency'];
