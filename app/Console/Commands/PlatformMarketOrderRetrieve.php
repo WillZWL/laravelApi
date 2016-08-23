@@ -83,7 +83,7 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
             }
         }
     }
-
+    //get stores function
     public function getStores($apiName)
     {
         $config = [
