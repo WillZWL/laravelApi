@@ -61,7 +61,7 @@ Route::group(['middleware' => ['cors']], function () {
 
     Route::get('amazon/product', 'AmazonProduct@getMatchProductForId');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
-    
+
     Route::get('platform-market/index', 'PlatformMarketOrderManage@index');
     Route::get('platform-market/transfer-order', 'PlatformMarketOrderManage@transferOrder');
     Route::get('platform-market/product',  'PlatformMarketProductManage@getProductList');
@@ -89,3 +89,13 @@ Route::group(['middleware' => ['cors']], function () {
 });
 
 Route::auth();
+
+Route::post('oauth/access_token', function () {
+    return Response::json(Authorizer::issueAccessToken());
+});
+
+$api = app('Dingo\Api\Routing\Router');
+
+//$api->version('v1', ['namespace' => 'App\Http\Controllers', 'middleware' => 'api.auth'], function ($api) {
+//    $api->resource('user', 'UserController');
+//});

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
+use App\Services\PlatformValidate\PriceMinisterValidateService;
 
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
@@ -38,7 +39,7 @@ class PlatformMarketOrderTransfer
 	private $platformGroup=array(
     		"Amazon"=>"AZ",
     		"Lazada"=>"LZ",
-            "Priceminister"=>"PM",
+            "PriceMinister"=>"PM",
             "Fnac"=>"FN",
             "Qoo10"=>"QO",
             "Newegg"=>"NE",
@@ -95,10 +96,10 @@ class PlatformMarketOrderTransfer
 			case 'Lazada':
 				$validateService =new LazadaValidateService($order);
 				break;
-           /* case 'Priceminister':
+            case 'PriceMinister':
                 $validateService =new PriceministerValidateService($order);
                 break;
-            case 'Fnac':
+           /* case 'Fnac':
                 $validateService =new FnacValidateService($order);
                 break;
             case 'Tanga':

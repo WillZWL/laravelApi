@@ -60,9 +60,11 @@ class  PlatformMarketProductManage extends Controller
             case 'amazon':
                 $stores = Config::get('amazon-mws.store');
                 break;
-            
             case 'lazada':
                 $stores = Config::get('lazada-mws.store');
+                break;
+            case 'priceminister':
+                $stores = Config::get('priceminister-mws.store');
                 break;
         }
         return $stores;
