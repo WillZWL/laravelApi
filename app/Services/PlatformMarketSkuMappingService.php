@@ -139,7 +139,8 @@ class PlatformMarketSkuMappingService
         $marketplaceSkuMapping = MarketplaceSkuMapping::updateOrCreate(
             [
                 'sku' => $mappingData['sku'],
-                'mp_control_id' => $mappingData['mp_control_id']
+                'marketplace_id' => $mappingData['marketplace_id'],
+                'country_id' => $mappingData['country_id']
             ],
             $object
         );
