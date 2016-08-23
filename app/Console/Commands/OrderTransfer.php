@@ -199,22 +199,6 @@ class OrderTransfer extends Command
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
-        $merchant = [];
-        //foreach ($order->amazonOrderItem as $item) {
-        //
-        //    $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
-        //        ->where('marketplace_id', '=', $marketplaceId)
-        //        ->where('country_id', '=', $countryCode)
-        //        ->select('sku')
-        //        ->firstOrFail();
-        //
-        //    $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
-        //        ->where('sku', '=', $mapping->sku)
-        //        ->firstOrFail();
-        //
-        //    $item->seller_sku = $mapping->sku;
-        //}
-
         $so = $this->createOrder($order, $order->amazonOrderItem);
 
         $countryCode = strtoupper(substr($order->platform, -2));
@@ -280,11 +264,8 @@ class OrderTransfer extends Command
                 $so->incoterm = $spIncoterm->incoterm;
             }
 
-            if ($order->fulfillment_channel === 'AFN') {
-                $so->delivery_type_id = 'FBA';
-                $so->dispatch_date = Carbon::now();
-            } else {
-
+            // Decide delivery type here.
+            if ($order->fulfillment_channel === 'MFN') {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
                     ->whereIn('delivery_type', ["EXP", "EXPED", "STD"])
@@ -293,8 +274,6 @@ class OrderTransfer extends Command
 
                 if ($marketplaceProduct) {
                     $so->delivery_type_id = $marketplaceProduct->delivery_type;
-                } else {
-                    $so->delivery_type_id = 'STD';
                 }
             }
 
@@ -376,7 +355,14 @@ class OrderTransfer extends Command
             ->rate;
         $newOrder->vat_percent = 0;     // not sure.
         $newOrder->vat = 0;             // not sure.
-        $newOrder->delivery_type_id = 'MCF';
+        if ($order->fulfillment_channel === 'AFN') {
+            $newOrder->delivery_type_id = 'FBA';
+            // set order import date as FBA dispatch date. Fiona required.
+            $newOrder->dispatch_date = Carbon::now();
+        } else {
+            // assume 'STD' first to fit database rule, need to decide it at createSplitOrder() and createGroupOrder() later.
+            $newOrder->delivery_type_id = 'STD';
+        }
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
         $newOrder->delivery_address = implode(' | ', array_filter([
             $order->amazonShippingAddress->address_line_1,
@@ -384,7 +370,6 @@ class OrderTransfer extends Command
             $order->amazonShippingAddress->address_line_3
         ]));
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
-        $newOrder->dispatch_date = Carbon::now();
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
         $newOrder->delivery_country_id = $order->amazonShippingAddress->country_code;
         $newOrder->delivery_state = CountryState::getStateId($order->amazonShippingAddress->country_code, $order->amazonShippingAddress->state_or_region);
