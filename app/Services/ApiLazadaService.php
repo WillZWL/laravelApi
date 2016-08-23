@@ -89,7 +89,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
 	{
-		$storeName=$platformOrderIdList[$esgOrder->platform_order_id];
+		/*$storeName=$platformOrderIdList[$esgOrder->platform_order_id];
 		$orderItemIds=array();
 		$itemIds=$esgOrder->soItem->pluck("ext_item_cd");
 		foreach($itemIds as $itemId){
@@ -108,7 +108,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             } else {
                return $result;
             }
-        }
+        }*/
 	}
 
 	public function setStatusToCanceled($storeName,$orderItemId)

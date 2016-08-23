@@ -63,6 +63,12 @@ class PlatformMarketOrder extends Model
             ->where('acknowledge', '=', '1');
     }
 
+    public function scopeUnshippedOrder($query)
+    {
+        return $query->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_UNSHIPPED)
+            ->where('acknowledge', '=', '1');
+    }
+
     public function scopeAmazonOrder($query)
     {
         return $query->where('biz_type', '=', 'Amazon')
