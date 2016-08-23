@@ -62,6 +62,7 @@ class PlatformMarketSkuMappingService
 							'sku' => $itemData["esg_sku"],
                             'mp_category_id' => $itemData["mp_category_id"],
                             'mp_sub_category_id' => $itemData["mp_sub_category_id"],
+                            'delivery_type' => $itemData["delivery_type"],
 							'mp_control_id'=>$this->mpControl->control_id,
 							'marketplace_id' => $this->marketplaceId,
 							'country_id' => $this->countryCode,
@@ -130,10 +131,17 @@ class PlatformMarketSkuMappingService
         $object['mp_category_id'] = $mappingData['mp_category_id'];
         $object['mp_sub_category_id'] = $mappingData['mp_sub_category_id'];
         $object['condition'] = 'New';
-        $object['delivery_type'] ='EXP';
+        $object['delivery_type'] = $mappingData['delivery_type'];;
         $object['currency'] =$mappingData['currency'];
         $object['status'] = 1;
         //$object['create_on'] = date("Y-m-d H:i:s");
-        MarketplaceSkuMapping::firstOrCreate($object);
+       // MarketplaceSkuMapping::firstOrCreate($object);
+        $marketplaceSkuMapping = MarketplaceSkuMapping::updateOrCreate(
+            [
+                'sku' => $mappingData['sku'],
+                'mp_control_id' => $mappingData['mp_control_id']
+            ],
+            $object
+        );
 	}
 }
