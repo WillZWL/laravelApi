@@ -89,6 +89,7 @@ class TracerSkuController extends Controller
         $marketplaceProduct->mp_control_id = $request->input('marketplace');
         $marketplaceProduct->load('mpControl');
         $marketplaceProduct->marketplace_id = $marketplaceProduct->mpControl->marketplace_id;
+        $marketplaceProduct->currency = $marketplaceProduct->mpControl->currency_id;
         $marketplaceProduct->country_id = $marketplaceProduct->mpControl->country_id;
         $marketplaceProduct->save();
 
