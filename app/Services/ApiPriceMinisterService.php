@@ -104,18 +104,18 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $itemIds=$esgOrder->soItem->pluck("ext_item_cd");
         foreach($itemIds as $itemId){
             if ($esgOrderShipment) {
-                $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->courier_name);
+                $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
                 $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
                 $this->priceMinisterOrderTracking->setItemId($itemId);
                 $this->priceMinisterOrderTracking->setTransporterName($courier["transporter_name"]);
                 $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
                 if(isset($courier["tracking_url"]))
                 $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
-                print_r($this->priceMinisterOrderTracking);exit();
+                //print_r($this->priceMinisterOrderTracking);exit();
                 $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
             }
         }
-        return $result;
+        return $result === "OK" ? true :false;
     }
 
     public function getPriceMinisterCourier($courier)
