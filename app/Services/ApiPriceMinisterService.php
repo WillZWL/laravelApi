@@ -113,6 +113,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                 $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
                 //print_r($this->priceMinisterOrderTracking);exit();
                 $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                $this->saveDataToFile($result, "setTrackingPackageInfo");
             }
         }
         return $result == "OK" ? true :false;
