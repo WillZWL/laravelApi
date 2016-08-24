@@ -48,8 +48,9 @@ class ApiPlatformFactoryService
 		return $this->apiPlatformInterface->getOrderItemList($storeName,$orderId);
 	}
 	
-	public function submitOrderFufillment($bizType)
+	public function submitOrderFufillment($apiName)
 	{
+		$bizType=$this->apiPlatformInterface->getPlatformId($apiName);
 		$platformOrderIdList=$this->getPlatformOrderIdList($bizType);
         $esgOrders=$this->getEsgOrders($platformOrderIdList);
 		if($esgOrders){
@@ -57,13 +58,13 @@ class ApiPlatformFactoryService
 				$esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no."-01")->where('status', '=', '2')->first();
 				if($esgOrderShipment){
 					$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
-					if($response){
+					/*if($response){
 						$this->markSplitOrderShipped($esgOrder);
 						$this->markPlatformMarketOrderShipped($esgOrder);
 						if($bizType=="amazon"){
 							$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
 						}
-					}
+					}*/
 				}
 			}
 		}
@@ -143,7 +144,7 @@ class ApiPlatformFactoryService
 	            ->get();
 				break;
 			default:
-				$platformOrderList = PlatformMarketOrder::unshippedOrder()->where('biz_type',"=",$bizType);
+				$platformOrderList = PlatformMarketOrder::unshippedOrder()->where('biz_type',"=",$bizType)->get();
 				break;
 		}
         $platformOrderIdList = $platformOrderList->pluck('platform', 'platform_order_no')->toArray();
@@ -152,7 +153,6 @@ class ApiPlatformFactoryService
 
 	private function getEsgOrders($platformOrderIdList)
 	{
-
 		return $esgOrders = So::whereIn('platform_order_id', array_keys($platformOrderIdList))
 	        ->where('platform_group_order', '=', '1')
 	        ->where('status', '=', '6')
