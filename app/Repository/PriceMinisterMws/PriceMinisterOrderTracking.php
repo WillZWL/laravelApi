@@ -80,6 +80,6 @@ class PriceMinisterOrderTracking extends PriceMinisterOrderCore
 
     public function getTrackingUrl()
     {
-        return  $this->trackingUrl;
+        return $this->trackingUrl;
     }
 }
