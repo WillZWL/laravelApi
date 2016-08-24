@@ -25,7 +25,7 @@ class PriceMinisterOrderTracking extends PriceMinisterOrderCore
         $this->_requestParams['itemid'] = $this->getItemId();
         $this->_requestParams['transporter_name'] = $this->getTransporterName();
         $this->_requestParams['tracking_number'] = $this->getTrackingNumber();
-        $this->_requestParams['tracking_url'] = $this->getTackingUrl();
+        $this->_requestParams['tracking_url'] = $this->getTrackingUrl();
         return parent::query($this->_requestParams);
     }
 

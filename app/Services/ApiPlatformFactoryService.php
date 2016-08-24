@@ -58,13 +58,13 @@ class ApiPlatformFactoryService
 				$esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no."-01")->where('status', '=', '2')->first();
 				if($esgOrderShipment){
 					$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
-					/*if($response){
+					if($response){
 						$this->markSplitOrderShipped($esgOrder);
 						$this->markPlatformMarketOrderShipped($esgOrder);
-						if($bizType=="amazon"){
+						if($bizType=="Amazon"){
 							$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
 						}
-					}*/
+					}
 				}
 			}
 		}
