@@ -7,6 +7,7 @@ use App\Models\SellingPlatform;
 use App\Models\PlatformBizVar;
 use Carbon\Carbon;
 use Excel;
+use Illuminate\Http\Request;
 /**
 * 
 */
@@ -145,4 +146,45 @@ class PlatformMarketSkuMappingService
             $object
         );
 	}
+
+    public function exportLazadaPricingCsv( Request $request)
+    {   
+        if($request->input("all_marketplace")){
+             $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+            ->select('marketplace_sku_mapping.*','product.name as product_name')
+            ->where("marketplace_id" ,"like", "%LAZADA")
+            ->get();
+        }else{
+            $marketplaceId = $request->input("marketplace_id");
+            $countryCode = $request->input("country_code");
+            $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+            ->select('marketplace_sku_mapping.*','product.name as product_name')
+            ->where("marketplace_id" ,"=",$marketplaceId)
+            ->where("country_id" ,"=", $countryCode)
+            ->get();
+        }
+
+        $cellData[]=array('Marketplace','Country','ESG SKU','SellerSku','QTY','Price','SalePrice','SaleStartDate','SaleEndDate','Name');    
+        foreach($marketplaceSkuMapping as $mappingData){
+            $cellRow = array(
+                "marketplace_id" => $mappingData->marketplace_id,
+                "country_id" => $mappingData->country_id,
+                "sku" => $mappingData->sku,
+                "marketplace_sku" => $mappingData->marketplace_sku,
+                "inventory" => $mappingData->inventory,
+                "price" => round($mappingData->price * 1.3, 2),
+                "saleprice" => $mappingData->price,
+                "start_date" => date("Y-m-d"),
+                "end_date" => date("Y-m-d",strtotime("+4 year")),
+                "name" => $mappingData->product_name,
+            );
+           $cellData[]=$cellRow;
+        }
+        //Excel文件导出功能 By Laravel学院
+        Excel::create('LazadaPricingDetail',function($excel) use ($cellData){
+            $excel->sheet('LazadaPricing', function($sheet) use ($cellData){
+                $sheet->rows($cellData);
+            });
+        })->export('xls');
+    }
 }
