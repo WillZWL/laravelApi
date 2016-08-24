@@ -61,7 +61,7 @@ class ApiPlatformFactoryService
 					if($response){
 						$this->markSplitOrderShipped($esgOrder);
 						$this->markPlatformMarketOrderShipped($esgOrder);
-						if($bizType=="Amazon"){
+						if($bizType == "Amazon"){
 							$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
 						}
 					}

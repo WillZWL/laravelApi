@@ -115,7 +115,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                 $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
             }
         }
-        return $result === "OK" ? true :false;
+        return $result == "OK" ? true :false;
     }
 
     public function getPriceMinisterCourier($courier)
