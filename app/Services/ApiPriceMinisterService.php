@@ -121,27 +121,36 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
     public function getPriceMinisterCourier($courier)
     {
         switch ($courier) {
-            case 'DHL':
+            case 'dhl':
             case 'dhl-global-mail':
-                $courier=["transporter_name"=>$courier];
+                $priceMinisterCourier=array("transporter_name" => "DHL");
                 break;
-            case 'DPD NL':
-                $courier=["transporter_name"=>'DPD'];
+            case 'dpd':
+                $priceMinisterCourier=array("transporter_name" => 'DPD');
                 break;
             case 'dpd-uk':
-                $courier=["transporter_name"=>'DPD',"tracking_url"=>'https://www.deutschepost.de/sendung/simpleQueryResult.html'];
-                break;
-            case 'Deutsche Post':
-                $courier=["transporter_name"=>'Autre',"tracking_url"=>'https://www.aftership.com/'];
+                $priceMinisterCourier=array(
+                    "transporter_name" => 'DPD',
+                    "tracking_url"=>'https://www.deutschepost.de/sendung/simpleQueryResult.html'
+                    );
                 break;
             case 'chronopost-france':
-                $courier=["transporter_name"=>'CHRONOPOST',"tracking_url"=>'https://www.aftership.com/'];
+                $priceMinisterCourier=array(
+                    "transporter_name"=>'CHRONOPOST',
+                    "tracking_url"=>'http://www.chronopost.fr/en'
+                    );
                 break;
+            case 'tnt':
+                $priceMinisterCourier=array(
+                    "transporter_name"=>'TNT'
+                    );
+                break;
+                
             default:
                 # code...
                 break;
         }
-        return $courier;
+        return $priceMinisterCourier;
     }
 
     // update or insert data to databse
@@ -223,7 +232,6 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $object['county'] = (string)$deliveryInfo['country'];
         $object['country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
         $object['bill_country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
-
 
         $object['postal_code'] = $deliveryInfo['zipcode'];
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
