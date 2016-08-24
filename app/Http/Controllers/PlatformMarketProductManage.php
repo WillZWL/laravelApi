@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\ApiPlatformProductFactoryService;
 use App\Services\PlatformMarketSkuMappingService;
+use App\Models\MpControl;
 use Config;
 
 class  PlatformMarketProductManage extends Controller
@@ -68,5 +69,22 @@ class  PlatformMarketProductManage extends Controller
                 break;
         }
         return $stores;
+    }
+
+    public function exportLazadaPricingCsv(Request $request)
+    {
+       /* $data=array();
+        $marketplaceArr=MpControl::where("marketplace_id","like","%LAZADA")->get();
+        foreach($marketplaceArr as $marketplace){
+            $data[$marketplace->marketplace_id][] = $marketplace->country_id;
+        }*/
+        $allMarketplace = $request->input("all_marketplace");
+        $marketplace_id = $request->input("marketplace_id");
+        if($allMarketplace != "" || $marketplace_id != ""){
+            $platformMarketSkuMappingService = new PlatformMarketSkuMappingService();
+            $platformMarketSkuMappingService->exportLazadaPricingCsv($request);
+            //return redirect('platform-market/upload-mapping');
+        }
+        return response()->view('platform-manager.export-mapping'); 
     }
 }

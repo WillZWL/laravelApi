@@ -172,10 +172,9 @@ class ApiPlatformFactoryService
 
     private function markPlatformMarketOrderShipped($order)
     {
-    	$platformMarketOrder = PlatformMarketOrder::where('platform_order_no', '=', $order->platform_order_id)->get();
+    	$platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $order->platform_order_id)->first();
     	$platformMarketOrder->esg_order_status = 6;
     	$platformMarketOrder->save();
     }
-
     
 }
