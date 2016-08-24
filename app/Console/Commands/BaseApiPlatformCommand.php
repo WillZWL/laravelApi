@@ -9,7 +9,7 @@ use App;
 class BaseApiPlatformCommand extends Command
 {
 	
-	public  $platfromMakert=array('lazada','amazon');
+	public  $platfromMakert=array('lazada','priceminister');
 
 	public function __construct()
     {

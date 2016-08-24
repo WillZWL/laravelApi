@@ -6,100 +6,102 @@ use Config;
 
 class LazadaCore
 {
-  private $options;
-  private $storeCurrency;
-  protected $errorResponse = array();
+    private $options;
+    protected $mwsName = 'lazada-mws';
+    private $storeCurrency;
+    protected $errorResponse = array();
 
-  public function __construct($storeName)
-  {
-      $this->setConfig();
-      $this->setStore($storeName);
-  }
+    public function __construct($storeName)
+    {
+        $this->initMwsName();
+        $this->setConfig();
+        $this->setStore($storeName);
+    }
 
-  public function query($requestParams)
-  {
-      $signRequestParams = $this->signature($requestParams);
-      $xml = $this->curl($signRequestParams);
-      $data = $this->convert($xml);
+    public function query($requestParams)
+    {
+        $signRequestParams = $this->signature($requestParams);
+        $xml = $this->curl($signRequestParams);
+        $data = $this->convert($xml);
 
-      if(isset($data["Head"]) && isset($data["Head"]["ErrorCode"])) {
+        if(isset($data["Head"]) && isset($data["Head"]["ErrorCode"])) {
         $this->ErrorResponse = $data["Head"];
         return null;
-      }
-      return $this->prepare($data);
-  }
+        }
+        return $this->prepare($data);
+    }
 
-  public function curlPostDataToApi($requestParams,$xmlData)
-  {
-      $apiHeader=array(
+    public function curlPostDataToApi($requestParams,$xmlData)
+    {
+        $apiHeader=array(
           "headers"=>array(
             'Content-Type' =>'text/xml; charset=UTF8',
           ),
-      );
-      $signRequestParams = $this->signature($requestParams);
-      $queryString = http_build_query($signRequestParams, '', '&', PHP_QUERY_RFC3986);
-      $client = new \GuzzleHttp\Client($apiHeader);
-      $response=$client->request('POST', $this->urlbase . "?" . $queryString, ['body' => $xmlData]);
-      $returnContent=$response->getBody()->getContents();
-      return $returnContent;
-  }
+        );
+        $signRequestParams = $this->signature($requestParams);
+        $queryString = http_build_query($signRequestParams, '', '&', PHP_QUERY_RFC3986);
+        $client = new \GuzzleHttp\Client($apiHeader);
+        $response=$client->request('POST', $this->urlbase . "?" . $queryString, ['body' => $xmlData]);
+        $returnContent=$response->getBody()->getContents();
+        return $returnContent;
+    }
 
     /**
      * Return error message for last API call
      * @return string
      */
-  public function errorMessage()
-  {
-      if (isset($this->ErrorResponse) && is_array($this->ErrorResponse) && isset($this->ErrorResponse["ErrorCode"])) {
-        return $this->ErrorResponse["ErrorMessage"];
-      }
-      return "";
-  }
+    public function errorMessage()
+    {
+        if (isset($this->ErrorResponse) && is_array($this->ErrorResponse) && isset($this->ErrorResponse["ErrorCode"])) {
+            return $this->ErrorResponse["ErrorMessage"];
+        }
+        return "";
+    }
 
-  /**
-   * Return error code for last API call.
-   * Return integer number
-   * @return string
-   */
-  public function errorCode()
-  {
+    /**
+    * Return error code for last API call.
+    * Return integer number
+    * @return string
+    */
+    public function errorCode()
+    {
       if (isset($this->ErrorResponse) && is_array($this->ErrorResponse) && isset($this->ErrorResponse["ErrorCode"])) {
         return $this->ErrorResponse["ErrorCode"];
       }
       return "";
-  }
-  /**
-   * Extract data from response array
-   * @param array $data
-   * @return null|array
-   */
-  protected function prepare($data = array())
-  {
+    }
+    /**
+    * Extract data from response array
+    * @param array $data
+    * @return null|array
+    */
+    protected function prepare($data = array())
+    {
       if (isset($data["Body"])) {
         return $data["Body"];
       } else {
         return null;
       }
-  }
+    }
 
-  /**
-   * Fix issue with single result in response
-   * @param array $arr
-   * @return array
-   */
-  protected function fix($arr = array())
-  {
+    /**
+    * Fix issue with single result in response
+    * @param array $arr
+    * @return array
+    */
+    protected function fix($arr = array())
+    {
       if (isset($arr[0])) {
         return $arr;
       }
       return array(0 => $arr);
-  }
-  /**
-   * Init common params
-   * @return array
-   */
-  protected function initRequestParams()
-  {
+    }
+    /**
+    * Init common params
+    * @return array
+    */
+    protected function initRequestParams()
+    {
       $now = new \DateTime();
       $requestParams=array(
           "UserID"=> $this->options["userId"],
@@ -108,30 +110,30 @@ class LazadaCore
           "Timestamp"=> $now->format(\DateTime::ISO8601)
       );
       return $requestParams;
-  }
+    }
 
-  /**
-   * Sign request parameters
-   * @param $params array
-   * @return array
-   */
-  private function signature($params)
-  {
+    /**
+    * Sign request parameters
+    * @param $params array
+    * @return array
+    */
+    private function signature($params)
+    {
       ksort($params);
       $strToSign = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
       $signature = rawurlencode(hash_hmac('sha256', $strToSign, $this->options['apiToken'], false));
       $params['Signature'] = $signature;
       return $params;
-  }
+    }
 
-  /**
-   * Make request to API url
-   * @param $params array
-   * @param $info array - reference for curl status info
-   * @return string
-   */
-  private function curl($params, &$info = array())
-  {
+    /**
+    * Make request to API url
+    * @param $params array
+    * @param $info array - reference for curl status info
+    * @return string
+    */
+    private function curl($params, &$info = array())
+    {
       $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
       // Open Curl connection
       $ch = curl_init();
@@ -142,15 +144,15 @@ class LazadaCore
       $info = curl_getinfo($ch);
       curl_close($ch);
       return $data;
-  }
+    }
 
-  /**
-   * Convert response XML to associative array
-   * @param $xml string
-   * @return array
-   */
-  private function convert($xml)
-  {
+    /**
+    * Convert response XML to associative array
+    * @param $xml string
+    * @return array
+    */
+    private function convert($xml)
+    {
       if ($xml != "") {
         $obj = simplexml_load_string($xml);
         $array = json_decode(json_encode($obj), true);
@@ -160,15 +162,15 @@ class LazadaCore
         }
       }
       return null;
-  }
+    }
 
-  /**
-   * Clear array after convert. Remove empty arrays and change to string
-   * @param $arr array
-   * @return array
-   */
-  private function sanitize($arr)
-  {
+    /**
+    * Clear array after convert. Remove empty arrays and change to string
+    * @param $arr array
+    * @return array
+    */
+    private function sanitize($arr)
+    {
       foreach($arr AS $k => $v) {
         if (is_array($v)) {
           if (count($v) > 0) {
@@ -181,19 +183,19 @@ class LazadaCore
       return $arr;
     }
 
-  public function setConfig()
-  {
-      $lazadaServiceUrl = Config::get('lazada-mws.LAZADA_SERVICE_URL');
+    public function setConfig()
+    {
+      $lazadaServiceUrl = Config::get($this->mwsName.'.LAZADA_SERVICE_URL');
       if (isset($lazadaServiceUrl)) {
           $this->urlbase = $lazadaServiceUrl;
       } else {
           throw new Exception("Config file does not exist or cannot be read!");
       }
-  }
+    }
 
-  public function setStore($s)
-  {
-      $store = Config::get('lazada-mws.store');
+    public function setStore($s)
+    {
+      $store = Config::get($this->mwsName.'.store');
       if (array_key_exists($s, $store)) {
           $this->storeName = $s;
           if (array_key_exists('userId', $store[$s])) {
@@ -217,10 +219,20 @@ class LazadaCore
           throw new \Exception("Store $s does not exist!");
           $this->log("Store $s does not exist!", 'Warning');
       }
-  }
+    }
 
-  public function  getStoreCurrency()
-  {
-      return $this->storeCurrency;
-  }
+    public function  getStoreCurrency()
+    {
+        return $this->storeCurrency;
+    }
+    //ADD SANDBOX FUNCTION
+    private function initMwsName()
+    {
+        $sandbox = 'sandbox.'.$this->mwsName;
+        if(empty(Config::get($sandbox)))
+        return;
+        if(\App::environment('local') && env('APP_DEBUG')){
+           $this->mwsName=$sandbox;
+        }
+    }
 }

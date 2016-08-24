@@ -12,7 +12,7 @@ use Illuminate\Support\Arr;
 use App\Repository\PriceMinisterMws\PriceMinisterOrder;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderList;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderItemList;
-// use App\Repository\PriceMinisterMws\PriceMinisterOrderStatus;
+use App\Repository\PriceMinisterMws\PriceMinisterOrderTracking;
 
 
 class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInterface
@@ -100,7 +100,58 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
+        $storeName=$platformOrderIdList[$esgOrder->platform_order_id];
+        $itemIds=$esgOrder->soItem->pluck("ext_item_cd");
+        foreach($itemIds as $itemId){
+            if ($esgOrderShipment) {
+                $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
+                $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
+                $this->priceMinisterOrderTracking->setItemId($itemId);
+                $this->priceMinisterOrderTracking->setTransporterName($courier["transporter_name"]);
+                $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
+                if(isset($courier["tracking_url"]))
+                $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
+                //print_r($this->priceMinisterOrderTracking);exit();
+                $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                $this->saveDataToFile($result, "setTrackingPackageInfo");
+            }
+        }
+        return $result == "OK" ? true :false;
+    }
 
+    public function getPriceMinisterCourier($courier)
+    {
+        switch ($courier) {
+            case 'dhl':
+            case 'dhl-global-mail':
+                $priceMinisterCourier=array("transporter_name" => "DHL");
+                break;
+            case 'dpd':
+                $priceMinisterCourier=array("transporter_name" => 'DPD');
+                break;
+            case 'dpd-uk':
+                $priceMinisterCourier=array(
+                    "transporter_name" => 'DPD',
+                    "tracking_url"=>'https://www.deutschepost.de/sendung/simpleQueryResult.html'
+                    );
+                break;
+            case 'chronopost-france':
+                $priceMinisterCourier=array(
+                    "transporter_name"=>'CHRONOPOST',
+                    "tracking_url"=>'http://www.chronopost.fr/en'
+                    );
+                break;
+            case 'tnt':
+                $priceMinisterCourier=array(
+                    "transporter_name"=>'TNT'
+                    );
+                break;
+                
+            default:
+                # code...
+                break;
+        }
+        return $priceMinisterCourier;
     }
 
     // update or insert data to databse
@@ -182,7 +233,6 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $object['county'] = (string)$deliveryInfo['country'];
         $object['country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
         $object['bill_country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
-
 
         $object['postal_code'] = $deliveryInfo['zipcode'];
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(

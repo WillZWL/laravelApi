@@ -17,6 +17,7 @@ class PriceMinisterCore extends CommonMws
 
     public function __construct($storeName)
     {
+        $this->initMwsName();
         parent::__construct();
         $this->setStore($storeName);
     }
@@ -110,5 +111,16 @@ class PriceMinisterCore extends CommonMws
     {
         ksort($params);
         return $params;
+    }
+
+    //ADD SANDBOX FUNCTION
+    private function initMwsName()
+    {
+        $sandbox = 'sandbox.'.$this->mwsName;
+        if(empty(Config::get($sandbox)))
+        return;
+        if(\App::environment('local') && env('APP_DEBUG')){
+           $this->mwsName=$sandbox;
+        }
     }
 }

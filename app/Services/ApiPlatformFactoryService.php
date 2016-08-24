@@ -48,8 +48,9 @@ class ApiPlatformFactoryService
 		return $this->apiPlatformInterface->getOrderItemList($storeName,$orderId);
 	}
 	
-	public function submitOrderFufillment($bizType)
+	public function submitOrderFufillment($apiName)
 	{
+		$bizType=$this->apiPlatformInterface->getPlatformId($apiName);
 		$platformOrderIdList=$this->getPlatformOrderIdList($bizType);
         $esgOrders=$this->getEsgOrders($platformOrderIdList);
 		if($esgOrders){
@@ -59,7 +60,8 @@ class ApiPlatformFactoryService
 					$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
 					if($response){
 						$this->markSplitOrderShipped($esgOrder);
-						if($bizType=="amazon"){
+						$this->markPlatformMarketOrderShipped($esgOrder);
+						if($bizType == "Amazon"){
 							$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
 						}
 					}
@@ -141,8 +143,8 @@ class ApiPlatformFactoryService
 	            ->select('platform_market_order.*')
 	            ->get();
 				break;
-			case 'lazada':
-				$platformOrderList = PlatformMarketOrder::lazadaUnshippedOrder();
+			default:
+				$platformOrderList = PlatformMarketOrder::unshippedOrder()->where('biz_type',"=",$bizType)->get();
 				break;
 		}
         $platformOrderIdList = $platformOrderList->pluck('platform', 'platform_order_no')->toArray();
@@ -151,7 +153,6 @@ class ApiPlatformFactoryService
 
 	private function getEsgOrders($platformOrderIdList)
 	{
-
 		return $esgOrders = So::whereIn('platform_order_id', array_keys($platformOrderIdList))
 	        ->where('platform_group_order', '=', '1')
 	        ->where('status', '=', '6')
@@ -167,6 +168,13 @@ class ApiPlatformFactoryService
             $splitOrder->status = 6;
             $splitOrder->save();
         });
+    }
+
+    private function markPlatformMarketOrderShipped($order)
+    {
+    	$platformMarketOrder = PlatformMarketOrder::where('platform_order_no', '=', $order->platform_order_id)->get();
+    	$platformMarketOrder->esg_order_status = 6;
+    	$platformMarketOrder->save();
     }
 
     
