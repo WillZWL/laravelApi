@@ -59,6 +59,7 @@ class ApiPlatformFactoryService
 					$response=$this->apiPlatformInterface->submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList);
 					if($response){
 						$this->markSplitOrderShipped($esgOrder);
+						$this->markPlatformMarketOrderShipped($esgOrder);
 						if($bizType=="amazon"){
 							$this->updateOrCreatePlatformOrderFeed($esgOrder,$platformOrderIdList,$response);
 						}
@@ -167,6 +168,13 @@ class ApiPlatformFactoryService
             $splitOrder->status = 6;
             $splitOrder->save();
         });
+    }
+
+    private function markPlatformMarketOrderShipped($order)
+    {
+    	$order = PlatformMarketOrder::where('platform_order_id', '=', $order->platform_order_id)->get();
+    	$order->esg_order_status = 6;
+    	$order->save();
     }
 
     

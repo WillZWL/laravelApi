@@ -44,9 +44,9 @@ class Kernel extends ConsoleKernel
             ->dailyAt('01:00');
 
         $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
-            ->dailyAt('10:45');
+            ->dailyAt('02:45');
         $schedule->command('platformMarket:orderTransfer')
-            ->dailyAt('11:00');
+            ->dailyAt('03:00');
 
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
