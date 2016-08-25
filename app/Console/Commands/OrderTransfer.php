@@ -151,7 +151,7 @@ class OrderTransfer extends Command
         }
 
         // check selling platform is exist or not.
-        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function($item) use ($amazonAccount, $countryCode) {
+        $sellingPlatformId = $merchantProductMapping->pluck('short_id')->map(function ($item) use ($amazonAccount, $countryCode) {
             return 'AC-'.$amazonAccount.'AZ-'.$item.$countryCode;
         })->toArray();
         $platformIdFromDB = PlatformBizVar::whereIn('selling_platform_id', $sellingPlatformId)
@@ -171,7 +171,7 @@ class OrderTransfer extends Command
 
         // check sku delivery type.
         $notHaveDeliveryTypeSku = $marketplaceSkuMapping->where('delivery_type', '');
-        if ( ! $notHaveDeliveryTypeSku->isEmpty()) {
+        if (! $notHaveDeliveryTypeSku->isEmpty()) {
             $notHaveDeliveryTypeSku->load('product');
             $subject = "[{$amazonAccountName}] Delivery Type Missing - Amazon Order Import Failed!";
             $message = "MarketPlace: {$order->platform}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
@@ -231,7 +231,6 @@ class OrderTransfer extends Command
 
         $merchant = [];
         foreach ($order->amazonOrderItem as $item) {
-
             $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
                 ->where('marketplace_id', '=', $marketplaceId)
                 ->where('country_id', '=', $countryCode)
@@ -259,11 +258,6 @@ class OrderTransfer extends Command
             $so->platform_id = 'AC-'.$amazonAccount.'AZ-'.$merchantShortId.$countryCode;
             $so->platform_group_order = 0;
 
-            $spIncoterm = SpIncoterm::wherePlatformId($so->platform_id)->whereDeliveryTypeId($so->delivery_type_id)->first();
-            if ($spIncoterm) {
-                $so->incoterm = $spIncoterm->incoterm;
-            }
-
             // Decide delivery type here.
             if ($order->fulfillment_channel === 'MFN') {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
@@ -277,7 +271,13 @@ class OrderTransfer extends Command
                 }
             }
 
+            // must after get correct delivery type id.
+            $spIncoterm = SpIncoterm::wherePlatformId($so->platform_id)->whereDeliveryTypeId($so->delivery_type_id)->first();
+            if ($spIncoterm) {
+                $so->incoterm = $spIncoterm->incoterm;
+            }
             $so->save();
+
             $this->saveSoItem($so, $items);
             $this->saveSoItemDetail($so, $items);
             $this->saveSoPaymentStatus($so);
@@ -482,7 +482,7 @@ class OrderTransfer extends Command
         $skuQty = $orderItems->pluck('quantity_ordered', 'seller_sku')->toArray();
         $skuWeight = Product::whereIn('sku', array_keys($skuQty))->get()->pluck('weight', 'sku');
 
-        $totalWeight = $skuWeight->map(function($weight, $sku) use ($skuQty) {
+        $totalWeight = $skuWeight->map(function ($weight, $sku) use ($skuQty) {
             return $skuQty[$sku] * $weight;
         })->sum();
 
@@ -494,7 +494,7 @@ class OrderTransfer extends Command
         $merchantShortId = substr(last(explode('-', $order->platform_id)), 0, -2);
         $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
 
-        if ( ! $availableQuotation->isEmpty()) {
+        if (! $availableQuotation->isEmpty()) {
             switch ($order->delivery_type_id) {
                 case 'FBA':
                     $quotationType = ['acc_fba'];
@@ -502,7 +502,7 @@ class OrderTransfer extends Command
 
                 case 'STD':
                     // see sbf 8255.
-                    if ( ! $order->hasExternalBattery() && $order->hasInternalBattery())  {
+                    if (! $order->hasExternalBattery() && $order->hasInternalBattery()) {
                         $quotationType = ['acc_builtin_postage'];
                     } else {
                         $quotationType = ['acc_builtin_postage', 'acc_external_postage'];
@@ -521,7 +521,7 @@ class OrderTransfer extends Command
                     $quotationType = ['acc_mcf'];
                     break;
 
-                default :
+                default:
                     $quotationType = [];
                     break;
             }
@@ -633,7 +633,7 @@ class OrderTransfer extends Command
             ->where('dest_country_id', '=', $order->delivery_country_id)
             ->get();
 
-        if ( ! $complementaryAccessory->isEmpty()) {
+        if (! $complementaryAccessory->isEmpty()) {
             $order->load('soItem');
             $lineNumber = count($order->soItem) + 1;
             foreach ($complementaryAccessory as $item) {
@@ -655,7 +655,7 @@ class OrderTransfer extends Command
                 $soItemDetail->line_no = $lineNumber;
                 $soItemDetail->item_sku = $item->accessory_sku;
                 $soItemDetail->qty = $skuInOrder[$item->mainprod_sku];
-                $soItemDetail->outstanding_qty = $skuInOrder[$item->mainprod_sku];;
+                $soItemDetail->outstanding_qty = $skuInOrder[$item->mainprod_sku];
                 $soItemDetail->unit_price = 0;
                 $soItemDetail->vat_total = 0;
                 $soItemDetail->amount = 0;
@@ -675,7 +675,7 @@ class OrderTransfer extends Command
             ->where('is_replace_main_sku', '=', '0')
             ->get();
 
-        if ( ! $assemblyMapping->isEmpty()) {
+        if (! $assemblyMapping->isEmpty()) {
             $order->load('soItem');
             $lineNumber = $order->soItem->max('line_no') + 1;
             foreach ($assemblyMapping as $item) {
