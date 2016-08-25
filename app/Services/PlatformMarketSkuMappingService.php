@@ -149,19 +149,20 @@ class PlatformMarketSkuMappingService
 
     public function exportLazadaPricingCsv( Request $request)
     {   
+        $marketplaceQuery = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+            ->select('marketplace_sku_mapping.*','product.name as product_name');
+        $countryCode = $request->input("country_code");
         if($request->input("all_marketplace")){
-             $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
-            ->select('marketplace_sku_mapping.*','product.name as product_name')
-            ->where("marketplace_id" ,"like", "%LAZADA")
-            ->get();
+            $marketplaceSkuMapping=$marketplaceQuery->where("marketplace_id" ,"like", "%LAZADA")->get();
+        }else if(empty($countryCode)){
+            $marketplaceId = $request->input("marketplace_id");
+            $marketplaceSkuMapping = $marketplaceQuery->where("marketplace_id" ,"=",$marketplaceId)
+                ->get();
         }else{
             $marketplaceId = $request->input("marketplace_id");
-            $countryCode = $request->input("country_code");
-            $marketplaceSkuMapping = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
-            ->select('marketplace_sku_mapping.*','product.name as product_name')
-            ->where("marketplace_id" ,"=",$marketplaceId)
-            ->where("country_id" ,"=", $countryCode)
-            ->get();
+            $marketplaceSkuMapping = $marketplaceQuery->where("marketplace_id" ,"=",$marketplaceId)
+                ->where("country_id" ,"=",$countryCode)
+                ->get();
         }
 
         $cellData[]=array('Marketplace','Country','ESG SKU','SellerSku','QTY','Price','SalePrice','SaleStartDate','SaleEndDate','Name');    
