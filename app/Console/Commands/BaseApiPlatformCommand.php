@@ -1,15 +1,16 @@
-<?php 
+<?php
+
 namespace App\Console\Commands;
 /**
-* 
+*
 */
 use Illuminate\Console\Command;
 use App;
 
 class BaseApiPlatformCommand extends Command
 {
-	
-	public  $platfromMakert=array('lazada','priceminister');
+
+	public  $platfromMakert = array('lazada','priceminister', 'fnac');
 
 	public function __construct()
     {
@@ -17,7 +18,7 @@ class BaseApiPlatformCommand extends Command
     }
 
 	public function getApiPlatformFactoryService($apiName)
-    { 
+    {
        return App::make('App\Services\ApiPlatformFactoryService',array("apiName"=>$apiName));
     }
 }
