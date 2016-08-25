@@ -26,12 +26,27 @@
   </div>
 @endsection
 @section('content')
-
-<div id="sku-listing-info">
+  <?php
+          $lang = [
+              'A' => 'Readily Available',
+              'C' => 'Stock Constraint',
+              'O' => 'Temp Out Of Stock',
+              'L' => 'Last Lot',
+              'D' => 'Discontinued',
+          ];
+    ?>
+  <div id="sku-listing-info">
   <div class="row">
     <div class="col-sm-12">
       @if( $selectedSku = $skuList->where('marketplace_sku', old('marketplaceSku'))->pop())
-        <h5>ESG SKU : {{ $selectedSku->sku }}  |  Product Name : {{ $selectedSku->name }}</h5>
+        <p>
+          ESG SKU : <span class="text-danger">{{ $selectedSku->sku}} </span> |
+          Product Name : <span class="text-danger">{{ $selectedSku->name }}</span>
+        </p>
+        <p>
+          Supplier Name : <span class="text-danger"> {{ $selectedSku->product->supplierProduct()->supplier->name }} </span> |
+          Supply Status : <span class="text-danger"> {{ $lang[$selectedSku->product->supplierProduct()->supplier_status] }}</span>
+        </p>
       @endif
     </div>
   </div>
