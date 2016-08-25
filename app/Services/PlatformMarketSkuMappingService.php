@@ -181,11 +181,11 @@ class PlatformMarketSkuMappingService
             );
            $cellData[]=$cellRow;
         }
-        //Excel文件导出功能 By Laravel学院
+        //Excel文件导出功能 
         Excel::create('LazadaPricingDetail',function($excel) use ($cellData){
             $excel->sheet('LazadaPricing', function($sheet) use ($cellData){
                 $sheet->rows($cellData);
             });
-        })->export('xls');
+        })->export('csv');
     }
 }

@@ -668,6 +668,7 @@ class PlatformMarketOrderTransfer
             if(isset($gourpOrderItems[$orderItem->seller_sku])){
                 $gourpOrderItems[$orderItem->seller_sku]->quantity_ordered += $orderItem->quantity_ordered;
                 $gourpOrderItems[$orderItem->seller_sku]->order_item_id.="||".$orderItem->order_item_id;
+                $gourpOrderItems[$orderItem->seller_sku]->item_price += $orderItem->item_price;
             }else{
                 $gourpOrderItems[$orderItem->seller_sku]=$orderItem;
             }
