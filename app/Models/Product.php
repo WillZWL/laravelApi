@@ -45,7 +45,6 @@ class Product extends Model
 
     public function supplierProduct()
     {
-        return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1);
-
+        return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1)->first();
     }
 }

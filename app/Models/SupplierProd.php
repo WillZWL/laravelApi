@@ -20,4 +20,9 @@ class SupplierProd extends Model
     {
         return $this->belongsTo('App\Models\Product', 'sku', 'prod_sku');
     }
+
+    public function supplier()
+    {
+        return $this->belongsTo('App\Models\Supplier', 'supplier_id', 'id');
+    }
 }
