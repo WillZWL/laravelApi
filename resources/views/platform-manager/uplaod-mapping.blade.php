@@ -15,6 +15,11 @@
 					<option value="">select platform</option>
 					<option value="lazada">LAZADA</option>
 					<option value="priceminister">PriceMinister</option>
+					<option value="newegg">NEWEGG</option>
+					<option value="fnac">FNAC</option>
+					<option value="qoo10">QOO10</option>
+					<option value="tanga">TANGA</option>
+					<option value="linio">LINIO</option>
 				</select>
 			</div>
 			<input type="hidden" name="_token" value="{{ csrf_token() }}">

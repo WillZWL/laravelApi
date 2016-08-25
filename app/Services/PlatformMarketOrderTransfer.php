@@ -128,7 +128,8 @@ class PlatformMarketOrderTransfer
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
-        $so = $this->createOrder($order, $order->platformMarketOrderItem);
+        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem);
+        $so = $this->createOrder($order, $_orderItem);
 
         $countryCode = strtoupper(substr($order->platform, -2));
         $so->platform_id = 'AC-'.$platformAccount.$this->platformGroup[$order->biz_type].'-GROUP'.$countryCode;
@@ -141,8 +142,8 @@ class PlatformMarketOrderTransfer
         $so->incoterm = $splitOrder->incoterm;
         $so->save();
 
-        $this->saveSoItem($so, $order->platformMarketOrderItem);
-        $this->saveSoItemDetail($so, $order->platformMarketOrderItem);
+        $this->saveSoItem($so, $_orderItem);
+        $this->saveSoItemDetail($so, $_orderItem);
         $this->saveSoPaymentStatus($so,$order);
         $this->saveSoExtend($so, $order);
         $this->addAssemblyProduct($so);
@@ -158,7 +159,8 @@ class PlatformMarketOrderTransfer
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
-        foreach ($order->platformMarketOrderItem as $item) {
+        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem);
+        foreach ($_orderItem as $item) {
 
             $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
                 ->where('marketplace_id', '=', $marketplaceId)
@@ -321,14 +323,12 @@ class PlatformMarketOrderTransfer
         }else{
             $newOrder->bill_country_id = $order->platformMarketShippingAddress->country_code;
         }
-
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
         $newOrder->save();
 
         return $newOrder;
     }
-
 
     /**
      * @param So $so
@@ -337,8 +337,7 @@ class PlatformMarketOrderTransfer
     private function saveSoItem(So $so, Collection $orderItem)
     {
         $lineNumber = 1;
-        $_orderItem = $this->groupPlatformMarketOrderItem($orderItem);
-        foreach ($_orderItem as $item) {
+        foreach ($orderItem as $item) {
             $newOrderItem = new SoItem;
             $newOrderItem->so_no = $so->so_no;
             $newOrderItem->line_no = $lineNumber++;
@@ -507,11 +506,9 @@ class PlatformMarketOrderTransfer
                     }
                 }
             }
-
             if (empty($quotation)) {
                 return false;
             }
-
             $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
             $order->esg_quotation_courier_id = $quotation->courier_id;
             $order->esg_delivery_cost = $quotation->cost * $currencyRate;
@@ -663,7 +660,7 @@ class PlatformMarketOrderTransfer
 
     public function groupPlatformMarketOrderItem($orderItems)
     {
-        $gourpOrderItems=array();
+        $gourpOrderItems = new Collection();
         foreach($orderItems as $orderItem){
             if(isset($gourpOrderItems[$orderItem->seller_sku])){
                 $gourpOrderItems[$orderItem->seller_sku]->quantity_ordered += $orderItem->quantity_ordered;

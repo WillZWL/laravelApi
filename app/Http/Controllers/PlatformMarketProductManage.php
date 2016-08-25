@@ -57,18 +57,7 @@ class  PlatformMarketProductManage extends Controller
 
     public function getStores($bizType)
     {
-        switch ($bizType) {
-            case 'amazon':
-                $stores = Config::get('amazon-mws.store');
-                break;
-            case 'lazada':
-                $stores = Config::get('lazada-mws.store');
-                break;
-            case 'priceminister':
-                $stores = Config::get('priceminister-mws.store');
-                break;
-        }
-        return $stores;
+        return Config::get($bizType.'-mws.store');
     }
 
     public function exportLazadaPricingCsv(Request $request)
