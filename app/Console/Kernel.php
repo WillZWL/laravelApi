@@ -38,18 +38,30 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')
         //          ->hourly();
         $schedule->command('order:retrieve')
-            ->dailyAt('0:50');
+            ->dailyAt('23:50');
+        $schedule->command('order:retrieve')
+            ->dailyAt('01:50');
+        $schedule->command('order:retrieve')
+            ->dailyAt('08:50');
 
         $schedule->command('order:transfer')
-            ->dailyAt('01:00');
+            ->dailyAt('00:00');
+        $schedule->command('order:transfer')
+            ->dailyAt('02:00');
+        $schedule->command('order:transfer')
+            ->dailyAt('09:00');
 
+        $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
+            ->dailyAt('00:45');
         $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
             ->dailyAt('02:45');
-        $schedule->command('platformMarket:orderTransfer')
-            ->dailyAt('02:55');
-
         $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
             ->dailyAt('10:45');
+
+        $schedule->command('platformMarket:orderTransfer')
+            ->dailyAt('00:55');
+        $schedule->command('platformMarket:orderTransfer')
+            ->dailyAt('02:55');
         $schedule->command('platformMarket:orderTransfer')
             ->dailyAt('10:55');
 
@@ -69,5 +81,6 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('feed:check')
             ->everyThirtyMinutes();
+        
     }
 }

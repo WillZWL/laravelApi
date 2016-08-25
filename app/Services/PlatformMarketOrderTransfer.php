@@ -80,6 +80,7 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
+                        print_r($order->biz_type.' order import - Exception'.$e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());exit();
                         mail('jimmy.gao@eservicesgroup.com',$order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                     }
                 }
@@ -128,7 +129,9 @@ class PlatformMarketOrderTransfer
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
-        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem);
+
+        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem()->get(),$marketplaceId,$countryCode);
+
         $so = $this->createOrder($order, $_orderItem);
 
         $countryCode = strtoupper(substr($order->platform, -2));
@@ -159,22 +162,17 @@ class PlatformMarketOrderTransfer
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
-        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem);
+        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem()->get(),$marketplaceId,$countryCode);
         foreach ($_orderItem as $item) {
-
-            $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $item->seller_sku)
-                ->where('marketplace_id', '=', $marketplaceId)
-                ->where('country_id', '=', $countryCode)
-                ->firstOrFail();
             $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
-                ->where('sku', '=', $mapping->sku)
+                ->where('sku', '=', $item->mapping->sku)
                 ->firstOrFail();
             // group items by merchant (short id).
             if (!array_key_exists($merchantProductMapping->short_id, $merchant)) {
                 $merchant[$merchantProductMapping->short_id] = new Collection();
             }
-            $item->seller_sku = $mapping->sku;
-            $item->mapping = $mapping;
+            $item->seller_sku = $item->mapping->sku;
+            //$item->mapping = $mapping;
             $merchant[$merchantProductMapping->short_id]->add($item);
         }
 
@@ -658,8 +656,8 @@ class PlatformMarketOrderTransfer
         }
     }
 
-    public function groupPlatformMarketOrderItem($orderItems)
-    {
+    public function groupPlatformMarketOrderItem($orderItems,$marketplaceId,$countryCode)
+    {   
         $gourpOrderItems = new Collection();
         foreach($orderItems as $orderItem){
             if(isset($gourpOrderItems[$orderItem->seller_sku])){
@@ -669,6 +667,11 @@ class PlatformMarketOrderTransfer
             }else{
                 $gourpOrderItems[$orderItem->seller_sku]=$orderItem;
             }
+            $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $orderItem->seller_sku)
+                ->where('marketplace_id', '=', $marketplaceId)
+                ->where('country_id', '=', $countryCode)
+                ->firstOrFail();
+            $gourpOrderItems[$orderItem->seller_sku]->mapping= $mapping;
         }
         return $gourpOrderItems;
     }
