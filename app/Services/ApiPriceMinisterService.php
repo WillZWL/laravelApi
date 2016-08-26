@@ -105,7 +105,7 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         foreach($extItemCd as $extItem){
             $itemIds = explode("||",$extItem);
             foreach($itemIds as $itemId){
-                if ($esgOrderShipment) {
+                if ($esgOrderShipment && $itemId) {
                     $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
                     $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
                     $this->priceMinisterOrderTracking->setItemId($itemId);
