@@ -2,13 +2,18 @@
 
 namespace App\Repository\LazadaMws;
 
-class LazadaDocument extends LazadaOrderCore
+class LazadaMultipleOrderItems extends LazadaOrderCore
 {
     private $orderIdList;
 
     public function __construct($store) 
     {
         parent::__construct($store);
+    }
+
+    public function fetchMultipleOrderItems()
+    {
+      return parent::query($this->getRequestParams());
     }
 
     protected  function getRequestParams()

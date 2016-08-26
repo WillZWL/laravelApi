@@ -101,19 +101,22 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
         $storeName=$platformOrderIdList[$esgOrder->platform_order_id];
-        $itemIds=$esgOrder->soItem->pluck("ext_item_cd");
-        foreach($itemIds as $itemId){
-            if ($esgOrderShipment) {
-                $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
-                $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
-                $this->priceMinisterOrderTracking->setItemId($itemId);
-                $this->priceMinisterOrderTracking->setTransporterName($courier["transporter_name"]);
-                $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
-                if(isset($courier["tracking_url"]))
-                $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
-                //print_r($this->priceMinisterOrderTracking);exit();
-                $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
-                $this->saveDataToFile($result, "setTrackingPackageInfo");
+        $extItemCd=$esgOrder->soItem->pluck("ext_item_cd");
+        foreach($extItemCd as $extItem){
+            $itemIds = explode("||",$extItem);
+            foreach($itemIds as $itemId){
+                if ($esgOrderShipment && $itemId) {
+                    $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
+                    $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
+                    $this->priceMinisterOrderTracking->setItemId($itemId);
+                    $this->priceMinisterOrderTracking->setTransporterName($courier["transporter_name"]);
+                    $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
+                    if(isset($courier["tracking_url"]))
+                    $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
+                    //print_r($this->priceMinisterOrderTracking);exit();
+                    $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                    $this->saveDataToFile($result, "setTrackingPackageInfo");
+                }
             }
         }
         return $result == "OK" ? true :false;

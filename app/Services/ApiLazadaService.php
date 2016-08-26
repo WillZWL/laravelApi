@@ -13,6 +13,9 @@ use App\Repository\LazadaMws\LazadaOrder;
 use App\Repository\LazadaMws\LazadaOrderList;
 use App\Repository\LazadaMws\LazadaOrderItemList;
 use App\Repository\LazadaMws\LazadaOrderStatus;
+use App\Repository\LazadaMws\LazadaDocument;
+use App\Repository\LazadaMws\LazadaShipmentProviders;
+use App\Repository\LazadaMws\LazadaMultipleOrderItems;
 
 class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 {
@@ -69,7 +72,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function getOrderItemList($storeName,$orderId)
 	{
-		$this->lazadaOrderItemList=new LazadaOrderItemList($storeName);
+		$this->lazadaOrderItemList = new LazadaOrderItemList($storeName);
 		$this->lazadaOrderItemList->setOrderId($orderId);
 		$orginOrderItemList=$this->lazadaOrderItemList->fetchOrderItemList();
 		$this->saveDataToFile(serialize($orginOrderItemList),"getOrderItemList");
@@ -79,7 +82,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	public function getProductList()
 	{
 		if(!isset($this->lazadaProductList)){
-			$this->lazadaProductList=new LazadaProductList($storeName);
+			$this->lazadaProductList = new LazadaProductList($storeName);
 		}
 		$this->lazadaProductList->setUpdatedAfter(date(\DateTime::ISO8601, strtotime( '-1 days' )));
 		$orginProductList=$this->lazadaProductList->fetchProductList();
@@ -88,28 +91,46 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	}
 
 	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
-	{
-		/*$storeName=$platformOrderIdList[$esgOrder->platform_order_id];
-		$orderItemIds=array();
-		$itemIds=$esgOrder->soItem->pluck("ext_item_cd");
-		foreach($itemIds as $itemId){
-			$itemIdArr=explode("||",$itemId);
-			$orderItemIds[]=$itemIdArr;
-		}
-        if ($esgOrderShipment) {
-            $this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
-			$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
-			$this->lazadaOrderStatus->setDeliveryType("dropship");
-			$this->lazadaOrderStatus->setShippingProvider($esgOrderShipment->courierInfo->courier_name);
-			$result=$this->lazadaOrderStatus->setStatusToReadyToShip();
-			$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
-	       	if ($result === false) {
-               return false;
-            } else {
-               return $result;
+	{  
+        return false;//testing
+		$storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+		$orderItemIds = array();
+		$extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
+        foreach($extItemCd as $extItem){
+            $itemIds = explode("||",$extItem);
+            foreach($itemIds as $itemId){
+                $orderItemIds[] = $itemId;
             }
-        }*/
+        }
+        //$shipmentProviders = $this->getShipmentProviders($storeName);
+        $countryCode = strtoupper(substr($storeName, -2));
+        $shipmentProvider = $this->getEsgShippingProvider($countryCode);
+        if ($esgOrderShipment) {
+            $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId,$shipmentProvider);
+            if($marketplacePacked){
+                //valid orderItem trackingNumber 
+                foreach($marketplacePacked as $packed){
+                   $shippingObject[$packed["TrackingNumber"]]["OrderItemId"][] = $packed["OrderItemId"];
+                   $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
+                }
+                $this->getDocument($storeName,$orderItems,"invoice");
+                foreach($shippingObject as $trackinCode => $itemObject){
+                    $itemObject["TrackingNumber"] = $trackinCode;
+                    $result = $this->setStatusToReadyToShip($storeName,$itemObject);
+                }
+    			return $marketplacePacked;
+            }else{
+                return false;
+            }
+        }
 	}
+
+    public function getShipmentProviders($storeName)
+    {
+        $this->lazadaShipmentProviders=new LazadaShipmentProviders($storeName);
+        $result = $this->lazadaShipmentProviders->fetchShipmentProviders();
+        return $result;
+    }
 
 	public function setStatusToCanceled($storeName,$orderItemId)
 	{
@@ -121,24 +142,43 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		return $this->checkResultData($result,$this->lazadaOrderStatus);
 	}
 
-	public function setStatusToPackedByMarketplace($storeName,$orderItemIds)
+	public function setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider)
 	{
-		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
+		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
 		$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
-		$this->lazadaOrderStatus->setDeliveryType("DeliveryType");
-		$this->lazadaOrderStatus->setShippingProvider("ShippingProvider");
+		$this->lazadaOrderStatus->setDeliveryType("dropship");
+		$this->lazadaOrderStatus->setShippingProvider($shipmentProvider);
 		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToPackedByMarketplace();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToPackedByMarketplace");
         return $orginOrderItemList;
 	}
 
-	public function setStatusToReadyToShip($storeName,$orderItemIds)
-	{
-		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
-		$this->lazadaOrderStatus->setDeliveryType("DeliveryType");
-		$this->lazadaOrderStatus->setShippingProvider("ShippingProvider");
-		$this->lazadaOrderStatus->setTrackingNumber("TrackingNumber");
+    public function getMultipleOrderItems($storeName,$orderIdList)
+    {
+        $this->lazadaMultipleOrderItems = new LazadaMultipleOrderItems($storeName);
+        $this->lazadaMultipleOrderItems->setOrderIdList($orderIdList);
+        $orginOrderItemList=$this->lazadaMultipleOrderItems->fetchMultipleOrderItems();
+        $this->saveDataToFile(serialize($orginOrderItemList),"fetchMultipleOrderItems");
+        return $orginOrderItemList;
+    }
+
+    public function getDocument($storeName,$orderItemIds,$documentType)
+    {
+        $this->lazadaDocument = new LazadaDocument($storeName);
+        $this->lazadaDocument->setDocumentType($documentType);
+        $this->lazadaDocument->setOrderItemIds($orderItemIds);
+        $document = $this->lazadaDocument->fetchDocument();
+        print_r($document);exit();
+        return $document;
+    }
+
+	public function setStatusToReadyToShip($storeName,$itemObject)
+	{  
+		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
+		$this->lazadaOrderStatus->setOrderItemIds($itemObject["OrderItemId"]);
+		$this->lazadaOrderStatus->setDeliveryType("dropship");
+		$this->lazadaOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
+		$this->lazadaOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
 		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToReadyToShip();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
         return $orginOrderItemList;
@@ -146,7 +186,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function setStatusToShipped($storeName,$orderId)
 	{
-		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
+		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
 		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
 		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToShipped();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
@@ -155,7 +195,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function setStatusToFailedDelivery($storeName,$orderId)
 	{
-		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
+		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
 		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
 		$this->lazadaOrderStatus->setReason("reason");
 		$this->lazadaOrderStatus->setReasonDetail("reasonDetail");
@@ -166,7 +206,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function setStatusToDelivered($storeName,$orderId)
 	{
-		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
+		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
 		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
 		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToDelivered();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToDelivered");
@@ -336,7 +376,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 			case 'Shipped':
 				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
 				break;
-			case 'ReadyToShip':
+            case 'ReadyToShip':
 			case 'Unshipped':
 			case 'Pending':
 			case 'Processing':
@@ -353,5 +393,31 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		}
 		return $status;
 	}
+
+    /*
+        $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId);
+        if($marketplacePacked)
+        $orderItems = $this->getMultipleOrderItems($storeName,$esgOrder->platform_order_id);
+        foreach($orderItems as $orderItem){
+            $shippingObject[$orderItem["TrackingCode"]][] = array(
+                    ["OrderItemId"] = $orderItem["OrderItemId"],
+                    ["ShippingProviderType"] = $orderItem["ShippingProviderType"],
+                    ["PurchaseOrderNumber"] = $orderItem["PurchaseOrderNumber"],
+                );
+        }
+    */
+
+    public function getEsgShippingProvider($countryCode)
+    {
+        $shipmentProvider = array(
+            "MY" => "AS-Poslaju-HK",      
+            "SG" => "LGS-SG3-HK",                
+            "TH" => "LGS-TH3-HK",       
+            "ID" => "LGS-LEX-ID-HK",
+            "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+        );
+        if(isset($shipmentProvider[$countryCode]))
+        return $shipmentProvider[$countryCode]
+    }
 
 }
