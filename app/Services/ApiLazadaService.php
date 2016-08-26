@@ -94,8 +94,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	{  
         return false;//testing
 		$storeName = $platformOrderIdList[$esgOrder->platform_order_id];
-        $shipmentProviders = $this->getShipmentProviders($storeName);
-        $shipmentProvider = "";
 		$orderItemIds = array();
 		$extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
         foreach($extItemCd as $extItem){
@@ -104,6 +102,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 $orderItemIds[] = $itemId;
             }
         }
+        //$shipmentProviders = $this->getShipmentProviders($storeName);
+        $countryCode = strtoupper(substr($storeName, -2));
+        $shipmentProvider = $this->getEsgShippingProvider($countryCode);
         if ($esgOrderShipment) {
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId,$shipmentProvider);
             if($marketplacePacked){
@@ -372,10 +373,10 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 			case 'Canceled':
 				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
 				break;
-            case 'ReadyToShip':
 			case 'Shipped':
 				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
 				break;
+            case 'ReadyToShip':
 			case 'Unshipped':
 			case 'Pending':
 			case 'Processing':
@@ -405,5 +406,18 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 );
         }
     */
+
+    public function getEsgShippingProvider($countryCode)
+    {
+        $shipmentProvider = array(
+            "MY" => "AS-Poslaju-HK",      
+            "SG" => "LGS-SG3-HK",                
+            "TH" => "LGS-TH3-HK",       
+            "ID" => "LGS-LEX-ID-HK",
+            "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+        );
+        if(isset($shipmentProvider[$countryCode]))
+        return $shipmentProvider[$countryCode]
+    }
 
 }

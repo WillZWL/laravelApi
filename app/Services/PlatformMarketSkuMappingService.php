@@ -40,39 +40,41 @@ class PlatformMarketSkuMappingService
 		    foreach($sheetItem as $item){
 		    	$itemData=$item->toArray();
 		    	foreach ($this->stores as $storeName => $store) {
-		   			$this->countryCode = strtoupper(substr($storeName, -2));
-					$this->platformAccount = strtoupper(substr($storeName, 0, 2));
-					$this->marketplaceId = strtoupper(substr($storeName, 0, -2));
-					$this->store=$store;
-					$this->mpControl=MpControl::where("marketplace_id",$this->marketplaceId)
-									->where("country_id",'=',$this->countryCode)
-									->where("status",'=','1')
-									->first();	
-					$insertActive=false;
-					if($this->mpControl){
-						if($itemData["country_id"]){
-			    			if($itemData["country_id"]==$this->countryCode){
-			    				$insertActive=true;
-				    		}
-					    }else{
-					    	$insertActive=true;
-					    }
-					    if($insertActive){
-					    	$mappingData=array(
-							'marketplace_sku' =>$itemData["marketplace_sku"] ,
-							'sku' => $itemData["esg_sku"],
-                            'mp_category_id' => $itemData["mp_category_id"],
-                            'mp_sub_category_id' => $itemData["mp_sub_category_id"],
-                            'delivery_type' => $itemData["delivery_type"],
-							'mp_control_id'=>$this->mpControl->control_id,
-							'marketplace_id' => $this->marketplaceId,
-							'country_id' => $this->countryCode,
-							'lang_id'=>'en',
-							'currency'=>$this->store['currency']
-							);
-							$this->firstOrCreateMarketplaceSkuMapping($mappingData);
-					    }
-			        }
+                    $this->marketplaceId = strtoupper(substr($storeName, 0, -2));
+                    $this->countryCode = strtoupper(substr($storeName, -2));
+                    $this->platformAccount = strtoupper(substr($storeName, 0, 2));
+                    $this->store = $store;
+                    if(empty($itemData["marketplace_id"]) || $itemData["marketplace_id"] == $this->marketplaceId){
+    				$this->mpControl=MpControl::where("marketplace_id",$this->marketplaceId)
+    									->where("country_id",'=',$this->countryCode)
+    									->where("status",'=','1')
+    									->first();	
+    					$insertActive=false;
+    					if($this->mpControl){
+    						if($itemData["country_id"]){
+    			    			if($itemData["country_id"]==$this->countryCode){
+    			    				$insertActive=true;
+    				    		}
+    					    }else{
+    					    	$insertActive=true;
+    					    }
+    					    if($insertActive){
+    					    	$mappingData=array(
+    							'marketplace_sku' =>$itemData["marketplace_sku"] ,
+    							'sku' => $itemData["esg_sku"],
+                                'mp_category_id' => $itemData["mp_category_id"],
+                                'mp_sub_category_id' => $itemData["mp_sub_category_id"],
+                                'delivery_type' => $itemData["delivery_type"] ? $itemData["delivery_type"] :"EXP",
+    							'mp_control_id'=>$this->mpControl->control_id,
+    							'marketplace_id' => $this->marketplaceId,
+    							'country_id' => $this->countryCode,
+    							'lang_id'=>'en',
+    							'currency'=>$this->store['currency']
+    							);
+    							$this->firstOrCreateMarketplaceSkuMapping($mappingData);
+    					    }
+    			        }
+                    }
 		        }
 		    }
 		});
