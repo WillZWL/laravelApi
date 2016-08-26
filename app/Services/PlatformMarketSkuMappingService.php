@@ -164,8 +164,7 @@ class PlatformMarketSkuMappingService
                 ->where("country_id" ,"=",$countryCode)
                 ->get();
         }
-
-        $cellData[]=array('Marketplace','Country','ESG SKU','SellerSku','QTY','Price','SalePrice','SaleStartDate','SaleEndDate','Name');    
+        $cellData[]=array('Marketplace','Country','ESG SKU','SellerSku','QTY','Price','SalePrice','SaleStartDate','SaleEndDate','Name','Delivery Type','Profit','Margin','Listing Status');    
         foreach($marketplaceSkuMapping as $mappingData){
             $cellRow = array(
                 "marketplace_id" => $mappingData->marketplace_id,
@@ -178,6 +177,10 @@ class PlatformMarketSkuMappingService
                 "start_date" => date("Y-m-d"),
                 "end_date" => date("Y-m-d",strtotime("+4 year")),
                 "name" => $mappingData->product_name,
+                "delivery_type" => $mappingData->delivery_type,
+                "profit" => $mappingData->profit,
+                "margin" => $mappingData->margin,
+                "listing_status" => $mappingData->listing_status,
             );
            $cellData[]=$cellRow;
         }
