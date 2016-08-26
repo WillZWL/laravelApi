@@ -12,6 +12,11 @@ class LazadaDocument extends LazadaOrderCore
         parent::__construct($store);
     }
 
+    public function fetchDocument()
+    {
+      return parent::query($this->getRequestParams());
+    }
+
     protected  function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
