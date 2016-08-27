@@ -171,8 +171,11 @@ class OrderRetrieve extends Command
                 $amazonOrderRecord['latest_delivery_date'] = $orderData['LatestDeliveryDate'];
             }
 
-            $amazonOrder = AmazonOrder::updateOrCreate(
-                ['amazon_order_id' => $orderData['AmazonOrderId']],
+            AmazonOrder::updateOrCreate(
+                [
+                    'platform' => $schedule->store_name,
+                    'amazon_order_id' => $orderData['AmazonOrderId'],
+                ],
                 $amazonOrderRecord
             );
 
