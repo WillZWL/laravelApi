@@ -94,7 +94,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         if (isset($fnacOrderIds['Created'])) {
             $orderAction = 'accept_all_orders';
             $orderDetailAction = 'Accepted';
-            $fnacOrderId = $order['order_id'];
 
             $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
             $this->fnacOrderUpdate->setFnacOrderIds($fnacOrderIds);
