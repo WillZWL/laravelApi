@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="auth">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="partnerId" />
+        <xs:element ref="authKey" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="partnerId">
+	<xs:simpleType>
+  		<xs:restriction base="xs:string">
+    		<xs:pattern value="[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"/>
+  		</xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+  <xs:element name="authKey">
+	<xs:simpleType>
+  		<xs:restriction base="xs:string">
+    		<xs:pattern value="[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}"/>
+  		</xs:restriction>
+	</xs:simpleType>
+  </xs:element>
+
+</xs:schema>

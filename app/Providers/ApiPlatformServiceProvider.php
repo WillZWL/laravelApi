@@ -32,6 +32,7 @@ class ApiPlatformServiceProvider extends ServiceProvider
         'lazada'=>'ApiLazadaService',
         'priceminister'=>'ApiPriceMinisterService',
         'tanga'=>'ApiTangaService',
+        'fnac'=>'ApiFnacService',
     );
 
     public function register()
