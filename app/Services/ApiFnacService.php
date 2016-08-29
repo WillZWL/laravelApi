@@ -13,13 +13,13 @@ use Illuminate\Support\Arr;
 use App\Repository\FnacMws\FnacOrder;
 use App\Repository\FnacMws\FnacOrderList;
 use App\Repository\FnacMws\FnacOrderItemList;
+use App\Repository\FnacMws\FnacOrderUpdate;
 
 class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 {
-
     function __construct()
     {
-        //
+
     }
 
     public function getPlatformId()
@@ -29,33 +29,39 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
     public function retrieveOrder($storeName)
     {
-        $orginOrderList = $this->getOrderList($storeName);
-        # Now no any order, Temporarily cannot take data, No clearly fnac order item fotmat, go on deal with fnac after wait a new order
-        if ($orginOrderList) {
+        if ($orginOrderList = $this->getOrderList($storeName)) {
+            $fnacOrderIds = [];
             foreach ($orginOrderList as $order) {
                 if (isset($order['shipping_address'])) {
-                    $addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
+                    $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
                 }
 
-                $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+                $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
 
-                $originOrderItemList=$this->getOrderItemList($order,$order["order_id"]);
-                if($originOrderItemList){
+                if($originOrderItemList = $this->getOrderItemList($order, $order["order_id"])){
                     if (Arr::isAssoc($originOrderItemList)) {
-                        $this->updateOrCreatePlatformMarketOrderItem($order,$originOrderItemList);
+                        $this->updateOrCreatePlatformMarketOrderItem($order, $originOrderItemList);
                     } else {
                         foreach($originOrderItemList as $orderItem){
-                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                            $this->updateOrCreatePlatformMarketOrderItem($order, $orderItem);
                         }
                     }
+
+                    if ($order['state'] == 'Created') {
+                        $fnacOrderIds['Created'][] = $order['order_id'];
+                    }
                 }
+            }
+
+            if ($fnacOrderIds) {
+                $this->ackAcceptOrders($fnacOrderIds, $storeName);
             }
 
             return true;
         }
     }
 
-    public function getOrder($storeName,$orderId)
+    public function getOrder($storeName, $orderId)
     {
         $this->fnacOrder = new FnacOrder($storeName);
         $this->storeCurrency = $this->fnacOrder->getStoreCurrency();
@@ -83,16 +89,64 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         return $originOrderItemList;
     }
 
+    public function ackAcceptOrders($fnacOrderIds, $storeName)
+    {
+        if (isset($fnacOrderIds['Created'])) {
+            $orderAction = 'accept_all_orders';
+            $orderDetailAction = 'Accepted';
+            $fnacOrderId = $order['order_id'];
+
+            $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
+            $this->fnacOrderUpdate->setFnacOrderIds($fnacOrderIds);
+            $this->fnacOrderUpdate->setOrderAction($orderAction);
+            $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
+
+            $this->fnacOrderUpdate->updateFnacOrdersStatus();
+        }
+    }
+
+    public function updatePendingPaymentStatus($storeName)
+    {
+        echo ">>>>>>>";
+        echo $storeName;
+echo "<<<<<<<<<";
+        die;
+        $pendingPaymentOrderList = PlatformMarketOrder::where('platform', '=', $storeName)
+                            ->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_PENDING)
+                            ->get();
+
+        if ($pendingPaymentOrderList) {
+            $fnacOrderIds = [];
+            foreach ($pendingPaymentOrderList as $pendingOrder) {
+                $fnacOrderIds[] = $pendingOrder->platform_order_id;
+            }
+
+            $this->fnacOrderList = new FnacOrderList($storeName);
+            $this->fnacOrderList->setFnacOrderIds($fnacOrderIds);
+
+            if ($responseOrderList = $this->fnacOrderList->requestFnacPendingPayment()) {
+
+                $this->saveDataToFile(serialize($responseOrderList),"responseFnacPendingPayment");
+
+                $this->updateOrderPendingPaymentStatus($responseOrderList);
+            }
+        }
+    }
+
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
         if ($esgOrderShipment) {
+            $orderAction = 'confirm_all_to_send';
+            $orderDetailAction = 'Shipped';
             $fnacOrderId = $esgOrder->platform_order_id;
             $storeName = $platformOrderIdList[$fnacOrderId];
-            $itemIds = $esgOrder->soItem->pluck("ext_item_cd");
 
             $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
-            $this->fnacOrderUpdate->setOrderItemIds($itemIds);
+            $this->fnacOrderUpdate->setOrderId($fnacOrderId);
             $this->fnacOrderUpdate->setTrackingNumber($esgOrderShipment->tracking_no);
+            $this->fnacOrderUpdate->setCourierName($esgOrderShipment->courier_name);
+            $this->fnacOrderUpdate->setOrderAction($orderAction);
+            $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
 
             $result = $this->fnacOrderUpdate->updateTrackingNumber();
 
@@ -116,11 +170,11 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $itemCost = $order['order_detail']['price'] + $order['order_detail']['shipping_price'];
         } else {
             foreach($order['order_detail'] as $orderItem){
-                $itemCost += $orderItem['price'] + $orderItem['shipping_price'];
+                $itemCost += $orderItem['price'] * $orderItem['quantity'] + $orderItem['shipping_price'];
             }
         }
 
-        $totalAmount = $order['fees'] + $itemCost;
+        $totalAmount = $itemCost;
 
         $object = [
             'platform' => $storeName,
@@ -135,6 +189,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             'currency' => $this->storeCurrency,
             'shipping_address_id' => $addressId,
             'total_amount' => $totalAmount,
+            'payment_method' => 'fnac_'. strtolower(substr($storeName, -2)),
         ];
 
         if (isset($order['client_firstname'])) {
@@ -220,7 +275,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         $object['state_or_region'] = '';
         $object['postal_code'] = $order['shipping_address']['zipcode'];
         $object['phone'] = $order['shipping_address']['phone'];
-        // $object['mobile'] = $order['shipping_address']['mobile'];
 
         $object['bill_name'] = $order['billing_address']['firstname']." ".$order['billing_address']['lastname'];
         $object['bill_address_line_1'] = $order['billing_address']['address1'];
@@ -233,8 +287,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         $object['bill_state_or_region'] = '';
         $object['bill_postal_code'] = $order['billing_address']['zipcode'];
         $object['bill_phone'] = $order['billing_address']['phone'];
-        // $object['bill_mobile'] = $order['billing_address']['mobile'];
-        // $object['bill_nif'] = $order['billing_address']['nif'];
 
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
 
@@ -245,17 +297,15 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     {
         switch ($platformOrderStatus) {
             case 'Created':
-                $status = 1;
-                break;
-
             case 'Accepted':
-                $status = PlatformOrderService::ORDER_STATUS_PAID;
+                $status = PlatformOrderService::ORDER_STATUS_PENDING;
                 break;
 
             case 'ToShip':
-                $status = PlatformOrderService::ORDER_STATUS_READYTOSHIP;
+                $status = PlatformOrderService::ORDER_STATUS_UNSHIPPED;
                 break;
 
+            case 'NotReceived':
             case 'Shipped':
                 $status = PlatformOrderService::ORDER_STATUS_SHIPPED;
                 break;
@@ -264,6 +314,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                 $status = PlatformOrderService::ORDER_STATUS_DELIVERED;
                 break;
 
+            case 'Refused':
             case 'Cancelled':
                 $status = PlatformOrderService::ORDER_STATUS_CANCEL;
                 break;
@@ -272,15 +323,15 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                 $status = PlatformOrderService::ORDER_STATUS_RETURENED;
                 break;
 
-            case 'Refused':
             case 'Error':
                 $status = PlatformOrderService::ORDER_STATUS_FAIL;
                 break;
 
             default:
-                $status = 1;
+                $status = '';
                 break;
         }
+
         return $status;
     }
 
@@ -329,6 +380,34 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         }
 
         return $method;
+    }
+
+    public function updateOrderPendingPaymentStatus($responseOrderList)
+    {
+        foreach ($responseOrderList as $order) {
+            switch($order['state']) {
+                case "Accepted":
+                    break;
+
+                case "ToShip":
+                case "Cancelled":
+                    try {
+                        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $order['order_id'])
+                            ->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_PENDING)
+                            ->firstOrFail();
+                        if ($platformMarketOrder) {
+                            $platformMarketOrder->order_status = $order['state'];
+                            $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($order['state']);
+                            $platformMarketOrder->save();
+                        }
+                    } catch(Exception $e) {
+                        echo 'Message: ' .$e->getMessage();
+                    }
+                    break;
+
+                default:
+            }
+        }
     }
 
 }

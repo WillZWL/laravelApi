@@ -4,8 +4,11 @@ namespace App\Repository\FnacMws;
 
 class FnacOrderList extends FnacOrderCore
 {
-    private $orderState = 'Accepted';
-    private $dateType = 'AcceptedAt';
+    private $fnacOrderIds;
+    private $orderState = 'Received';
+    private $dateType = 'ReceivedAt';
+    private $resultsCount = 1000;
+    private $paging = 1;
     private $minAt;
     private $maxAt;
 
@@ -19,7 +22,7 @@ class FnacOrderList extends FnacOrderCore
     public function fetchOrderList()
     {
         $this->setOrdersQueryPath();
-        $this->setRequestXml();
+        $this->setFnacQueryOrderRequestXml();
 
         return parent::query($this->getRequestXml());
     }
@@ -33,35 +36,114 @@ class FnacOrderList extends FnacOrderCore
         return null;
     }
 
-    public function setRequestXml()
+    public function setFnacQueryOrderRequestXml()
     {
-        $xml = <<<XML
+        if ($this->fnacToken) {
+            $AuthKeyWithToken = $this->getAuthKeyWithToken();
+            $paging = $this->getPaging();
+            $dateType = $this->getDateType();
+            $minAt = $this->getMinAt();
+            $maxAt = $this->getMaxAt();
+            $orderState = $this->getOrderState();
+
+            $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
-<orders_query
-    results_count="100000"
-    partner_id="$this->fnacPartnerId"
-    shop_id="$this->fnacShopId"
-    key="$this->fnacKey"
-    token="$this->fnacToken"
-    xmlns="http://www.fnac.com/schemas/mp-dialog.xsd"
-    >
-    <paging>1</paging>
-    <date type="$this->dateType">
-        <min>$this->minAt</min>
-        <max>$this->maxAt</max>
+<orders_query results_count="$this->resultsCount" $AuthKeyWithToken>
+    <paging>$paging</paging>
+    <date type="$dateType">
+        <min>$minAt</min>
+        <max>$maxAt</max>
     </date>
     <states>
-        <state>$this->orderState</state>
+        <state>$orderState</state>
     </states>
+    <sort_by>ASC</sort_by>
 </orders_query>
 XML;
 
-        $this->requestXml = $xml;
+            $this->requestXml = $xml;
+        }
+    }
+
+    public function requestFnacPendingPayment()
+    {
+        $this->setOrdersQueryPath();
+        $this->setFnacPendingPaymentRequestXml();
+
+        return parent::query($this->getRequestXml());
+    }
+
+    public function setFnacPendingPaymentRequestXml()
+    {
+        if ($this->fnacToken) {
+
+            $orderIds = $this->getFnacOrderIds();
+            $AuthKeyWithToken = $this->getAuthKeyWithToken();
+            $paging = $this->getPaging();
+
+            if (! $orderIds) {
+                return false;
+            }
+
+            $xml = <<<XML
+<?xml version="1.0" encoding="utf-8"?>
+<orders_query results_count='$this->resultsCount' $AuthKeyWithToken>
+    <paging>$paging</paging>
+    <orders_fnac_id>
+XML;
+        foreach ($orderIds as $orderId) {
+            $xml .= <<<XML
+    <order_fnac_id>$orderId</order_fnac_id>
+XML;
+        }
+
+            $xml .= <<<XML
+  </orders_fnac_id>
+</orders_query>
+XML;
+
+            $this->requestXml = $xml;
+        }
+    }
+
+    public function getFnacOrderIds()
+    {
+        return $this->fnacOrderIds;
+    }
+
+    public function setFnacOrderIds($fnacOrderIds)
+    {
+        $this->fnacOrderIds = $fnacOrderIds;
+    }
+
+    public function getOrderState()
+    {
+        return $this->orderState;
+    }
+
+    public function getDateType()
+    {
+        return $this->dateType;
+    }
+
+    public function getPaging()
+    {
+        return $this->paging;
+    }
+
+    public function getMinAt()
+    {
+        return $this->minAt;
     }
 
     public function setMinAt($minAt)
     {
         $this->minAt = $minAt;
+    }
+
+    public function getMaxAt()
+    {
+        return $this->maxAt;
     }
 
     protected function setMaxAt()

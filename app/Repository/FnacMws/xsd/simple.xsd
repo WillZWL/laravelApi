@@ -1,0 +1,1007 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://www.fnac.com/schemas/mp-dialog.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.fnac.com/schemas/mp-dialog.xsd"
+    xmlns:mstns="http://www.fnac.com/schemas/mp-dialog.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+    <!-- Common types -->
+    <xs:simpleType name="uuid">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Stores a Fnac.com unique user identifier]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="country_code">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[ISO 3166 (2 characters) representation of the country (cf. "http://www.iso.org/iso/fr/country_codes/iso_3166_code_lists.htm")]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[a-zA-Z]{2}"/>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="status_code">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Presents the status of the last operation. More details are available in the sub levels presenting errors)]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="RUNNING">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Process is still running]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="OK">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Process finished without any error or warning]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="WARNING">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Process finished with at least a warning and no error]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ERROR">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Process finished with at least an error, but no blocking error was encountered]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FATAL">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[A fatal error occured while processing, the process was not done completely or even completely aborted]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="severity_code">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Describes the severity of an error that was encountered during processing]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="WARNING">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Some non mandatory data may have been invalid, this data was ignored, the process ignored this error and continued]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ERROR">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Some mandatory data may have been invalid, or a processing error occured, the parent element (order line or offer) may not have been processed, a retry will be necessary]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="FATAL">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[A fatal error occured while processing the file, some or all data in the stream may not have been porcessed, check the stream and resend]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="product_reference_type">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Represents the types of product identifiers accepted by the platform]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FnacId">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The product identifier given is the Fnac product identifier]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PartnerId">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The product identifier given is the id from a partner, if this value is set, a partner id will be mandatory]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Ean">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The product identifier given is the global Ean of this product]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Isbn">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The product identifier given is the global Isbn of this product]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="PartNumber">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[The product identifier given is the global partNumber of this product]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="product_reference">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Represents a product reference (id and type)]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type" type="product_reference_type" default="PartnerId"/>
+                <xs:attribute name="provider_id" type="xs:string" default=""/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:simpleType name="offer_reference_type">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines which source is used for identifying an offer]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="FnacId">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The offer id provided is the Fnac Id generated when the offer was recorded]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="SellerSku">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The offer id provided is the seller's sku (linked to the shop_id)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="offer_reference">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Represents an offer reference (id and type)]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="type" type="offer_reference_type" default="SellerSku"/>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+
+    <!-- Offer and order states -->
+    <xs:simpleType name="product_state">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines the state of a product]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="11">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a new product]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="10">
+              <xs:annotation>
+                <xs:documentation>
+                  <![CDATA[This product is a refurbished product]]>
+                </xs:documentation>
+              </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="1">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a used product like as new]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="2">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a used product in very good state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="3">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a used in good state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="4">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a used product in correct state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="5">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a collection product like new]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="6">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a collection product in very good state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="7">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a collection product in good state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="8">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[This product is a collection product in correct state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="offer-state-constraint">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Allows specifying constraints when querying an offer]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Created">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made against the offer creation date]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Modified">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made against the offer modification date]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="order-state-constraint">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Allows specifying constraints when querying an order]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Created">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made against the order creation date]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Modified">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made against the order modification date]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ToAccept">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "ToAccept" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Accepted">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "Accepted" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refused">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "Refused" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ToShip">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "ToShip" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Shipped">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "Shipped" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ShippingCancelled">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "ShippingCancelled" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Received">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "Received" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NotReceived">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "NotReceived" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Cancelled">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "Cancelled" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refunded">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The query will be made on orders in the "Refunded" state]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="order_state">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines the different states of an order. The order is in the earliest stage found in order lines]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ToAccept">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order is waiting for approval from the seller]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Accepted">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order has been approved (even partially) by the seller and is waiting for billing and payment]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refused">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order has been completely refused by the seller (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ToShip">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order has been approved by the seller and billed, and is waiting for shipment by the seller]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Shipped">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order has been approved by the seller, billed and shipped, and is waiting for aknowledgement by the customer]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NotReceived">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The customer claimed that some or all products have not been received. This case will be managed by the customer service]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Received">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order is finished, the customer received all the products and acknowledged reception (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refunded">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Some products could not be received by the customer and he has been refunded for these lines, the other ones have been delivered (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Cancelled">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order has been cancelled by the customer (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="order-detail-state-update">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines the actions available on an order line from the seller's side]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Accepted">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The line has been accepted by the seller]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refused">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The line has been refused by the seller]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Shipped">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The line has been shipped by the seller, an optional tracking number can be specified]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ShippingCancelled">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The line could not be shipped by the seller, a case will be opened for this order and the customer will be refunded]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="order-detail-state">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines the different states of an order line]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="ToAccept">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line is waiting for approval from the seller]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Accepted">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line has been approved by the seller and is waiting for billing and payment]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refused">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line has been completely refused by the seller (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="ToShip">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line has been approved by the seller and billed, and is waiting for shipment by the seller]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Shipped">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line has been approved by the seller, billed and shipped, and is waiting for aknowledgement by the customer]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="NotReceived">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The customer claimed that some or all products have not been received. This case will be managed by the customer service]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Received">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line is finished, the customer received all the products and acknowledged reception (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Refunded">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[Some products could not be received by the customer and he has been refunded, the other ones have been delivered (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="Cancelled">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The order line has been cancelled by the customer (terminal state)]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:simpleType name="offer-quantity-constraint">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines the query constraints that can be set on an offer query]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="Equals">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The quantity left for this offer must be equal to the quantity specified in the query]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="LessThan">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The quantity left for this offer must be less than the quantity specified in the query]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="GreaterThan">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The quantity left for this offer must be greater than the quantity specified in the query]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="LessThanOrEquals">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The quantity left for this offer must be less than or equal to the quantity specified in the query]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+            <xs:enumeration value="GreaterThanOrEquals">
+                <xs:annotation>
+                    <xs:documentation>
+                        <![CDATA[The quantity left for this offer must be greater than or equal to the quantity specified in the query]]>
+                    </xs:documentation>
+                </xs:annotation>
+            </xs:enumeration>
+        </xs:restriction>
+    </xs:simpleType>
+    <xs:complexType name="error">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines an error while processing an element]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:simpleContent>
+            <xs:extension base="xs:string">
+                <xs:attribute name="severity" type="severity_code">
+                    <xs:annotation>
+                        <xs:documentation>
+                            <![CDATA[Defines the severity of this error]]>
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                <xs:attribute name="code" type="xs:string">
+                    <xs:annotation>
+                        <xs:documentation>
+                            <![CDATA[Defines an optional error code for this error]]>
+                        </xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+            </xs:extension>
+        </xs:simpleContent>
+    </xs:complexType>
+    <xs:complexType name="address">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines an adress (billing or shipping). Fields being self explanatory, they won't be described further]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:all>
+            <xs:element name="firstname" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="lastname" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="company" type="xs:string" minOccurs="0" maxOccurs="1"/>
+
+            <xs:element name="address1" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="address2" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="address3" type="xs:string" minOccurs="0" maxOccurs="1"/>
+
+            <xs:element name="zipcode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="city" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="state" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="country" type="country_code" minOccurs="1" maxOccurs="1"/>
+
+            <xs:element name="telephone" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="fax" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="cellphone" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!-- Base types -->
+
+    <xs:attributeGroup name="request-header">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Defines the header mandatory for all requests]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="partner_id" type="uuid" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    <![CDATA[Identifier of the offers supplier, generated when the partner registers with Fnac.com]]>
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="shop_id" type="xs:string" use="optional">
+            <xs:annotation>
+                <xs:documentation>
+                    <![CDATA[Shop Id, Fnac.com's customer id of the specified seller]]>
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="token" type="uuid" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    <![CDATA[Token generated by the authentication process]]>
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:attributeGroup>
+    <xs:complexType name="base-request">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Base class for all requests (except authentication), forces the use of the request header]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attributeGroup ref="request-header">
+            <xs:annotation>
+                <xs:documentation>
+                    <![CDATA[The mandatory request header for authentication]]>
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attributeGroup>
+    </xs:complexType>
+    <xs:complexType name="base_response">
+        <xs:annotation>
+            <xs:documentation>
+                <![CDATA[Base class for all service responses]]>
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="status" type="status_code" use="required">
+            <xs:annotation>
+                <xs:documentation>
+                    <![CDATA[The overall process result]]>
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+    </xs:complexType>
+
+    <!-- Authentication -->
+    <xs:complexType name="authentication-request">
+        <xs:all>
+            <xs:element name="partner_id" type="uuid" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="shop_id" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="key" type="uuid" minOccurs="1" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="authentication-response">
+        <xs:complexContent>
+            <xs:extension base="base_response">
+                <xs:sequence>
+                    <xs:element name="token" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="validity" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                    <xs:element name="error" type="error" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Offers update feed -->
+    <xs:complexType name="offers_update_request">
+        <xs:complexContent>
+            <xs:extension base="base-request">
+                <xs:sequence>
+                    <xs:element name="offer" type="_offer_update_request" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_offer_update_request">
+        <xs:all>
+            <xs:element name="shop_id" type="uuid" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="product_reference" type="product_reference" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="offer_reference" type="offer_reference" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="price" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="product_state" type="product_state" minOccurs="0" maxOccurs="1" default="1"/>
+            <xs:element name="quantity" type="xs:nonNegativeInteger" minOccurs="0" maxOccurs="1" default="1"/>
+            <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1" default=""/>
+            <!-- Suppression de la partie shipping-zone, besoin de plus d'informations sur la gestion des zones d'envoi -->
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="offer_update_response">
+        <xs:complexContent>
+            <xs:extension base="base_response">
+                <xs:sequence>
+                    <xs:element name="batch_id" type="xs:string" minOccurs="0" maxOccurs="1">
+                        <xs:annotation>
+                            <xs:documentation>
+                                <![CDATA[The batch identifier for this request, for getting more advanced results, use "offer_batch_status_request"]]>
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:element>
+                    <xs:element name="error" type="error" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Offers batch status -->
+    <xs:complexType name="offer-batch-status-request">
+        <xs:complexContent>
+            <xs:extension base="base-request">
+                <xs:sequence>
+                    <xs:element name="batch_id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="offer-batch-status-response">
+        <xs:complexContent>
+            <xs:extension base="base_response">
+                <xs:sequence>
+                    <xs:element name="batch_id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="offer" type="_offer-status-response" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_offer-status-response">
+        <xs:sequence>
+            <xs:element name="product-fnac-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="product-seller-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="offer-fnac-id" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="offer-seller-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="error" type="error" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="status" type="status_code" use="required"/>
+    </xs:complexType>
+
+    <!-- Offers query -->
+    <xs:complexType name="offers-query-request">
+        <xs:complexContent>
+            <xs:extension base="base-request">
+                <xs:sequence>
+                    <xs:choice minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="date" type="_offer-date-constraint-query-request" />
+                        <xs:element name="quantity" type="_offer-quantity-constraint-query-request" />
+                        <xs:element name="product-fnac-id" type="xs:string" />
+                        <xs:element name="product-seller-id" type="xs:string" />
+                        <xs:element name="offer-fnac-id" type="xs:string" />
+                        <xs:element name="offer-seller-id" type="xs:string" />
+                    </xs:choice>
+                </xs:sequence>
+                <xs:attribute name="results-count" type="xs:positiveInteger" use="optional" default="100"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_offer-date-constraint-query-request">
+        <xs:all>
+            <xs:element name="min" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="max" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+        <xs:attribute name="type" type="offer-state-constraint" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="_offer-quantity-constraint-query-request">
+        <xs:attribute name="mode" type="offer-quantity-constraint" default="Equals"/>
+        <xs:attribute name="value" type="xs:nonNegativeInteger" default="0"/>
+    </xs:complexType>
+    <xs:complexType name="offers-query-response">
+        <xs:complexContent>
+            <xs:extension base="base_response">
+                <xs:sequence>
+                    <xs:element name="offer" type="_offer-query-response" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_offer-query-response">
+        <xs:all>
+            <xs:element name="product-fnac-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="product-seller-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+
+            <xs:element name="offer-fnac-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="offer-seller-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+
+            <xs:element name="price" type="xs:decimal" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="product_state" type="product_state" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="quantity" type="xs:nonNegativeInteger" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!-- Order query -->
+    <xs:complexType name="orders-query-request">
+        <xs:complexContent>
+            <xs:extension base="base-request">
+                <xs:sequence>
+                    <xs:choice minOccurs="0" maxOccurs="unbounded">
+                        <xs:element name="date" type="_orders-date-constraints-query-request"/>
+                        <xs:element name="state" type="order_state" />
+                        <xs:element name="product-fnac-id" type="xs:string" />
+                        <xs:element name="product-seller-id" type="xs:string" />
+                        <xs:element name="order-fnac-id" type="xs:string"/>
+                        <xs:element name="offer-fnac-id" type="xs:string"/>
+                        <xs:element name="offer-seller-id" type="xs:string"/>
+                    </xs:choice>
+                </xs:sequence>
+                <xs:attribute name="results-count" type="xs:positiveInteger" use="optional" default="100"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_orders-date-constraints-query-request">
+        <xs:sequence>
+            <xs:element name="min" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="max" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="type" type="order-state-constraint" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="orders-query-response">
+        <xs:complexContent>
+            <xs:extension base="base_response">
+                <xs:sequence>
+                    <xs:element name="order" type="_order-query-response" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_order-query-response">
+        <xs:sequence>
+            <xs:element name="shop_id" type="uuid" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="client-id" type="uuid" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="order-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="state" type="order_state" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="shipping-address" type="address" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="billing-address" type="address" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="order-detail" type="_order-detail-query-response" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="_order-detail-query-response">
+        <xs:all>
+            <xs:element name="order-detail-id" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="state" type="order-detail-state" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="product-fnac-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="product-seller-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="offer-fnac-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="offer-seller-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="price" type="xs:decimal" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="shipping-fees" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="fees" type="xs:decimal" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="delivery_note" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="product_state" type="product_state" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="quantity" type="xs:nonNegativeInteger" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="description" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!-- Order state update -->
+    <xs:complexType name="orders-update-request">
+        <xs:complexContent>
+            <xs:extension base="base-request">
+                <xs:sequence>
+                    <xs:element name="order" type="_order-update-request" minOccurs="1" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_order-update-request">
+        <xs:sequence>
+            <xs:element name="order-detail" type="_order-detail-update-request" minOccurs="1" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="shop_id" type="uuid" use="optional"/>
+        <xs:attribute name="client-id" type="uuid" use="optional"/>
+        <xs:attribute name="order-id" type="xs:string" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="_order-detail-update-request">
+        <xs:all>
+            <xs:element name="order-detail-id" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="action" type="order-detail-state-update" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="status-change-date" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+            <xs:element name="tracking-number" type="xs:string" minOccurs="0" maxOccurs="1"/>
+        </xs:all>
+    </xs:complexType>
+    <xs:complexType name="orders-update-response">
+        <xs:complexContent>
+            <xs:extension base="base_response">
+                <xs:sequence>
+                    <xs:element name="order" type="_order-update-response" minOccurs="0" maxOccurs="unbounded"/>
+                </xs:sequence>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+    <xs:complexType name="_order-update-response">
+        <xs:sequence>
+            <xs:element name="status" type="status_code" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="shop_id" type="uuid" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="client-id" type="uuid" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="order-id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="state" type="order_state" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="error" type="error" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="order-detail" type="_order-detail-update-response" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="_order-detail-update-response">
+        <xs:sequence>
+            <xs:element name="order-detail-id" type="xs:positiveInteger" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="status" type="status_code" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="state" type="order-detail-state" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="error" type="error" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- Elements (for requests and responses) -->
+    <xs:element name="auth" type="authentication-request"/>
+    <xs:element name="auth-response" type="authentication-response"/>
+
+    <xs:element name="offers_update" type="offers_update_request"/>
+    <xs:element name="offers_update_response" type="offer_update_response"/>
+
+    <xs:element name="batch-status" type="offer-batch-status-request"/>
+    <xs:element name="batch-status-response" type="offer-batch-status-response"/>
+
+    <xs:element name="offers-query" type="offers-query-request"/>
+    <xs:element name="offers-query-response" type="offers-query-response"/>
+
+    <xs:element name="orders-query" type="orders-query-request"/>
+    <xs:element name="orders-query-response" type="orders-query-response"/>
+
+    <xs:element name="orders-update" type="orders-update-request"/>
+    <xs:element name="orders-update-response" type="orders-update-response"/>
+</xs:schema>

@@ -24,7 +24,8 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketOrderRetrieve::class,
         Commands\PlatformMarketReadyOrderTransfer::class,
         Commands\PlatformMarketplaceSkuMapping::class,
-        Commands\SubmitPlatformOrderFufillment::class
+        Commands\SubmitPlatformOrderFufillment::class,
+        Commands\PlatformMarketFnacPendingPayment::class,
     ];
 
     /**
@@ -55,6 +56,9 @@ class Kernel extends ConsoleKernel
 
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
+
+        // $schedule->command('platformMarket:updatePendingPayment')
+        //     ->dailyAt('10:55');
 
         $schedule->command('feed:price')
             ->everyThirtyMinutes();

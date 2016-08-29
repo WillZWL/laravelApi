@@ -6,7 +6,6 @@ class FnacOrderCore extends FnacCore
 {
 
     private $orderId;
-    protected $requestXml;
 
     public function __construct($store)
     {
@@ -25,16 +24,11 @@ class FnacOrderCore extends FnacCore
 
     public function setOrdersQueryPath()
     {
-        $this->fnacPath = "api.php/orders_query";
+        $this->fnacPath = "orders_query";
     }
 
     public function setOrdersUpdatePath()
     {
-        $this->fnacPath = "api.php/orders_update";
-    }
-
-    protected function getRequestXml()
-    {
-        return $this->requestXml;
+        $this->fnacPath = "orders_update";
     }
 }

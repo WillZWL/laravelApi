@@ -12,6 +12,6 @@ return [
     ],
 
     // Default service URL
-    'FNAC_SERVICE_URL' => 'https://vendeur.fnac.com/',
+    'FNAC_SERVICE_URL' => 'https://vendeur.fnac.com/api.php/',
     'muteLog' => true
 ];

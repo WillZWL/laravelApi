@@ -21,23 +21,19 @@ class FnacOrder extends FnacOrderCore
 
     protected function setRequestXml()
     {
-        $this->orderId = $this->getOrderId();
-        $xml = <<<XML
+            $this->orderId = $this->getOrderId();
+            $AuthKeyWithToken = $this->getAuthKeyWithToken();
+
+            $xml = <<<XML
 <?xml version="1.0" encoding="utf-8"?>
-<orders_query
-    partner_id="$this->fnacPartnerId"
-    shop_id="$this->fnacShopId"
-    key="$this->fnacKey"
-    token="$this->fnacToken"
-    xmlns="http://www.fnac.com/schemas/mp-dialog.xsd"
-    >
+<orders_query $AuthKeyWithToken>
     <orders_fnac_id>
         <order_fnac_id><![CDATA[$this->orderId]]></order_fnac_id>
     </orders_fnac_id>
 </orders_query>
 XML;
 
-        $this->requestXml = $xml;
+            $this->requestXml = $xml;
     }
 
     protected function prepare($data = [])
