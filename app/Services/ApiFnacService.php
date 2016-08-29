@@ -54,7 +54,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             }
 
             if ($fnacOrderIds) {
-                $this->ackAcceptOrders($fnacOrderIds, $storeName);
+                $this->ackFnacAcceptedOrders($fnacOrderIds, $storeName);
             }
 
             return true;
@@ -89,7 +89,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         return $originOrderItemList;
     }
 
-    public function ackAcceptOrders($fnacOrderIds, $storeName)
+    public function ackFnacAcceptedOrders($fnacOrderIds, $storeName)
     {
         if (isset($fnacOrderIds['Created'])) {
             $orderAction = 'accept_all_orders';
@@ -107,14 +107,9 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
     public function updatePendingPaymentStatus($storeName)
     {
-        echo ">>>>>>>";
-        echo $storeName;
-echo "<<<<<<<<<";
-        die;
         $pendingPaymentOrderList = PlatformMarketOrder::where('platform', '=', $storeName)
                             ->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_PENDING)
                             ->get();
-
         if ($pendingPaymentOrderList) {
             $fnacOrderIds = [];
             foreach ($pendingPaymentOrderList as $pendingOrder) {
@@ -125,7 +120,6 @@ echo "<<<<<<<<<";
             $this->fnacOrderList->setFnacOrderIds($fnacOrderIds);
 
             if ($responseOrderList = $this->fnacOrderList->requestFnacPendingPayment()) {
-
                 $this->saveDataToFile(serialize($responseOrderList),"responseFnacPendingPayment");
 
                 $this->updateOrderPendingPaymentStatus($responseOrderList);
