@@ -101,7 +101,23 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $this->fnacOrderUpdate->setOrderAction($orderAction);
             $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
 
-            $this->fnacOrderUpdate->updateFnacOrdersStatus();
+            if ($responseDataList = $this->fnacOrderUpdate->updateFnacOrdersStatus()) {
+                foreach ($responseDataList as $responseData) {
+                    if ($responseData['status'] == 'OK' && $responseData['state'] == 'Accepted') {
+                        try {
+                            $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
+                                ->where('order_status', '=', 'Created')
+                                ->firstOrFail();
+                            if ($platformMarketOrder) {
+                                $platformMarketOrder->order_status = $responseData['state'];
+                                $platformMarketOrder->save();
+                            }
+                        } catch(Exception $e) {
+                            echo 'Message: ' .$e->getMessage();
+                        }
+                    }
+                }
+            }
         }
     }
 
