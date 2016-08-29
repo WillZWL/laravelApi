@@ -3,21 +3,15 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
-use App\Services\ApiPlatformFactoryService;
-
-use Carbon\Carbon;
-use App\Models\Schedule;
-use Config;
 
 class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
 {
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
-     protected $signature = 'platformMarket:updateShipment  {--api= : amazon or lazada}';
+      * The name and signature of the console command.
+      *
+      * @var string
+      */
+    protected $signature = 'platformMarket:updateShipment  {--api= : amazon or lazada}';
     /**
      * The console command description.
      *
@@ -27,8 +21,6 @@ class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -43,13 +35,12 @@ class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
     public function handle()
     {
         $apiOption = $this->option('api');
-        if($apiOption=="all"){
-            foreach($this->platfromMakert as $apiName){
+        if ($apiOption == 'all') {
+            foreach ($this->platfromMakert as $apiName) {
                 $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
             }
-        }else{
-           $this->getApiPlatformFactoryService($apiOption)->submitOrderFufillment($apiOption);
+        } else {
+            $this->getApiPlatformFactoryService($apiOption)->submitOrderFufillment($apiOption);
         }
     }
-
 }

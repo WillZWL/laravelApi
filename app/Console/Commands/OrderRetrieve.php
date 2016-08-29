@@ -4,13 +4,11 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Console\Command;
-
 use App\Models\Schedule;
 use App\Models\AmazonOrder;
 use App\Models\AmazonOrderItem;
 use App\Models\AmazonShippingAddress;
 use Config;
-
 use Peron\AmazonMws\AmazonOrderItemList;
 use Peron\AmazonMws\AmazonOrderList;
 
@@ -32,8 +30,6 @@ class OrderRetrieve extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -59,7 +55,7 @@ class OrderRetrieve extends Command
                     'store_name' => $storeName,
                     'status' => 'N',
                     // MWS API requested: Must be no later than two minutes before the time that the request was submitted.
-                    'last_access_time' => Carbon::now()->subMinutes(2)
+                    'last_access_time' => Carbon::now()->subMinutes(2),
                 ]);
 
             if (!$previousSchedule) {
@@ -98,7 +94,7 @@ class OrderRetrieve extends Command
             $originOrderItemList = $amazonOrderItemList->getItems();
 
             $amazonShippingAddressRecord = [
-                'amazon_order_id' => $orderData['AmazonOrderId']
+                'amazon_order_id' => $orderData['AmazonOrderId'],
             ];
             if (isset($orderData['ShippingAddress'])) {
                 $amazonShippingAddressRecord['name'] = $orderData['ShippingAddress']['Name'];
@@ -125,7 +121,7 @@ class OrderRetrieve extends Command
                 'purchase_date' => $orderData['PurchaseDate'],
                 'last_update_date' => $orderData['LastUpdateDate'],
                 'order_status' => $orderData['OrderStatus'],
-                'shipping_address_id' => $amazonShippingAddress->id
+                'shipping_address_id' => $amazonShippingAddress->id,
             ];
 
             if (isset($orderData['FulfillmentChannel'])) {
@@ -186,7 +182,7 @@ class OrderRetrieve extends Command
                     'seller_sku' => $orderItem['SellerSKU'],
                     'order_item_id' => $orderItem['OrderItemId'],
                     'title' => $orderItem['Title'],
-                    'quantity_ordered' => $orderItem['QuantityOrdered']
+                    'quantity_ordered' => $orderItem['QuantityOrdered'],
                 ];
 
                 if (isset($orderItem['QuantityShipped'])) {
@@ -220,7 +216,7 @@ class OrderRetrieve extends Command
                 $amazonOrderItem = AmazonOrderItem::updateOrCreate(
                     [
                         'amazon_order_id' => $orderData['AmazonOrderId'],
-                        'order_item_id' => $orderItem['OrderItemId']
+                        'order_item_id' => $orderItem['OrderItemId'],
                     ],
                     $amazonOrderItemRecord
                 );

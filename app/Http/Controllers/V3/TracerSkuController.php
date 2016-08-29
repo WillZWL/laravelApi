@@ -5,11 +5,8 @@ namespace App\Http\Controllers\V3;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpCategory;
 use App\Models\MpControl;
-use App\Models\SupplierProd;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-
-use App\Http\Requests;
 
 class TracerSkuController extends Controller
 {
@@ -20,7 +17,6 @@ class TracerSkuController extends Controller
      */
     public function index()
     {
-        //
     }
 
     /**
@@ -30,35 +26,35 @@ class TracerSkuController extends Controller
      */
     public function create()
     {
-        //
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
     {
-        //
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        //
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -77,8 +73,9 @@ class TracerSkuController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -110,11 +107,11 @@ class TracerSkuController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
-        //
     }
 }

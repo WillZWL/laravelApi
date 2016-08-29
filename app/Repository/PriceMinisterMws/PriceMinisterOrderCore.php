@@ -1,12 +1,9 @@
 <?php
 
 namespace App\Repository\PriceMinisterMws;
-/**
-*
-*/
+
 class PriceMinisterOrderCore extends PriceMinisterCore
 {
-
     private $orderId;
 
     public function __construct($store)
@@ -23,5 +20,4 @@ class PriceMinisterOrderCore extends PriceMinisterCore
     {
         $this->orderId = $value;
     }
-
 }

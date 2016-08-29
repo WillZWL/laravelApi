@@ -22,6 +22,6 @@ class InterfaceClient extends Model
         'state_or_region',
         'pastal_code',
         'country_code',
-        'phone'
+        'phone',
     ];
 }

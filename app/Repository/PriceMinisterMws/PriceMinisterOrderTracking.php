@@ -6,7 +6,7 @@ class PriceMinisterOrderTracking extends PriceMinisterOrderCore
 {
     private $version = '2016-03-16';
     private $itemId;
-    private $transporterName; 
+    private $transporterName;
     private $trackingNumber;
     private $trackingUrl;
     private $_requestParams;
@@ -20,26 +20,28 @@ class PriceMinisterOrderTracking extends PriceMinisterOrderCore
     public function setTrackingPackageInfo()
     {
         $this->_requestParams = parent::initRequestParams();
-        $this->_requestParams["action"] = "settrackingpackageinfos";
+        $this->_requestParams['action'] = 'settrackingpackageinfos';
         $this->_requestParams['version'] = '2016-03-16';
         $this->_requestParams['itemid'] = $this->getItemId();
         $this->_requestParams['transporter_name'] = $this->getTransporterName();
         $this->_requestParams['tracking_number'] = $this->getTrackingNumber();
         $this->_requestParams['tracking_url'] = $this->getTrackingUrl();
+
         return parent::query($this->_requestParams);
     }
 
     protected function prepare($data = array())
     {
-        if (isset($data["response"]) && isset($data["response"]["status"])) {
-            return parent::fix($data["response"]["status"]);
+        if (isset($data['response']) && isset($data['response']['status'])) {
+            return parent::fix($data['response']['status']);
         }
+
         return null;
     }
 
     public function setUrlBase()
     {
-        $url = $this->urlbase."sales_ws";
+        $url = $this->urlbase.'sales_ws';
         $this->urlbase = $url;
     }
 

@@ -25,14 +25,11 @@ class SubmitPriceFeed extends Command
      */
     protected $description = 'Post price feed to amazon';
 
-
     const PENDING_PRICE = 2;
     const COMPLETE_PRICE = 8;
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -61,20 +58,20 @@ class SubmitPriceFeed extends Command
 
             $xml = '<?xml version="1.0" encoding="UTF-8"?>';
             $xml .= '<AmazonEnvelope xsi:noNamespaceSchemaLocation="amzn-envelope.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">';
-            $xml .=     '<Header>';
-            $xml .=         '<DocumentVersion>1.01</DocumentVersion>';
-            $xml .=         '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
-            $xml .=     '</Header>';
-            $xml .=     '<MessageType>Price</MessageType>';
+            $xml .= '<Header>';
+            $xml .= '<DocumentVersion>1.01</DocumentVersion>';
+            $xml .= '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
+            $xml .= '</Header>';
+            $xml .= '<MessageType>Price</MessageType>';
 
             foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageDom  =  '<Message>';
-                $messageDom .=      '<MessageID>'.++$index.'</MessageID>';
-                $messageDom .=      '<Price>';
-                $messageDom .=          '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                $messageDom .=          '<StandardPrice currency="DEFAULT">'.$pendingSku->price.'</StandardPrice>';
-                $messageDom .=      '</Price>';
-                $messageDom .=  '</Message>';
+                $messageDom = '<Message>';
+                $messageDom .= '<MessageID>'.++$index.'</MessageID>';
+                $messageDom .= '<Price>';
+                $messageDom .= '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                $messageDom .= '<StandardPrice currency="DEFAULT">'.$pendingSku->price.'</StandardPrice>';
+                $messageDom .= '</Price>';
+                $messageDom .= '</Message>';
 
                 $xml .= $messageDom;
             }
@@ -93,7 +90,7 @@ class SubmitPriceFeed extends Command
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-                $pendingSkuGroup->transform(function($pendingSku) {
+                $pendingSkuGroup->transform(function ($pendingSku) {
                     $pendingSku->process_status ^= self::PENDING_PRICE;
                     $pendingSku->process_status |= self::COMPLETE_PRICE;
                     $pendingSku->save();

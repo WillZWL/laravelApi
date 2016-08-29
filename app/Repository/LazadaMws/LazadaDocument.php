@@ -7,32 +7,36 @@ class LazadaDocument extends LazadaOrderCore
     private $documentType;
     private $orderItemIds;
 
-    public function __construct($store) 
+    public function __construct($store)
     {
         parent::__construct($store);
     }
 
     public function fetchDocument()
     {
-      return parent::query($this->getRequestParams());
+        return parent::query($this->getRequestParams());
     }
 
-    protected  function getRequestParams()
+    protected function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
-        $requestParams["Action"] = "GetDocument";
-        if($this->getDocumentType())
-        $requestParams["DocumentType"] = $this->getDocumentType();
-        if($this->getOrderItemIds())
-        $requestParams["OrderItemIds"] = $this->getOrderItemIds();
+        $requestParams['Action'] = 'GetDocument';
+        if ($this->getDocumentType()) {
+            $requestParams['DocumentType'] = $this->getDocumentType();
+        }
+        if ($this->getOrderItemIds()) {
+            $requestParams['OrderItemIds'] = $this->getOrderItemIds();
+        }
+
         return $requestParams;
     }
 
     protected function prepare($data = array())
     {
-        if (isset($data["Body"]) && isset($data["Body"]["Document"])) {
-            return parent::fix($data["Body"]["Document"]);
+        if (isset($data['Body']) && isset($data['Body']['Document'])) {
+            return parent::fix($data['Body']['Document']);
         }
+
         return null;
     }
 

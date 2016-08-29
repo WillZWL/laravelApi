@@ -2,13 +2,12 @@
 
 namespace App\Repository\PriceMinisterMws;
 
-
 use App\Repository\CommonMws;
 use Config;
-/**
-*   PriceMinisterMws Core
-*/
 
+/**
+ *   PriceMinisterMws Core.
+ */
 class PriceMinisterCore extends CommonMws
 {
     protected $mwsName = 'priceminister-mws';
@@ -29,6 +28,7 @@ class PriceMinisterCore extends CommonMws
         $data = $this->convert($xml);
         if (isset($data['error'])) {
             $this->ErrorResponse = $data['error'];
+
             return null;
         } else {
             if (isset($data['response'])) {
@@ -36,6 +36,7 @@ class PriceMinisterCore extends CommonMws
             } else {
                 $this->ErrorResponse['code'] = 'Unknow';
                 $this->ErrorResponse['message'][] = 'Unknow ErrorResponse From PriceMinister';
+
                 return null;
             }
         }
@@ -47,12 +48,13 @@ class PriceMinisterCore extends CommonMws
         if (array_key_exists($storeName, $store)) {
             $this->storeName = $storeName;
         } else {
-            $this->log("Store $storeName does not exist", "Warning");
+            $this->log("Store $storeName does not exist", 'Warning');
         }
     }
 
     /**
-     * Return error message for last API call
+     * Return error message for last API call.
+     *
      * @return string
      */
     public function errorMessage()
@@ -60,56 +62,66 @@ class PriceMinisterCore extends CommonMws
         if (isset($this->ErrorResponse) && is_array($this->ErrorResponse) && isset($this->ErrorResponse['message'])) {
             return $this->ErrorResponse['message'];
         }
+
         return '';
     }
 
     /**
-   * Return error code for last API call.
-   * @return string
-   */
+     * Return error code for last API call.
+     *
+     * @return string
+     */
     public function errorCode()
     {
         if (isset($this->ErrorResponse) && is_array($this->ErrorResponse) && isset($this->ErrorResponse['code'])) {
             return $this->ErrorResponse['code'];
         }
+
         return '';
     }
 
     /**
-    * Extract data from response array
-    * @param array $data
-    * @return null|array
-    */
+     * Extract data from response array.
+     *
+     * @param array $data
+     *
+     * @return null|array
+     */
     protected function prepare($data = array())
     {
-        if (isset($data["response"])) {
-            return $data["response"];
+        if (isset($data['response'])) {
+            return $data['response'];
         } else {
             return null;
         }
     }
 
     /**
-    * Init common params
-    * @return array
-    */
+     * Init common params.
+     *
+     * @return array
+     */
     protected function initRequestParams()
     {
-        $requestParams=array(
+        $requestParams = array(
             'login' => 'BrandConnect',
             'pwd' => 'sALe16hI8gh',
         );
+
         return $requestParams;
     }
 
     /**
-    * Sign request parameters
-    * @param $params array
-    * @return array
-    */
+     * Sign request parameters.
+     *
+     * @param $params array
+     *
+     * @return array
+     */
     private function signature($params)
     {
         ksort($params);
+
         return $params;
     }
 
@@ -117,10 +129,11 @@ class PriceMinisterCore extends CommonMws
     private function initMwsName()
     {
         $sandbox = 'sandbox.'.$this->mwsName;
-        if(empty(Config::get($sandbox)))
-        return;
-        if(\App::environment('local') && env('APP_DEBUG')){
-           $this->mwsName=$sandbox;
+        if (empty(Config::get($sandbox))) {
+            return;
+        }
+        if (\App::environment('local') && env('APP_DEBUG')) {
+            $this->mwsName = $sandbox;
         }
     }
 }

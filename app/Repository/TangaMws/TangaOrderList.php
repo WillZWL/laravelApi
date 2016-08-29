@@ -4,14 +4,13 @@ namespace App\Repository\TangaMws;
 
 class TangaOrderList extends TangaOrderCore
 {
-
     private $startAt;
     private $endAt;
 
     public function __construct($store)
     {
-      parent::__construct($store);
-      $this->settangaPath();
+        parent::__construct($store);
+        $this->settangaPath();
     }
 
     public function fetchOrderList()
@@ -23,10 +22,12 @@ class TangaOrderList extends TangaOrderCore
     {
         $requestParams = parent::initRequestParams();
 
-        if($this->getStartAt())
-        $requestParams["start_at"] = $this->getStartAt();
-        if($this->getEndAt())
-        $requestParams["end_at"] = $this->getEndAt();
+        if ($this->getStartAt()) {
+            $requestParams['start_at'] = $this->getStartAt();
+        }
+        if ($this->getEndAt()) {
+            $requestParams['end_at'] = $this->getEndAt();
+        }
 
         return $requestParams;
     }
@@ -36,12 +37,13 @@ class TangaOrderList extends TangaOrderCore
         if (isset($data)) {
             return parent::fix($data);
         }
+
         return null;
     }
 
     public function setTangaPath()
     {
-        $this->tangaPath = "api/vendors/" . $this->options['vendorAppId'] . "/inventory_report";
+        $this->tangaPath = 'api/vendors/'.$this->options['vendorAppId'].'/inventory_report';
     }
 
     public function getStartAt()

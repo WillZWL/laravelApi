@@ -1,24 +1,23 @@
-<?php 
+<?php
+
 namespace App\Services;
 
 use App\Contracts\ApiPlatformInterface;
 
 class PaltformMarketOrderReport
 {
-	private $_requestData;
-	
-	public function __construct(ApiPlatformInterface $apiPlatformInterface)
-	{
-		$this->apiPlatformInterface=$apiPlatformInterface;
-	}
+    private $_requestData;
 
-	public function getOrderAlert()
-	{
-		
-	}
+    public function __construct(ApiPlatformInterface $apiPlatformInterface)
+    {
+        $this->apiPlatformInterface = $apiPlatformInterface;
+    }
 
-	public function getMissOrder()
-	{
-		
-	}
+    public function getOrderAlert()
+    {
+    }
+
+    public function getMissOrder()
+    {
+    }
 }

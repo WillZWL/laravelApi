@@ -16,20 +16,21 @@ class CountryState extends Model
 
     protected $guarded = ['create_at'];
 
-
     /**
-     * Try to find record by $stateNameOrId, if can't find, try to base on name,
+     * Try to find record by $stateNameOrId, if can't find, try to base on name,.
+     *
      * @param $countryCode
      * @param $stateNameOrId
+     *
      * @return string $state_id or ''
      */
-    static public function getStateId($countryCode, $stateNameOrId)
+    public static function getStateId($countryCode, $stateNameOrId)
     {
         if (empty($stateNameOrId)) {
             return '';
         }
 
-        $countryState = CountryState::where('country_id', '=', $countryCode)
+        $countryState = self::where('country_id', '=', $countryCode)
             ->where('state_id', '=', $stateNameOrId)
             ->orWhere('name', '=', $stateNameOrId)
             ->first();
@@ -39,7 +40,6 @@ class CountryState extends Model
 
         return '';
     }
-
 
     public function country()
     {

@@ -34,6 +34,6 @@ class InterfaceOrder extends Model
         'weight',
         'batch_status',
         'delivery_charge',
-        'courier_id'
+        'courier_id',
     ];
 }

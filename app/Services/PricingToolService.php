@@ -1,8 +1,7 @@
-<?php 
+<?php
 
 namespace App\Services;
 
-use App\Models\Brand;
 use App\Models\CountryState;
 use App\Models\CountryTax;
 use App\Models\Declaration;
@@ -10,11 +9,7 @@ use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
 use App\Models\HscodeDutyCountry;
 use App\Models\Marketplace;
-use App\Models\MarketplaceProduct;
-use App\Models\MarketplaceSkuMapping;
-use App\Models\MerchantClientType;
 use App\Models\MerchantProductMapping;
-use App\Models\MerchantQuotation;
 use App\Models\MpCategoryCommission;
 use App\Models\MpControl;
 use App\Models\MpFixedFee;
@@ -23,27 +18,23 @@ use App\Models\PaymentGateway;
 use App\Models\Product;
 use App\Models\ProductComplementaryAcc;
 use App\Models\Quotation;
-use App\Models\SkuMapping;
 use App\Models\SupplierProd;
 use App\Models\WeightCourier;
 use Illuminate\Http\Request;
-/**
-* 
-*/
-class PricingToolService 
+
+class PricingToolService
 {
-	private $product;
-	private $destination;
+    private $product;
+    private $destination;
     private $exchangeRate;
     private $marketplaceControl;
-	private $adjustRate = 0.9725;
+    private $adjustRate = 0.9725;
 
-	public function __construct()
+    public function __construct()
     {
-        
     }
 
-	public function getPricingInfo(Request $request)
+    public function getPricingInfo(Request $request)
     {
         $this->product = Product::findOrFail($request->input('sku'));
         $this->destination = CountryState::firstOrNew(['country_id' => $request->input('country'), 'is_default_state' => 1]);
@@ -261,7 +252,7 @@ class PricingToolService
             ->firstOrFail()
             ->control_id;
 
-        $mpFixedFee =  MpFixedFee::select('mp_fixed_fee')
+        $mpFixedFee = MpFixedFee::select('mp_fixed_fee')
             ->where('control_id', '=', $controlId)
             ->where('from_price', '<=', $request->input('price'))
             ->where('to_price', '>', $request->input('price'))
@@ -281,7 +272,7 @@ class PricingToolService
         $countryCode = $request->input('country');
         $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
 
-        $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
+        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGatewayRate = PaymentGateway::findOrFail($paymentGatewayId)->payment_gateway_rate;
 
         return round($request->input('price') * $paymentGatewayRate / 100, 2);
@@ -294,7 +285,7 @@ class PricingToolService
         $countryCode = $request->input('country');
         $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
 
-        $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
+        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGateway = PaymentGateway::findOrFail($paymentGatewayId);
         $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $request->input('price') * $paymentGateway->admin_fee_percent / 100;
 
@@ -317,7 +308,7 @@ class PricingToolService
 
         $quotation = collect();
         foreach ($quotationVersion as $quotationType => $quotationVersionId) {
-            if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage') ) {
+            if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage')) {
                 $weight = $actualWeight;
             } else {
                 $weight = max($actualWeight, $volumeWeight);
@@ -330,24 +321,24 @@ class PricingToolService
         }
 
         $availableQuotation = $quotation->filter(function ($quotationItem) use ($battery) {
-                switch ($battery) {
-                    case '1':
-                        if ($quotationItem->courierInfo->allow_builtin_battery) {
-                            return true;
-                        }
-                        break;
-
-                    case '2':
-                        if ($quotationItem->courierInfo->allow_external_battery) {
-                            return true;
-                        }
-                        break;
-
-                    default:
+            switch ($battery) {
+                case '1':
+                    if ($quotationItem->courierInfo->allow_builtin_battery) {
                         return true;
+                    }
+                    break;
+
+                case '2':
+                    if ($quotationItem->courierInfo->allow_external_battery) {
+                        return true;
+                    }
+                    break;
+
+                default:
+                    return true;
                         break;
-                }
-            });
+            }
+        });
 
         // TODO: if $availableQuotation contains both built-in and external quotation, should choose the cheapest quotation.
 
@@ -356,6 +347,7 @@ class PricingToolService
         $adjustRate = $this->adjustRate;
         $quotationCost = $availableQuotation->map(function ($item) use ($currencyRate, $adjustRate) {
             $item->cost = round($item->cost * $currencyRate / $adjustRate, 2);
+
             return $item;
         })->pluck('cost', 'quotation_type')->toArray();
 

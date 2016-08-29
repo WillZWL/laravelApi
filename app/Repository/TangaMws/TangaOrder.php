@@ -20,6 +20,7 @@ class TangaOrder extends TangaOrderCore
     {
         $requestParams = parent::initRequestParams();
         $requestParams['action'] = 'getcurrentsales';
+
         return $requestParams;
     }
 
@@ -28,6 +29,7 @@ class TangaOrder extends TangaOrderCore
         if (isset($data['response']) && isset($data['response']['sales'])) {
             return $data['response']['sales'];
         }
+
         return null;
     }
 }

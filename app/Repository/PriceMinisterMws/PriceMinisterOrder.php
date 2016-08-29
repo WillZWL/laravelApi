@@ -20,6 +20,7 @@ class PriceMinisterOrder extends PriceMinisterOrderCore
     {
         $requestParams = parent::initRequestParams();
         $requestParams['action'] = 'getcurrentsales';
+
         return $requestParams;
     }
 
@@ -28,6 +29,7 @@ class PriceMinisterOrder extends PriceMinisterOrderCore
         if (isset($data['response']) && isset($data['response']['sales'])) {
             return $data['response']['sales'];
         }
+
         return null;
     }
 }

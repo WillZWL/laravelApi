@@ -3,11 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Http\Request;
 use App\Services\PlatformMarketSkuMappingService;
-
-use Carbon\Carbon;
-use App\Models\Schedule;
 use Config;
 
 class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
@@ -19,7 +15,7 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
      */
     protected $signature = 'platformMarket:skuMapping  {--api= : amazon or lazada} ';
 
-   /**
+    /**
      * The console command description.
      *
      * @var string
@@ -28,12 +24,10 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct(PlatformMarketSkuMappingService $platformMarketSkuMappingService)
     {
-        $this->platformMarketSkuMappingService=$platformMarketSkuMappingService;
+        $this->platformMarketSkuMappingService = $platformMarketSkuMappingService;
         parent::__construct();
     }
 
@@ -44,35 +38,34 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
      */
     public function handle()
     {
-        //
         $apiOption = $this->option('api');
-        if($apiOption=="all"){
-            foreach($this->platfromMakert as $apiName){
-                $this->runSkuMapping($this->getStores($apiName),$apiName);
+        if ($apiOption == 'all') {
+            foreach ($this->platfromMakert as $apiName) {
+                $this->runSkuMapping($this->getStores($apiName), $apiName);
             }
-        }else{
-            $this->runSkuMapping($this->getStores($apiOption),$apiOption);
+        } else {
+            $this->runSkuMapping($this->getStores($apiOption), $apiOption);
         }
     }
 
-    public function runSkuMapping($stores,$apiName)
+    public function runSkuMapping($stores, $apiName)
     {
-        if($stores){
+        if ($stores) {
             //$this->platformMarketSkuMappingService->initMarketplaceSkuMapping($stores);
-            foreach ($stores as $storeName => $store){
-                $this->platformMarketSkuMappingService->updateOrCreateSellingPlatform($storeName,$store);
-                $this->platformMarketSkuMappingService->updateOrCreatePlatformBizVar($storeName,$store);
+            foreach ($stores as $storeName => $store) {
+                $this->platformMarketSkuMappingService->updateOrCreateSellingPlatform($storeName, $store);
+                $this->platformMarketSkuMappingService->updateOrCreatePlatformBizVar($storeName, $store);
             }
         }
     }
 
     public function getStores($apiName)
     {
-        if($apiName=="lazada"){
+        if ($apiName == 'lazada') {
             $stores = Config::get('lazada-mws.store');
-        }else if($apiName=="amazon"){
+        } elseif ($apiName == 'amazon') {
             $stores = Config::get('amazon-mws.store');
-        }else if($apiName=="priceminister"){
+        } elseif ($apiName == 'priceminister') {
             $stores = Config::get('priceminister-mws.store');
         }
 

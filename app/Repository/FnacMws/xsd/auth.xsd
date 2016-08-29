@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+  targetNamespace="http://www.fnac.com/schemas/mp-dialog.xsd" 
+  elementFormDefault="qualified"
+  xmlns="http://www.fnac.com/schemas/mp-dialog.xsd"
+  xmlns:mstns="http://www.fnac.com/schemas/mp-dialog.xsd"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  
+  <xs:include schemaLocation="base.xsd"/>
+  
+  <xs:element name="auth_response" type="authentication_response" />
+  
+<!-- AUTHENTICATION RESPONSE -->
+  <xs:complexType name="authentication_response">
+    <xs:annotation>
+      <xs:documentation>
+        <![CDATA[Define the authentication response.]]>
+      </xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="base_response">
+        <xs:sequence>
+          <xs:element name="token" type="uuid" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[token will remain valid during the session]]>
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="validity" type="xs:dateTime" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[validity date when the session will expired]]>
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="version" type="xs:string" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[API version (string)]]>
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="error" type="error" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[authentication error]]>
+              </xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

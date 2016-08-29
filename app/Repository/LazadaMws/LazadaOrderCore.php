@@ -1,15 +1,12 @@
-<?php 
+<?php
 
 namespace App\Repository\LazadaMws;
-/**
-* 
-*/
+
 class LazadaOrderCore extends LazadaCore
 {
-  
     private $orderId;
 
-    function __construct($store)
+    public function __construct($store)
     {
         parent::__construct($store);
     }
@@ -21,6 +18,6 @@ class LazadaOrderCore extends LazadaCore
 
     public function setOrderId($value)
     {
-        $this->orderId=$value;
+        $this->orderId = $value;
     }
 }

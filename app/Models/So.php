@@ -36,7 +36,7 @@ class So extends Model
         return $result;
     }
 
-    function soItem()
+    public function soItem()
     {
         return $this->hasMany('App\Models\SoItem', 'so_no', 'so_no');
     }

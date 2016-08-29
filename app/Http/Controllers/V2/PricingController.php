@@ -2,23 +2,19 @@
 
 namespace App\Http\Controllers\V2;
 
-use App\Http\Controllers\MarketplaceProductController;
 use App\Services\PricingToolService;
-
 use App\Models\Marketplace;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
 use App\Models\Product;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 class PricingController extends Controller
 {
     public function __construct(PricingToolService $pricingToolService)
     {
-        $this->pricingToolService=$pricingToolService;
+        $this->pricingToolService = $pricingToolService;
     }
 
     public function index(Request $request)
@@ -31,6 +27,7 @@ class PricingController extends Controller
         if ($request->input('marketplaceSku')) {
             $data = $this->getPriceInfo($request);
         }
+
         return response()->view('v2.pricing.index', compact('marketplaces', 'skuList', 'data'));
     }
 
@@ -105,7 +102,7 @@ class PricingController extends Controller
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($countryCode)
             ->firstOrFail();
-        $mpControl=MpControl::select(['link'])
+        $mpControl = MpControl::select(['link'])
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)
             ->firstOrFail();

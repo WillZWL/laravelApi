@@ -29,8 +29,6 @@ class SubmitOrderFulfillmentFeed extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -58,7 +56,7 @@ class SubmitOrderFulfillmentFeed extends Command
             ->get();
 
         foreach ($esgOrders as $esgOrder) {
-            $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no."-01")->where('status', '=', '2')->first();
+            $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
             if ($esgOrderShipment) {
                 $xml = '<?xml version="1.0" encoding="utf-8"?>';
                 $xml .= '<AmazonEnvelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="amznenvelope.xsd">';
@@ -111,7 +109,7 @@ class SubmitOrderFulfillmentFeed extends Command
         $splitOrders = So::where('platform_order_id', '=', $order->platform_order_id)
             ->where('platform_split_order', '=', 1)->get();
 
-        $splitOrders->map(function($splitOrder) use($order) {
+        $splitOrders->map(function ($splitOrder) use ($order) {
             $splitOrder->dispatch_date = $order->dispatch_date;
             $splitOrder->status = 6;
             $splitOrder->save();
