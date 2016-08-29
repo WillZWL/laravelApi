@@ -5,8 +5,8 @@ namespace App\Repository\FnacMws;
 class FnacOrderList extends FnacOrderCore
 {
     private $fnacOrderIds;
-    private $orderState = 'Received';
-    private $dateType = 'ReceivedAt';
+    private $orderState = 'Created';
+    private $dateType = 'CreatedAt';
     private $resultsCount = 1000;
     private $paging = 1;
     private $minAt;
