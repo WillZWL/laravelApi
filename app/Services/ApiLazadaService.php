@@ -79,17 +79,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $orginOrderItemList;
 	}
 
-	public function getProductList()
-	{
-		if(!isset($this->lazadaProductList)){
-			$this->lazadaProductList = new LazadaProductList($storeName);
-		}
-		$this->lazadaProductList->setUpdatedAfter(date(\DateTime::ISO8601, strtotime( '-1 days' )));
-		$orginProductList=$this->lazadaProductList->fetchProductList();
-		$this->saveDataToFile(serialize($orginProductList),"getProductList");
-        return $orginProductList;
-	}
-
 	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
 	{  
         return false;//testing
