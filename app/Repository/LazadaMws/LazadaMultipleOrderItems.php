@@ -6,22 +6,23 @@ class LazadaMultipleOrderItems extends LazadaOrderCore
 {
     private $orderIdList;
 
-    public function __construct($store) 
+    public function __construct($store)
     {
         parent::__construct($store);
     }
 
     public function fetchMultipleOrderItems()
     {
-      return parent::query($this->getRequestParams());
+        return parent::query($this->getRequestParams());
     }
 
-    protected  function getRequestParams()
+    protected function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
         $requestParams["Action"] = "getGetMultipleOrderItems";
-        if($this->getOrderIdList())
-        $requestParams["OrderIdList"] = $this->getOrderIdList();
+        if ($this->getOrderIdList()) {
+            $requestParams["OrderIdList"] = $this->getOrderIdList();
+        }
         return $requestParams;
     }
 
@@ -42,5 +43,4 @@ class LazadaMultipleOrderItems extends LazadaOrderCore
     {
         return $this->orderIdList;
     }
-
 }

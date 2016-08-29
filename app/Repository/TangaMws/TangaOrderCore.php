@@ -4,7 +4,6 @@ namespace App\Repository\TangaMws;
 
 class TangaOrderCore extends TangaCore
 {
-
     private $orderId;
 
     public function __construct($store)
@@ -21,5 +20,4 @@ class TangaOrderCore extends TangaCore
     {
         $this->orderId = $value;
     }
-
 }

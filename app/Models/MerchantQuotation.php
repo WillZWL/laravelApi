@@ -20,9 +20,9 @@ class MerchantQuotation extends Model
         return $this->belongsTo('App\Models\Merchant', 'id', 'merchant_id');
     }
 
-
     /**
      * @param $query
+     *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopeAvailableQuotation($query)

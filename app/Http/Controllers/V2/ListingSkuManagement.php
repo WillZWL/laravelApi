@@ -8,11 +8,8 @@ use App\Models\Marketplace;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpCategory;
 use App\Models\MpControl;
-use App\Models\PlatformBizVar;
 use App\Models\Product;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 class ListingSkuManagement extends Controller
@@ -138,7 +135,7 @@ class ListingSkuManagement extends Controller
             ->where('country_id', '=', $request->input('country'))
             ->firstOrFail();
 
-        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku )
+        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku)
             ->where('sku', $esgSku)
             ->where('marketplace_id', $request->input('marketplace'))
             ->where('country_id', $request->input('country'))
@@ -180,7 +177,7 @@ class ListingSkuManagement extends Controller
         $mapping->brand = $request->input('platformBrand');
         $mapping->condition = $request->input('condition');
         $mapping->condition_note = $request->input('conditionNote');
-        $mapping->fulfillment_latency= $request->input('fulfillmentLatency');
+        $mapping->fulfillment_latency = $request->input('fulfillmentLatency');
         //process_status位进制计算
         $mapping->process_status = $mapping->process_status | self::PRICE_UPDATED | self::INVENTORY_UPDATED | self::PRODUCT_UPDATED;
         $mapping->listing_status = $request->input('listingStatus');
@@ -188,7 +185,7 @@ class ListingSkuManagement extends Controller
             $mapping->process_status = $mapping->process_status | self::PRODUCT_DISCONTINUED;
         }
         $mapping->delivery_type = $request->input('delivery_type');
-        $mapping->fulfillment=$this->getMappingFulfillment($marketplaceId,$mapping->delivery_type);
+        $mapping->fulfillment = $this->getMappingFulfillment($marketplaceId, $mapping->delivery_type);
 
         $mapping->price = $request->input('price');
         $mapping->inventory = $request->input('inventory');
@@ -201,19 +198,20 @@ class ListingSkuManagement extends Controller
         }
     }
 
-    public function getMappingFulfillment($makertplace,$deliveryType)
+    public function getMappingFulfillment($makertplace, $deliveryType)
     {
-        $fulfillment=null;
-        if(strstr($makertplace,"AMAZON")){
+        $fulfillment = null;
+        if (strstr($makertplace, 'AMAZON')) {
             switch ($deliveryType) {
                 case 'FBA':
                     $fulfillment = 'AFN';
                     break;
-                default :
+                default:
                     $fulfillment = 'MFN';
                     break;
             }
         }
+
         return $fulfillment;
     }
 }

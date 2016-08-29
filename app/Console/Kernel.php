@@ -31,8 +31,7 @@ class Kernel extends ConsoleKernel
     /**
      * Define the application's command schedule.
      *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
-     * @return void
+     * @param \Illuminate\Console\Scheduling\Schedule $schedule
      */
     protected function schedule(Schedule $schedule)
     {
@@ -52,11 +51,11 @@ class Kernel extends ConsoleKernel
         $schedule->command('order:transfer')
             ->dailyAt('09:00');
 
-        $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
+        $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('23:50');
-        $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
+        $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('01:50');
-        $schedule->command('platformMarket:orderRetrieve',array('--api'=>'all'))
+        $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('08:50');
 
         $schedule->command('platformMarket:orderTransfer')
@@ -68,7 +67,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
-        $schedule->command('platformMarket:updateShipment',array('--api'=>'priceminister'))
+        $schedule->command('platformMarket:updateShipment', array('--api' => 'priceminister'))
             ->dailyAt('12:20');
 
         //$schedule->command('feed:product')
@@ -85,6 +84,5 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('feed:check')
             ->everyThirtyMinutes();
-        
     }
 }

@@ -16,7 +16,7 @@ class ExchangeRate extends Model
 
     public static function getRate($fromCurrency, $toCurrency)
     {
-        return ExchangeRate::where('from_currency_id', '=', $fromCurrency)
+        return self::where('from_currency_id', '=', $fromCurrency)
             ->where('to_currency_id', '=', $toCurrency)
             ->firstOrFail()
             ->rate;

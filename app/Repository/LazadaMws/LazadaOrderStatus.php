@@ -13,7 +13,7 @@ class LazadaOrderStatus extends LazadaOrderCore
     private $trackingNumber;
     private $_requestParams;
 
-    public function __construct($store) 
+    public function __construct($store)
     {
         parent::__construct($store);
         $this->getRequestParams();
@@ -21,74 +21,90 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setStatusToCanceled()
     {
-        $this->_requestParams["Action"] = "SetStatusToCanceled";
-        if($this->getReason()) 
-        $this->_requestParams["Reason"] = $this->getReason();
-        if($this->getReasonDetail()) 
-        $this->_requestParams["ReasonDetail"] = $this->getReasonDetail();
+        $this->_requestParams['Action'] = 'SetStatusToCanceled';
+        if ($this->getReason()) {
+            $this->_requestParams['Reason'] = $this->getReason();
+        }
+        if ($this->getReasonDetail()) {
+            $this->_requestParams['ReasonDetail'] = $this->getReasonDetail();
+        }
+
         return parent::query($this->_requestParams);
     }
 
     public function setStatusToPackedByMarketplace()
     {
-        $this->_requestParams["Action"] = "SetStatusToPackedByMarketplace";
-        if($this->getDeliveryType()) 
-        $this->_requestParams["DeliveryType"] = $this->getDeliveryType();
-        if($this->getShippingProvider()) 
-        $this->_requestParams["ShippingProvider"] = $this->getShippingProvider();
-        return parent::query($this->_requestParams);   
+        $this->_requestParams['Action'] = 'SetStatusToPackedByMarketplace';
+        if ($this->getDeliveryType()) {
+            $this->_requestParams['DeliveryType'] = $this->getDeliveryType();
+        }
+        if ($this->getShippingProvider()) {
+            $this->_requestParams['ShippingProvider'] = $this->getShippingProvider();
+        }
+
+        return parent::query($this->_requestParams);
     }
 
     public function setStatusToReadyToShip()
     {
-        $this->_requestParams["Action"] = "SetStatusToReadyToShip";
-        if($this->getDeliveryType()) 
-        $this->_requestParams["DeliveryType"] = $this->getDeliveryType();
-        if($this->getShippingProvider()) 
-        $this->_requestParams["ShippingProvider"] = $this->getShippingProvider();
-        if($this->getTrackingNumber()) 
-        $this->_requestParams["TrackingNumber"] = $this->getTrackingNumber();
+        $this->_requestParams['Action'] = 'SetStatusToReadyToShip';
+        if ($this->getDeliveryType()) {
+            $this->_requestParams['DeliveryType'] = $this->getDeliveryType();
+        }
+        if ($this->getShippingProvider()) {
+            $this->_requestParams['ShippingProvider'] = $this->getShippingProvider();
+        }
+        if ($this->getTrackingNumber()) {
+            $this->_requestParams['TrackingNumber'] = $this->getTrackingNumber();
+        }
+
         return parent::query($this->_requestParams);
     }
 
     public function setStatusToShipped()
     {
-        $this->_requestParams["Action"] = "SetStatusToShipped";
+        $this->_requestParams['Action'] = 'SetStatusToShipped';
+
         return parent::query($this->_requestParams);
     }
 
     public function setStatusToFailedDelivery($value)
     {
-        $this->_requestParams["Action"] = "SetStatusToFailedDelivery";
-        if($this->getReason()) 
-        $this->_requestParams["Reason"] = $this->getReason();
-        if($this->getReasonDetail()) 
-        $this->_requestParams["ReasonDetail"] = $this->getReasonDetail();
+        $this->_requestParams['Action'] = 'SetStatusToFailedDelivery';
+        if ($this->getReason()) {
+            $this->_requestParams['Reason'] = $this->getReason();
+        }
+        if ($this->getReasonDetail()) {
+            $this->_requestParams['ReasonDetail'] = $this->getReasonDetail();
+        }
+
         return parent::query($this->_requestParams);
     }
 
     public function setStatusToDelivered($value)
     {
-        $this->_requestParams["Action"] = "SetStatusToDelivered";
+        $this->_requestParams['Action'] = 'SetStatusToDelivered';
+
         return parent::query($this->_requestParams);
     }
 
-    protected  function getRequestParams()
+    protected function getRequestParams()
     {
         $this->_requestParams = parent::initRequestParams();
-        if($this->getOrderItemId() && intval($this->getOrderItemId()) > 0) {
-          $this->_requestParams["OrderItemId"] = $this->getOrderItemId();
+        if ($this->getOrderItemId() && intval($this->getOrderItemId()) > 0) {
+            $this->_requestParams['OrderItemId'] = $this->getOrderItemId();
         }
-        if($this->getOrderItemIds() && !empty($this->getOrderItemIds())) {
-          $this->_requestParams["OrderItemIds"] = $this->OrderItemIds();
+        if ($this->getOrderItemIds() && !empty($this->getOrderItemIds())) {
+            $this->_requestParams['OrderItemIds'] = $this->OrderItemIds();
         }
     }
 
     protected function prepare($data = array())
     {
-        if (isset($data["Body"]) && isset($data["Body"]["OrderItems"]) && isset($data["Body"]["OrderItems"]["OrderItem"])) {
-          return $data["Body"]["OrderItems"]["OrderItem"];
+        if (isset($data['Body']) && isset($data['Body']['OrderItems']) && isset($data['Body']['OrderItems']['OrderItem'])) {
+            return $data['Body']['OrderItems']['OrderItem'];
         }
+
         return null;
     }
 
@@ -99,7 +115,7 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setOrderItemId($value)
     {
-        $this->orderItemId=$value;
+        $this->orderItemId = $value;
     }
 
     public function getOrderItemIds()
@@ -109,7 +125,7 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setOrderItemIds($value)
     {
-        $this->orderItemIds=$value;
+        $this->orderItemIds = $value;
     }
 
     public function getReason()
@@ -119,7 +135,7 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setReason($value)
     {
-        $this->reason=$value;
+        $this->reason = $value;
     }
 
     public function getReasonDetail()
@@ -129,7 +145,7 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setReasonDetail($value)
     {
-        $this->reasonDetail=$value;
+        $this->reasonDetail = $value;
     }
 
     public function getDeliveryType()
@@ -139,7 +155,7 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setDeliveryType($value)
     {
-        $this->deliveryType=$value;
+        $this->deliveryType = $value;
     }
 
     public function getShippingProvider()
@@ -149,7 +165,7 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setShippingProvider($value)
     {
-        $this->shippingProvider=$value;
+        $this->shippingProvider = $value;
     }
 
     public function getTrackingNumber()
@@ -159,6 +175,6 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     public function setTrackingNumber($value)
     {
-        $this->trackingNumber=$value;
+        $this->trackingNumber = $value;
     }
 }

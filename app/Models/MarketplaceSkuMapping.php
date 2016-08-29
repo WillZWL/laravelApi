@@ -28,6 +28,7 @@ class MarketplaceSkuMapping extends Model
         if ($fulfillment) {
             $relation->where('fulfillment_method', '=', $fulfillment);
         }
+
         return $relation;
     }
 
@@ -36,9 +37,9 @@ class MarketplaceSkuMapping extends Model
         return $this->belongsTo('App\Models\MpControl', 'mp_control_id', 'control_id');
     }
 
-    public function scopePendingProductSkuGroups($query,$marketplaceId)
+    public function scopePendingProductSkuGroups($query, $marketplaceId)
     {
-       return $query->join('product', 'marketplace_sku_mapping.sku', '=', 'product.sku')
+        return $query->join('product', 'marketplace_sku_mapping.sku', '=', 'product.sku')
                     ->join('product_content', function ($q) {
                         $q->on('product.sku', '=', 'product_content.prod_sku')
                             ->on('marketplace_sku_mapping.lang_id', '=', 'product_content.lang_id');

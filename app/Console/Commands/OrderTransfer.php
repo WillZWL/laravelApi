@@ -12,7 +12,6 @@ use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\MerchantQuotation;
 use App\Models\PlatformBizVar;
-use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
@@ -47,8 +46,6 @@ class OrderTransfer extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -85,6 +82,7 @@ class OrderTransfer extends Command
 
     /**
      * @param AmazonOrder $order
+     *
      * @return bool
      */
     public function validateAmazonOrder(AmazonOrder $order)
@@ -171,7 +169,7 @@ class OrderTransfer extends Command
 
         // check sku delivery type.
         $notHaveDeliveryTypeSku = $marketplaceSkuMapping->where('delivery_type', '');
-        if (! $notHaveDeliveryTypeSku->isEmpty()) {
+        if (!$notHaveDeliveryTypeSku->isEmpty()) {
             $notHaveDeliveryTypeSku->load('product');
             $subject = "[{$amazonAccountName}] Delivery Type Missing - Amazon Order Import Failed!";
             $message = "MarketPlace: {$order->platform}.\r\n Amazon Order Id: {$order->amazon_order_id}\r\n";
@@ -180,7 +178,7 @@ class OrderTransfer extends Command
                 return $message .= "Marketplace SKU <{$marketplaceProduct->marketplace_sku}>, product title <{$marketplaceProduct->product->name}>\r\n";
             }, $message);
 
-            $message .= "Please set delivery type in pricing tool, Thanks.";
+            $message .= 'Please set delivery type in pricing tool, Thanks.';
 
             mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
 
@@ -262,7 +260,7 @@ class OrderTransfer extends Command
             if ($order->fulfillment_channel === 'MFN') {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
-                    ->whereIn('delivery_type', ["EXP", "EXPED", "STD"])
+                    ->whereIn('delivery_type', ['EXP', 'EXPED', 'STD'])
                     ->orderBy(\DB::raw('FIELD(delivery_type, "EXP", "EXPED", "STD")'))
                     ->first();
 
@@ -328,12 +326,13 @@ class OrderTransfer extends Command
 
     /**
      * @param AmazonOrder $order
-     * @param Collection $orderItems
+     * @param Collection  $orderItems
+     *
      * @return So
      */
     private function createOrder(AmazonOrder $order, Collection $orderItems)
     {
-        $newOrder = new So;
+        $newOrder = new So();
         $client = $this->createOrUpdateClient($order);
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
@@ -367,7 +366,7 @@ class OrderTransfer extends Command
         $newOrder->delivery_address = implode(' | ', array_filter([
             $order->amazonShippingAddress->address_line_1,
             $order->amazonShippingAddress->address_line_2,
-            $order->amazonShippingAddress->address_line_3
+            $order->amazonShippingAddress->address_line_3,
         ]));
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
@@ -385,16 +384,15 @@ class OrderTransfer extends Command
         return $newOrder;
     }
 
-
     /**
-     * @param So $so
+     * @param So         $so
      * @param Collection $orderItem
      */
     private function saveSoItem(So $so, Collection $orderItem)
     {
         $lineNumber = 1;
         foreach ($orderItem as $item) {
-            $newOrderItem = new SoItem;
+            $newOrderItem = new SoItem();
             $newOrderItem->so_no = $so->so_no;
             $newOrderItem->line_no = $lineNumber++;
             $newOrderItem->prod_sku = $item->seller_sku;
@@ -411,14 +409,14 @@ class OrderTransfer extends Command
     }
 
     /**
-     * @param So $so
+     * @param So         $so
      * @param Collection $orderItem
      */
     private function saveSoItemDetail(So $so, Collection $orderItem)
     {
         $lineNumber = 1;
         foreach ($orderItem as $item) {
-            $newOrderItemDetail = new SoItemDetail;
+            $newOrderItemDetail = new SoItemDetail();
             $newOrderItemDetail->so_no = $so->so_no;
             $newOrderItemDetail->item_sku = $item->seller_sku;
             $newOrderItemDetail->line_no = $lineNumber++;
@@ -440,7 +438,7 @@ class OrderTransfer extends Command
      */
     private function saveSoPaymentStatus(So $so)
     {
-        $soPaymentStatus = new SoPaymentStatus;
+        $soPaymentStatus = new SoPaymentStatus();
         $soPaymentStatus->so_no = $so->so_no;
         $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so);
         $soPaymentStatus->payment_status = 'S';
@@ -450,12 +448,12 @@ class OrderTransfer extends Command
     }
 
     /**
-     * @param So $so
+     * @param So          $so
      * @param AmazonOrder $order
      */
     private function saveSoExtend(So $so, AmazonOrder $order)
     {
-        $soExtend = new SoExtend;
+        $soExtend = new SoExtend();
         $soExtend->so_no = $so->so_no;
         $soExtend->create_on = Carbon::now();
         $soExtend->modify_on = Carbon::now();
@@ -473,8 +471,10 @@ class OrderTransfer extends Command
     }
 
     /**
-     * Not contain assembly product
+     * Not contain assembly product.
+     *
      * @param Collection $orderItems
+     *
      * @return mixed
      */
     private function calculateOrderWeight(Collection $orderItems)
@@ -494,7 +494,7 @@ class OrderTransfer extends Command
         $merchantShortId = substr(last(explode('-', $order->platform_id)), 0, -2);
         $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
 
-        if (! $availableQuotation->isEmpty()) {
+        if (!$availableQuotation->isEmpty()) {
             switch ($order->delivery_type_id) {
                 case 'FBA':
                     $quotationType = ['acc_fba'];
@@ -502,7 +502,7 @@ class OrderTransfer extends Command
 
                 case 'STD':
                     // see sbf 8255.
-                    if (! $order->hasExternalBattery() && $order->hasInternalBattery()) {
+                    if (!$order->hasExternalBattery() && $order->hasInternalBattery()) {
                         $quotationType = ['acc_builtin_postage'];
                     } else {
                         $quotationType = ['acc_builtin_postage', 'acc_external_postage'];
@@ -584,6 +584,7 @@ class OrderTransfer extends Command
             $order->esg_delivery_cost = $splitOrders[0]->esg_delivery_cost;
             $order->esg_delivery_offer = $splitOrders[0]->esg_delivery_offer;
             $order->esg_quotation_courier_id = $splitOrders[0]->esg_quotation_courier_id;
+
             return $order->save();
         }
 
@@ -597,6 +598,7 @@ class OrderTransfer extends Command
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
                 $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate * 1.0125;
                 $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
+
                 return $order->save();
             }
         }
@@ -606,6 +608,7 @@ class OrderTransfer extends Command
 
     /**
      * @param $merchantShortId
+     *
      * @return Collection|static[]
      */
     private function getAvailableMerchantQuotation($merchantShortId)
@@ -633,7 +636,7 @@ class OrderTransfer extends Command
             ->where('dest_country_id', '=', $order->delivery_country_id)
             ->get();
 
-        if (! $complementaryAccessory->isEmpty()) {
+        if (!$complementaryAccessory->isEmpty()) {
             $order->load('soItem');
             $lineNumber = count($order->soItem) + 1;
             foreach ($complementaryAccessory as $item) {
@@ -663,7 +666,7 @@ class OrderTransfer extends Command
                 $soItemDetail->modify_on = Carbon::now();
                 $order->soItemDetail()->save($soItemDetail);
 
-                $lineNumber++;
+                ++$lineNumber;
             }
         }
     }
@@ -675,7 +678,7 @@ class OrderTransfer extends Command
             ->where('is_replace_main_sku', '=', '0')
             ->get();
 
-        if (! $assemblyMapping->isEmpty()) {
+        if (!$assemblyMapping->isEmpty()) {
             $order->load('soItem');
             $lineNumber = $order->soItem->max('line_no') + 1;
             foreach ($assemblyMapping as $item) {
@@ -706,7 +709,7 @@ class OrderTransfer extends Command
                 $soItemDetail->modify_on = Carbon::now();
                 $order->soItemDetail()->save($soItemDetail);
 
-                $lineNumber++;
+                ++$lineNumber;
             }
         }
     }

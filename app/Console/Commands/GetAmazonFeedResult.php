@@ -24,8 +24,6 @@ class GetAmazonFeedResult extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -50,9 +48,8 @@ class GetAmazonFeedResult extends Command
                 $feedResultRequest->saveFeed('/tmp/amazon_feed_result/'.$pendingFeed->feed_submission_id);
 
                 $feedResult = simplexml_load_string($feedResultRequest->getRawFeed());
-                if ( (int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithError > 0) {
+                if ((int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithError > 0) {
                     $pendingFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
-
 
                     $alertEmail = 'it@eservicesgroup.net';
                     $amazonAccountName = '';
@@ -77,16 +74,15 @@ class GetAmazonFeedResult extends Command
 
                     foreach ($feedResult->Message->ProcessingReport->Result as $itemResult) {
                         if ((string) $itemResult->ResultCode === 'Error') {
-                            $subject = "[{$amazonAccountName}] Product Feed ". (string) $itemResult->ResultCode;
-                            $message = 'marketplace SKU : <'. (string) $itemResult->AdditionalInfo->SKU . ">\r\n";
-                            $message .= 'MessageCode : '. (string) $itemResult->ResultMessageCode . "\r\n";
-                            $message .= 'Description : '. (string) $itemResult->ResultDescription . "\r\n";
+                            $subject = "[{$amazonAccountName}] Product Feed ".(string) $itemResult->ResultCode;
+                            $message = 'marketplace SKU : <'.(string) $itemResult->AdditionalInfo->SKU.">\r\n";
+                            $message .= 'MessageCode : '.(string) $itemResult->ResultMessageCode."\r\n";
+                            $message .= 'Description : '.(string) $itemResult->ResultDescription."\r\n";
 
                             mail("{$alertEmail}, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
                         }
                     }
-
-                } elseif ( (int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithWarning > 0) {
+                } elseif ((int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithWarning > 0) {
                     $pendingFeed->feed_processing_status = '_COMPLETE_WITH_WARNING_';
                 } else {
                     $pendingFeed->feed_processing_status = '_COMPLETE_';
@@ -94,6 +90,5 @@ class GetAmazonFeedResult extends Command
                 $pendingFeed->save();
             }
         }
-
     }
 }

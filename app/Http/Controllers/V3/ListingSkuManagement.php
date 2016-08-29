@@ -8,11 +8,8 @@ use App\Models\Marketplace;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpCategory;
 use App\Models\MpControl;
-use App\Models\PlatformBizVar;
 use App\Models\Product;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 class ListingSkuManagement extends Controller
@@ -97,7 +94,6 @@ class ListingSkuManagement extends Controller
             ->get();
         $data['marketplaceSkus'] = $marketplaceSkus;
 
-
         $mpCategories = MpCategory::join('mp_control', 'mp_control.control_id', '=', 'mp_category.control_id')
             ->where('mp_control.marketplace_id', '=', $marketplaceId)
             ->where('mp_control.country_id', '=', $countryId)
@@ -139,7 +135,7 @@ class ListingSkuManagement extends Controller
             ->where('country_id', '=', $request->input('country'))
             ->firstOrFail();
 
-        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku )
+        $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku)
             ->where('sku', $esgSku)
             ->where('marketplace_id', $request->input('marketplace'))
             ->where('country_id', $request->input('country'))
@@ -181,7 +177,7 @@ class ListingSkuManagement extends Controller
         $mapping->brand = $request->input('platformBrand');
         $mapping->condition = $request->input('condition');
         $mapping->condition_note = $request->input('conditionNote');
-        $mapping->fulfillment_latency= $request->input('fulfillmentLatency');
+        $mapping->fulfillment_latency = $request->input('fulfillmentLatency');
 
         $mapping->process_status = $mapping->process_status | self::PRICE_UPDATED | self::INVENTORY_UPDATED | self::PRODUCT_UPDATED;
         $mapping->listing_status = $request->input('listingStatus');
@@ -193,7 +189,7 @@ class ListingSkuManagement extends Controller
             case 'FBA':
                 $mapping->fulfillment = 'AFN';
                 break;
-            default :
+            default:
                 $mapping->fulfillment = 'MFN';
                 break;
         }

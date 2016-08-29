@@ -1,14 +1,13 @@
-<?php 
+<?php
 
 namespace App\Services;
-//use SplEnum; 
-/**
-* 
-*/
-abstract class PlatformOrderService 
+
+//use SplEnum;
+
+abstract class PlatformOrderService
 {
-	const ORDER_STATUS_CANCEL = 0;
-	const ORDER_STATUS_PAID = 2;
+    const ORDER_STATUS_CANCEL = 0;
+    const ORDER_STATUS_PAID = 2;
     const ORDER_STATUS_READYTOSHIP = 5;
     const ORDER_STATUS_SHIPPED = 6;
     const ORDER_STATUS_RETURENED = 7;
@@ -19,12 +18,8 @@ abstract class PlatformOrderService
     const ORDER_STATUS_UNSHIPPED = 14;
     const ORDER_STATUS_FAIL = 15;
 
-	//0 = Inactive / 1 = New / 2 = Paid / 3 = Fulfilment AKA Credit Checked / 4 = Partial Allocated / 5 = Full Allocated / 6 = Shipped
-	function __construct()
-	{
-		
-	}
-
+    //0 = Inactive / 1 = New / 2 = Paid / 3 = Fulfilment AKA Credit Checked / 4 = Partial Allocated / 5 = Full Allocated / 6 = Shipped
+    public function __construct()
+    {
+    }
 }
-
-

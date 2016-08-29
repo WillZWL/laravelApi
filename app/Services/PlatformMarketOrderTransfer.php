@@ -5,7 +5,6 @@ namespace App\Services;
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
 use App\Services\PlatformValidate\PriceMinisterValidateService;
-
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
@@ -15,8 +14,6 @@ use App\Models\ExchangeRate;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\MerchantQuotation;
-use App\Models\PlatformBizVar;
-use App\Models\PlatformOrderDeliveryScore;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
@@ -30,26 +27,24 @@ use App\Models\SoPaymentStatus;
 use App\Models\SpIncoterm;
 use App\Models\WeightCourier;
 use Carbon\Carbon;
-use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Collection;
 
 class PlatformMarketOrderTransfer
 {
-	private $request;
-	private $platformGroup=array(
-    		"Amazon"=>"AZ",
-    		"Lazada"=>"LZ",
-            "PriceMinister"=>"PM",
-            "Fnac"=>"FN",
-            "Qoo10"=>"QO",
-            "Newegg"=>"NE",
-            "Tanga"=>"TG",
+    private $request;
+    private $platformGroup = array(
+            'Amazon' => 'AZ',
+            'Lazada' => 'LZ',
+            'PriceMinister' => 'PM',
+            'Fnac' => 'FN',
+            'Qoo10' => 'QO',
+            'Newegg' => 'NE',
+            'Tanga' => 'TG',
         );
 
-	public function __construct()
-	{
-
-	}
+    public function __construct()
+    {
+    }
 
     public function transferReadyOrder()
     {
@@ -59,13 +54,13 @@ class PlatformMarketOrderTransfer
 
     public function transferOrderById($orderIds)
     {
-        $orderList = PlatformMarketOrder::whereIn('id',$orderIds)->get();
+        $orderList = PlatformMarketOrder::whereIn('id', $orderIds)->get();
         $this->transferOrder($orderList);
     }
 
-	public function transferOrder($orderList)
-	{
-        if($orderList){
+    public function transferOrder($orderList)
+    {
+        if ($orderList) {
             foreach ($orderList as $order) {
                 if ($this->getPlatformMarketValidateService($order)->validateOrder()) {
                     \DB::beginTransaction();
@@ -80,25 +75,26 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        print_r($order->biz_type.' order import - Exception'.$e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());exit();
-                        mail('jimmy.gao@eservicesgroup.com',$order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                        print_r($order->biz_type.' order import - Exception'.$e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                        exit();
+                        mail('jimmy.gao@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                     }
                 }
             }
         }
-	}
+    }
 
-	public function getPlatformMarketValidateService($order)
-	{
-		switch ($order->biz_type) {
-			case 'Amazon':
-				$validateService =new AmazonValidateService($order);
-				break;
-			case 'Lazada':
-				$validateService =new LazadaValidateService($order);
-				break;
+    public function getPlatformMarketValidateService($order)
+    {
+        switch ($order->biz_type) {
+            case 'Amazon':
+                $validateService = new AmazonValidateService($order);
+                break;
+            case 'Lazada':
+                $validateService = new LazadaValidateService($order);
+                break;
             case 'PriceMinister':
-                $validateService =new PriceministerValidateService($order);
+                $validateService = new PriceministerValidateService($order);
                 break;
            /* case 'Fnac':
                 $validateService =new FnacValidateService($order);
@@ -115,9 +111,10 @@ class PlatformMarketOrderTransfer
             case 'Paytm':
                 $validateService =new PaytmValidateService($order);
                 break;*/
-		}
-		return $validateService;
-	}
+        }
+
+        return $validateService;
+    }
 
     /**
      * @param PlatformMarketOrder $order
@@ -130,7 +127,7 @@ class PlatformMarketOrderTransfer
 
         $merchant = [];
 
-        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem()->get(),$marketplaceId,$countryCode);
+        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem()->get(), $marketplaceId, $countryCode);
 
         $so = $this->createOrder($order, $_orderItem);
 
@@ -147,7 +144,7 @@ class PlatformMarketOrderTransfer
 
         $this->saveSoItem($so, $_orderItem);
         $this->saveSoItemDetail($so, $_orderItem);
-        $this->saveSoPaymentStatus($so,$order);
+        $this->saveSoPaymentStatus($so, $order);
         $this->saveSoExtend($so, $order);
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
@@ -162,7 +159,7 @@ class PlatformMarketOrderTransfer
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
-        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem()->get(),$marketplaceId,$countryCode);
+        $_orderItem = $this->groupPlatformMarketOrderItem($order->platformMarketOrderItem()->get(), $marketplaceId, $countryCode);
         foreach ($_orderItem as $item) {
             $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
                 ->where('sku', '=', $item->mapping->sku)
@@ -194,7 +191,7 @@ class PlatformMarketOrderTransfer
             } else {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
-                    ->whereIn('delivery_type', ["EXP", "EXPED", "STD"])
+                    ->whereIn('delivery_type', ['EXP', 'EXPED', 'STD'])
                     ->orderBy(\DB::raw('FIELD(delivery_type, "EXP", "EXPED", "STD")'))
                     ->first();
 
@@ -208,7 +205,7 @@ class PlatformMarketOrderTransfer
             $so->save();
             $this->saveSoItem($so, $items);
             $this->saveSoItemDetail($so, $items);
-            $this->saveSoPaymentStatus($so,$order);
+            $this->saveSoPaymentStatus($so, $order);
             $this->saveSoExtend($so, $order);
             $this->addAssemblyProduct($so);
             $this->addComplementaryAccessory($so);
@@ -225,9 +222,9 @@ class PlatformMarketOrderTransfer
         $client = Client::firstOrNew(['email' => $order->buyer_email]);
         $client->password = bcrypt(Carbon::now());
         $client->forename = $order->buyer_name;
-        $countryCode=$order->platformMarketShippingAddress->country_code;
-        if(empty($countryCode)){
-        	$countryCode = strtoupper(substr($order->platform, -2));
+        $countryCode = $order->platformMarketShippingAddress->country_code;
+        if (empty($countryCode)) {
+            $countryCode = strtoupper(substr($order->platform, -2));
         }
         $client->country_id = $countryCode;
         $client->del_name = $order->platformMarketShippingAddress->name;
@@ -260,12 +257,13 @@ class PlatformMarketOrderTransfer
 
     /**
      * @param PlatformMarketShippingAddressOrder $order
-     * @param Collection $orderItems
+     * @param Collection                         $orderItems
+     *
      * @return So
      */
     private function createOrder(PlatformMarketOrder $order, Collection $orderItems)
     {
-        $newOrder = new So;
+        $newOrder = new So();
         $client = $this->createOrUpdateClient($order);
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->platform_order_no;
@@ -295,7 +293,7 @@ class PlatformMarketOrderTransfer
         $newOrder->delivery_address = implode(' | ', array_filter([
             $order->platformMarketShippingAddress->address_line_1,
             $order->platformMarketShippingAddress->address_line_2,
-            $order->platformMarketShippingAddress->address_line_3
+            $order->platformMarketShippingAddress->address_line_3,
         ]));
         $newOrder->delivery_postcode = $order->platformMarketShippingAddress->postal_code;
         $newOrder->delivery_city = $order->platformMarketShippingAddress->city;
@@ -307,18 +305,18 @@ class PlatformMarketOrderTransfer
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->platformMarketShippingAddress->phone;
 
-        if($order->platformMarketShippingAddress->bill_name){
+        if ($order->platformMarketShippingAddress->bill_name) {
             $newOrder->bill_name = $order->platformMarketShippingAddress->bill_name;
             $newOrder->bill_address = implode(' | ', array_filter([
                 $order->platformMarketShippingAddress->bill_address_line_1,
                 $order->platformMarketShippingAddress->bill_address_line_2,
-                $order->platformMarketShippingAddress->bill_address_line_3
+                $order->platformMarketShippingAddress->bill_address_line_3,
             ]));
             $newOrder->bill_postcode = $order->platformMarketShippingAddress->bill_postal_code;
             $newOrder->bill_city = $order->platformMarketShippingAddress->bill_city;
             $newOrder->bill_country_id = $order->platformMarketShippingAddress->bill_country_code;
             $newOrder->bill_state = CountryState::getStateId($order->platformMarketShippingAddress->bill_country_code, $order->platformMarketShippingAddress->bill_state_or_region);
-        }else{
+        } else {
             $newOrder->bill_country_id = $order->platformMarketShippingAddress->country_code;
         }
         $newOrder->create_on = Carbon::now();
@@ -329,14 +327,14 @@ class PlatformMarketOrderTransfer
     }
 
     /**
-     * @param So $so
+     * @param So         $so
      * @param Collection $orderItem
      */
     private function saveSoItem(So $so, Collection $orderItem)
     {
         $lineNumber = 1;
         foreach ($orderItem as $item) {
-            $newOrderItem = new SoItem;
+            $newOrderItem = new SoItem();
             $newOrderItem->so_no = $so->so_no;
             $newOrderItem->line_no = $lineNumber++;
             $newOrderItem->prod_sku = $item->seller_sku;
@@ -348,8 +346,8 @@ class PlatformMarketOrderTransfer
             $newOrderItem->vat_total = 0;   // not sure.
             $newOrderItem->duty_total_percent = 0;
             $newOrderItem->full_duty_percent = 0;
-            $newOrderItem->hidden_to_client=0;
-            $newOrderItem->status=0;
+            $newOrderItem->hidden_to_client = 0;
+            $newOrderItem->status = 0;
 
             $newOrderItem->create_on = Carbon::now();
             $newOrderItem->modify_on = Carbon::now();
@@ -358,14 +356,14 @@ class PlatformMarketOrderTransfer
     }
 
     /**
-     * @param So $so
+     * @param So         $so
      * @param Collection $orderItem
      */
     private function saveSoItemDetail(So $so, Collection $orderItem)
     {
         $lineNumber = 1;
         foreach ($orderItem as $item) {
-            $newOrderItemDetail = new SoItemDetail;
+            $newOrderItemDetail = new SoItemDetail();
             $newOrderItemDetail->so_no = $so->so_no;
             $newOrderItemDetail->item_sku = $item->seller_sku;
             $newOrderItemDetail->line_no = $lineNumber++;
@@ -385,11 +383,11 @@ class PlatformMarketOrderTransfer
     /**
      * @param So $so
      */
-    private function saveSoPaymentStatus(So $so,PlatformMarketOrder $order)
+    private function saveSoPaymentStatus(So $so, PlatformMarketOrder $order)
     {
-        $soPaymentStatus = new SoPaymentStatus;
+        $soPaymentStatus = new SoPaymentStatus();
         $soPaymentStatus->so_no = $so->so_no;
-        $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so,strtolower($order->biz_type));
+        $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so, strtolower($order->biz_type));
         $soPaymentStatus->payment_status = 'S';
         $soPaymentStatus->create_on = Carbon::now();
         $soPaymentStatus->modify_on = Carbon::now();
@@ -397,12 +395,12 @@ class PlatformMarketOrderTransfer
     }
 
     /**
-     * @param So $so
+     * @param So                  $so
      * @param PlatformMarketOrder $order
      */
     private function saveSoExtend(So $so, PlatformMarketOrder $order)
     {
-        $soExtend = new SoExtend;
+        $soExtend = new SoExtend();
         $soExtend->so_no = $so->so_no;
         $soExtend->create_on = Carbon::now();
         $soExtend->modify_on = Carbon::now();
@@ -410,7 +408,7 @@ class PlatformMarketOrderTransfer
         $soExtend->save();
     }
     //need update getPaymentGateway
-    private function getPaymentGateway(So $so,$bizType)
+    private function getPaymentGateway(So $so, $bizType)
     {
         $countryCode = strtolower(substr($so->platform_id, -2));
         $countryCode = ($countryCode === 'gb') ? 'uk' : $countryCode;
@@ -420,8 +418,10 @@ class PlatformMarketOrderTransfer
     }
 
     /**
-     * Not contain assembly product
+     * Not contain assembly product.
+     *
      * @param Collection $orderItems
+     *
      * @return mixed
      */
     private function calculateOrderWeight(Collection $orderItems)
@@ -429,7 +429,7 @@ class PlatformMarketOrderTransfer
         $skuQty = $orderItems->pluck('quantity_ordered', 'seller_sku')->toArray();
         $skuWeight = Product::whereIn('sku', array_keys($skuQty))->get()->pluck('weight', 'sku');
 
-        $totalWeight = $skuWeight->map(function($weight, $sku) use ($skuQty) {
+        $totalWeight = $skuWeight->map(function ($weight, $sku) use ($skuQty) {
             return $skuQty[$sku] * $weight;
         })->sum();
 
@@ -441,7 +441,7 @@ class PlatformMarketOrderTransfer
         $merchantShortId = substr(last(explode('-', $order->platform_id)), 0, -2);
         $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
 
-        if ( ! $availableQuotation->isEmpty()) {
+        if (!$availableQuotation->isEmpty()) {
             switch ($order->delivery_type_id) {
                 case 'FBA':
                     $quotationType = ['acc_fba'];
@@ -449,7 +449,7 @@ class PlatformMarketOrderTransfer
 
                 case 'STD':
                     // see sbf 8255.
-                    if ( ! $order->hasExternalBattery() && $order->hasInternalBattery())  {
+                    if (!$order->hasExternalBattery() && $order->hasInternalBattery()) {
                         $quotationType = ['acc_builtin_postage'];
                     } else {
                         $quotationType = ['acc_builtin_postage', 'acc_external_postage'];
@@ -468,7 +468,7 @@ class PlatformMarketOrderTransfer
                     $quotationType = ['acc_mcf'];
                     break;
 
-                default :
+                default:
                     $quotationType = [];
                     break;
             }
@@ -529,6 +529,7 @@ class PlatformMarketOrderTransfer
             $order->esg_delivery_cost = $splitOrders[0]->esg_delivery_cost;
             $order->esg_delivery_offer = $splitOrders[0]->esg_delivery_offer;
             $order->esg_quotation_courier_id = $splitOrders[0]->esg_quotation_courier_id;
+
             return $order->save();
         }
 
@@ -542,6 +543,7 @@ class PlatformMarketOrderTransfer
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
                 $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate * 1.0125;
                 $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
+
                 return $order->save();
             }
         }
@@ -551,6 +553,7 @@ class PlatformMarketOrderTransfer
 
     /**
      * @param $merchantShortId
+     *
      * @return Collection|static[]
      */
     private function getAvailableMerchantQuotation($merchantShortId)
@@ -578,7 +581,7 @@ class PlatformMarketOrderTransfer
             ->where('dest_country_id', '=', $order->delivery_country_id)
             ->get();
 
-        if ( ! $complementaryAccessory->isEmpty()) {
+        if (!$complementaryAccessory->isEmpty()) {
             $order->load('soItem');
             $lineNumber = count($order->soItem) + 1;
             foreach ($complementaryAccessory as $item) {
@@ -600,7 +603,7 @@ class PlatformMarketOrderTransfer
                 $soItemDetail->line_no = $lineNumber;
                 $soItemDetail->item_sku = $item->accessory_sku;
                 $soItemDetail->qty = $skuInOrder[$item->mainprod_sku];
-                $soItemDetail->outstanding_qty = $skuInOrder[$item->mainprod_sku];;
+                $soItemDetail->outstanding_qty = $skuInOrder[$item->mainprod_sku];
                 $soItemDetail->unit_price = 0;
                 $soItemDetail->vat_total = 0;
                 $soItemDetail->amount = 0;
@@ -608,7 +611,7 @@ class PlatformMarketOrderTransfer
                 $soItemDetail->modify_on = Carbon::now();
                 $order->soItemDetail()->save($soItemDetail);
 
-                $lineNumber++;
+                ++$lineNumber;
             }
         }
     }
@@ -620,7 +623,7 @@ class PlatformMarketOrderTransfer
             ->where('is_replace_main_sku', '=', '0')
             ->get();
 
-        if ( ! $assemblyMapping->isEmpty()) {
+        if (!$assemblyMapping->isEmpty()) {
             $order->load('soItem');
             $lineNumber = $order->soItem->max('line_no') + 1;
             foreach ($assemblyMapping as $item) {
@@ -651,28 +654,29 @@ class PlatformMarketOrderTransfer
                 $soItemDetail->modify_on = Carbon::now();
                 $order->soItemDetail()->save($soItemDetail);
 
-                $lineNumber++;
+                ++$lineNumber;
             }
         }
     }
 
-    public function groupPlatformMarketOrderItem($orderItems,$marketplaceId,$countryCode)
-    {   
+    public function groupPlatformMarketOrderItem($orderItems, $marketplaceId, $countryCode)
+    {
         $gourpOrderItems = new Collection();
-        foreach($orderItems as $orderItem){
-            if(isset($gourpOrderItems[$orderItem->seller_sku])){
+        foreach ($orderItems as $orderItem) {
+            if (isset($gourpOrderItems[$orderItem->seller_sku])) {
                 $gourpOrderItems[$orderItem->seller_sku]->quantity_ordered += $orderItem->quantity_ordered;
-                $gourpOrderItems[$orderItem->seller_sku]->order_item_id.="||".$orderItem->order_item_id;
+                $gourpOrderItems[$orderItem->seller_sku]->order_item_id .= '||'.$orderItem->order_item_id;
                 $gourpOrderItems[$orderItem->seller_sku]->item_price += $orderItem->item_price;
-            }else{
-                $gourpOrderItems[$orderItem->seller_sku]=$orderItem;
+            } else {
+                $gourpOrderItems[$orderItem->seller_sku] = $orderItem;
             }
             $mapping = MarketplaceSkuMapping::where('marketplace_sku', '=', $orderItem->seller_sku)
                 ->where('marketplace_id', '=', $marketplaceId)
                 ->where('country_id', '=', $countryCode)
                 ->firstOrFail();
-            $gourpOrderItems[$orderItem->seller_sku]->mapping= $mapping;
+            $gourpOrderItems[$orderItem->seller_sku]->mapping = $mapping;
         }
+
         return $gourpOrderItems;
     }
 }

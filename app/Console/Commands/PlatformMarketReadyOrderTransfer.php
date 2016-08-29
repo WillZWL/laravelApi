@@ -23,13 +23,11 @@ class PlatformMarketReadyOrderTransfer extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct(PlatformMarketOrderTransfer $platformMarketOrderTransfer)
     {
         parent::__construct();
-        $this->platformMarketOrderTransfer=$platformMarketOrderTransfer;
+        $this->platformMarketOrderTransfer = $platformMarketOrderTransfer;
     }
 
     /**

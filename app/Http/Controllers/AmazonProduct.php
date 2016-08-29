@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use Peron\AmazonMws\AmazonProductList;
 
 class AmazonProduct extends Controller
@@ -32,6 +30,7 @@ class AmazonProduct extends Controller
             return response()->json($product);
         } else {
             $productData = $product[0]->getData();
+
             return response()->json(['ASIN' => $productData['Identifiers']['MarketplaceASIN']['ASIN']]);
         }
     }

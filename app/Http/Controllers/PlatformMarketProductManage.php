@@ -8,50 +8,53 @@ use App\Services\PlatformMarketSkuMappingService;
 use App\Models\MpControl;
 use Config;
 
-class  PlatformMarketProductManage extends Controller
+class PlatformMarketProductManage extends Controller
 {
     public function __construct(ApiPlatformProductFactoryService $apiPlatformProductFactoryService)
     {
-        $this->apiPlatformProductFactoryService=$apiPlatformProductFactoryService;
+        $this->apiPlatformProductFactoryService = $apiPlatformProductFactoryService;
     }
 
     public function getProductList(Request $request)
     {
-        $storeName="BCLAZADAMY";
+        $storeName = 'BCLAZADAMY';
         //$schedule=$this->apiPlatformProductFactoryService->getStoreSchedule($storeName);
-        $productList=$this->apiPlatformProductFactoryService->getProductList($storeName);
+        $productList = $this->apiPlatformProductFactoryService->getProductList($storeName);
     }
 
     public function submitProductPrice(Request $request)
     {
-        $order=$this->apiPlatformProductFactoryService->submitProductPrice();
+        $order = $this->apiPlatformProductFactoryService->submitProductPrice();
     }
 
     public function submitProductInventory(Request $request)
     {
-        $order=$this->apiPlatformProductFactoryService->submitProductInventory();
+        $order = $this->apiPlatformProductFactoryService->submitProductInventory();
     }
 
     public function uploadMarketplacdeSkuMapping(Request $request)
     {
-        $platform=$request->input("check");
-        if($platform!="" && $request->hasFile('sku_file')){
-            $file=$request->file('sku_file');
+        $platform = $request->input('check');
+        if ($platform != '' && $request->hasFile('sku_file')) {
+            $file = $request->file('sku_file');
             $extension = $file->getClientOriginalExtension();
-            $destinationPath = storage_path()."/marketplace-sku-mapping";
-            $fileName=$file->getFilename().'.'.$extension;
-            $request->file('sku_file')->move($destinationPath,$fileName);
-            $stores=$this->getStores($platform);
-            $platformMarketSkuMappingService=new PlatformMarketSkuMappingService($stores);
+            $destinationPath = storage_path().'/marketplace-sku-mapping';
+            $fileName = $file->getFilename().'.'.$extension;
+            $request->file('sku_file')->move($destinationPath, $fileName);
+            $stores = $this->getStores($platform);
+            $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
             $platformMarketSkuMappingService->initMarketplaceSkuMapping($fileName);
+
             return redirect('platform-market/upload-mapping');
         }
-        return response()->view('platform-manager.uplaod-mapping'); 
+
+        return response()->view('platform-manager.uplaod-mapping');
     }
 
     public function getMarketplacdeSkuMappingFile($filename)
     {
         $file = \Storage::disk('skuMapping')->get($filename);
+
         return response($file, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 
@@ -62,18 +65,19 @@ class  PlatformMarketProductManage extends Controller
 
     public function exportLazadaPricingCsv(Request $request)
     {
-       /* $data=array();
+        /* $data=array();
         $marketplaceArr=MpControl::where("marketplace_id","like","%LAZADA")->get();
         foreach($marketplaceArr as $marketplace){
             $data[$marketplace->marketplace_id][] = $marketplace->country_id;
         }*/
-        $allMarketplace = $request->input("all_marketplace");
-        $marketplace_id = $request->input("marketplace_id");
-        if($allMarketplace != "" || $marketplace_id != ""){
+        $allMarketplace = $request->input('all_marketplace');
+        $marketplace_id = $request->input('marketplace_id');
+        if ($allMarketplace != '' || $marketplace_id != '') {
             $platformMarketSkuMappingService = new PlatformMarketSkuMappingService();
             $platformMarketSkuMappingService->exportLazadaPricingCsv($request);
             //return redirect('platform-market/upload-mapping');
         }
-        return response()->view('platform-manager.export-mapping'); 
+
+        return response()->view('platform-manager.export-mapping');
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\V3;
 
-use App\Http\Controllers\MarketplaceProductController;
 use App\Models\Brand;
 use App\Models\CountryState;
 use App\Models\CountryTax;
@@ -11,11 +10,8 @@ use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
 use App\Models\HscodeDutyCountry;
 use App\Models\Marketplace;
-use App\Models\MarketplaceProduct;
 use App\Models\MarketplaceSkuMapping;
-use App\Models\MerchantClientType;
 use App\Models\MerchantProductMapping;
-use App\Models\MerchantQuotation;
 use App\Models\MpCategoryCommission;
 use App\Models\MpControl;
 use App\Models\MpFixedFee;
@@ -24,12 +20,9 @@ use App\Models\PaymentGateway;
 use App\Models\Product;
 use App\Models\ProductComplementaryAcc;
 use App\Models\Quotation;
-use App\Models\SkuMapping;
 use App\Models\SupplierProd;
 use App\Models\WeightCourier;
 use Illuminate\Http\Request;
-
-use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
 class PricingController extends Controller
@@ -99,7 +92,7 @@ class PricingController extends Controller
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($countryCode)
             ->firstOrFail();
-        $mpControl=MpControl::select(['link'])
+        $mpControl = MpControl::select(['link'])
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)
             ->firstOrFail();
@@ -118,7 +111,6 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
         $result[$request->input('sellingPlatform')]['fulfillmentLatency'] = $marketplaceMapping->fulfillment_latency;
         $result[$request->input('sellingPlatform')]['link'] = $mpControl->link.$marketplaceMapping->asin;
-
 
         return response()->view('pricing.platform-pricing-info', ['data' => $result]);
     }
@@ -363,7 +355,7 @@ class PricingController extends Controller
             ->firstOrFail()
             ->control_id;
 
-        $mpFixedFee =  MpFixedFee::select('mp_fixed_fee')
+        $mpFixedFee = MpFixedFee::select('mp_fixed_fee')
             ->where('control_id', '=', $controlId)
             ->where('from_price', '<=', $request->input('price'))
             ->where('to_price', '>', $request->input('price'))
@@ -383,7 +375,7 @@ class PricingController extends Controller
         $countryCode = $request->input('country');
         $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
 
-        $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
+        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGatewayRate = PaymentGateway::findOrFail($paymentGatewayId)->payment_gateway_rate;
 
         return round($request->input('price') * $paymentGatewayRate / 100, 2);
@@ -396,7 +388,7 @@ class PricingController extends Controller
         $countryCode = $request->input('country');
         $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
 
-        $paymentGatewayId = strtolower(implode('_',[$account, $marketplaceId, $countryCode]));
+        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGateway = PaymentGateway::findOrFail($paymentGatewayId);
         $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $request->input('price') * $paymentGateway->admin_fee_percent / 100;
 
@@ -419,7 +411,7 @@ class PricingController extends Controller
 
         $quotation = collect();
         foreach ($quotationVersion as $quotationType => $quotationVersionId) {
-            if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage') ) {
+            if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage')) {
                 $weight = $actualWeight;
             } else {
                 $weight = max($actualWeight, $volumeWeight);
@@ -432,24 +424,24 @@ class PricingController extends Controller
         }
 
         $availableQuotation = $quotation->filter(function ($quotationItem) use ($battery) {
-                switch ($battery) {
-                    case '1':
-                        if ($quotationItem->courierInfo->allow_builtin_battery) {
-                            return true;
-                        }
-                        break;
-
-                    case '2':
-                        if ($quotationItem->courierInfo->allow_external_battery) {
-                            return true;
-                        }
-                        break;
-
-                    default:
+            switch ($battery) {
+                case '1':
+                    if ($quotationItem->courierInfo->allow_builtin_battery) {
                         return true;
+                    }
+                    break;
+
+                case '2':
+                    if ($quotationItem->courierInfo->allow_external_battery) {
+                        return true;
+                    }
+                    break;
+
+                default:
+                    return true;
                         break;
-                }
-            });
+            }
+        });
 
         // TODO: if $availableQuotation contains both built-in and external quotation, should choose the cheapest quotation.
 
@@ -458,6 +450,7 @@ class PricingController extends Controller
         $adjustRate = $this->adjustRate;
         $quotationCost = $availableQuotation->map(function ($item) use ($currencyRate, $adjustRate) {
             $item->cost = round($item->cost * $currencyRate / $adjustRate, 2);
+
             return $item;
         })->pluck('cost', 'quotation_type')->toArray();
 

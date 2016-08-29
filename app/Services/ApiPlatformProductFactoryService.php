@@ -1,33 +1,30 @@
-<?php 
+<?php
+
 namespace App\Services;
 
 use App\Contracts\ApiPlatformProductInterface;
-use App\Models\Schedule;
-
-use Carbon\Carbon;
-
 
 class ApiPlatformProductFactoryService
 {
-	private $_requestData;
-	
-	public function __construct(ApiPlatformProductInterface $apiPlatformProductInterface)
-	{
-		$this->apiPlatformProductInterface=$apiPlatformProductInterface;
-	}
+    private $_requestData;
 
-	public function getProductList($storeName)
-	{
-		return $this->apiPlatformProductInterface->getProductList($storeName);
-	}
+    public function __construct(ApiPlatformProductInterface $apiPlatformProductInterface)
+    {
+        $this->apiPlatformProductInterface = $apiPlatformProductInterface;
+    }
 
-	public function submitProductPrice()
-	{	
-		return $this->apiPlatformProductInterface->submitProductPrice();
-	}
+    public function getProductList($storeName)
+    {
+        return $this->apiPlatformProductInterface->getProductList($storeName);
+    }
 
-	public function submitProductInventory()
-	{	
-		return $this->apiPlatformProductInterface->submitProductInventory();
-	}
+    public function submitProductPrice()
+    {
+        return $this->apiPlatformProductInterface->submitProductPrice();
+    }
+
+    public function submitProductInventory()
+    {
+        return $this->apiPlatformProductInterface->submitProductInventory();
+    }
 }

@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
-use App\Models\PlatformOrderFeed;
 use App\Models\PlatformProductFeed;
 use Illuminate\Console\Command;
 use Config;
@@ -31,8 +30,6 @@ class SubmitProductFeed extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -51,7 +48,8 @@ class SubmitProductFeed extends Command
             ->join('product_content', function ($q) {
                 $q->on('product.sku', '=', 'product_content.prod_sku')
                     ->on('marketplace_sku_mapping.lang_id', '=', 'product_content.lang_id');
-            })->join('product_content_extend', function ($q) {
+            })
+            ->join('product_content_extend', function ($q) {
                 $q->on('product.sku', '=', 'product_content_extend.prod_sku')
                     ->on('marketplace_sku_mapping.lang_id', '=', 'product_content_extend.lang_id');
             })
@@ -69,56 +67,56 @@ class SubmitProductFeed extends Command
 
             $xml = '<?xml version="1.0" encoding="UTF-8"?>';
             $xml .= '<AmazonEnvelope xsi:noNamespaceSchemaLocation="amzn-envelope.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">';
-            $xml .=     '<Header>';
-            $xml .=         '<DocumentVersion>1.01</DocumentVersion>';
-            $xml .=         '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
-            $xml .=     '</Header>';
-            $xml .=     '<MessageType>Product</MessageType>';
+            $xml .= '<Header>';
+            $xml .= '<DocumentVersion>1.01</DocumentVersion>';
+            $xml .= '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
+            $xml .= '</Header>';
+            $xml .= '<MessageType>Product</MessageType>';
 
             foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageNode =     '<Message>';
-                $messageNode .=         '<MessageID>'.++$index.'</MessageID>';
-                $messageNode .=         '<OperationType>Update</OperationType>';
-                $messageNode .=         '<Product>';
-                $messageNode .=             '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                $messageNode .=             '<StandardProductID>';
-                $messageNode .=                 '<Type>ASIN</Type>';
-                $messageNode .=                 '<Value>'.$pendingSku->asin.'</Value>';
-                $messageNode .=             '</StandardProductID>';
-                $messageNode .=             '<ProductTaxCode>A_GEN_NOTAX</ProductTaxCode>';
-                $messageNode .=             '<LaunchDate>2014-04-22T04:00:00</LaunchDate>';
-                $messageNode .=             '<Condition>';
-                $messageNode .=                 '<ConditionType>'.$pendingSku->condition.'</ConditionType>';
-                $messageNode .=                 '<ConditionNote>'.$pendingSku->condition_note.'</ConditionNote>';
-                $messageNode .=             '</Condition>';
-                $messageNode .=             '<DescriptionData>';
-                $messageNode .=                 '<Title><![CDATA['.$pendingSku->prod_name.']]></Title>';
-                $messageNode .=                 '<Brand><![CDATA['.$pendingSku->brand_name.']]></Brand>';
-                $messageNode .=                 '<Description>';
-                $messageNode .=                     '<![CDATA['.$pendingSku->detail_desc.']]>';
-                $messageNode .=                     '<![CDATA['.$pendingSku->contents.']]>';
-                $messageNode .=                 '</Description>';
+                $messageNode = '<Message>';
+                $messageNode .= '<MessageID>'.++$index.'</MessageID>';
+                $messageNode .= '<OperationType>Update</OperationType>';
+                $messageNode .= '<Product>';
+                $messageNode .= '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                $messageNode .= '<StandardProductID>';
+                $messageNode .= '<Type>ASIN</Type>';
+                $messageNode .= '<Value>'.$pendingSku->asin.'</Value>';
+                $messageNode .= '</StandardProductID>';
+                $messageNode .= '<ProductTaxCode>A_GEN_NOTAX</ProductTaxCode>';
+                $messageNode .= '<LaunchDate>2014-04-22T04:00:00</LaunchDate>';
+                $messageNode .= '<Condition>';
+                $messageNode .= '<ConditionType>'.$pendingSku->condition.'</ConditionType>';
+                $messageNode .= '<ConditionNote>'.$pendingSku->condition_note.'</ConditionNote>';
+                $messageNode .= '</Condition>';
+                $messageNode .= '<DescriptionData>';
+                $messageNode .= '<Title><![CDATA['.$pendingSku->prod_name.']]></Title>';
+                $messageNode .= '<Brand><![CDATA['.$pendingSku->brand_name.']]></Brand>';
+                $messageNode .= '<Description>';
+                $messageNode .= '<![CDATA['.$pendingSku->detail_desc.']]>';
+                $messageNode .= '<![CDATA['.$pendingSku->contents.']]>';
+                $messageNode .= '</Description>';
                 foreach (explode("\n", $pendingSku->feature) as $bulletPoint) {
-                    $messageNode .=             '<BulletPoint>';
-                    $messageNode .=                 '<![CDATA['. $bulletPoint .']]>';
-                    $messageNode .=             '</BulletPoint>';
+                    $messageNode .= '<BulletPoint>';
+                    $messageNode .= '<![CDATA['.$bulletPoint.']]>';
+                    $messageNode .= '</BulletPoint>';
                 }
-                $messageNode .=                 '<ItemDimensions>';
-                $messageNode .=                     '<Length unitOfMeasure="CM">'.$pendingSku->length.'</Length>';
-                $messageNode .=                     '<Width unitOfMeasure="CM">'.$pendingSku->width.'</Width>';
-                $messageNode .=                     '<Height unitOfMeasure="CM">'.$pendingSku->height.'</Height>';
-                $messageNode .=                 '</ItemDimensions>';
-                $messageNode .=                 '<ShippingWeight unitOfMeasure="KG">'.number_format($pendingSku->weight, 2, '.', '').'</ShippingWeight>';
-                $messageNode .=                 '<Manufacturer><![CDATA['.$pendingSku->brand_name.']]></Manufacturer>';
+                $messageNode .= '<ItemDimensions>';
+                $messageNode .= '<Length unitOfMeasure="CM">'.$pendingSku->length.'</Length>';
+                $messageNode .= '<Width unitOfMeasure="CM">'.$pendingSku->width.'</Width>';
+                $messageNode .= '<Height unitOfMeasure="CM">'.$pendingSku->height.'</Height>';
+                $messageNode .= '</ItemDimensions>';
+                $messageNode .= '<ShippingWeight unitOfMeasure="KG">'.number_format($pendingSku->weight, 2, '.', '').'</ShippingWeight>';
+                $messageNode .= '<Manufacturer><![CDATA['.$pendingSku->brand_name.']]></Manufacturer>';
                 foreach (explode("\n", $pendingSku->keywords) as $keyword) {
-                    $messageNode .=                 '<SearchTerms>'.$keyword.'</SearchTerms>';
+                    $messageNode .= '<SearchTerms>'.$keyword.'</SearchTerms>';
                 }
-                $messageNode .=                 '<IsGiftWrapAvailable>false</IsGiftWrapAvailable>';
-                $messageNode .=                 '<IsGiftMessageAvailable>false</IsGiftMessageAvailable>';
-                $messageNode .=                 '<DeliveryChannel>direct_ship</DeliveryChannel>';
-                $messageNode .=             '</DescriptionData>';
-                $messageNode .=         '</Product>';
-                $messageNode .=     '</Message>';
+                $messageNode .= '<IsGiftWrapAvailable>false</IsGiftWrapAvailable>';
+                $messageNode .= '<IsGiftMessageAvailable>false</IsGiftMessageAvailable>';
+                $messageNode .= '<DeliveryChannel>direct_ship</DeliveryChannel>';
+                $messageNode .= '</DescriptionData>';
+                $messageNode .= '</Product>';
+                $messageNode .= '</Message>';
 
                 $xml .= $messageNode;
             }

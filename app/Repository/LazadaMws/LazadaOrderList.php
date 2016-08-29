@@ -9,9 +9,9 @@ class LazadaOrderList extends LazadaOrderCore
     private $updatedAfter;
     private $updatedBefore;
 
-    public function __construct($store) 
+    public function __construct($store)
     {
-      parent::__construct($store);
+        parent::__construct($store);
     }
 
     public function fetchOrderList()
@@ -19,27 +19,33 @@ class LazadaOrderList extends LazadaOrderCore
         return parent::query($this->getRequestParams());
     }
 
-    protected  function getRequestParams()
+    protected function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
-        $requestParams["Action"] = "GetOrders";
-        if($this->getCreatedAfter()) 
-        $requestParams["CreatedAfter"] = $this->getCreatedAfter();
-        if($this->getCreatedBefore()) 
-        $requestParams["CreatedBefore"] = $this->getCreatedBefore();
-        if($this->getUpdatedAfter()) 
-        $requestParams["UpdatedAfter"] = $this->getUpdatedAfter();
-        if($this->getUpdatedBefore()) 
-        $requestParams["UpdatedBefore"] = $this->getUpdatedBefore();
+        $requestParams['Action'] = 'GetOrders';
+        if ($this->getCreatedAfter()) {
+            $requestParams['CreatedAfter'] = $this->getCreatedAfter();
+        }
+        if ($this->getCreatedBefore()) {
+            $requestParams['CreatedBefore'] = $this->getCreatedBefore();
+        }
+        if ($this->getUpdatedAfter()) {
+            $requestParams['UpdatedAfter'] = $this->getUpdatedAfter();
+        }
+        if ($this->getUpdatedBefore()) {
+            $requestParams['UpdatedBefore'] = $this->getUpdatedBefore();
+        }
+
         return $requestParams;
-    } 
+    }
 
     protected function prepare($data = array())
     {
-      if (isset($data["Body"]) && isset($data["Body"]["Orders"]) && isset($data["Body"]["Orders"]["Order"])) {
-        return parent::fix($data["Body"]["Orders"]["Order"]);
-      }
-      return null;
+        if (isset($data['Body']) && isset($data['Body']['Orders']) && isset($data['Body']['Orders']['Order'])) {
+            return parent::fix($data['Body']['Orders']['Order']);
+        }
+
+        return null;
     }
 
     public function getCreatedAfter()
@@ -49,7 +55,7 @@ class LazadaOrderList extends LazadaOrderCore
 
     public function setCreatedAfter($value)
     {
-        $this->createdAfter=$value;
+        $this->createdAfter = $value;
     }
 
     public function getCreatedBefore()
@@ -59,7 +65,7 @@ class LazadaOrderList extends LazadaOrderCore
 
     public function setCreatedBefore($value)
     {
-        $this->createdBefore=$value;
+        $this->createdBefore = $value;
     }
 
     public function getUpdatedAfter()
@@ -69,7 +75,7 @@ class LazadaOrderList extends LazadaOrderCore
 
     public function setUpdatedAfter($value)
     {
-        $this->updatedAfter=$value;
+        $this->updatedAfter = $value;
     }
 
     public function getUpdatedBefore()
@@ -79,7 +85,6 @@ class LazadaOrderList extends LazadaOrderCore
 
     public function setUpdatedBefore($value)
     {
-        $this->updatedBefore=$value;
+        $this->updatedBefore = $value;
     }
-
 }

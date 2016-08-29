@@ -18,24 +18,27 @@ class PriceMinisterOrderList extends PriceMinisterOrderCore
 
     public function getNewSales()
     {
-        $this->_requestParams["action"] = "getnewsales";
+        $this->_requestParams['action'] = 'getnewsales';
         $this->_requestParams['version'] = '2010-09-20';
+
         return parent::query($this->_requestParams);
     }
 
     public function confirmSalesOrder()
     {
-        $this->_requestParams["action"] = "acceptsale";
+        $this->_requestParams['action'] = 'acceptsale';
         $this->_requestParams['version'] = '2010-09-20';
         $this->_requestParams['itemid'] = $this->getConfirmItemId();
+
         return parent::query($this->_requestParams);
     }
 
     public function getCurrentSales()
     {
-        $this->_requestParams["action"] = "getcurrentsales";
+        $this->_requestParams['action'] = 'getcurrentsales';
         $this->_requestParams['version'] = '2016-03-16';
         $this->_requestParams['purchasedate'] = $this->getPurchaseDate();
+
         return parent::query($this->_requestParams);
     }
 
@@ -46,17 +49,18 @@ class PriceMinisterOrderList extends PriceMinisterOrderCore
 
     protected function prepare($data = array())
     {
-        if (isset($data["response"]) && isset($data["response"]["sales"]) && isset($data["response"]["sales"]["sale"])) {
-            return parent::fix($data["response"]["sales"]["sale"]);
-        }else if(isset($data["response"]) && isset($data["response"]["status"])){
-            return parent::fix($data["response"]["status"]);
+        if (isset($data['response']) && isset($data['response']['sales']) && isset($data['response']['sales']['sale'])) {
+            return parent::fix($data['response']['sales']['sale']);
+        } elseif (isset($data['response']) && isset($data['response']['status'])) {
+            return parent::fix($data['response']['status']);
         }
+
         return null;
     }
 
     public function setUrlBase()
     {
-        $url = $this->urlbase."sales_ws";
+        $url = $this->urlbase.'sales_ws';
         $this->urlbase = $url;
     }
 

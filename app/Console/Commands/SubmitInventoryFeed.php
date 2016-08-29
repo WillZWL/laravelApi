@@ -30,8 +30,6 @@ class SubmitInventoryFeed extends Command
 
     /**
      * Create a new command instance.
-     *
-     * @return void
      */
     public function __construct()
     {
@@ -67,39 +65,39 @@ class SubmitInventoryFeed extends Command
 
             $xml = '<?xml version="1.0" encoding="UTF-8"?>';
             $xml .= '<AmazonEnvelope xsi:noNamespaceSchemaLocation="amzn-envelope.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">';
-            $xml .=     '<Header>';
-            $xml .=         '<DocumentVersion>1.01</DocumentVersion>';
-            $xml .=         '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
-            $xml .=     '</Header>';
-            $xml .=     '<MessageType>Product</MessageType>';
+            $xml .= '<Header>';
+            $xml .= '<DocumentVersion>1.01</DocumentVersion>';
+            $xml .= '<MerchantIdentifier>'.$stores[$marketplace]['merchantId'].'</MerchantIdentifier>';
+            $xml .= '</Header>';
+            $xml .= '<MessageType>Product</MessageType>';
 
             foreach ($pendingSkuGroup as $index => $pendingSku) {
                 try {
-                    $messageNode =      '<Message>';
-                    $messageNode .=         '<MessageID>'.++$index.'</MessageID>';
-                    $messageNode .=         '<OperationType>Update</OperationType>';
+                    $messageNode = '<Message>';
+                    $messageNode .= '<MessageID>'.++$index.'</MessageID>';
+                    $messageNode .= '<OperationType>Update</OperationType>';
 
                     if ($pendingSku->fulfillment === 'AFN') {
                         $inventory = '';
-                        $inventory .=       '<Inventory>';
-                        $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                        $inventory .=           '<FulfillmentCenterID>'.$pendingSku->fulfillmentCenter('AFN')->first()->name.'</FulfillmentCenterID>';
-                        $inventory .=           '<Lookup>FulfillmentNetwork</Lookup>';
-                        $inventory .=           '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
-                        $inventory .=       '</Inventory>';
+                        $inventory .= '<Inventory>';
+                        $inventory .= '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                        $inventory .= '<FulfillmentCenterID>'.$pendingSku->fulfillmentCenter('AFN')->first()->name.'</FulfillmentCenterID>';
+                        $inventory .= '<Lookup>FulfillmentNetwork</Lookup>';
+                        $inventory .= '<SwitchFulfillmentTo>AFN</SwitchFulfillmentTo>';
+                        $inventory .= '</Inventory>';
                     } else {
                         $inventory = '';
-                        $inventory .=       '<Inventory>';
-                        $inventory .=           '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
-                        $inventory .=           '<FulfillmentCenterID>DEFAULT</FulfillmentCenterID>';
-                        $inventory .=           '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-                        $inventory .=           '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
-                        $inventory .=           '<SwitchFulfillmentTo>MFN</SwitchFulfillmentTo>';
-                        $inventory .=       '</Inventory>';
+                        $inventory .= '<Inventory>';
+                        $inventory .= '<SKU>'.$pendingSku->marketplace_sku.'</SKU>';
+                        $inventory .= '<FulfillmentCenterID>DEFAULT</FulfillmentCenterID>';
+                        $inventory .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
+                        $inventory .= '<FulfillmentLatency>'.$pendingSku->fulfillment_latency.'</FulfillmentLatency>';
+                        $inventory .= '<SwitchFulfillmentTo>MFN</SwitchFulfillmentTo>';
+                        $inventory .= '</Inventory>';
                     }
 
                     $messageNode .= $inventory;
-                    $messageNode .=     '</Message>';
+                    $messageNode .= '</Message>';
 
                     $xml .= $messageNode;
                 } catch (\Exception $e) {
@@ -119,7 +117,6 @@ class SubmitInventoryFeed extends Command
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-
                 $pendingSkuGroup->transform(function ($pendingSku) {
                     $pendingSku->process_status ^= self::PENDING_INVENTORY;
                     $pendingSku->process_status |= self::COMPLETE_INVENTORY;

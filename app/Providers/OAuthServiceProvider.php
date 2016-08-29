@@ -10,8 +10,6 @@ class OAuthServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
-     *
-     * @return void
      */
     public function boot()
     {
@@ -19,11 +17,9 @@ class OAuthServiceProvider extends ServiceProvider
             $provider = new OAuth2($app['oauth2-server.authorizer']->getChecker());
 
             $provider->setUserResolver(function ($id) {
-
             });
 
             $provider->setClientResolver(function ($id) {
-
             });
 
             return $provider;
@@ -32,11 +28,8 @@ class OAuthServiceProvider extends ServiceProvider
 
     /**
      * Register the application services.
-     *
-     * @return void
      */
     public function register()
     {
-        //
     }
 }

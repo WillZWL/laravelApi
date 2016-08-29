@@ -6,14 +6,11 @@ use App\Contracts\ApiPlatformInterface;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
-use App\Models\Schedule;
 use Illuminate\Support\Arr;
 //use priceminister api package
 use App\Repository\PriceMinisterMws\PriceMinisterOrder;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderList;
-use App\Repository\PriceMinisterMws\PriceMinisterOrderItemList;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderTracking;
-
 
 class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInterface
 {
@@ -21,7 +18,6 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
     public function __construct()
     {
-
     }
 
     public function getPlatformId()
@@ -54,8 +50,9 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                     }
                 }
                 //update order qty shipped && qty unshipped && total_amout
-                $this->updateToConfirmSalesOrderByOrderItem($storeName,$order['purchaseid']);
+                $this->updateToConfirmSalesOrderByOrderItem($storeName, $order['purchaseid']);
             }
+
             return true;
         }
     }
@@ -69,16 +66,17 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         return $this->priceMinisterOrder->fetchOrder();
     }
 
-    public function confirmSalesOrder($storeName,$itemId)
+    public function confirmSalesOrder($storeName, $itemId)
     {
         $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
         $this->priceMinisterOrderList->setConfirmItemId($itemId);
         $result = $this->priceMinisterOrderList->confirmSalesOrder();
+
         return $result;
     }
 
     public function getOrderList($storeName, $fileName = '')
-    {    
+    {
         $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
         $this->storeCurrency = $this->priceMinisterOrderList->getStoreCurrency();
         if ($fileName) {
@@ -86,8 +84,9 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
             $originOrderList = unserialize($originOrderList);
         } else {
             $originOrderList = $this->priceMinisterOrderList->getNewSales();
-            $this->saveDataToFile(serialize($originOrderList), "getNewSales");
+            $this->saveDataToFile(serialize($originOrderList), 'getNewSales');
         }
+
         return $originOrderList;
     }
 
@@ -100,26 +99,28 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
-        $storeName=$platformOrderIdList[$esgOrder->platform_order_id];
-        $extItemCd=$esgOrder->soItem->pluck("ext_item_cd");
-        foreach($extItemCd as $extItem){
-            $itemIds = explode("||",$extItem);
-            foreach($itemIds as $itemId){
+        $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+        $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
+        foreach ($extItemCd as $extItem) {
+            $itemIds = explode('||', $extItem);
+            foreach ($itemIds as $itemId) {
                 if ($esgOrderShipment && $itemId) {
-                    $courier=$this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
-                    $this->priceMinisterOrderTracking=new PriceMinisterOrderTracking($storeName);
+                    $courier = $this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
+                    $this->priceMinisterOrderTracking = new PriceMinisterOrderTracking($storeName);
                     $this->priceMinisterOrderTracking->setItemId($itemId);
-                    $this->priceMinisterOrderTracking->setTransporterName($courier["transporter_name"]);
+                    $this->priceMinisterOrderTracking->setTransporterName($courier['transporter_name']);
                     $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
-                    if(isset($courier["tracking_url"]))
-                    $this->priceMinisterOrderTracking->setTrackingUrl($courier["tracking_url"]);
+                    if (isset($courier['tracking_url'])) {
+                        $this->priceMinisterOrderTracking->setTrackingUrl($courier['tracking_url']);
+                    }
                     //print_r($this->priceMinisterOrderTracking);exit();
-                    $result=$this->priceMinisterOrderTracking->setTrackingPackageInfo();
-                    $this->saveDataToFile($result, "setTrackingPackageInfo");
+                    $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                    $this->saveDataToFile($result, 'setTrackingPackageInfo');
                 }
             }
         }
-        return $result == "OK" ? true :false;
+
+        return $result == 'OK' ? true : false;
     }
 
     public function getPriceMinisterCourier($courier)
@@ -127,33 +128,34 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         switch ($courier) {
             case 'dhl':
             case 'dhl-global-mail':
-                $priceMinisterCourier=array("transporter_name" => "DHL");
+                $priceMinisterCourier = array('transporter_name' => 'DHL');
                 break;
             case 'dpd':
-                $priceMinisterCourier=array("transporter_name" => 'DPD');
+                $priceMinisterCourier = array('transporter_name' => 'DPD');
                 break;
             case 'dpd-uk':
-                $priceMinisterCourier=array(
-                    "transporter_name" => 'DPD',
-                    "tracking_url"=>'https://www.deutschepost.de/sendung/simpleQueryResult.html'
+                $priceMinisterCourier = array(
+                    'transporter_name' => 'DPD',
+                    'tracking_url' => 'https://www.deutschepost.de/sendung/simpleQueryResult.html',
                     );
                 break;
             case 'chronopost-france':
-                $priceMinisterCourier=array(
-                    "transporter_name"=>'CHRONOPOST',
-                    "tracking_url"=>'http://www.chronopost.fr/en'
+                $priceMinisterCourier = array(
+                    'transporter_name' => 'CHRONOPOST',
+                    'tracking_url' => 'http://www.chronopost.fr/en',
                     );
                 break;
             case 'tnt':
-                $priceMinisterCourier=array(
-                    "transporter_name"=>'TNT'
+                $priceMinisterCourier = array(
+                    'transporter_name' => 'TNT',
                     );
                 break;
-                
+
             default:
-                # code...
+                // code...
                 break;
         }
+
         return $priceMinisterCourier;
     }
 
@@ -181,16 +183,16 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
             'last_update_date' => '0000-00-00 00:00:00',
             'order_status' => $orderStatus,
             'esg_order_status' => $this->getSoOrderStatus($orderStatus),
-            'buyer_email' => $order['purchaseid']."@priceminister-api.com",
+            'buyer_email' => $order['purchaseid'].'@priceminister-api.com',
             'buyer_name' => $order['deliveryinformation']['purchasebuyerlogin'],
             'currency' => $this->storeCurrency,
             'shipping_address_id' => $addressId,
         ];
 
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
-                ['platform_order_id' => $order['purchaseid']],
-                $object
-            );
+            ['platform_order_id' => $order['purchaseid']],
+            $object
+        );
     }
 
     // update or insert data to order item
@@ -214,12 +216,13 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         }
 
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
-                [
+            [
                     'platform_order_id' => $order['purchaseid'],
                     'order_item_id' => $orderItem['itemid'],
                 ],
-                $object
-            );
+            $object
+        );
+
         return $platformMarketOrderItem;
     }
 
@@ -229,11 +232,11 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $object = [];
         $object['platform_order_id'] = $order['purchaseid'];
         $deliveryInfo = $order['deliveryinformation']['deliveryaddress'];
-        $object['name'] = (string)$deliveryInfo['firstname']." ".(string)$deliveryInfo['lastname'];
-        $object['address_line_1'] = (string)$deliveryInfo['address1'];
-        $object['address_line_2'] = (string)$deliveryInfo['address2'];
-        $object['city'] = (string)$deliveryInfo['city'];
-        $object['county'] = (string)$deliveryInfo['country'];
+        $object['name'] = (string) $deliveryInfo['firstname'].' '.(string) $deliveryInfo['lastname'];
+        $object['address_line_1'] = (string) $deliveryInfo['address1'];
+        $object['address_line_2'] = (string) $deliveryInfo['address2'];
+        $object['city'] = (string) $deliveryInfo['city'];
+        $object['county'] = (string) $deliveryInfo['country'];
         $object['country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
         $object['bill_country_code'] = $this->getEsgCountryCode($deliveryInfo['countryalpha2']);
 
@@ -241,33 +244,33 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
             ['platform_order_id' => $order['purchaseid']],
             $object
-            );
+        );
+
         return $platformMarketShippingAddress->id;
     }
 
-    public function updateToConfirmSalesOrderByOrderItem($storeName,$purchaseid)
+    public function updateToConfirmSalesOrderByOrderItem($storeName, $purchaseid)
     {
         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', $purchaseid)->first();
         $platformMarketOrderItemList = $platformMarketOrder->platformMarketOrderItem;
         $item_shipped = $item_unshiped = 0;
         $total_amount = 0.00;
         foreach ($platformMarketOrderItemList as $platformMarketOrderItem) {
-
             $quantity_shipped = $platformMarketOrderItem->quantity_shipped;
             $quantity_ordered = $platformMarketOrderItem->quantity_ordered;
 
             $item_shipped += $quantity_shipped;
-            $item_unshiped += ($quantity_ordered-$quantity_shipped);
+            $item_unshiped += ($quantity_ordered - $quantity_shipped);
 
             $item_price = $platformMarketOrderItem->item_price;
             $total_amount += $item_price;
 
-            $result=$this->confirmSalesOrder($storeName,$platformMarketOrderItem->order_item_id);
+            $result = $this->confirmSalesOrder($storeName, $platformMarketOrderItem->order_item_id);
         }
         $platformMarketOrder->total_amount = $total_amount;
         $platformMarketOrder->total_amount = $total_amount;
-        $platformMarketOrder->order_status = "ACCEPTED";
-        $platformMarketOrder->esg_order_status =$this->getSoOrderStatus("ACCEPTED");
+        $platformMarketOrder->order_status = 'ACCEPTED';
+        $platformMarketOrder->esg_order_status = $this->getSoOrderStatus('ACCEPTED');
         $platformMarketOrder->number_of_items_shipped = $item_shipped;
         $platformMarketOrder->number_of_items_unshipped = $item_unshiped;
         $platformMarketOrder->save();
@@ -293,26 +296,28 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
                 $status = 1;
                 break;
         }
+
         return $status;
     }
 
     public function getFileData($fileName)
     {
-        $filePath=storage_path()."/app/ApiPlatform/".$this->getPlatformId()."/getOrderList/" . date("Y");
-        $file = $filePath."/".$fileName;
+        $filePath = storage_path().'/app/ApiPlatform/'.$this->getPlatformId().'/getOrderList/'.date('Y');
+        $file = $filePath.'/'.$fileName;
         $data = file_get_contents($file);
+
         return $data;
     }
 
     public function getEsgCountryCode($countryalpha2)
     {
-        $countryCode=array(
-            "FX" => "FR",
-            "DE" => "DE"
+        $countryCode = array(
+            'FX' => 'FR',
+            'DE' => 'DE',
          );
-        if(isset($countryCode[$countryalpha2])){
+        if (isset($countryCode[$countryalpha2])) {
             return $countryCode[$countryalpha2];
-        }else{
+        } else {
             return $countryalpha2;
         }
     }
