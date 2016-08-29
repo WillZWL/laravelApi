@@ -48,13 +48,13 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                     }
 
                     if ($order['state'] == 'Created') {
-                        $fnacOrderIds['Created'][] = $order['order_id'];
+                        $fnacCreatedOrder['Created'][] = $order['order_id'];
                     }
                 }
             }
 
-            if ($fnacOrderIds) {
-                $this->ackFnacAcceptedOrders($fnacOrderIds, $storeName);
+            if ($fnacCreatedOrder) {
+                $this->ackFnacAcceptedOrders($fnacCreatedOrder, $storeName);
             }
 
             return true;
@@ -89,9 +89,10 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         return $originOrderItemList;
     }
 
-    public function ackFnacAcceptedOrders($fnacOrderIds, $storeName)
+    public function ackFnacAcceptedOrders($fnacCreatedOrder, $storeName)
     {
-        if (isset($fnacOrderIds['Created'])) {
+        if (isset($fnacCreatedOrder['Created'])) {
+            $fnacOrderIds = $fnacCreatedOrder['Created'];
             $orderAction = 'accept_all_orders';
             $orderDetailAction = 'Accepted';
 
