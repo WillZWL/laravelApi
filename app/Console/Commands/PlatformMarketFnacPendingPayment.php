@@ -30,7 +30,7 @@ class PlatformMarketFnacPendingPayment extends Command
     public function __construct(ApiFnacService $apiFnacService)
     {
         parent::__construct();
-        $this->ApiFnacService=$apiFnacService;
+        $this->apiFnacService = $apiFnacService;
     }
 
     /**

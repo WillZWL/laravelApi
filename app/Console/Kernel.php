@@ -73,8 +73,8 @@ class Kernel extends ConsoleKernel
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
 
-        // $schedule->command('platformMarket:updatePendingPayment')
-        //     ->dailyAt('10:55');
+        $schedule->command('platformMarket:updatePendingPayment')
+            ->dailyAt('10:55');
 
         $schedule->command('feed:price')
             ->everyThirtyMinutes();

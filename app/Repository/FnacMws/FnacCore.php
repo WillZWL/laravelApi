@@ -208,7 +208,7 @@ class FnacCore
 
     public function setConfig()
     {
-        $fnacServiceUrl = Config::get($this->mwsName .'.FNAC_SERVICE_URL');
+        $fnacServiceUrl = Config::get($this->mwsName . '.SERVICE_URL');
         if (isset($fnacServiceUrl)) {
             $this->urlbase = $fnacServiceUrl;
         } else {
@@ -218,7 +218,7 @@ class FnacCore
 
     public function setStore($storeName)
     {
-        $store = Config::get($this->mwsName .'.store');
+        $store = Config::get($this->mwsName . '.store');
         if (array_key_exists($storeName, $store)) {
             $this->storeName = $storeName;
 
