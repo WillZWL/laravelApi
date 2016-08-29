@@ -675,8 +675,8 @@ class PlatformMarketOrderTransfer
                 ->where('country_id', '=', $countryCode)
                 ->firstOrFail();
             $gourpOrderItems[$orderItem->seller_sku]->mapping = $mapping;
+            $gourpOrderItems[$orderItem->seller_sku]->seller_sku = $mapping->sku;
         }
-
         return $gourpOrderItems;
     }
 }

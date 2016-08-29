@@ -4,18 +4,17 @@ namespace App\Services\PlatformValidate;
 
 use App\Models\PlatformMarketOrder;
 
-class PriceMinisterValidateService extends BaseValidateService
+class WishValidateService extends BaseValidateService
 {
     private $order;
-
     public function __construct(PlatformMarketOrder $order)
     {
         $this->order = $order;
-        parent::__construct($order, $this->getPlatformAccountInfo($order), 'PM');
+        parent::__construct($order, $this->getPlatformAccountInfo($order), 'W');
     }
 
     /**
-     * @param AmazonOrder $order
+     * @param WishOrder $order
      *
      * @return bool
      */
@@ -34,7 +33,7 @@ class PriceMinisterValidateService extends BaseValidateService
         switch ($platformAccount) {
             case 'BC':
                 $platform['accountName'] = 'BrandsConnect';
-                $platform['alertEmail'] = 'priceministerfr@brandsconnect.net';
+                $platform['alertEmail'] = 'wish@brandsconnect.net';
                 break;
         }
 

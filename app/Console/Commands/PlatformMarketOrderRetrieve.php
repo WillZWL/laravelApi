@@ -87,8 +87,8 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
             'priceminister' => Config::get('priceminister-mws.store'),
             'tanga' => Config::get('tanga-mws.store'),
             'fnac' => Config::get('fnac-mws.store'),
+            'wish' => Config::get('wish-mws.store'),
         ];
-
         $stores = $config[$apiName] ?: null;
 
         return $stores;

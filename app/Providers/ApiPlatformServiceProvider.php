@@ -25,6 +25,7 @@ class ApiPlatformServiceProvider extends ServiceProvider
         'priceminister' => 'ApiPriceMinisterService',
         'tanga' => 'ApiTangaService',
         'fnac' => 'ApiFnacService',
+        'wish' => 'ApiWishService',
     );
 
     public function register()
