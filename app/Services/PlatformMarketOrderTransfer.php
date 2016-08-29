@@ -96,10 +96,10 @@ class PlatformMarketOrderTransfer
             case 'PriceMinister':
                 $validateService = new PriceministerValidateService($order);
                 break;
-           /* case 'Fnac':
+            case 'Fnac':
                 $validateService =new FnacValidateService($order);
                 break;
-            case 'Tanga':
+           /* case 'Tanga':
                 $validateService =new TangaValidateService($order);
                 break;
             case 'Qoo10':
