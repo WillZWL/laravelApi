@@ -417,7 +417,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
         );
         if(isset($shipmentProvider[$countryCode]))
-        return $shipmentProvider[$countryCode]
+        return $shipmentProvider[$countryCode];
     }
 
 }
