@@ -4,25 +4,24 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
-use App\Models\Schedule;
 use Config;
 
-class PlatformMarketUpdatePendingStatus extends BaseApiPlatformCommand
+class PlatformMarketProductFeed extends BaseApiPlatformCommand
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'platformMarket:updatePendingPayment  {--api= : amazon or lazada}';
+    //action = updatePrice or updateInventory
+    protected $signature = 'platformMarket:product {action} {--api= : amazon or lazada}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Update pending payment platform order status to atomesg database';
+    protected $description = 'Command description';
 
     /**
      * Create a new command instance.
@@ -41,17 +40,21 @@ class PlatformMarketUpdatePendingStatus extends BaseApiPlatformCommand
      */
     public function handle()
     {
-        $this->platfromMakert = array("fnac");
+        $this->platfromMakert = array("lazada");
         $this->runPlatformMarketConsoleFunction();
     }
 
     public function runApiPlatformServiceFunction($stores, $apiName)
     {
-        if ($stores) {
+        if ($stores){
+            $action = $this->argument('action');
             foreach ($stores as $storeName => $store) {
-                //print_r($this->getApiPlatformFactoryService($apiName));exit();
-                $this->getApiPlatformFactoryService($apiName)->updatePendingPaymentStatus($storeName);
-            }
+                if($action = "updatePrice"){
+                    $this->getApiPlatformProductFactoryService($apiName)->submitProductPrice($storeName);
+                }else if($action = "updateInventory"){
+                    $this->getApiPlatformProductFactoryService($apiName)->submitProductInventory($storeName);
+                }
+            } 
         }
     }
 }
