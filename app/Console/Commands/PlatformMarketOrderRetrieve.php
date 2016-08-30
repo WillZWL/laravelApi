@@ -39,17 +39,10 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
      */
     public function handle()
     {
-        $apiOption = $this->option('api');
-        if ($apiOption == 'all') {
-            foreach ($this->platfromMakert as $apiName) {
-                $this->runRetrieveOrder($this->getStores($apiName), $apiName);
-            }
-        } else {
-            $this->runRetrieveOrder($this->getStores($apiOption), $apiOption);
-        }
+        $this->runPlatformMarketConsoleFunction();
     }
 
-    public function runRetrieveOrder($stores, $apiName)
+    public function runApiPlatformServiceFunction($stores, $apiName)
     {
         if ($stores) {
             foreach ($stores as $storeName => $store) {

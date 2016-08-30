@@ -33,14 +33,16 @@ class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
      * @return mixed
      */
     public function handle()
+    {   
+        $this->platfromMakert = array("priceminister");
+        $this->runPlatformMarketConsoleFunction();
+    }
+
+    public function runApiPlatformServiceFunction($stores, $apiName)
     {
-        $apiOption = $this->option('api');
-        if ($apiOption == 'all') {
-            foreach ($this->platfromMakert as $apiName) {
-                $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
-            }
-        } else {
-            $this->getApiPlatformFactoryService($apiOption)->submitOrderFufillment($apiOption);
+        if ($stores){
+            //print_r($this->getApiPlatformFactoryService($apiName));exit();
+            $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
         }
     }
 }
