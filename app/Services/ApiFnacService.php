@@ -102,6 +102,9 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
 
             if ($responseDataList = $this->fnacOrderUpdate->updateFnacOrdersStatus()) {
+
+                $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderAccepted");
+
                 foreach ($responseDataList as $responseData) {
                     if ($responseData['status'] == 'OK' && $responseData['state'] == 'Accepted') {
                         try {
@@ -158,13 +161,29 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $this->fnacOrderUpdate->setOrderAction($orderAction);
             $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
 
-            $result = $this->fnacOrderUpdate->updateTrackingNumber();
+            if ($responseData = $this->fnacOrderUpdate->updateTrackingNumber()) {
 
-            $this->saveDataToFile(serialize($result),"setTrackingNumber");
-            if ($result === false || $result === null) {
-               return false;
-            } else {
-               return $result;
+                $this->saveDataToFile(serialize($responseData),"responseFnacOrderTracking");
+
+                if ($responseData['status'] == 'OK'
+                    && $responseData['state'] == 'Shipped'
+                    && $responseData['order_id'] == $fnacOrderId
+                ) {
+                    try {
+                        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
+                            ->where('order_status', '=', 'ToShip')
+                            ->firstOrFail();
+                        if ($platformMarketOrder) {
+                            $platformMarketOrder->order_status = $responseData['state'];
+                            $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($responseData['state']);
+                            $platformMarketOrder->save();
+
+                            return true;
+                        }
+                    } catch(Exception $e) {
+                        echo 'Message: ' .$e->getMessage();
+                    }
+                }
             }
         }
 
