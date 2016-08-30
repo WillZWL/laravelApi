@@ -43,7 +43,7 @@ class TangaOrderList extends TangaOrderCore
 
     public function setTangaPath()
     {
-        $this->tangaPath = 'api/vendors/'.$this->options['vendorAppId'].'/inventory_report';
+        $this->tangaPath = '/unshipped_items';
     }
 
     public function getStartAt()
