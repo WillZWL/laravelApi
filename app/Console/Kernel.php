@@ -84,6 +84,12 @@ class Kernel extends ConsoleKernel
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
 
+        $schedule->command('platformMarket:product updatePrice', array('--api' => 'all'))
+            ->everyThirtyMinutes();
+
+        $schedule->command('platformMarket:product updateInventory', array('--api' => 'all'))
+            ->everyThirtyMinutes();
+
         $schedule->command('feed:price')
             ->everyThirtyMinutes();
 

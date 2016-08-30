@@ -50,8 +50,10 @@ class PlatformMarketProductFeed extends BaseApiPlatformCommand
             $action = $this->argument('action');
             foreach ($stores as $storeName => $store) {
                 if($action == "updatePrice"){
+                    //\Log::info('User updatePrice. '.\Carbon\Carbon::now());exit();
                     $this->getApiPlatformProductFactoryService($apiName)->submitProductPrice($storeName);
                 }else if($action == "updateInventory"){
+                    //\Log::info('User updateInventory. '.\Carbon\Carbon::now());exit();
                     $this->getApiPlatformProductFactoryService($apiName)->submitProductInventory($storeName);
                 }
             } 
