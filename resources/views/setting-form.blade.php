@@ -13,7 +13,7 @@
                     <div class="form-group">
                         <label for="inputCost" class="col-sm-3 control-label">Cost Price (HKD):</label>
                         <div class="col-sm-7">
-                            <input type="number" name="costhkd" id="inputCost" class="form-control" value="{{ $tracerSku->product->supplierProduct->pricehkd}}"
+                            <input type="number" name="costhkd" id="inputCost" class="form-control" value="{{ $tracerSku->product->supplierProduct()->pricehkd}}"
                                    required="required" title="">
                         </div>
                     </div>
