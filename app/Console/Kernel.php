@@ -58,6 +58,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('08:50');
 
+        $schedule->command('platformMarket:updatePendingPayment')
+            ->dailyAt('23:40');
+        $schedule->command('platformMarket:updatePendingPayment')
+            ->dailyAt('01:40');
+        $schedule->command('platformMarket:updatePendingPayment')
+            ->dailyAt('08:40');
+
         $schedule->command('platformMarket:orderTransfer')
             ->dailyAt('00:00');
         $schedule->command('platformMarket:orderTransfer')
@@ -72,9 +79,6 @@ class Kernel extends ConsoleKernel
 
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
-
-        $schedule->command('platformMarket:updatePendingPayment')
-            ->dailyAt('10:55');
 
         $schedule->command('feed:price')
             ->everyThirtyMinutes();
