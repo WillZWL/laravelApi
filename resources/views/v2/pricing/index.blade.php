@@ -47,6 +47,19 @@
           Supplier Name : <span class="text-danger"> {{ $selectedSku->product->supplierProduct()->supplier->name }} </span> |
           Supply Status : <span class="text-danger"> {{ $lang[$selectedSku->product->supplierProduct()->supplier_status] }}</span>
         </p>
+        <p>
+            <?php $inventoryCollection = $selectedSku->inventory()->get() ?>
+
+          <span class="warehouse text-danger">CV_AMZ_FBA_UK : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'CV_AMZ_FBA_UK')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">CV_AMZ_FBA_US : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'CV_AMZ_FBA_US')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">ESG_AMZN_JP_FBA : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ESG_AMZN_JP_FBA')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">ESG_AMZN_UK_FBA : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ESG_AMZN_UK_FBA')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">ESG_AMZN_US_FBA : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ESG_AMZN_US_FBA')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">ES_DGME : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ES_DGME')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">ES_HK : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ES_HK')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">ETRADE : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ETRADE')->first()) ? $warehouse->inventory : 0 }}</span>
+          <span class="warehouse text-danger">PX_AMZN_FBA_UK : </span><span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'PX_AMZN_FBA_UK')->first()) ? $warehouse->inventory : 0 }}</span>
+        </p>
       @endif
     </div>
   </div>
@@ -164,7 +177,7 @@
                     <td>{{ $item['deliveryCharge'] }}</td>
                     <td>{{ $item['totalCharged'] }}</td>
                     <td data-name="profit">{{ $item['profit'] }}</td>
-                    <td data-name="margin">{{ $item['margin'] }}</td>
+                    <td data-name="margin" class="{{ ($item['margin'] < 0) ? 'text-danger' : '' }}">{{ $item['margin'] }}%</td>
                   </tr>
                 @endforeach
 
