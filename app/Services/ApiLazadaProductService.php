@@ -53,7 +53,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
     }
 
     protected function runProductUpdate($storeName,$action)
-    {
+    {   
         $processStatus = array(
             'pendingPrice' => self::PENDING_PRICE,
             'pendingInventory' => self::PENDING_INVENTORY,
@@ -91,9 +91,15 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
             if($result){
                 $pendingSkuGroup->transform(function ($pendingSku) {
-                    $pendingSku->process_status ^= self::PENDING_PRICE;
-                    $pendingSku->process_status |= self::COMPLETE_PRICE;
-                    $pendingSku->save();
+                    if ($processStatus[$action] == self::PENDING_PRICE) {
+                        $pendingSku->process_status ^= self::PENDING_PRICE;
+                        $pendingSku->process_status |= self::COMPLETE_PRICE;
+                    }
+                    if ($processStatus[$action] == self::PENDING_INVENTORY) {
+                        $pendingSku->process_status ^= self::PENDING_INVENTORY;
+                        $pendingSku->process_status |= self::COMPLETE_INVENTORY;
+                    }
+                    $pendingSku->save(); 
                 });
                 return $result;
             }
