@@ -12,8 +12,8 @@ class TangaCore
 
     public function __construct($storeName)
     {
-        $this->setConfig();
         $this->setStore($storeName);
+        $this->setConfig();
     }
 
     public function query($requestParams)
@@ -57,7 +57,7 @@ class TangaCore
         ];
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $this->url.$this->tangaPath.'?'.$queryString);
+        curl_setopt($ch, CURLOPT_URL, $this->url . $this->tangaPath . '?' . $queryString);
         curl_setopt($ch, CURLOPT_USERPWD, "{$user_email}:{$user_password}");
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -115,9 +115,9 @@ class TangaCore
 
     public function setConfig()
     {
-        $tangaServiceUrl = Config::get($this->mwsName.'.TANGA_SERVICE_URL');
+        $tangaServiceUrl = Config::get($this->mwsName.'.SERVICE_URL');
         if (isset($tangaServiceUrl)) {
-            $this->url = $tangaServiceUrl;
+            $this->url = $tangaServiceUrl . $this->vendorAppId;
         } else {
             throw new Exception('Config file does not exist or cannot be read!');
         }
@@ -129,26 +129,35 @@ class TangaCore
         if (array_key_exists($storeName, $store)) {
             $this->storeName = $storeName;
 
-            if (array_key_exists('email', $store[$storeName])) {
-                $this->options['email'] = $store[$storeName]['email'];
+            if (array_key_exists('userId', $store[$storeName])) {
+                $this->userId = $store[$storeName]['userId'];
             } else {
-                $this->log('Email Address does not exist!', 'Warning');
+                $this->log('User ID does not exist!', 'Warning');
             }
 
             if (array_key_exists('password', $store[$storeName])) {
-                $this->options['password'] = $store[$storeName]['password'];
+                $this->password = $store[$storeName]['password'];
             } else {
                 $this->log('password  does not exist!', 'Warning');
             }
 
             if (array_key_exists('vendorAppId', $store[$storeName])) {
-                $this->options['vendorAppId'] = $store[$storeName]['vendorAppId'];
+                $this->vendorAppId = $store[$storeName]['vendorAppId'];
             } else {
                 $this->log('Vendor APP ID does not exist!', 'Warning');
+            }
+
+            if (array_key_exists('currency', $store[$storeName])) {
+                $this->storeCurrency = $store[$storeName]['currency'];
             }
         } else {
             $this->log("Store $storeName does not exist", 'Warning');
         }
+    }
+
+    public function  getStoreCurrency()
+    {
+        return $this->storeCurrency;
     }
 
     /**
@@ -161,8 +170,6 @@ class TangaCore
     protected function prepare($data = array())
     {
         if (isset($data)) {
-            print_r($data);
-
             return $data;
         } else {
             return null;
@@ -192,8 +199,8 @@ class TangaCore
     protected function initRequestParams()
     {
         $requestParams = [
-            'email' => $this->options['email'],
-            'password' => $this->options['password'],
+            'email' => $this->userId,
+            'password' => $this->password,
         ];
 
         return $requestParams;
