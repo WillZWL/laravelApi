@@ -23,4 +23,12 @@ class LazadaProductUpdate extends LazadaProductsCore
         $this->_requestParams = array_merge($this->_requestParams, $requestParams);
         $this->_requestParams['Action'] = 'ProductUpdate';
     }
+
+    protected function prepare($data = array())
+    {
+        if (isset($data['Head']) && isset($data['Head']['RequestId']) && isset($data['Head']['RequestAction'])) {
+            return $data['Head'];
+        }
+        return null;
+    }
 }

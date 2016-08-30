@@ -61,6 +61,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
         $pendingSkuGroups = MarketplaceSkuMapping::where('process_status', '&', $processStatus[$action])
             ->where('listing_status', '=', 'Y')
             ->where('marketplace_id', 'like', '%LAZADA')
+            ->where('asin', '=', 'test')
             ->get()
             ->groupBy('mp_control_id');
         foreach ($pendingSkuGroups as $mpControlId => $pendingSkuGroup) {
@@ -82,13 +83,20 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             }
             $xmlData .= '</Request>';
             print_r($xmlData);
-            exit();
             $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
             $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
+            $this->saveDataToFile(serialize($xmlData), 'pendingProductPriceOrInventory');
             $result = $this->lazadaProductUpdate->submitXmlData($xmlData);
+            print_r($result);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
-
-            return $result;
+            if($result){
+                $pendingSkuGroup->transform(function ($pendingSku) {
+                    $pendingSku->process_status ^= self::PENDING_PRICE;
+                    $pendingSku->process_status |= self::COMPLETE_PRICE;
+                    $pendingSku->save();
+                });
+                return $result;
+            }
         }
     }
 
