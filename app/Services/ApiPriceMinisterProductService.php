@@ -60,10 +60,10 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
         );
         $pendingSkuGroups = MarketplaceSkuMapping::where('process_status', '&', $processStatus[$action])
             ->where('listing_status', '=', 'Y')
-            ->where('marketplace_id', 'like', '%LAZADA')
+            ->where('marketplace_id', 'like', '%PRICEMINISTER')
             ->get()
             ->groupBy('mp_control_id');
-            MarketplaceSkuMapping::
+            
         foreach ($pendingSkuGroups as $mpControlId => $pendingSkuGroup) {
             $marketplaceControl = MpControl::find($mpControlId);
             $storeName = $marketplaceControl->marketplace_id.$marketplaceControl->country_id;
