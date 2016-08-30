@@ -54,19 +54,19 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
 
     protected function runProductUpdate($storeName,$action)
     {   
+        $marketplaceId = strtoupper(substr($storeName, 0, -2));
+        $countryCode = strtoupper(substr($storeName, -2));
         $processStatus = array(
             'pendingPrice' => self::PENDING_PRICE,
             'pendingInventory' => self::PENDING_INVENTORY,
         );
-        $pendingSkuGroups = MarketplaceSkuMapping::where('process_status', '&', $processStatus[$action])
+        $pendingSkuGroup = MarketplaceSkuMapping::where('process_status', '&', $processStatus[$action])
             ->where('listing_status', '=', 'Y')
-            ->where('marketplace_id', 'like', '%LAZADA')
+            ->where('marketplace_id', '=', $marketplaceId)
+            ->where('country_id', '=', $countryCode)
             ->where('asin', '=', 'test')
-            ->get()
-            ->groupBy('mp_control_id');
-        foreach ($pendingSkuGroups as $mpControlId => $pendingSkuGroup) {
-            $marketplaceControl = MpControl::find($mpControlId);
-            $storeName = $marketplaceControl->marketplace_id.$marketplaceControl->country_id;
+            ->get();
+        if(!$pendingSkuGroup->isEmpty()){
             $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xmlData .= '<Request>';
             foreach ($pendingSkuGroup as $index => $pendingSku) {
@@ -75,6 +75,8 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
                 if ($processStatus[$action] == self::PENDING_PRICE) {
                     $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
                     $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
+                    $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
+                    $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
                 }
                 if ($processStatus[$action] == self::PENDING_INVENTORY) {
                     $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
