@@ -22,6 +22,10 @@ class MarketplaceSkuMapping extends Model
         return $this->belongsTo('App\Models\Product', 'sku', 'sku');
     }
 
+    public function inventory()
+    {
+        return $this->hasMany('App\Models\Inventory', 'prod_sku', 'sku');
+    }
     public function fulfillmentCenter($fulfillment = null)
     {
         $relation = $this->hasMany('App\Models\FulfillmentCenter', 'mp_control_id', 'mp_control_id');

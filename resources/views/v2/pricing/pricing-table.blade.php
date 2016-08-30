@@ -149,7 +149,7 @@ $link = [
                                 <td>{{ $item['deliveryCharge'] }}</td>
                                 <td>{{ $item['totalCharged'] }}</td>
                                 <td data-name="profit">{{ $item['profit'] }}</td>
-                                <td data-name="margin">{{ $item['margin'] }}</td>
+                                <td data-name="margin" class="{{ ($item['margin'] < 0) ? 'text-danger' : '' }}">{{ $item['margin'] }}%</td>
                             </tr>
                             @endforeach
                             <tr>

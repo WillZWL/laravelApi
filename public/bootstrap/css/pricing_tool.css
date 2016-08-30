@@ -65,3 +65,11 @@ table .radio, table .checkbox {
     border-bottom: 1px dashed darkblue;
     padding: 5px 0;
 }
+
+span.inventory {
+    display: inline-block;
+    margin-right: 10px;
+}
+span.warehouse {
+
+}
