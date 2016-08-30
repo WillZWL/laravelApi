@@ -67,6 +67,11 @@ class ApiPlatformFactoryService
         }
     }
 
+    public function updatePendingPaymentStatus($storeName)
+    {
+        return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
+    }
+
     public function setStatusToCanceled($storeName, $orderItemId)
     {
         return $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderItemId);
