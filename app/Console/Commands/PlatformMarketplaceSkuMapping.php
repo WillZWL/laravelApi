@@ -59,16 +59,4 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
         }
     }
 
-    public function getStores($apiName)
-    {
-        if ($apiName == 'lazada') {
-            $stores = Config::get('lazada-mws.store');
-        } elseif ($apiName == 'amazon') {
-            $stores = Config::get('amazon-mws.store');
-        } elseif ($apiName == 'priceminister') {
-            $stores = Config::get('priceminister-mws.store');
-        }
-
-        return $stores;
-    }
 }
