@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
 use App\Services\PlatformValidate\PriceMinisterValidateService;
+use App\Services\PlatformValidate\FnacValidateService;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
@@ -75,8 +76,6 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        print_r($order->biz_type.' order import - Exception'.$e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
-                        exit();
                         mail('jimmy.gao@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                     }
                 }
