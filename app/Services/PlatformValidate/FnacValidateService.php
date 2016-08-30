@@ -13,7 +13,7 @@ class FnacValidateService extends BaseValidateService
     function __construct(PlatformMarketOrder $order)
     {
         $this->order=$order;
-        parent::__construct($order,$this->getPlatformAccountInfo($order),"TG");
+        parent::__construct($order,$this->getPlatformAccountInfo($order),"FN");
     }
 
     /**
