@@ -87,9 +87,7 @@ class MarketplaceSkuMapping extends Model
             ->where('listing_status', '=', 'Y')
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)
-            ->where('asin', '=', 'test')
             ->get();
     }
-
 
 }
