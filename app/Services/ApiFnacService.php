@@ -30,7 +30,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     public function retrieveOrder($storeName)
     {
         if ($orginOrderList = $this->getOrderList($storeName)) {
-            $fnacOrderIds = [];
+            $fnacCreatedOrder = [];
             foreach ($orginOrderList as $order) {
                 if (isset($order['shipping_address'])) {
                     $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
