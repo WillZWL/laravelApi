@@ -73,7 +73,8 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
                 $messageDom = '<Product>';
                 $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
                 if ($processStatus[$action] == self::PENDING_PRICE) {
-                    $messageDom .= '<Price>'.$pendingSku->price.'</Price>';
+                    $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
+                    $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
                 }
                 if ($processStatus[$action] == self::PENDING_INVENTORY) {
                     $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
@@ -90,17 +91,19 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             print_r($result);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
             if($result){
-                $pendingSkuGroup->transform(function ($pendingSku) {
-                    if ($processStatus[$action] == self::PENDING_PRICE) {
+                if ($processStatus[$action] == self::PENDING_PRICE) {
+                    $pendingSkuGroup->transform(function ($pendingSku) {
                         $pendingSku->process_status ^= self::PENDING_PRICE;
                         $pendingSku->process_status |= self::COMPLETE_PRICE;
-                    }
-                    if ($processStatus[$action] == self::PENDING_INVENTORY) {
+                    });
+                }
+                if ($processStatus[$action] == self::PENDING_INVENTORY) {
+                    $pendingSkuGroup->transform(function ($pendingSku) {
                         $pendingSku->process_status ^= self::PENDING_INVENTORY;
                         $pendingSku->process_status |= self::COMPLETE_INVENTORY;
-                    }
-                    $pendingSku->save(); 
-                });
+                        $pendingSku->save(); 
+                    });
+                }
                 return $result;
             }
         }
