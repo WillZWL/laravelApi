@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\LazadaMws;
+namespace App\Repository\PriceMinisterMws;
 
-class LazadaProductUpdate extends LazadaProductsCore
+class PriceMinisterProductUpdate extends PriceMinisterProductsCore
 {
     private $_requestParams = array();
 
@@ -13,7 +13,11 @@ class LazadaProductUpdate extends LazadaProductsCore
     }
 
     public function submitXmlData($xmlData)
-    {
+    {   
+        //post file to PM
+        $xmlData =array(
+            "file" => $xmlData
+        );
         return parent::curlPostDataToApi($this->_requestParams, $xmlData);
     }
 
@@ -21,14 +25,6 @@ class LazadaProductUpdate extends LazadaProductsCore
     {
         $requestParams = parent::initRequestParams();
         $this->_requestParams = array_merge($this->_requestParams, $requestParams);
-        $this->_requestParams['Action'] = 'ProductUpdate';
-    }
-
-    protected function prepare($data = array())
-    {
-        if (isset($data['Head']) && isset($data['Head']['RequestId']) && isset($data['Head']['RequestAction'])) {
-            return $data['Head'];
-        }
-        return null;
+        $this->_requestParams['action'] = 'genericimportfile';
     }
 }
