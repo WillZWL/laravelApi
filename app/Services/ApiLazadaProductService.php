@@ -54,22 +54,15 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
 
     protected function runProductUpdate($storeName,$action)
     {   
-        $marketplaceId = strtoupper(substr($storeName, 0, -2));
-        $countryCode = strtoupper(substr($storeName, -2));
         $processStatus = array(
             'pendingPrice' => self::PENDING_PRICE,
             'pendingInventory' => self::PENDING_INVENTORY,
         );
-        $pendingSkuGroup = MarketplaceSkuMapping::where('process_status', '&', $processStatus[$action])
-            ->where('listing_status', '=', 'Y')
-            ->where('marketplace_id', '=', $marketplaceId)
-            ->where('country_id', '=', $countryCode)
-            ->where('asin', '=', 'test')
-            ->get();
-        if(!$pendingSkuGroup->isEmpty()){
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus[$action]);
+        if(!$processStatusProduct->isEmpty()){
             $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xmlData .= '<Request>';
-            foreach ($pendingSkuGroup as $index => $pendingSku) {
+            foreach ($processStatusProduct as $index => $pendingSku) {
                 $messageDom = '<Product>';
                 $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
                 if ($processStatus[$action] == self::PENDING_PRICE) {
@@ -94,13 +87,14 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
             if($result){
                 if ($processStatus[$action] == self::PENDING_PRICE) {
-                    $pendingSkuGroup->transform(function ($pendingSku) {
+                    $processStatusProduct->transform(function ($pendingSku) {
                         $pendingSku->process_status ^= self::PENDING_PRICE;
                         $pendingSku->process_status |= self::COMPLETE_PRICE;
+                        $pendingSku->save(); 
                     });
                 }
                 if ($processStatus[$action] == self::PENDING_INVENTORY) {
-                    $pendingSkuGroup->transform(function ($pendingSku) {
+                    $processStatusProduct->transform(function ($pendingSku) {
                         $pendingSku->process_status ^= self::PENDING_INVENTORY;
                         $pendingSku->process_status |= self::COMPLETE_INVENTORY;
                         $pendingSku->save(); 
@@ -112,75 +106,52 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
     }
 
     public function submitProductCreate($storeName)
-    {
-        $pendingSkuGroups = MarketplaceSkuMapping::PendingProductSkuGroups($query, '%LAZADA');
-        foreach ($pendingSkuGroups as $mpControlId => $pendingSkuGroup) {
-            $marketplaceControl = MpControl::find($mpControlId);
-            $storeName = $marketplaceControl->marketplace_id.$marketplaceControl->country_id;
-            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-            $xmlData .= '<Request>';
-            foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageDom = '<Product>';
-                $messageDom .= '<Status>'.$pendingSku->marketplace_sku.'</Status>';
-                $messageDom .= '<Name><![CDATA['.$pendingSku->prod_name.']]</Name>';
-                $messageDom .= '<Variation>'.$pendingSku->marketplace_sku.'</Variation>';
-                $messageDom .= '<PrimaryCategory>'.$pendingSku->marketplace_sku.'</PrimaryCategory>';
-                $messageDom .= '<Categories>'.$pendingSku->marketplace_sku.'</Categories>';
-                $messageDom .= '<Description><![CDATA['.$pendingSku->detail_desc.']]</Description>';
-                $messageDom .= '<Brand><![CDATA['.$pendingSku->brand_name.']]</Brand>';
-                $messageDom .= '<Price>'.$pendingSku->marketplace_sku.'</Price>';
-                $messageDom .= '<SalePrice>'.$pendingSku->marketplace_sku.'</SalePrice>';
-                $messageDom .= '<SaleStartDate>'.$pendingSku->marketplace_sku.'</SaleStartDate>';
-                $messageDom .= '<SaleEndDate>'.$pendingSku->marketplace_sku.'</SaleEndDate>';
-                $messageDom .= '<TaxClass>'.$pendingSku->marketplace_sku.'</TaxClass>';
-                $messageDom .= '<ShipmentType>'.$pendingSku->marketplace_sku.'</ShipmentType>';
-                $messageDom .= '<ProductId>'.$pendingSku->marketplace_sku.'</ProductId>';
-                $messageDom .= '<Condition>'.$pendingSku->condition.'</Condition>';
-                $messageDom .= '<ProductData>';
-                $messageDom .= '<Megapixels>'.$pendingSku->marketplace_sku.'</Megapixels>';
-                $messageDom .= '<OpticalZoom>'.$pendingSku->marketplace_sku.'</OpticalZoom>';
-                $messageDom .= '<SystemMemory>'.$pendingSku->marketplace_sku.'</SystemMemory>';
-                $messageDom .= '<NumberCpus>'.$pendingSku->marketplace_sku.'</NumberCpus>';
-                $messageDom .= '<Network>'.$pendingSku->marketplace_sku.'</Network>';
-                $messageDom .= '</ProductData>';
-                $messageDom .= '<Quantity>'.$pendingSku->marketplace_sku.'</Quantity>';
-                $messageDom .= '</Product>';
-                $xmlData .= $messageDom;
-            }
-            $xmlData .= '</Request>';
-            $this->lazadaProductCreate = new LazadaProductCreate($storeName);
-            $this->storeCurrency = $this->lazadaProductCreate->getStoreCurrency();
-            $result = $this->lazadaProductCreate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($result), 'updateProduct');
-            //return $result;
+    {   
+        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($query, $storeName);
+        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
+        $xmlData .= '<Request>';
+        foreach ($pendingSkuGroup as $index => $pendingSku) {
+            $messageDom = '<Product>';
+            $messageDom .= '<Status>'.$pendingSku->marketplace_sku.'</Status>';
+            $messageDom .= '<Name><![CDATA['.$pendingSku->prod_name.']]</Name>';
+            $messageDom .= '<Variation>'.$pendingSku->marketplace_sku.'</Variation>';
+            $messageDom .= '<PrimaryCategory>'.$pendingSku->marketplace_sku.'</PrimaryCategory>';
+            $messageDom .= '<Categories>'.$pendingSku->marketplace_sku.'</Categories>';
+            $messageDom .= '<Description><![CDATA['.$pendingSku->detail_desc.']]</Description>';
+            $messageDom .= '<Brand><![CDATA['.$pendingSku->brand_name.']]</Brand>';
+            $messageDom .= '<Price>'.$pendingSku->marketplace_sku.'</Price>';
+            $messageDom .= '<SalePrice>'.$pendingSku->marketplace_sku.'</SalePrice>';
+            $messageDom .= '<SaleStartDate>'.$pendingSku->marketplace_sku.'</SaleStartDate>';
+            $messageDom .= '<SaleEndDate>'.$pendingSku->marketplace_sku.'</SaleEndDate>';
+            $messageDom .= '<TaxClass>'.$pendingSku->marketplace_sku.'</TaxClass>';
+            $messageDom .= '<ShipmentType>'.$pendingSku->marketplace_sku.'</ShipmentType>';
+            $messageDom .= '<ProductId>'.$pendingSku->marketplace_sku.'</ProductId>';
+            $messageDom .= '<Condition>'.$pendingSku->condition.'</Condition>';
+            $messageDom .= '<ProductData>';
+            $messageDom .= '<Megapixels>'.$pendingSku->marketplace_sku.'</Megapixels>';
+            $messageDom .= '<OpticalZoom>'.$pendingSku->marketplace_sku.'</OpticalZoom>';
+            $messageDom .= '<SystemMemory>'.$pendingSku->marketplace_sku.'</SystemMemory>';
+            $messageDom .= '<NumberCpus>'.$pendingSku->marketplace_sku.'</NumberCpus>';
+            $messageDom .= '<Network>'.$pendingSku->marketplace_sku.'</Network>';
+            $messageDom .= '</ProductData>';
+            $messageDom .= '<Quantity>'.$pendingSku->marketplace_sku.'</Quantity>';
+            $messageDom .= '</Product>';
+            $xmlData .= $messageDom;
         }
+        $xmlData .= '</Request>';
+        $this->lazadaProductCreate = new LazadaProductCreate($storeName);
+        $this->storeCurrency = $this->lazadaProductCreate->getStoreCurrency();
+        $result = $this->lazadaProductCreate->submitXmlData($xmlData);
+        $this->saveDataToFile(serialize($result), 'updateProduct');
+        //return $result;
+        
     }
 
     public function submitProductUpdate()
     {
-        $pendingSkuGroups = MarketplaceSkuMapping::PendingProductSkuGroups($query, '%LAZADA');
-        foreach ($pendingSkuGroups as $mpControlId => $pendingSkuGroup) {
-            $marketplaceControl = MpControl::find($mpControlId);
-            $storeName = $marketplaceControl->marketplace_id.$marketplaceControl->country_id;
-            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-            $xmlData .= '<Request>';
-            foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageDom = '<Product>';
-                $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-                $messageDom .= '<Description><![CDATA['.$pendingSku->detail_desc.']]</Description>';
-                $messageDom .= '<Brand><![CDATA['.$pendingSku->brand_name.']]</Brand>';
-                $messageDom .= '<Price>'.$pendingSku->price.'</Price>';
-                $messageDom .= '<Condition>'.$pendingSku->condition.'</Condition>';
-                $messageDom .= '<Quantity>'.$pendingSku->marketplace_sku.'</Quantity>';
-                $messageDom .= '</Product>';
-                $xmlData .= $messageDom;
-            }
-            $xmlData .= '</Request>';
-            $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
-            $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
-            $result = $this->lazadaProductUpdate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($result), 'updateProduct');
-            //return $result;
+        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($query, '%LAZADA');
+        foreach ($pendingSkuGroup as $index => $pendingSku) {
+            
         }
     }
 }
