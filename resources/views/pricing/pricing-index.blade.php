@@ -1,6 +1,6 @@
 <section class="top">
     <p>
-        Pricing Tool
+        Accelerator Pricing Strategy Application
     </p>
 </section>
 

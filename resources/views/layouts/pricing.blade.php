@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>Pricing Tool</title>
+  <title>Accelerator Pricing Strategy Application</title>
   <link rel="stylesheet" href="{{ asset('/bootstrap/css/pricing_tool.css') }}" type="text/css" media="all"/>
   <link rel="stylesheet" href="{{ asset('/bootstrap/css/bootstrap.css') }}" type="text/css" media="all"/>
 </head>
@@ -12,7 +12,7 @@
   <div id="container">
     <section id="header">
       <p class="title">
-        Pricing Tool
+        Accelerator Pricing Strategy Application
       </p>
     </section>
 
