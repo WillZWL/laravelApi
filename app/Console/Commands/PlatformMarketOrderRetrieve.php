@@ -78,19 +78,5 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
             }
         }
     }
-    //get stores function
-    public function getStores($apiName)
-    {
-        $config = [
-            'lazada' => Config::get('lazada-mws.store'),
-            'amazon' => Config::get('amazon-mws.store'),
-            'priceminister' => Config::get('priceminister-mws.store'),
-            'tanga' => Config::get('tanga-mws.store'),
-            'fnac' => Config::get('fnac-mws.store'),
-            'wish' => Config::get('wish-mws.store'),
-        ];
-        $stores = $config[$apiName] ?: null;
 
-        return $stores;
-    }
 }

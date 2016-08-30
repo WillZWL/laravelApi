@@ -25,7 +25,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketReadyOrderTransfer::class,
         Commands\PlatformMarketplaceSkuMapping::class,
         Commands\SubmitPlatformOrderFufillment::class,
-        Commands\PlatformMarketFnacPendingPayment::class,
+        Commands\PlatformMarketUpdatePendingStatus::class,
     ];
 
     /**
@@ -51,12 +51,22 @@ class Kernel extends ConsoleKernel
         $schedule->command('order:transfer')
             ->dailyAt('09:00');
 
+        $schedule->command('platformMarket:orderRetrieve',array('--api' => 'fnac'))
+            ->hourly();
+
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('23:50');
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('01:50');
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('08:50');
+
+        $schedule->command('platformMarket:updatePendingPayment',array('--api' => 'all'))
+             ->dailyAt('23:50');
+        $schedule->command('platformMarket:updatePendingPayment',array('--api' => 'all'))
+             ->dailyAt('01:50');
+        $schedule->command('platformMarket:updatePendingPayment',array('--api' => 'all'))
+             ->dailyAt('08:50');
 
         $schedule->command('platformMarket:orderTransfer')
             ->dailyAt('00:00');
@@ -72,9 +82,6 @@ class Kernel extends ConsoleKernel
 
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
-
-        $schedule->command('platformMarket:updatePendingPayment')
-            ->dailyAt('10:55');
 
         $schedule->command('feed:price')
             ->everyThirtyMinutes();
