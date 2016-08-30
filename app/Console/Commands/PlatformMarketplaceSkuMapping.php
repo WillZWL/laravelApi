@@ -37,21 +37,14 @@ class PlatformMarketplaceSkuMapping extends BaseApiPlatformCommand
      * @return mixed
      */
     public function handle()
-    {
-        $apiOption = $this->option('api');
-        if ($apiOption == 'all') {
-            foreach ($this->platfromMakert as $apiName) {
-                $this->runSkuMapping($this->getStores($apiName), $apiName);
-            }
-        } else {
-            $this->runSkuMapping($this->getStores($apiOption), $apiOption);
-        }
+    {   
+        //loop run runApiPlatformServiceFunction by platform
+        $this->runPlatformMarketConsoleFunction();
     }
 
-    public function runSkuMapping($stores, $apiName)
+    public function runApiPlatformServiceFunction($stores, $apiName)
     {
         if ($stores) {
-            //$this->platformMarketSkuMappingService->initMarketplaceSkuMapping($stores);
             foreach ($stores as $storeName => $store) {
                 $this->platformMarketSkuMappingService->updateOrCreateSellingPlatform($storeName, $store);
                 $this->platformMarketSkuMappingService->updateOrCreatePlatformBizVar($storeName, $store);

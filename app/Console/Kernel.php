@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketplaceSkuMapping::class,
         Commands\SubmitPlatformOrderFufillment::class,
         Commands\PlatformMarketUpdatePendingStatus::class,
+        Commands\PlatformMarketProductFeed::class,
     ];
 
     /**
@@ -77,7 +78,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
-        $schedule->command('platformMarket:updateShipment', array('--api' => 'priceminister'))
+        $schedule->command('platformMarket:updateShipment', array('--api' => 'all'))
             ->dailyAt('12:20');
 
         //$schedule->command('feed:product')

@@ -9,9 +9,10 @@ use Illuminate\Console\Command;
 use App;
 use Config;
 
-class BaseApiPlatformCommand extends Command
+abstract class BaseApiPlatformCommand extends Command
 {
     public $platfromMakert = array('lazada','priceminister');
+    abstract public function runApiPlatformServiceFunction($stores, $apiName);
 
     public function __construct()
     {
@@ -21,6 +22,23 @@ class BaseApiPlatformCommand extends Command
     public function getApiPlatformFactoryService($apiName)
     {
         return App::make('App\Services\ApiPlatformFactoryService', array('apiName' => $apiName));
+    }
+    
+    public function getApiPlatformProductFactoryService($apiName)
+    {
+        return App::make('App\Services\ApiPlatformProductFactoryService', array('apiName' => $apiName));
+    }
+
+    public function runPlatformMarketConsoleFunction()
+    {
+        $apiOption = $this->option('api');
+        if ($apiOption == 'all') {
+            foreach ($this->platfromMakert as $apiName) {
+                $this->runApiPlatformServiceFunction($this->getStores($apiName), $apiName);
+            }
+        } else {
+            $this->runApiPlatformServiceFunction($this->getStores($apiOption), $apiOption);
+        }
     }
 
     //get stores function
