@@ -12,14 +12,10 @@ use App\Repository\LazadaMws\LazadaProductUpdate;
 
 class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProductInterface
 {
-    const PENDING_PRICE = 2;
-    const COMPLETE_PRICE = 8;
-    const PENDING_INVENTORY = 4;
-    const COMPLETE_INVENTORY = 16;
-
     private $storeCurrency;
     public function __construct()
     {
+
     }
 
     public function getPlatformId()
@@ -86,20 +82,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             //print_r($result);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
             if($result){
-                if ($processStatus[$action] == self::PENDING_PRICE) {
-                    $processStatusProduct->transform(function ($pendingSku) {
-                        $pendingSku->process_status ^= self::PENDING_PRICE;
-                        $pendingSku->process_status |= self::COMPLETE_PRICE;
-                        $pendingSku->save(); 
-                    });
-                }
-                if ($processStatus[$action] == self::PENDING_INVENTORY) {
-                    $processStatusProduct->transform(function ($pendingSku) {
-                        $pendingSku->process_status ^= self::PENDING_INVENTORY;
-                        $pendingSku->process_status |= self::COMPLETE_INVENTORY;
-                        $pendingSku->save(); 
-                    });
-                }
+                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus[$action]);
                 return $result;
             }
         }
@@ -107,7 +90,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function submitProductCreate($storeName)
     {   
-        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($query, $storeName);
+        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
         $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
         $xmlData .= '<Request>';
         foreach ($pendingSkuGroup as $index => $pendingSku) {
@@ -147,9 +130,9 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
         
     }
 
-    public function submitProductUpdate()
+    public function submitProductUpdate($storeName)
     {
-        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($query, '%LAZADA');
+        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
         foreach ($pendingSkuGroup as $index => $pendingSku) {
             
         }

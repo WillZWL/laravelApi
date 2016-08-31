@@ -4,7 +4,7 @@ namespace App\Services;
 
 //use SplEnum;
 
-abstract class PlatformOrderService
+abstract class PlatformMarketConstService
 {
     const ORDER_STATUS_CANCEL = 0;
     const ORDER_STATUS_PAID = 2;
@@ -18,8 +18,10 @@ abstract class PlatformOrderService
     const ORDER_STATUS_UNSHIPPED = 14;
     const ORDER_STATUS_FAIL = 15;
 
-    //0 = Inactive / 1 = New / 2 = Paid / 3 = Fulfilment AKA Credit Checked / 4 = Partial Allocated / 5 = Full Allocated / 6 = Shipped
-    public function __construct()
-    {
-    }
+    //update price and inventory by binary
+    const PENDING_PRICE = 2; //10
+    const COMPLETE_PRICE = 8; //1000
+    const PENDING_INVENTORY = 4;//100
+    const COMPLETE_INVENTORY = 16;//10000
+
 }
