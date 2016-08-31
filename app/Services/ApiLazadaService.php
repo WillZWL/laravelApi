@@ -360,22 +360,22 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	{
 		switch ($platformOrderStatus) {
 			case 'Canceled':
-				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
+				$status=PlatformMarketConstService::ORDER_STATUS_CANCEL;
 				break;
 			case 'Shipped':
-				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
+				$status=PlatformMarketConstService::ORDER_STATUS_SHIPPED;
 				break;
             case 'ReadyToShip':
 			case 'Unshipped':
 			case 'Pending':
 			case 'Processing':
-				$status=PlatformOrderService::ORDER_STATUS_UNSHIPPED;
+				$status=PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
 				break;
 			case 'Delivered':
-				$status=PlatformOrderService::ORDER_STATUS_DELIVERED;
+				$status=PlatformMarketConstService::ORDER_STATUS_DELIVERED;
 				break;
 			case 'Failed':
-				$status=PlatformOrderService::ORDER_STATUS_FAIL;
+				$status=PlatformMarketConstService::ORDER_STATUS_FAIL;
 				break;
 			default:
 				return null;

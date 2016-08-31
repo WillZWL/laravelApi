@@ -127,7 +127,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     public function updatePendingPaymentStatus($storeName)
     {
         $pendingPaymentOrderList = PlatformMarketOrder::where('platform', '=', $storeName)
-                            ->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_PENDING)
+                            ->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_PENDING)
                             ->get();
         if ($pendingPaymentOrderList) {
             $fnacOrderIds = [];
@@ -327,33 +327,33 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         switch ($platformOrderStatus) {
             case 'Created':
             case 'Accepted':
-                $status = PlatformOrderService::ORDER_STATUS_PENDING;
+                $status = PlatformMarketConstService::ORDER_STATUS_PENDING;
                 break;
 
             case 'ToShip':
-                $status = PlatformOrderService::ORDER_STATUS_UNSHIPPED;
+                $status = PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
                 break;
 
             case 'NotReceived':
             case 'Shipped':
-                $status = PlatformOrderService::ORDER_STATUS_SHIPPED;
+                $status = PlatformMarketConstService::ORDER_STATUS_SHIPPED;
                 break;
 
             case 'Received':
-                $status = PlatformOrderService::ORDER_STATUS_DELIVERED;
+                $status = PlatformMarketConstService::ORDER_STATUS_DELIVERED;
                 break;
 
             case 'Refused':
             case 'Cancelled':
-                $status = PlatformOrderService::ORDER_STATUS_CANCEL;
+                $status = PlatformMarketConstService::ORDER_STATUS_CANCEL;
                 break;
 
             case 'Refunded':
-                $status = PlatformOrderService::ORDER_STATUS_RETURENED;
+                $status = PlatformMarketConstService::ORDER_STATUS_RETURENED;
                 break;
 
             case 'Error':
-                $status = PlatformOrderService::ORDER_STATUS_FAIL;
+                $status = PlatformMarketConstService::ORDER_STATUS_FAIL;
                 break;
 
             default:
@@ -422,7 +422,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                 case "Cancelled":
                     try {
                         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $order['order_id'])
-                            ->where('esg_order_status', '=', PlatformOrderService::ORDER_STATUS_PENDING)
+                            ->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_PENDING)
                             ->firstOrFail();
                         if ($platformMarketOrder) {
                             $platformMarketOrder->order_status = $order['state'];
