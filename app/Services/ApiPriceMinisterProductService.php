@@ -78,13 +78,14 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
             $filename ='update-prodcut-'.date("Y-m-d-H-i-s") ;
             $result = \Storage::disk('xml')->put($filename.".xml",$xmlData);
             $xmlFile=\Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix().$filename.".xml";
-            print_r($xmlFile);
             $this->priceMinisterProductUpdate = new PriceMinisterProductUpdate($storeName);
             $this->storeCurrency = $this->priceMinisterProductUpdate->getStoreCurrency();
             $result = $this->priceMinisterProductUpdate->submitXmlFile($xmlFile);
-            print_r($result);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
-            return $result;
+            if($result){
+                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus[$action]);
+                return $result;
+            }
         }
     }
 

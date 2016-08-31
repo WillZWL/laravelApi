@@ -40,7 +40,7 @@ class PlatformMarketProductFeed extends BaseApiPlatformCommand
      */
     public function handle()
     {
-        $this->platfromMakert = array("lazada");
+        $this->platfromMakert = array("lazada","priceminister");
         $this->runPlatformMarketConsoleFunction();
     }
 
