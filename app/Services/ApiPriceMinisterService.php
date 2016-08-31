@@ -280,17 +280,17 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
     {
         switch ($platformOrderStatus) {
             case 'COMMITTED':
-                $status = PlatformOrderService::ORDER_STATUS_PAID;
+                $status = PlatformMarketConstService::ORDER_STATUS_PAID;
                 break;
             case 'PENDING':
-                $status = PlatformOrderService::ORDER_STATUS_PENDING;
+                $status = PlatformMarketConstService::ORDER_STATUS_PENDING;
                 break;
             case 'ACCEPTED':
             case 'ON_HOLD':
-                $status = PlatformOrderService::ORDER_STATUS_UNSHIPPED;
+                $status = PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
                 break;
             case 'CANCELLED':
-                $status = PlatformOrderService::ORDER_STATUS_CANCEL;
+                $status = PlatformMarketConstService::ORDER_STATUS_CANCEL;
                 break;
             default:
                 $status = 1;
