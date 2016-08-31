@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\MerchantService;
+use App\Transformers\MerchantTransformer;
+use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -10,6 +12,8 @@ use App\Http\Controllers\Controller;
 
 class MerchantController extends Controller
 {
+    use Helpers;
+
     private $merchantService;
 
     public function __construct(MerchantService $merchantService)
@@ -23,7 +27,9 @@ class MerchantController extends Controller
      */
     public function index()
     {
-        return response()->json($this->merchantService->all());
+        $merchants = $this->merchantService->all();
+
+        return $this->collection($merchants, new MerchantTransformer());
     }
 
     /**

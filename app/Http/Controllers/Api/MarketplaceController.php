@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\MarketplaceService;
+use App\Transformers\MarketplaceTransformer;
+use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -10,6 +12,8 @@ use App\Http\Controllers\Controller;
 
 class MarketplaceController extends Controller
 {
+    use Helpers;
+
     private $marketplaceService;
 
     public function __construct(MarketplaceService $marketplaceService)
@@ -24,7 +28,9 @@ class MarketplaceController extends Controller
      */
     public function index()
     {
-        return response()->json($this->marketplaceService->getAllMarketplace());
+        $marketplaces = $this->marketplaceService->getAllMarketplace();
+
+        return $this->collection($marketplaces, new MarketplaceTransformer());
     }
 
     /**

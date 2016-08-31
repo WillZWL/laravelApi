@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\BrandService;
+use App\Transformers\BrandTransformer;
+use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
@@ -10,6 +12,8 @@ use App\Http\Controllers\Controller;
 
 class BrandController extends Controller
 {
+    use Helpers;
+
     private $brandService;
 
     public function __construct(BrandService $brandService)
@@ -23,7 +27,9 @@ class BrandController extends Controller
      */
     public function index()
     {
-        return response()->json($this->brandService->all());
+        $brands = $this->brandService->all();
+
+        return $this->collection($brands, new BrandTransformer());
     }
 
     /**
