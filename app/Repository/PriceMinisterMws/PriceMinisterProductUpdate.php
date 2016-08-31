@@ -4,27 +4,31 @@ namespace App\Repository\PriceMinisterMws;
 
 class PriceMinisterProductUpdate extends PriceMinisterProductsCore
 {
-    private $_requestParams = array();
+    private $version = '2016-03-16';
 
     public function __construct($store)
     {
         parent::__construct($store);
-        $this->getRequestParams();
+        $this->setUrlBase();
     }
 
-    public function submitXmlData($xmlData)
+    public function submitXmlFile($xmlFile)
     {   
-        //post file to PM
-        $xmlData =array(
-            "file" => $xmlData
-        );
-        return parent::curlPostDataToApi($this->_requestParams, $xmlData);
+        $xmlData =fopen($xmlFile, "r");
+        return parent::curlPostXmlFileToApi($this->getRequestParams(), $xmlData);
     }
 
     public function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
-        $this->_requestParams = array_merge($this->_requestParams, $requestParams);
-        $this->_requestParams['action'] = 'genericimportfile';
+        $requestParams['action'] = 'genericimportfile';
+        $requestParams['version'] = '2015-02-02';
+        return  $requestParams;
+    }
+
+    public function setUrlBase()
+    {
+        $url = $this->urlbase.'stock_ws';
+        $this->urlbase = $url;
     }
 }

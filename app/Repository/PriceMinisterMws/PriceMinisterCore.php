@@ -118,7 +118,7 @@ class PriceMinisterCore extends CommonMws
      *
      * @return array
      */
-    private function signature($params)
+    public function signature($params)
     {
         ksort($params);
 

@@ -10,7 +10,7 @@ use App\Models\MpControl;
 use App\Repository\PriceMinisterMws\PriceMinisterProductList;
 use App\Repository\PriceMinisterMws\PriceMinisterProductUpdate;
 
-class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatformProductInterface
 {
     private $storeCurrency;
     public function __construct()
@@ -49,11 +49,17 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus[$action]);
             
         if(!$processStatusProduct->isEmpty()){
-            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xmlData = '<?xml version="1.0" encoding="UTF-8"?>';
             $xmlData .= '<items>';
             foreach ($processStatusProduct as $index => $pendingSku) {
                 $messageDom = '<item>';
-                $messageDom .= '<attributes>'.$pendingSku->marketplace_sku.'</attributes>';
+                $messageDom .=  '<attributes>';
+                $messageDom .=   '<advert>';
+                $messageDom .=   '<attribute>';
+                $messageDom .=    '<key>sellerReference</key>';
+                $messageDom .=    '<value>'.$pendingSku->marketplace_sku.'</value>';
+                $messageDom .=   '</attribute>';
+                $messageDom .=   '<attribute>';
                 if ($processStatus[$action] == self::PENDING_PRICE) {
                     $messageDom .= '<key>sellingPrice</key>';
                     $messageDom .= '<value>'.$pendingSku->price.'</value>';
@@ -62,67 +68,33 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
                     $messageDom .= '<key>qty</key>';
                     $messageDom .= '<value>'.$pendingSku->inventory.'</value>';
                 }
+                $messageDom .=   '</attribute>';
+                $messageDom .=   '</advert>';
+                $messageDom .=  '</attributes>';
                 $messageDom .= '</item>';
                 $xmlData .= $messageDom;
             }
             $xmlData .= '</items>';
-           /* $filename ='update-prodcut-'.date("Y-m-d-00-00-00") ;
-            $xmlFile = \Storage::disk('skuMapping')->put($filename.".xml",$xmlData);
-        
-            exit();*/
+            $filename ='update-prodcut-'.date("Y-m-d-H-i-s") ;
+            $result = \Storage::disk('xml')->put($filename.".xml",$xmlData);
+            $xmlFile=\Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix().$filename.".xml";
+            print_r($xmlFile);
             $this->priceMinisterProductUpdate = new PriceMinisterProductUpdate($storeName);
             $this->storeCurrency = $this->priceMinisterProductUpdate->getStoreCurrency();
-            $result = $this->priceMinisterProductUpdate->submitXmlData($xmlData);
+            $result = $this->priceMinisterProductUpdate->submitXmlFile($xmlFile);
+            print_r($result);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
-
             return $result;
         }
     }
 
     public function submitProductCreate($storeName)
     {
-        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeNames);
-        if(!$pendingSkuGroup->isEmpty()){
-            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-            $xmlData .= '<Request>';
-            foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageDom = '<Product>';
-                $messageDom .= '<Status>'.$pendingSku->marketplace_sku.'</Status>';
-                $messageDom .= '</Product>';
-                $xmlData .= $messageDom;
-            }
-            $xmlData .= '</Request>';
-            $this->lazadaProductCreate = new LazadaProductCreate($storeName);
-            $this->storeCurrency = $this->lazadaProductCreate->getStoreCurrency();
-            $result = $this->lazadaProductCreate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($result), 'updateProduct');
-            //return $result;*/
-        }
+        
     }
 
     public function submitProductUpdate()
     {
-        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
-        if(!$pendingSkuGroup->isEmpty()){
-            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-            $xmlData .= '<Request>';
-            foreach ($pendingSkuGroup as $index => $pendingSku) {
-                $messageDom = '<Product>';
-                $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-                $messageDom .= '<Description><![CDATA['.$pendingSku->detail_desc.']]</Description>';
-                $messageDom .= '<Brand><![CDATA['.$pendingSku->brand_name.']]</Brand>';
-                $messageDom .= '<Price>'.$pendingSku->price.'</Price>';
-                $messageDom .= '<Condition>'.$pendingSku->condition.'</Condition>';
-                $messageDom .= '<Quantity>'.$pendingSku->marketplace_sku.'</Quantity>';
-                $messageDom .= '</Product>';
-                $xmlData .= $messageDom;
-            }
-            $xmlData .= '</Request>';
-            $this->priceMinisterProductUpdate = new PriceMinisterProductUpdate($storeName);
-            $this->storeCurrency = $this->priceMinisterProductUpdate->getStoreCurrency();
-            $result = $this->priceMinisterProductUpdate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($result), 'updateProduct');
-            //return $result;*/
-        }
+        
     }
 }

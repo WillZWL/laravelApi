@@ -65,6 +65,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('marketplace-sku-mapping'),
         ],
+        'xml' => [
+            'driver' => 'local',
+            'root' => storage_path('marketplace-xml'),
+        ],
 
     ],
 

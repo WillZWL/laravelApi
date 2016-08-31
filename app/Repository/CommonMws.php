@@ -108,6 +108,23 @@ class CommonMws
         return $returnContent;
     }
 
+    public function curlPostXmlFileToApi($requestParams, $xmlData)
+    {
+        $signRequestParams = $this->signature($requestParams);
+        $queryString = http_build_query($signRequestParams, '', '&', PHP_QUERY_RFC3986);
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('POST', $this->urlbase.'?'.$queryString, [
+            'multipart' =>[
+                [
+                    'name'     => 'file',
+                    'contents' => $xmlData
+                ]
+            ]
+        ]);
+        $returnContent = $response->getBody()->getContents();
+        return $returnContent;
+    }
+
     public function getStoreCurrency()
     {
         return $this->storeCurrency;

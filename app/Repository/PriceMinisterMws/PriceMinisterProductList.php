@@ -9,18 +9,17 @@ class PriceMinisterProductList extends PriceMinisterProductsCore
     public function __construct($store)
     {
         parent::__construct($store);
-        $this->getRequestParams();
+        $this->setUrlBase();
     }
 
     public function fetchProductList()
     {
-        return parent::query($this->_requestParams);
+        return parent::query($this->getRequestParams());
     }
 
     public function getRequestParams()
     {
-        $requestParams = parent::initRequestParams();
-        $this->_requestParams = array_merge($this->_requestParams, $requestParams);
+        $this->_requestParams = parent::initRequestParams();
         $this->_requestParams['action'] = 'listing';
     }
 
@@ -31,6 +30,12 @@ class PriceMinisterProductList extends PriceMinisterProductsCore
         }
 
         return null;
+    }
+
+    public function setUrlBase()
+    {
+        $url = $this->urlbase.'sales_ws';
+        $this->urlbase = $url;
     }
 
     public function setScope($value)
