@@ -21,6 +21,10 @@ class ApiPlatformProductServiceProvider extends ServiceProvider
     protected $availableServices = array(
                 'amazon' => 'ApiAmazonProductService',
                 'lazada' => 'ApiLazadaProductService',
+                'priceminister' => 'ApiPriceMinisterProductService',
+                'fnac' => 'ApiFnacProductService',
+                'tanga' => 'ApiTangaProductService',
+                'wish' => 'ApiWishProductService',
             );
 
     public function register()
