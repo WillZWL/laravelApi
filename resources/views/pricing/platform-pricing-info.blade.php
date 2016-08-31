@@ -138,7 +138,7 @@
                         </td>
 
                         <td colspan="3">
-                            Amazon Brand
+                            Brand
                         </td>
                         <td colspan="7">
                             <input type="text" name="platformBrand" id="inputPlatformBrand" value="{{ $platformInfo['platformBrand'] }}">
