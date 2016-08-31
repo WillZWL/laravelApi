@@ -103,7 +103,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
             if ($responseDataList = $this->fnacOrderUpdate->updateFnacOrdersStatus()) {
 
-                $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderAccepted");
+                // $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderAccepted");
 
                 foreach ($responseDataList as $responseData) {
                     if ($responseData['status'] == 'OK' && $responseData['state'] == 'Accepted') {
