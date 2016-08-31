@@ -96,5 +96,5 @@ $api = app('Dingo\Api\Routing\Router');
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 'api.auth'], function ($api) {
     $api->resource('marketplace', 'MarketplaceController');
-    //$api->resource('brand')
+    $api->resource('brand', 'BrandController');
 });
