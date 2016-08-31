@@ -91,6 +91,10 @@ Route::post('oauth/access_token', function () {
 
 $api = app('Dingo\Api\Routing\Router');
 
-//$api->version('v1', ['namespace' => 'App\Http\Controllers', 'middleware' => 'api.auth'], function ($api) {
-//    $api->resource('user', 'UserController');
-//});
+
+
+
+$api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 'api.auth'], function ($api) {
+    $api->resource('marketplace', 'MarketplaceController');
+    //$api->resource('brand')
+});
