@@ -39,6 +39,7 @@ class PlatformMarketRemoveFileSystem extends Command
      */
     public function handle()
     {   
+        //print_r(date("Y-m-d",strtotime("-30 days"))); exit();
         $this->apiBaseService->removeApiFileSystem(date("Y-m-d",strtotime("-30 days")));
     }
 }

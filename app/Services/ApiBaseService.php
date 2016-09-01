@@ -66,16 +66,16 @@ class ApiBaseService extends PlatformMarketConstService
                     }
                 }
             }
-        }
-        if($deleteFiles){
-            \File::delete($deleteFiles);
-            return true;
+            if(isset($deleteFiles)){
+                \File::delete($deleteFiles);
+            }
         }
     }
 
     public function findAllFiles($dir) 
     { 
         if(file_exists($dir)){
+            $result = "";
             $root = scandir($dir); 
             foreach($root as $value) 
             {
@@ -83,11 +83,13 @@ class ApiBaseService extends PlatformMarketConstService
                 if(is_file("$dir/$value")) {
                     $result[]="$dir/$value";continue;
                 }
-                foreach($this->findAllFiles("$dir/$value") as $value) 
-                {
-                    $result[]=$value;
+                if($subFile = $this->findAllFiles("$dir/$value")){
+                    foreach($subFile as $value) 
+                    {
+                        $result[]=$value;
+                    }
                 }
-            } 
+            }
             return $result; 
         }
     } 
