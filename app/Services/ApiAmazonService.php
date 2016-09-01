@@ -260,22 +260,22 @@ class ApiAmazonService extends ApiBaseService implements ApiPlatformInterface
     {
         switch ($platformOrderStatus) {
             case 'Canceled':
-                $status = PlatformOrderService::ORDER_STATUS_CANCEL;
+                $status = PlatformMarketConstService::ORDER_STATUS_CANCEL;
                 break;
             case 'Pending':
-                $status = PlatformOrderService::ORDER_STATUS_PENDING;
+                $status = PlatformMarketConstService::ORDER_STATUS_PENDING;
                 break;
             case 'Shipped':
-                $status = PlatformOrderService::ORDER_STATUS_SHIPPED;
+                $status = PlatformMarketConstService::ORDER_STATUS_SHIPPED;
                 break;
             case 'Unshipped':
-                $status = PlatformOrderService::ORDER_STATUS_UNSHIPPED;
+                $status = PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
                 break;
             case 'Delivered':
-                $status = PlatformOrderService::ORDER_STATUS_DELIVERED;
+                $status = PlatformMarketConstService::ORDER_STATUS_DELIVERED;
                 break;
             case 'Failed':
-                $status = PlatformOrderService::ORDER_STATUS_FAIL;
+                $status = PlatformMarketConstService::ORDER_STATUS_FAIL;
                 break;
             default:
                 $status = 1;
