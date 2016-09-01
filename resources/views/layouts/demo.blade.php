@@ -546,7 +546,7 @@
         $('#inputMarketplace').on('change', function () {
             $.ajax({
                 method: 'GET',
-                url: "{{ url('api/v1/marketplaceCategory/marketplace') }}/"+$(this).val(),
+                url: "{{ url('/marketplaceCategory/marketplace') }}/"+$(this).val(),
                 dataType: 'json'
             }).done(function (responseJson) {
                 var categoryOptions = '';
@@ -562,7 +562,7 @@
         $('#inputCategory').on('change', function () {
             $.ajax({
                 method: 'GET',
-                url: "{{ url('api/v1/marketplaceCategory') }}/"+$(this).val(),
+                url: "{{ url('/marketplaceCategory') }}/"+$(this).val(),
                 dataType: 'json'
             }).done(function (responseJson) {
                 var subCategoryOptions = '';
