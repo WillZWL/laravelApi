@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-class ApiBaseService extends PlatformOrderService
+class ApiBaseService extends PlatformMarketConstService
 {
     private $request;
     private $schedule;
@@ -26,6 +26,24 @@ class ApiBaseService extends PlatformOrderService
         }
 
         return false;
+    }
+    
+    public function updatePendingProductProcessStatus($processStatusProduct,$processStatus)
+    {
+        if ($processStatus == self::PENDING_PRICE) {
+            $processStatusProduct->transform(function ($pendingSku) {
+                $pendingSku->process_status ^= self::PENDING_PRICE;
+                $pendingSku->process_status |= self::COMPLETE_PRICE;
+                $pendingSku->save(); 
+            });
+        }
+        if ($processStatus == self::PENDING_INVENTORY) {
+            $processStatusProduct->transform(function ($pendingSku) {
+                $pendingSku->process_status ^= self::PENDING_INVENTORY;
+                $pendingSku->process_status |= self::COMPLETE_INVENTORY;
+                $pendingSku->save(); 
+            });
+        }
     }
 
     public function getSchedule()
