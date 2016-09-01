@@ -22,12 +22,6 @@ interface ApiPlatformInterface
     **  this will return order list
     ********************************************/
 
-    public function getOrderItemList($storeName, $orderId);
-    /******************************************
-    **  function getOrderItemList
-    **  this will return order items
-    ********************************************/
-
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
     /******************************************
     **  function submitOrderFufillment

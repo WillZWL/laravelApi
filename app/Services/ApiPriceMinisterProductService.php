@@ -19,7 +19,7 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
 
     public function getPlatformId()
     {
-        return 'Lazada';
+        return 'PriceMinister';
     }
 
     public function getProductList($storeName)
@@ -75,7 +75,7 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
                 $xmlData .= $messageDom;
             }
             $xmlData .= '</items>';
-            $filename ='update-prodcut-'.date("Y-m-d-H-i-s") ;
+            $filename =$this->getPlatformId().'/update-prodcut-'.date("Y-m-d-H-i-s") ;
             $result = \Storage::disk('xml')->put($filename.".xml",$xmlData);
             $xmlFile=\Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix().$filename.".xml";
             $this->priceMinisterProductUpdate = new PriceMinisterProductUpdate($storeName);

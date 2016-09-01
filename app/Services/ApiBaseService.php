@@ -24,10 +24,9 @@ class ApiBaseService extends PlatformMarketConstService
             //echo 'Data successfully saved';
             return $data;
         }
-
         return false;
     }
-    
+
     public function updatePendingProductProcessStatus($processStatusProduct,$processStatus)
     {
         if ($processStatus == self::PENDING_PRICE) {
@@ -45,6 +44,53 @@ class ApiBaseService extends PlatformMarketConstService
             });
         }
     }
+
+    public function removeApiFileSystem($expireDate)
+    {
+        $directoryList = array(
+             "api_platform" => storage_path().'/app/ApiPlatform/',
+             "xml_directory" => \Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix()
+        );
+        return $this->removeFileSystem($directoryList,$expireDate);
+    }
+
+    public function removeFileSystem($directoryList,$expireDate)
+    {   
+        $expireDateString = strtotime($expireDate);
+        foreach($directoryList as $directory){
+            $allFiles = $this->findAllFiles($directory);
+            if($allFiles){
+                foreach($allFiles as $file){
+                    if(filectime($file) < $expireDateString){
+                        $deleteFiles[]= $file;
+                    }
+                }
+            }
+        }
+        if($deleteFiles){
+            \File::delete($deleteFiles);
+            return true;
+        }
+    }
+
+    public function findAllFiles($dir) 
+    { 
+        if(file_exists($dir)){
+            $root = scandir($dir); 
+            foreach($root as $value) 
+            {
+                if($value === '.' || $value === '..') {continue;} 
+                if(is_file("$dir/$value")) {
+                    $result[]="$dir/$value";continue;
+                }
+                foreach($this->findAllFiles("$dir/$value") as $value) 
+                {
+                    $result[]=$value;
+                }
+            } 
+            return $result; 
+        }
+    } 
 
     public function getSchedule()
     {
