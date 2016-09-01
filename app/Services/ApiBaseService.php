@@ -61,7 +61,7 @@ class ApiBaseService extends PlatformMarketConstService
             $allFiles = $this->findAllFiles($directory);
             if($allFiles){
                 foreach($allFiles as $file){
-                    if(filectime($file) < $expireDateString){
+                    if(filemtime($file) < $expireDateString){
                         $deleteFiles[]= $file;
                     }
                 }
