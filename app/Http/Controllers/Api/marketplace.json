@@ -1,0 +1,16 @@
+[
+  {
+    "category_id" : 123,
+    "category_name" : "apple",
+    "child_categories": [
+      {
+        "category_id": "123-1",
+        "category_name": "watch",
+        "child_categories": []
+      }
+    ]
+  },
+  {
+    "category_id": 124
+  }
+]
