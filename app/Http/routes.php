@@ -71,6 +71,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
     Route::get('marketplaceCategory/marketplace/{id}', 'MarketplaceCategoryController@showTopCategoriesForControlId');
+    Route::resource('/marketplaceCategory', 'MarketplaceCategoryController');
 });
 
 Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
