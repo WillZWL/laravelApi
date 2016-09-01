@@ -155,7 +155,7 @@ class ListingSkuManagement extends Controller
         $marketplaceSkuMapping->process_status = self::PRODUCT_UPDATED | self::INVENTORY_UPDATED;     // waiting for post product feed to amazon.
         $marketplaceSkuMapping->mp_category_id = $request->input('categoryId');
         $marketplaceSkuMapping->mp_sub_category_id = $request->input('subCategoryId');
-        $marketplaceSkuMapping->currency = $country->currency_id;
+        $marketplaceSkuMapping->currency = $marketplaceControl->currency_id;
         $marketplaceSkuMapping->lang_id = $country->language_id;
 
         $marketplaceSkuMapping->save();
