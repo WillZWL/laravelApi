@@ -27,6 +27,7 @@ class Kernel extends ConsoleKernel
         Commands\SubmitPlatformOrderFufillment::class,
         Commands\PlatformMarketUpdatePendingStatus::class,
         Commands\PlatformMarketProductFeed::class,
+        Commands\PlatformMarketRemoveFileSystem::class,
     ];
 
     /**
@@ -98,5 +99,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('feed:check')
             ->everyThirtyMinutes();
+
+        $schedule->command('platformMarket:removeApiFileSystem')
+            ->monthlyOn(4, '15:00');    
     }
 }
