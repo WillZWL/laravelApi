@@ -70,23 +70,17 @@ Route::group(['middleware' => ['cors']], function () {
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::resource('api/marketplaceProduct', 'MarketplaceProductController');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
+    Route::get('marketplaceCategory/marketplace/{id}', 'MarketplaceCategoryController@showTopCategoriesForControlId');
 });
 
 Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
     Route::get('pricing/index', 'PricingController@index');
-    //Route::get('pricing/skuList', 'PricingController@getSkuList');
     Route::get('pricing/info', 'PricingController@getPriceInfo');
     Route::post('listingSku/save', 'ListingSkuManagement@save');
 });
 
 Route::group(['middleware' => 'auth.basic.once'], function () {
     Route::resource('tracer', 'TracerSkuController');
-});
-
-Route::group(['middleware' => ['cors']], function () {
-    Route::resource('api/v1/marketplaceProduct', 'MarketplaceProductController');
-    Route::get('api/v1/marketplaceCategory/marketplace/{id}', 'MarketplaceCategoryController@showTopCategoriesForControlId');
-    Route::resource('api/v1/marketplaceCategory', 'MarketplaceCategoryController');
 });
 
 Route::auth();
