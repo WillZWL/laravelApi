@@ -35,12 +35,12 @@ class ApiFnacProductService extends ApiBaseService implements ApiPlatformProduct
 
     public function submitProductPrice($storeName)
     {
-        return $this->runProductUpdate($storeName,'pendingPrice');
+        return $this->runProductUpdate($storeName, 'pendingPrice');
     }
 
     public function submitProductInventory($storeName)
     {
-        return $this->runProductUpdate($storeName,'pendingInventory');
+        return $this->runProductUpdate($storeName, 'pendingInventory');
     }
 
     protected function runProductUpdate($storeName,$action)
@@ -48,6 +48,7 @@ class ApiFnacProductService extends ApiBaseService implements ApiPlatformProduct
         $processStatus = array(
             'pendingPrice' => self::PENDING_PRICE,
             'pendingInventory' => self::PENDING_INVENTORY,
+            'pendingProduct' => self::PENDING_PRODUCT,
         );
         $pendingProducts = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus[$action]);
         if(!$pendingProducts->isEmpty()){
@@ -55,6 +56,8 @@ class ApiFnacProductService extends ApiBaseService implements ApiPlatformProduct
                 $updateAction = 'Price';
             } else if ($processStatus[$action] == self::PENDING_INVENTORY) {
                 $updateAction = 'Inventory';
+            } else if ($processStatus[$action] == self::PENDING_PRODUCT) {
+                $updateAction = 'ALL';
             }
 
             $this->fnacProductUpdate = new FnacProductUpdate($storeName);
@@ -65,7 +68,17 @@ class ApiFnacProductService extends ApiBaseService implements ApiPlatformProduct
             $responseBatchData = $this->fnacProductUpdate->requestFnacUpdateOffer();
             $this->saveDataToFile(serialize($responseBatchData), 'responseBatchProduct'.$updateAction);
 
-            if ($responseBatchData['@attributes']['status'] == 'OK') {
+            if ($responseBatchData['@attributes']['status'] == 'OK'
+                || $responseBatchData['@attributes']['status'] == 'ACTIVE'
+                || $responseBatchData['@attributes']['status'] == 'RUNNING'
+            ) {
+                if (
+                    $responseBatchData['@attributes']['status'] == 'ACTIVE'
+                    || $responseBatchData['@attributes']['status'] == 'RUNNING'
+                ) {
+                    sleep(60);
+                }
+
                 $batchId = $responseBatchData['batch_id'];
 
                 $responseData = $this->fnacProductUpdate->sendFnacBatchStatusRequest($batchId);
@@ -87,28 +100,6 @@ class ApiFnacProductService extends ApiBaseService implements ApiPlatformProduct
 
     public function submitProductUpdate($storeName)
     {
-        $pendingProducts = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_PRODUCT);
-        if(!$pendingProducts->isEmpty()){
-            $this->fnacProductUpdate = new FnacProductUpdate($storeName);
-
-            $xmlData = $this->fnacProductUpdate->setRequestUpdateOfferXml($pendingProducts);
-            $this->saveDataToFile(serialize($xmlData), 'pendingProductUpdate');
-
-            $responseBatchData = $this->fnacProductUpdate->requestFnacUpdateOffer();
-            $this->saveDataToFile(serialize($responseBatchData), 'responseBatchProductUpdate');
-
-            if ($responseBatchData['@attributes']['status'] == 'OK') {
-                $batchId = $responseBatchData['batch_id'];
-
-                $responseData = $this->fnacProductUpdate->sendFnacBatchStatusRequest($batchId);
-                $this->saveDataToFile(serialize($responseData), 'responseResultProductUpdate');
-
-                if ($responseData['@attributes']['status'] == 'OK') {
-                    $this->updatePendingProductProcessStatus($pendingProducts,self::PENDING_PRODUCT);
-
-                    return $responseData;
-                }
-            }
-        }
+        $this->runProductUpdate($storeName, 'pendingProduct');
     }
 }
