@@ -32,7 +32,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         $this->ackRefusedFraudOrder($storeName);
 
         $processCount = 0;
-        $processCount = 0;
         if ($orginOrderList = $this->getOrderList($storeName)) {
             foreach ($orginOrderList as $order) {
                 if (isset($order['shipping_address'])) {
