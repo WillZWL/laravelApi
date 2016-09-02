@@ -23,14 +23,15 @@ class FnacProductUpdate extends FnacProductsCore
         foreach ($processStatusProduct as $index => $pendingSku) {
             $msgDom = '<offer>';
             $msgDom .=      '<offer_reference type="SellerSku">'. $pendingSku->marketplace_sku .'</offer_reference>';
-            if ($updateAction == 'Price') {
+
+            if ($updateAction == 'ALL' || $updateAction == 'Price') {
                 $msgDom .= '<price>'. $pendingSku->price .'</price>';
-            } else if ($updateAction == 'Inventory') {
-                $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
-            } else {
-                $msgDom .= '<price>'. $pendingSku->price .'</price>';
+            }
+
+            if ($updateAction == 'ALL' || $updateAction == 'Inventory') {
                 $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
             }
+
             $msgDom .= '</offer>';
 
             $xmlData .= $msgDom;
