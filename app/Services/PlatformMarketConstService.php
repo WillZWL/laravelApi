@@ -23,5 +23,7 @@ abstract class PlatformMarketConstService
     const COMPLETE_PRICE = 8; //1000
     const PENDING_INVENTORY = 4;//100
     const COMPLETE_INVENTORY = 16;//10000
+    const PENDING_PRODUCT = 32;//100000
+    const COMPLETE_PRODUCT = 64;//1000000
 
 }

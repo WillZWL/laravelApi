@@ -27,4 +27,9 @@ class ApiPlatformProductFactoryService
     {
         return $this->apiPlatformProductInterface->submitProductInventory($storeName);
     }
+
+    public function submitProductUpdate($storeName)
+    {
+        return $this->apiPlatformProductInterface->submitProductUpdate($storeName);
+    }
 }

@@ -56,7 +56,9 @@ class FnacCore
             $xmlResponse  = $this->postXmlFileToApi($requestXml);
 
             if ($xmlResponse === false) {
-                $this->errorResponse = __LINE__ . libxml_get_errors();
+                $errorMessage = $this->_xmlErrorToString();
+
+                $this->errorResponse = __LINE__ . " Error in xml response. \r\nResponse: $xmlResponse \r\nXML error: ". $errorMessage;
             } else {
                 $data = $this->convert($xmlResponse);
                 return $data;
@@ -103,25 +105,7 @@ class FnacCore
             $valide = $dom->schemaValidate($tplPath . $schema);
             if( ! $valide)
             {
-                $errorMessage = '';
-                $errors = libxml_get_errors();
-                foreach ($errors as $error) {
-                    if ($error) {
-                        switch ($error->level) {
-                            case LIBXML_ERR_WARNING:
-                                $errorMessage .= "<b>Warning $error->code</b>: ";
-                                break;
-                            case LIBXML_ERR_ERROR:
-                                $errorMessage .= "<b>Error $error->code</b>: ";
-                                break;
-                            case LIBXML_ERR_FATAL:
-                                $errorMessage .= "<b>Fatal Error $error->code</b>: ";
-                                break;
-                        }
-
-                        $errorMessage .= trim($error->message) . " on line <b>{$error->line}</b><br>";
-                    }
-                }
+                $errorMessage = $this->_xmlErrorToString();
 
                 throw new \Exception("xml validation failed ! $errorMessage");
             }
@@ -132,6 +116,31 @@ class FnacCore
         }
 
         return false;
+    }
+
+    private function _xmlErrorToString()
+    {
+        $errorMessage = '';
+        $errors = libxml_get_errors();
+        foreach ($errors as $error) {
+            if ($error) {
+                switch ($error->level) {
+                    case LIBXML_ERR_WARNING:
+                        $errorMessage .= "<b>Warning $error->code</b>: ";
+                        break;
+                    case LIBXML_ERR_ERROR:
+                        $errorMessage .= "<b>Error $error->code</b>: ";
+                        break;
+                    case LIBXML_ERR_FATAL:
+                        $errorMessage .= "<b>Fatal Error $error->code</b>: ";
+                        break;
+                }
+
+                $errorMessage .= trim($error->message) . " on line <b>{$error->line}</b><br>";
+            }
+        }
+
+        return $errorMessage;
     }
 
     /**
