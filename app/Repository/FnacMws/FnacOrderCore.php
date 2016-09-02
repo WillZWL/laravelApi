@@ -22,13 +22,4 @@ class FnacOrderCore extends FnacCore
         $this->orderId = $value;
     }
 
-    public function setOrdersQueryPath()
-    {
-        $this->fnacPath = "orders_query";
-    }
-
-    public function setOrdersUpdatePath()
-    {
-        $this->fnacPath = "orders_update";
-    }
 }

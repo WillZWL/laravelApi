@@ -7,22 +7,19 @@ class FnacOrderList extends FnacOrderCore
     private $fnacOrderIds;
     private $orderState = 'Created';
     private $dateType = 'CreatedAt';
-    private $resultsCount = 1000;
-    private $paging = 1;
     private $minAt;
     private $maxAt;
 
 
     public function __construct($store)
     {
-      parent::__construct($store);
-      $this->setMaxAt();
+        parent::__construct($store);
+        $this->setFnacAction('orders_query');
     }
 
     public function fetchOrderList()
     {
-        $this->setOrdersQueryPath();
-        $this->setFnacQueryOrderRequestXml();
+        $this->setFnacQueryOrderListRequestXml();
 
         return parent::query($this->getRequestXml());
     }
@@ -36,38 +33,28 @@ class FnacOrderList extends FnacOrderCore
         return null;
     }
 
-    public function setFnacQueryOrderRequestXml()
+    public function setFnacQueryOrderListRequestXml()
     {
-        if ($this->fnacToken) {
-            $AuthKeyWithToken = $this->getAuthKeyWithToken();
-            $paging = $this->getPaging();
-            $dateType = $this->getDateType();
-            $minAt = $this->getMinAt();
-            $maxAt = $this->getMaxAt();
-            $orderState = $this->getOrderState();
+        $this->setMaxAt();
 
-            $xml = <<<XML
-<?xml version="1.0" encoding="utf-8"?>
-<orders_query results_count="$this->resultsCount" $AuthKeyWithToken>
-    <paging>$paging</paging>
-    <date type="$dateType">
-        <min>$minAt</min>
-        <max>$maxAt</max>
-    </date>
-    <states>
-        <state>$orderState</state>
-    </states>
-    <sort_by>ASC</sort_by>
-</orders_query>
-XML;
+        $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
+        $xmlData .= '<orders_query results_count="10000" '. $this->getAuthKeyWithToken() .'>';
+        $xmlData .=     '<paging>1</paging>';
+        $xmlData .=     '<date type="'. $this->getDateType() .'">';
+        $xmlData .=         '<min>'. $this->getMinAt() .'</min>';
+        $xmlData .=         '<max>'. $this->getMaxAt() .'</max>';
+        $xmlData .=     '</date>';
+        $xmlData .=     '<states>';
+        $xmlData .=         '<state>'. $this->getOrderState() .'</state>';
+        $xmlData .=     '</states>';
+        $xmlData .=     '<sort_by>ASC</sort_by>';
+        $xmlData .= '</orders_query>';
 
-            $this->requestXml = $xml;
-        }
+        $this->requestXml = $xmlData;
     }
 
     public function requestFnacPendingPayment()
     {
-        $this->setOrdersQueryPath();
         $this->setFnacPendingPaymentRequestXml();
 
         return parent::query($this->getRequestXml());
@@ -75,34 +62,18 @@ XML;
 
     public function setFnacPendingPaymentRequestXml()
     {
-        if ($this->fnacToken) {
-
-            $orderIds = $this->getFnacOrderIds();
-            $AuthKeyWithToken = $this->getAuthKeyWithToken();
-            $paging = $this->getPaging();
-
-            if (! $orderIds) {
-                return false;
+        if ($orderIds = $this->getFnacOrderIds()) {
+            $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
+            $xmlData .= '<orders_query '. $this->getAuthKeyWithToken() .'>';
+            $xmlData .=     '<orders_fnac_id>';
+            foreach ($orderIds as $orderId) {
+                $magDom =     '<order_fnac_id>'. $orderId .'</order_fnac_id>';
+                $xmlData .= $magDom;
             }
+            $xmlData .=     '</orders_fnac_id>';
+            $xmlData .= '</orders_query>';
 
-            $xml = <<<XML
-<?xml version="1.0" encoding="utf-8"?>
-<orders_query results_count='$this->resultsCount' $AuthKeyWithToken>
-    <paging>$paging</paging>
-    <orders_fnac_id>
-XML;
-        foreach ($orderIds as $orderId) {
-            $xml .= <<<XML
-    <order_fnac_id>$orderId</order_fnac_id>
-XML;
-        }
-
-            $xml .= <<<XML
-  </orders_fnac_id>
-</orders_query>
-XML;
-
-            $this->requestXml = $xml;
+            $this->requestXml = $xmlData;
         }
     }
 
@@ -124,11 +95,6 @@ XML;
     public function getDateType()
     {
         return $this->dateType;
-    }
-
-    public function getPaging()
-    {
-        return $this->paging;
     }
 
     public function getMinAt()

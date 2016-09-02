@@ -2,12 +2,11 @@
 
 namespace App\Repository\FnacMws;
 
-class FnacOrderItemList extends FnacOrderCore
+class FnacProductsCore extends FnacCore
 {
-
     public function __construct($store)
     {
         parent::__construct($store);
-        $this->setFnacAction('orders_query');
     }
+
 }

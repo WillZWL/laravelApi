@@ -86,6 +86,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     public function getOrderItemList($order, $orderId)
     {
         $originOrderItemList = $order['order_detail'];
+
         return $originOrderItemList;
     }
 
@@ -103,8 +104,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
             if ($responseDataList = $this->fnacOrderUpdate->updateFnacOrdersStatus()) {
 
-                // $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderAccepted");
-
                 foreach ($responseDataList as $responseData) {
                     if ($responseData['status'] == 'OK' && $responseData['state'] == 'Accepted') {
                         try {
@@ -120,6 +119,8 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                         }
                     }
                 }
+
+                $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderAccepted");
             }
         }
     }
@@ -139,9 +140,9 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $this->fnacOrderList->setFnacOrderIds($fnacOrderIds);
 
             if ($responseOrderList = $this->fnacOrderList->requestFnacPendingPayment()) {
-                $this->saveDataToFile(serialize($responseOrderList),"responseFnacPendingPayment");
-
                 $this->updateOrderPendingPaymentStatus($responseOrderList);
+
+                $this->saveDataToFile(serialize($responseOrderList),"responseFnacPendingPayment");
             }
         }
     }
