@@ -29,6 +29,8 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
     public function retrieveOrder($storeName)
     {
+        $this->ackRefusedFraudOrder($storeName);
+
         if ($orginOrderList = $this->getOrderList($storeName)) {
             $fnacCreatedOrder = [];
             foreach ($orginOrderList as $order) {
@@ -88,6 +90,53 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         $originOrderItemList = $order['order_detail'];
 
         return $originOrderItemList;
+    }
+
+    public function ackRefusedFraudOrder($storeName)
+    {
+        $platformMarketOrders = PlatformMarketOrder::where('platform', '=', $storeName)
+            ->where('acknowledge', '=', '-1')
+            ->where('order_status', '!=', 'ToShip')
+            ->where('order_status', '!=', 'Shipped')
+            ->where('order_status', '!=', 'NotReceived')
+            ->where('order_status', '!=', 'Received')
+            ->get();
+
+        if ($platformMarketOrders) {
+            $orderAction = 'accept_all_orders';
+            $orderDetailAction = 'Refused';
+
+            $fnacOrderIds = [];
+
+            foreach ($platformMarketOrders as $order) {
+                $fnacOrderIds[] = $order->platform_order_id;
+            }
+
+            $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
+            $this->fnacOrderUpdate->setFnacOrderIds($fnacOrderIds);
+            $this->fnacOrderUpdate->setOrderAction($orderAction);
+            $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
+
+            if ($responseDataList = $this->fnacOrderUpdate->updateFnacOrdersStatus()) {
+
+                foreach ($responseDataList as $responseData) {
+                    if ($responseData['status'] == 'OK' && $responseData['state'] == 'Refused') {
+                        try {
+                            $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
+                                ->firstOrFail();
+                            if ($platformMarketOrder) {
+                                $platformMarketOrder->order_status = $responseData['state'];
+                                $platformMarketOrder->save();
+                            }
+                        } catch(Exception $e) {
+                            echo 'Message: ' .$e->getMessage();
+                        }
+                    }
+                }
+
+                $this->saveDataToFile(serialize($responseDataList),"platformMarketFraudOrders");
+            }
+        }
     }
 
     public function ackFnacAcceptedOrders($fnacCreatedOrder, $storeName)
