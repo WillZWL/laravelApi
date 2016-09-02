@@ -13,7 +13,7 @@ class FnacCore
     protected $fnacShopId;
     protected $fnacKey;
     protected $fnacToken;
-    protected $fnacPath = 'auth';
+    protected $fnacAction;
     protected $requestXml;
     protected $authKeyWithToken;
 
@@ -26,9 +26,10 @@ class FnacCore
 
     public function query($requestXml)
     {
-        $xmlResponse = $this->callFnacApi($requestXml);
-        if ($xmlResponse) {
-            $data = $this->convert($xmlResponse);
+        $data = $this->callFnacApi($requestXml);
+
+        if ($data) {
+
             $responseStatus = $data['@attributes']['status'];
 
             if ($responseStatus !== 'OK'
@@ -37,6 +38,8 @@ class FnacCore
             ) {
                 if (isset($data["error"])) {
                     $this->errorResponse = $data["error"];
+
+                    return false;
                 }
             }
 
@@ -49,21 +52,22 @@ class FnacCore
     public function callFnacApi($requestXml)
     {
         libxml_use_internal_errors(true);
-        if ($valid = $this->xmlSchemaValidation($requestXml, $this->getFnacPath())) {
-            $xmlResponse  = $this->curl($requestXml);
+        if ($valid = $this->xmlSchemaValidation($requestXml, $this->getFnacAction())) {
+            $xmlResponse  = $this->postXmlFileToApi($requestXml);
 
             if ($xmlResponse === false) {
                 $this->errorResponse = __LINE__ . libxml_get_errors();
             } else {
-                return $xmlResponse;
+                $data = $this->convert($xmlResponse);
+                return $data;
             }
         }
     }
 
-    public function xmlSchemaValidation($requestXml)
+    public function xmlSchemaValidation($requestXml, $fnacAction)
     {
         try {
-            switch($this->getFnacPath()) {
+            switch($fnacAction) {
                 case 'auth':
                     $schema = "xsd/AuthenticationService.xsd";
                     break;
@@ -133,35 +137,25 @@ class FnacCore
     /**
     * Make request to API url
     * @param $xml string
-    * @param $info array - reference for curl status info
     * @return string
     */
-    private function curl($xmlFeed, &$info = array())
+    private function postXmlFileToApi($xmlFeed, &$info = array())
     {
-        if (empty($xmlFeed)) {
-            return;
-        }
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('POST', $this->urlbase . $this->getFnacAction(), ['body' => $xmlFeed]);
+        $responseXml = $response->getBody()->getContents();
 
-        $ch = curl_init();
-        // Open Curl connection
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_POST, 1);
-        curl_setopt($ch, CURLOPT_URL, $this->urlbase . $this->getFnacPath());
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlFeed);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        $data = curl_exec($ch);
-        $info = curl_getinfo($ch);
-        curl_close($ch);
-
-        return $data;
+        return $responseXml;
     }
 
-    public function getFnacPath()
+    public function getFnacAction()
     {
-        return $this->fnacPath;
+        return $this->fnacAction;
+    }
+
+    public function setFnacAction($fnacAction = '')
+    {
+        return $this->fnacAction = $fnacAction;
     }
 
     /**
@@ -257,12 +251,14 @@ class FnacCore
     public function initFnacAuthToken()
     {
         if (!$this->fnacToken) {
+            $this->setFnacAction('auth');
             $this->setAuthRequestXml();
-            $response    = $this->curl($this->getRequestXml());
-            $xmlResponse = simplexml_load_string(trim($response));
-            $responseStatus = (string) $xmlResponse->attributes()->status;
+
+            $data = $this->callFnacApi($this->getRequestXml());
+
+            $responseStatus = $data['@attributes']['status'];
             if ($responseStatus == 'OK') {
-                $this->fnacToken = $xmlResponse->token;
+                $this->fnacToken = $data['token'];
             }
         }
 
@@ -273,16 +269,14 @@ class FnacCore
 
     private function setAuthRequestXml()
     {
-            $xml = <<<XML
-<?xml version='1.0' encoding='utf-8'?>
-<auth xmlns='http://www.fnac.com/schemas/mp-dialog.xsd'>
-    <partner_id>$this->fnacPartnerId</partner_id>
-    <shop_id>$this->fnacShopId</shop_id>
-    <key>$this->fnacKey</key>
-</auth>
-XML;
+        $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
+        $xmlData .= '<auth xmlns="http://www.fnac.com/schemas/mp-dialog.xsd">';
+        $xmlData .=    '<partner_id>'. $this->fnacPartnerId .'</partner_id>';
+        $xmlData .=    '<shop_id>'. $this->fnacShopId .'</shop_id>';
+        $xmlData .=    '<key>'. $this->fnacKey .'</key>';
+        $xmlData .= '</auth>';
 
-        $this->requestXml = $xml;
+        $this->requestXml = $xmlData;
     }
 
     protected function getRequestXml()
@@ -297,13 +291,13 @@ XML;
 
     public function setAuthKeyWithToken()
     {
-        $authKeyWithToken = "
-            partner_id='$this->fnacPartnerId'
-            shop_id='$this->fnacShopId'
-            key='$this->fnacKey'
-            token='$this->fnacToken'
-            xmlns='http://www.fnac.com/schemas/mp-dialog.xsd'
-        ";
+        $authKeyWithToken = '
+            partner_id="'. $this->fnacPartnerId .'"
+            shop_id="'. $this->fnacShopId .'"
+            key="'. $this->fnacKey .'"
+            token="'. $this->fnacToken .'"
+            xmlns="http://www.fnac.com/schemas/mp-dialog.xsd"
+        ';
 
         $this->authKeyWithToken = $authKeyWithToken;
     }
@@ -317,6 +311,8 @@ XML;
     {
         if (isset($data["order"])) {
             return $data["order"];
+        } else if (isset($data['offer'])) {
+            return $data['offer'];
         } else {
             return null;
         }

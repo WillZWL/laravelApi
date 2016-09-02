@@ -9,11 +9,11 @@ class FnacOrder extends FnacOrderCore
     public function __construct($store)
     {
         parent::__construct($store);
+        $this->setFnacAction('orders_query');
     }
 
     public function fetchOrder()
     {
-        $this->setOrdersQueryPath();
         $this->setRequestXml();
 
         return parent::query($this->getRequestXml());
@@ -21,19 +21,16 @@ class FnacOrder extends FnacOrderCore
 
     protected function setRequestXml()
     {
-            $this->orderId = $this->getOrderId();
-            $AuthKeyWithToken = $this->getAuthKeyWithToken();
+        if ($orderId = $this->getOrderId()) {
+            $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
+            $xmlData .= '<orders_query '. $this->getAuthKeyWithToken() .'>';
+            $xmlData .=     '<orders_fnac_id>';
+            $xmlData .=          '<order_fnac_id>'. $orderId .'</order_fnac_id>';
+            $xmlData .=     '</orders_fnac_id>';
+            $xmlData .= '</orders_query>';
 
-            $xml = <<<XML
-<?xml version="1.0" encoding="utf-8"?>
-<orders_query $AuthKeyWithToken>
-    <orders_fnac_id>
-        <order_fnac_id><![CDATA[$this->orderId]]></order_fnac_id>
-    </orders_fnac_id>
-</orders_query>
-XML;
-
-            $this->requestXml = $xml;
+            $this->requestXml = $xmlData;
+        }
     }
 
     protected function prepare($data = [])
