@@ -29,8 +29,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
     public function retrieveOrder($storeName)
     {
-        $this->ackRefusedFraudOrder($storeName);
-
+        // $this->ackRefusedFraudOrder($storeName);
         $processCount = 0;
         if ($orginOrderList = $this->getOrderList($storeName)) {
             foreach ($orginOrderList as $order) {
