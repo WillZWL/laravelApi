@@ -98,3 +98,5 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('merchant', 'MerchantController');
     $api->resource('country', 'CountryController');
 });
+
+ Route::get('platform/test', 'InterfacePlatformOrder@index');
