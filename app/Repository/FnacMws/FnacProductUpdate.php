@@ -16,7 +16,7 @@ class FnacProductUpdate extends FnacProductsCore
         return parent::callFnacApi($this->getRequestXml());
     }
 
-    public function setRequestUpdateOfferXml($processStatusProduct, $updateAction)
+    public function setRequestUpdateOfferXml($processStatusProduct, $updateAction = '')
     {
         $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
         $xmlData .= '<offers_update '. $this->getAuthKeyWithToken() .'>';
@@ -26,6 +26,9 @@ class FnacProductUpdate extends FnacProductsCore
             if ($updateAction == 'Price') {
                 $msgDom .= '<price>'. $pendingSku->price .'</price>';
             } else if ($updateAction == 'Inventory') {
+                $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
+            } else {
+                $msgDom .= '<price>'. $pendingSku->price .'</price>';
                 $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
             }
             $msgDom .= '</offer>';

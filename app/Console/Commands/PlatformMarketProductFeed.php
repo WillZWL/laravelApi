@@ -52,11 +52,13 @@ class PlatformMarketProductFeed extends BaseApiPlatformCommand
                 if($action == "updatePrice"){
                     //\Log::info('User updatePrice. '.\Carbon\Carbon::now());exit();
                     $this->getApiPlatformProductFactoryService($apiName)->submitProductPrice($storeName);
-                }else if($action == "updateInventory"){
+                } else if($action == "updateInventory") {
                     //\Log::info('User updateInventory. '.\Carbon\Carbon::now());exit();
                     $this->getApiPlatformProductFactoryService($apiName)->submitProductInventory($storeName);
+                } else if($action == "updateProduct") {
+                    $this->getApiPlatformProductFactoryService($apiName)->submitProductUpdate($storeName);
                 }
-            } 
+            }
         }
     }
 }

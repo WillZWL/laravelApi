@@ -33,14 +33,21 @@ class ApiBaseService extends PlatformMarketConstService
             $processStatusProduct->transform(function ($pendingSku) {
                 $pendingSku->process_status ^= self::PENDING_PRICE;
                 $pendingSku->process_status |= self::COMPLETE_PRICE;
-                $pendingSku->save(); 
+                $pendingSku->save();
             });
         }
         if ($processStatus == self::PENDING_INVENTORY) {
             $processStatusProduct->transform(function ($pendingSku) {
                 $pendingSku->process_status ^= self::PENDING_INVENTORY;
                 $pendingSku->process_status |= self::COMPLETE_INVENTORY;
-                $pendingSku->save(); 
+                $pendingSku->save();
+            });
+        }
+        if ($processStatus == self::PENDING_PRODUCT) {
+            $processStatusProduct->transform(function ($pendingSku) {
+                $pendingSku->process_status ^= self::PENDING_PRODUCT;
+                $pendingSku->process_status |= self::COMPLETE_PRODUCT;
+                $pendingSku->save();
             });
         }
     }
@@ -55,7 +62,7 @@ class ApiBaseService extends PlatformMarketConstService
     }
 
     public function removeFileSystem($directoryList,$expireDate)
-    {   
+    {
         $expireDateString = strtotime($expireDate);
         foreach($directoryList as $directory){
             $allFiles = $this->findAllFiles($directory);
@@ -72,27 +79,27 @@ class ApiBaseService extends PlatformMarketConstService
         }
     }
 
-    public function findAllFiles($dir) 
-    { 
+    public function findAllFiles($dir)
+    {
         if(file_exists($dir)){
             $result = "";
-            $root = scandir($dir); 
-            foreach($root as $value) 
+            $root = scandir($dir);
+            foreach($root as $value)
             {
-                if($value === '.' || $value === '..') {continue;} 
+                if($value === '.' || $value === '..') {continue;}
                 if(is_file("$dir/$value")) {
                     $result[]="$dir/$value";continue;
                 }
                 if($subFile = $this->findAllFiles("$dir/$value")){
-                    foreach($subFile as $value) 
+                    foreach($subFile as $value)
                     {
                         $result[]=$value;
                     }
                 }
             }
-            return $result; 
+            return $result;
         }
-    } 
+    }
 
     public function getSchedule()
     {
