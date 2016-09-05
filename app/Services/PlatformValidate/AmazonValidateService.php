@@ -44,6 +44,11 @@ class AmazonValidateService extends BaseValidateService
                 $platform['accountName'] = 'ChatAndVision';
                 $platform['alertEmail'] = 'amazonus-group@chatandvision.com';
                 break;
+
+            case '3D':
+                $platform['accountName'] = '3Doodler';
+                $platform['alertEmail'] = 'amazon_us@the3Doodler.com';
+                break;
         }
 
         return  $platform;

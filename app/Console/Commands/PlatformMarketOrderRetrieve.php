@@ -59,6 +59,7 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
                 if (!$previousSchedule) {
                     $previousSchedule = $currentSchedule;
                 }
+
                 //print_r($this->getApiPlatformFactoryService($apiName));break;
                 $result = $this->getApiPlatformFactoryService($apiName)->retrieveOrder($storeName, $previousSchedule);
                 if ($result) {

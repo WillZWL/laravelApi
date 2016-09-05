@@ -10,7 +10,7 @@ return [
             'currency'=>'CZK',
         ], 
     ],
-
+    
     // Default service URL
     'SERVICE_URL' => '',
     'muteLog' => true

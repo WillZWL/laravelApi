@@ -51,6 +51,7 @@ abstract class BaseApiPlatformCommand extends Command
             'tanga' => Config::get('tanga-mws.store'),
             'fnac' => Config::get('fnac-mws.store'),
             'wish' => Config::get('wish-mws.store'),
+            'newegg' => Config::get('newegg-mws.store'),
         ];
         $stores = $config[$apiName] ?: null;
 

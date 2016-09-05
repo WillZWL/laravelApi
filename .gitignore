@@ -12,3 +12,10 @@ cache.properties
 build/*
 !build/phpmd.xml
 !build/phpdox.xml
+Vagrantfile
+.vagrant/machines/default/virtualbox/action_provision
+.vagrant/machines/default/virtualbox/action_set_name
+.vagrant/machines/default/virtualbox/creator_uid
+.vagrant/machines/default/virtualbox/synced_folders
+.vagrant/machines/default/virtualbox/id
+.vagrant/machines/default/virtualbox/index_uuid

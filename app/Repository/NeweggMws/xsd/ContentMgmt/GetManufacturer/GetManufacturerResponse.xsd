@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OperationType" fixed="GetManufacturerResponse">
+					<xs:simpleType>
+						<xs:restriction base="xs:string"/>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="ResponseDate" type="xs:string"/>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="PageInfo">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="TotalCount" type="xs:int"/>
+										<xs:element name="TotalPageCount" type="xs:int"/>
+										<xs:element name="PageIndex" type="xs:int"/>
+										<xs:element name="PageSize" type="xs:int"/>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="ManufacturerList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Manufacturer" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="Name" type="xs:string"/>
+													<xs:element name="IsRestricted">
+														<xs:simpleType>
+															<xs:restriction base="xs:int">
+																<xs:enumeration value="0"/>
+																<xs:enumeration value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RestrictedSubcategoryList" minOccurs="0">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="Subcategory" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:all>
+																			<xs:element name="SubcategoryID" type="xs:int"/>
+																			<xs:element name="SubcategoryName" type="xs:string"/>
+																		</xs:all>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="MappedNameList" minOccurs="0">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="MappedName" type="xs:string" maxOccurs="unbounded"/>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

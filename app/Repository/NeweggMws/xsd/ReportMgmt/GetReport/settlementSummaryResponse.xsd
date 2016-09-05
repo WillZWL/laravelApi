@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:include schemaLocation="PageInfo.xsd"/>
+  <xs:element name="NeweggAPIResponse">
+    <xs:annotation>
+      <xs:documentation>Comment describing your root element</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="IsSuccess">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:enumeration value="true"/>
+              <xs:enumeration value="false"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="SellerID" type="xs:string"/>
+        <xs:element name="OperationType"/>
+        <xs:element name="ResponseBody">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element ref="PageInfo"/>
+              <xs:element name="RequestID" type="xs:string"/>
+              <xs:element name="RequestDate" type="xs:string"/>
+              <xs:element name="SettlementSummaryList">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="SettlementSummary" maxOccurs="unbounded">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="SettlementDate" type="xs:string"/>
+                          <xs:element name="SettlementDateFrom"/>
+                          <xs:element name="SettlementDateTo"/>
+                          <xs:element name="SettlementID" type="xs:int"/>
+                          <xs:element name="CheckNumber" type="xs:string"/>
+                          <xs:element name="ItemPrice" type="xs:decimal"/>
+                          <xs:element name="Shipping" type="xs:string"/>
+                          <xs:element name="Other" type="xs:string"/>
+                          <xs:element name="TotalOrderAmount" type="xs:decimal"/>
+                          <xs:element name="Refunds" type="xs:decimal"/>
+                          <xs:element name="ChargeBack" type="xs:string"/>
+                          <xs:element name="MiscellaneousAdjustment" type="xs:string"/>
+                          <xs:element name="TotalRefunds" type="xs:decimal"/>
+                          <xs:element name="NeweggCommissionFee" type="xs:decimal"/>
+                          <xs:element name="NeweggTransactionFee" type="xs:decimal"/>
+                          <xs:element name="NeweggRefundCommissionFee" type="xs:decimal"/>
+                          <xs:element name="NeweggMonthlyFee" type="xs:decimal"/>
+                          <xs:element name="NeweggStorageFee" type="xs:decimal"/>
+                          <xs:element name="NeweggRMABuyoutFee" type="xs:decimal"/>
+                          <xs:element name="TotalNeweggFee" type="xs:decimal"/>
+                          <xs:element name="TotalSettlement" type="xs:decimal"/>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Memo" type="xs:string" minOccurs="0"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

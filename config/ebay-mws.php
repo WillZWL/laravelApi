@@ -34,7 +34,6 @@ return [
             'currency'=>'USD',
         ],   
     ],
-
     // Default service URL
     'SERVICE_URL' => '',
     'muteLog' => true

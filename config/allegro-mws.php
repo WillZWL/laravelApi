@@ -16,7 +16,6 @@ return [
             'currency'=>'PLN',
         ],
     ],
-
     // Default service URL
     'SERVICE_URL' => '',
     'muteLog' => true

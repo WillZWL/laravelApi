@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIRequest">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="OperationType" fixed="SubmitVolumeDiscountRequest">
+					<xs:simpleType>
+						<xs:restriction base="xs:string"/>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RequestBody">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="ItemVolumeDiscountInfo">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="SellerPartNumber" minOccurs="0">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+													<xs:maxLength value="40"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="NeweggItemNumber" minOccurs="0">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+													<xs:maxLength value="25"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="VolumeActivation">
+											<xs:simpleType>
+												<xs:restriction base="xs:boolean"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="DiscountSetting" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="Tier" maxOccurs="3">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="Priority">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:int">
+																			<xs:minInclusive value="1"/>
+																			<xs:maxInclusive value="5"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="Quantity">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:int">
+																			<xs:minInclusive value="2"/>
+																			<xs:maxInclusive value="99999"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="SellingPrice">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:decimal">
+																			<xs:minExclusive value="0.00"/>
+																			<xs:fractionDigits value="2"/>
+																			<xs:maxInclusive value="99999.99"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="EnableFreeShipping">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:int">
+																			<xs:enumeration value="0"/>
+																			<xs:enumeration value="1"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

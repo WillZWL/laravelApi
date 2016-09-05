@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggEnvelope">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Header">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DocumentVersion" fixed="1.0"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="MessageType" type="xs:string" fixed="VolumeDiscount"/>
+				<xs:element name="Message">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="VolumeDiscountList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ItemVolumeDiscountInfo" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="SellerPartNumber" type="xs:string"/>
+													<xs:element name="NeweggItemNumber" type="xs:string" minOccurs="0"/>
+													<xs:element name="VolumeActivation">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="True"/>
+																<xs:enumeration value="False"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="DiscountSetting">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="Tier" maxOccurs="5">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="Priority">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:int">
+																						<xs:minInclusive value="1"/>
+																						<xs:maxInclusive value="5"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="Quantity">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:int">
+																						<xs:minInclusive value="0"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="SellingPrice">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:decimal">
+																						<xs:minInclusive value="0"/>
+																						<xs:fractionDigits value="2"/>
+																						<xs:maxInclusive value="99999.99"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="EnableFreeShipping">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:int">
+																						<xs:minInclusive value="0"/>
+																						<xs:maxInclusive value="1"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																		</xs:sequence>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

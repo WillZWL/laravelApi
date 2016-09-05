@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggEnvelope">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Header">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DocumentVersion"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="MessageType" type="xs:string" fixed="ShipNotice"/>
+				<xs:element name="Message">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ShipNotice">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Package" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="OrderNumber"/>
+													<xs:element name="ItemInformation">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="Item" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="SellerPartNumber"/>
+																			<xs:element name="NeweggItemNumber" minOccurs="0"/>
+																			<xs:element name="ShippedQuantity"/>
+																		</xs:sequence>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="ShipDate" type="xs:date"/>
+													<xs:element name="ActualShippingCarrier"/>
+													<xs:element name="ActualShippingMethod"/>
+													<xs:element name="TrackingNumber"/>
+													<xs:element name="ShippingFromInformation">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="ShippingFromAddress"/>
+																<xs:element name="ShippingFromCity"/>
+																<xs:element name="ShippingFromState"/>
+																<xs:element name="ShippingFromZipcode"/>
+																<xs:element name="PhoneNumber"/>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

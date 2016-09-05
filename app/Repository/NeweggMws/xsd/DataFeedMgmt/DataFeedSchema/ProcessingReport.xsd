@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggEnvelope">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Header">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DocumentVersion" fixed="1.0"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="MessageType" type="xs:string" fixed="ProcessingReport"/>
+				<xs:element name="Message">
+					<xs:complexType>
+						<xs:choice>
+							<xs:element name="ProcessingReport">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="OriginalMessageName" type="xs:string"/>
+										<xs:element name="OriginalMessageType" type="xs:string" fixed="BatchItemCreation" minOccurs="0"/>
+										<xs:element name="ProcessedStamp" type="xs:dateTime" minOccurs="0"/>
+										<xs:element name="StatusCode">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:enumeration value="CanNotFindSubCategoryCode"/>
+													<xs:enumeration value="DownloadFtpError"/>
+													<xs:enumeration value="DuplicateColumn"/>
+													<xs:enumeration value="FileContentError"/>
+													<xs:enumeration value="FileFormatError"/>
+													<xs:enumeration value="GetConfigError"/>
+													<xs:enumeration value="Init"/>
+													<xs:enumeration value="KeyColumnNoFind"/>
+													<xs:enumeration value="NoRecord"/>
+													<xs:enumeration value="NotFoundSheet"/>
+													<xs:enumeration value="ProcessReport"/>
+													<xs:enumeration value="TemplateError"/>
+													<xs:enumeration value="UploadFtpError"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ProcessingSummary" minOccurs="0">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="ProcessedCount" type="xs:int"/>
+													<xs:element name="SuccessCount" type="xs:int"/>
+													<xs:element name="WithErrorCount" type="xs:int"/>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+										<xs:element name="Result" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="AdditionalInfo" minOccurs="0">
+														<xs:complexType>
+															<xs:choice maxOccurs="unbounded">
+																<xs:element name="SellerPartNumber" type="xs:string"/>
+																<xs:element name="SubCategoryID" type="xs:string"/>
+																<xs:element name="ManufacturerPartNumberOrISBN" type="xs:string"/>
+																<xs:element name="NeweggItemNumber" type="xs:string"/>
+																<xs:element name="UPC" type="xs:string"/>
+																<xs:element name="OrderNumber" type="xs:string"/>
+																<xs:element name="TrackingNumber" type="xs:string"/>
+															</xs:choice>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="ErrorList" minOccurs="0">
+														<xs:complexType>
+															<xs:sequence maxOccurs="unbounded">
+																<xs:element name="ErrorDescription" type="xs:string"/>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:choice>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="IssueRMAResponse"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="PageInfo">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="TotalCount" type="xs:integer"/>
+										<xs:element name="TotalPageCount" type="xs:integer"/>
+										<xs:element name="PageIndex" type="xs:integer"/>
+										<xs:element name="PageSize" type="xs:integer"/>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="RMAInfoList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="RMAInfo" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="RMANumber" type="xs:integer"/>
+													<xs:element name="RMAType">
+														<xs:simpleType>
+															<xs:restriction base="xs:integer">
+																<xs:enumeration value="1"/>
+																<xs:enumeration value="2"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RMATypeDescription">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Replacement"/>
+																<xs:enumeration value="Refund"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="IssueUser" type="xs:string"/>
+													<xs:element name="RMADate" type="xs:string"/>
+													<xs:element name="RMAStatus">
+														<xs:simpleType>
+															<xs:restriction base="xs:integer">
+																<xs:enumeration value="1"/>
+																<xs:enumeration value="2"/>
+																<xs:enumeration value="3"/>
+																<xs:enumeration value="4"/>
+																<xs:enumeration value="5"/>
+																<xs:enumeration value="6"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RMAStatusDescription">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Open"/>
+																<xs:enumeration value="Received"/>
+																<xs:enumeration value="Rejected"/>
+																<xs:enumeration value="Voided"/>
+																<xs:enumeration value="Closed"/>
+																<xs:enumeration value="Processing"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RMAShipMethod">
+														<xs:simpleType>
+															<xs:restriction base="xs:integer">
+																<xs:enumeration value="1"/>
+																<xs:enumeration value="2"/>
+																<xs:enumeration value="3"/>
+																<xs:enumeration value="4"/>
+																<xs:enumeration value="5"/>
+																<xs:enumeration value="6"/>
+																<xs:enumeration value="7"/>
+																<xs:enumeration value="8"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RMAShipMethodDescription">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Media Mail(7-14 business days)"/>
+																<xs:enumeration value="Standard Shipping(5-7 business days)"/>
+																<xs:enumeration value="Expedited Shipping(3-5 business days)"/>
+																<xs:enumeration value="Two-Day shipping"/>
+																<xs:enumeration value="One-day shipping"/>
+																<xs:enumeration value="International Standard Shipping(5-15 business days)"/>
+																<xs:enumeration value="International Expedited Shipping(3-5 business days)"/>
+																<xs:enumeration value="International Two-Day shipping"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="OrderNumber" type="xs:integer"/>
+													<xs:element name="OrderDate" type="xs:string"/>
+													<xs:element name="InvoiceNumber" type="xs:integer"/>
+													<xs:element name="OrderAmount" type="xs:decimal"/>
+													<xs:element name="AvailableRefundAmount" type="xs:decimal"/>
+													<xs:element name="RMAProcessedBy">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Newegg"/>
+																<xs:enumeration value="Seller"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RMAReceiveDate" type="xs:string"/>
+													<xs:element name="RMANote" type="xs:string"/>
+                          <xs:element name="RefundGSTorHSTAmount" type="xs:decimal"/>
+                          <xs:element name="RefundPSTorQSTAmount" type="xs:decimal"/>
+													<xs:element name="PriorRefundAmount" type="xs:decimal"/>
+													<xs:element name="CustomerName" type="xs:string"/>
+													<xs:element name="CustomerPhoneNumber" type="xs:string"/>
+													<xs:element name="CustomerEmailAddress" type="xs:string"/>
+													<xs:element name="ShipToAddress1" type="xs:string"/>
+													<xs:element name="ShipToAddress2" type="xs:string"/>
+													<xs:element name="ShipToCityName" type="xs:string"/>
+													<xs:element name="ShipToStateCode" type="xs:string"/>
+													<xs:element name="ShipToZipCode" type="xs:string"/>
+													<xs:element name="ShipToCountryCode" type="xs:string"/>
+													<xs:element name="ShipToLastName" type="xs:string"/>
+													<xs:element name="ShipToFirstName" type="xs:string"/>
+													<xs:element name="ShipToCompany" type="xs:string"/>
+													<xs:element name="RMATransactionList">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="RMATransaction" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:all>
+																			<xs:element name="SellerPartNumber" type="xs:string"/>
+																			<xs:element name="MfrPartNumber" type="xs:string"/>
+																			<xs:element name="NeweggItemNumber" type="xs:string"/>
+																			<xs:element name="Description" type="xs:string"/>
+																			<xs:element name="UnitPrice" type="xs:decimal"/>
+																			<xs:element name="ReturnQuantity" type="xs:integer"/>
+																			<xs:element name="ReturnUnitPrice" type="xs:decimal"/>
+																			<xs:element name="RefundShippingPrice" type="xs:decimal"/>
+																			<xs:element name="ShippedBy">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:integer">
+																						<xs:enumeration value="0"/>
+																						<xs:enumeration value="1"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="RMAReason">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:integer">
+																						<xs:minInclusive value="1"/>
+																						<xs:maxInclusive value="9"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="RMAReasonDescription" type="xs:string"/>
+																		</xs:all>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+				<xs:element name="ResponseDate" type="xs:string"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

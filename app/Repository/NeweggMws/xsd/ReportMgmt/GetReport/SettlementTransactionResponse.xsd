@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:include schemaLocation="PageInfo.xsd"/>
+	<xs:element name="NeweggAPIResponse">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+							<xs:enumeration value="false"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OperationType" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element ref="PageInfo"/>
+							<xs:element name="RequestID" type="xs:string"/>
+							<xs:element name="RequestDate" type="xs:string"/>
+							<xs:element name="SettlementTransactionInfoList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="SettlementTransactionInfo" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="TransactionDate" type="xs:string"/>
+													<xs:element name="TransactionType" type="xs:string"/>
+													<xs:element name="OrderID" type="xs:int"/>
+													<xs:element name="InvoiceID" type="xs:int"/>
+													<xs:element name="SellerPartNumber" type="xs:string"/>
+													<xs:element name="NeweggItemNumber" type="xs:string"/>
+													<xs:element name="ItemDescription" type="xs:string"/>
+													<xs:element name="ItemCondition" type="xs:string"/>
+													<xs:element name="Amount" type="xs:decimal"/>
+													<xs:element name="Shipping" type="xs:decimal"/>
+													<xs:element name="CommissionFee" type="xs:decimal"/>
+													<xs:element name="SettlementID" type="xs:string" minOccurs="0"/>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
