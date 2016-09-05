@@ -51,7 +51,6 @@ class GetAmazonFeedResult extends Command
                 if ((int) $feedResult->Message->ProcessingReport->ProcessingSummary->MessagesWithError > 0) {
                     $pendingFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
 
-                    $alertEmail = 'it@eservicesgroup.net';
                     $amazonAccountName = '';
                     switch (substr($pendingFeed->platform, 0, 2)) {
                         case 'BC':
@@ -68,6 +67,14 @@ class GetAmazonFeedResult extends Command
                             $amazonAccountName = 'ChatAndVision';
                             $alertEmail = 'amazonus@chatandvision.com';
                             break;
+
+                        case '3D':
+                            $amazonAccountName = '3Doodler';
+                            $alertEmail = 'amazon_us@the3Doodler.com';
+                            break;
+
+                        default:
+                            $alertEmail = 'handy.hon@eservicesgroup.com';
                     }
 
                     //$alertEmail = "handy.hon@eservicesgroup.com";
