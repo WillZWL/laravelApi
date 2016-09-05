@@ -13,19 +13,9 @@ class ApiPlatformProductFactoryService
         $this->apiPlatformProductInterface = $apiPlatformProductInterface;
     }
 
-    public function getProductList($storeName)
+    public function submitProductPriceAndInventory($storeName)
     {
-        return $this->apiPlatformProductInterface->getProductList($storeName);
-    }
-
-    public function submitProductPrice($storeName)
-    {
-        return $this->apiPlatformProductInterface->submitProductPrice($storeName);
-    }
-
-    public function submitProductInventory($storeName)
-    {
-        return $this->apiPlatformProductInterface->submitProductInventory($storeName);
+        return $this->apiPlatformProductInterface->submitProductPriceAndInventory($storeName);
     }
 
     public function submitProductUpdate($storeName)
