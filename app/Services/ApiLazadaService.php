@@ -7,6 +7,7 @@ use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
+use PDF;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaOrder;
@@ -103,6 +104,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                    $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
                 }
                 $this->getDocument($storeName,$orderItems,"invoice");
+
                 foreach($shippingObject as $trackinCode => $itemObject){
                     $itemObject["TrackingNumber"] = $trackinCode;
                     $result = $this->setStatusToReadyToShip($storeName,$itemObject);
@@ -157,8 +159,13 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $this->lazadaDocument->setDocumentType($documentType);
         $this->lazadaDocument->setOrderItemIds($orderItemIds);
         $document = $this->lazadaDocument->fetchDocument();
-        print_r($document);exit();
-        return $document;
+        if(isset($File)){
+            $fileData = base64_decode($document["File"]);
+            $filename =$this->getPlatformId().'/'.$documentType."/".$orderItemIds;  
+            $pdfFile= \Storage::disk('pdf')->getDriver()->getAdapter()->getPathPrefix().$filename.".pdf";
+            PDF::loadHTML($fileData)->setPaper('a4')->setOrientation('landscape')->setOption('margin-bottom', 0)->save($pdfFile);
+            return $pdfFile;
+        }
     }
 
 	public function setStatusToReadyToShip($storeName,$itemObject)

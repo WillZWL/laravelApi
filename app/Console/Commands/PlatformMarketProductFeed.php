@@ -40,8 +40,8 @@ class PlatformMarketProductFeed extends BaseApiPlatformCommand
      */
     public function handle()
     {
-        $this->platfromMakert = array("lazada","priceminister");
-        $this->runPlatformMarketConsoleFunction();
+        $this->platfromMakert = array("lazada","priceminister","fnac");
+        parent::runPlatformMarketConsoleFunction();
     }
 
     public function runApiPlatformServiceFunction($stores, $apiName)
@@ -49,14 +49,9 @@ class PlatformMarketProductFeed extends BaseApiPlatformCommand
         if ($stores){
             $action = $this->argument('action');
             foreach ($stores as $storeName => $store) {
-                if($action == "updatePrice"){
+                if($action == "updatePriceInventory"){
                     //\Log::info('User updatePrice. '.\Carbon\Carbon::now());exit();
-                    $this->getApiPlatformProductFactoryService($apiName)->submitProductPrice($storeName);
-                } else if($action == "updateInventory") {
-                    //\Log::info('User updateInventory. '.\Carbon\Carbon::now());exit();
-                    $this->getApiPlatformProductFactoryService($apiName)->submitProductInventory($storeName);
-                } else if($action == "updateProduct") {
-                    $this->getApiPlatformProductFactoryService($apiName)->submitProductUpdate($storeName);
+                    $this->getApiPlatformProductFactoryService($apiName)->submitProductPriceAndInventory($storeName);  
                 }
             }
         }

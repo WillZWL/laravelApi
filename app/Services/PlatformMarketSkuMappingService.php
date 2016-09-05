@@ -67,6 +67,7 @@ class PlatformMarketSkuMappingService
                                 'marketplace_id' => $this->marketplaceId,
                                 'country_id' => $this->countryCode,
                                 'lang_id' => 'en',
+                                'asin'=> $itemData['ASIN'],
                                 'currency' => $this->store['currency'],
                                 );
                                 $this->firstOrCreateMarketplaceSkuMapping($mappingData);
@@ -135,6 +136,7 @@ class PlatformMarketSkuMappingService
         $object['lang_id'] = $mappingData['lang_id'];
         $object['mp_category_id'] = $mappingData['mp_category_id'];
         $object['mp_sub_category_id'] = $mappingData['mp_sub_category_id'];
+        $object['asin'] = $mappingData['asin'];
         $object['condition'] = 'New';
         $object['delivery_type'] = $mappingData['delivery_type'];
         $object['currency'] = $mappingData['currency'];

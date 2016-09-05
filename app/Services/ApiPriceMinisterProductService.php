@@ -30,24 +30,10 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
         return $orginProductList;
     }
 
-    public function submitProductPrice($storeName)
+    public function submitProductPriceAndInventory($storeName)
     {
-        return $this->runProductUpdate($storeName,'pendingPrice');
-    }
-
-    public function submitProductInventory($storeName)
-    {
-        return $this->runProductUpdate($storeName,'pendingInventory');
-    }
-
-    protected function runProductUpdate($storeName,$action)
-    {
-        $processStatus = array(
-            'pendingPrice' => self::PENDING_PRICE,
-            'pendingInventory' => self::PENDING_INVENTORY,
-        );
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus[$action]);
-            
+        $processStatus = self::PENDING_PRICE | self::PENDING_INVENTORY;
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
         if(!$processStatusProduct->isEmpty()){
             $xmlData = '<?xml version="1.0" encoding="UTF-8"?>';
             $xmlData .= '<items>';
@@ -60,14 +46,10 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
                 $messageDom .=    '<value>'.$pendingSku->marketplace_sku.'</value>';
                 $messageDom .=   '</attribute>';
                 $messageDom .=   '<attribute>';
-                if ($processStatus[$action] == self::PENDING_PRICE) {
-                    $messageDom .= '<key>sellingPrice</key>';
-                    $messageDom .= '<value>'.$pendingSku->price.'</value>';
-                }
-                if ($processStatus[$action] == self::PENDING_INVENTORY) {
-                    $messageDom .= '<key>qty</key>';
-                    $messageDom .= '<value>'.$pendingSku->inventory.'</value>';
-                }
+                $messageDom .=      '<key>sellingPrice</key>';
+                $messageDom .=      '<value>'.$pendingSku->price.'</value>';
+                $messageDom .=      '<key>qty</key>';
+                $messageDom .=      '<value>'.$pendingSku->inventory.'</value>';
                 $messageDom .=   '</attribute>';
                 $messageDom .=   '</advert>';
                 $messageDom .=  '</attributes>';
@@ -83,7 +65,7 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
             $result = $this->priceMinisterProductUpdate->submitXmlFile($xmlFile);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
             if($result){
-                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus[$action]);
+                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
                 return $result;
             }
         }

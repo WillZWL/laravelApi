@@ -38,43 +38,25 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
         return $orginProductList;
     }
 
-    public function submitProductPrice($storeName)
+    public function submitProductPriceAndInventory($storeName)
     {
-        return $this->runProductUpdate($storeName,'pendingPrice');
-    }
-
-    public function submitProductInventory($storeName)
-    {
-        return $this->runProductUpdate($storeName,'pendingInventory');
-    }
-
-    protected function runProductUpdate($storeName,$action)
-    {   
-        $processStatus = array(
-            'pendingPrice' => self::PENDING_PRICE,
-            'pendingInventory' => self::PENDING_INVENTORY,
-        );
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus[$action]);
+        $processStatus = self::PENDING_PRICE | self::PENDING_INVENTORY;
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
         if(!$processStatusProduct->isEmpty()){
             $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
             $xmlData .= '<Request>';
             foreach ($processStatusProduct as $index => $pendingSku) {
                 $messageDom = '<Product>';
                 $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-                if ($processStatus[$action] == self::PENDING_PRICE) {
-                    $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
-                    $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
-                    $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
-                    $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
-                }
-                if ($processStatus[$action] == self::PENDING_INVENTORY) {
-                    $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-                }
+                $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
+                $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
+                $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
+                $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
+                $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
                 $messageDom .= '</Product>';
                 $xmlData .= $messageDom;
             }
             $xmlData .= '</Request>';
-            //print_r($xmlData);
             $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
             $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
             $this->saveDataToFile(serialize($xmlData), 'pendingProductPriceOrInventory');
@@ -82,7 +64,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             //print_r($result);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
             if($result){
-                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus[$action]);
+                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
                 return $result;
             }
         }

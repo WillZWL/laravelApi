@@ -92,7 +92,6 @@ class OrderTransfer extends Command
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
-        $alertEmail = 'it@eservicesgroup.net';
         $amazonAccountName = '';
         switch ($amazonAccount) {
             case 'BC':
@@ -109,6 +108,14 @@ class OrderTransfer extends Command
                 $amazonAccountName = 'ChatAndVision';
                 $alertEmail = 'amazonus-group@chatandvision.com';
                 break;
+
+            case '3D':
+                $amazonAccountName = '3Doodler';
+                $alertEmail = 'amazon_us@the3Doodler.com';
+                break;
+
+            default:
+                $alertEmail = 'handy.hon@eservicesgroup.com';
         }
 
         //$alertEmail = 'handy.hon@eservicesgroup.com';
