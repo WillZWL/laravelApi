@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="EditRMAInfo">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="RMANumber">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:minInclusive value="1"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RMAType">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:enumeration value="1"/>
+							<xs:enumeration value="2"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RMAShipMethod" minOccurs="0">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:enumeration value="1"/>
+							<xs:enumeration value="2"/>
+							<xs:enumeration value="3"/>
+							<xs:enumeration value="4"/>
+							<xs:enumeration value="5"/>
+							<xs:enumeration value="6"/>
+							<xs:enumeration value="7"/>
+							<xs:enumeration value="8"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RMANote" minOccurs="0">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:maxLength value="4000"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RMATransactionList">
+					<xs:complexType>
+						<xs:sequence maxOccurs="unbounded">
+							<xs:element name="RMATransaction">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="SellerPartNumber">
+											<xs:simpleType>
+												<xs:restriction base="xs:string"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ReturnQuantity" type="xs:int"/>
+										<xs:element name="ReturnUnitPrice" type="xs:decimal" minOccurs="0"/>
+										<xs:element name="RefundShippingPrice" minOccurs="0">
+											<xs:simpleType>
+												<xs:restriction base="xs:decimal">
+													<xs:minInclusive value="0"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="RMAReason">
+											<xs:simpleType>
+												<xs:restriction base="xs:int">
+													<xs:minInclusive value="1"/>
+													<xs:maxInclusive value="8"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

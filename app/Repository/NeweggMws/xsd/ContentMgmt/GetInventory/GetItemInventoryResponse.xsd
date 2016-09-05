@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="InventoryResult">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="ItemNumber" type="xs:string"/>
+				<xs:element name="SellerPartNumber" type="xs:string"/>
+				<xs:element name="FulfillmentOption">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:enumeration value="0"/>
+							<xs:enumeration value="1"/>
+							<xs:enumeration value="2"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="Active">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:enumeration value="0"/>
+							<xs:enumeration value="1"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="AvailableQuantity" type="xs:int"/>
+				<xs:element name="WarehouseAllocation">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Warehouse" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="WarehouseCode" />
+										<xs:element name="Quantity"/>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

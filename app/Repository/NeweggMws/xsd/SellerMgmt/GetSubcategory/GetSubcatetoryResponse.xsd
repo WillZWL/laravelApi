@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="GetSellerSubcategoryResponse"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="SubcategoryList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Subcategory" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="IndustryCode" type="xs:string"/>
+													<xs:element name="IndustryName" type="xs:string"/>
+													<xs:element name="SubcategoryID" type="xs:int"/>
+													<xs:element name="SubcategoryName" type="xs:string"/>
+													<xs:element name="Enabled">
+														<xs:simpleType>
+															<xs:restriction base="xs:int">
+																<xs:minInclusive value="0"/>
+																<xs:maxInclusive value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

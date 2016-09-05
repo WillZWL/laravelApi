@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  2013/06/20 Create by Kevin.Liao-->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggEnvelope">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Header">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DocumentVersion" fixed="1.0"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="MessageType" type="xs:string" fixed="MultiChannelOrderCreation"/>
+				<xs:element name="Message">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="MultiChannelOrder">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Order" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="OrderDate">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:pattern value="[0,1]{1}[0-9]{1}/[0-3]{1}[0-9]{1}/[0-9]{4}"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="SalesChannel">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="SellerOrderID">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShippingMethod">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Standard Shipping (5-7 business days)"/>
+																<xs:enumeration value="Expedited Shipping (3-5 business days)"/>
+																<xs:enumeration value="Two-Day Shipping"/>
+																<xs:enumeration value="One-Day Shipping"/>
+																<xs:enumeration value="CAN Ground (2-7 business days)"/>
+																<xs:enumeration value="CAN Express (2-5 business days)"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToFirstName">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToLastName">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToCompany" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="0"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToAddressLine1">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToAddressLine2" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="0"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToCity">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToState">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToPostalCode">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToCountry" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="0"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ShipToPhoneNumber">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:minLength value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ItemList">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="Item" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="SellerPartNumber">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:string">
+																						<xs:minLength value="1"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="NeweggItemNumber" minOccurs="0">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:string">
+																						<xs:minLength value="0"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="Quantity" type="xs:integer"/>
+																		</xs:sequence>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

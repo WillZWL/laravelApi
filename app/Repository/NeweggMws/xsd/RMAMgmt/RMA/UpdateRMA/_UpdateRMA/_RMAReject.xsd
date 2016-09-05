@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="RejectRMAInfo">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="RMANumber">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:minInclusive value="1"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RejectReason">
+					<xs:simpleType>
+						<xs:restriction base="xs:integer">
+							<xs:minInclusive value="1"/>
+							<xs:maxInclusive value="5"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="ShipCarrier">
+					<xs:simpleType>
+						<xs:restriction base="xs:integer">
+							<xs:minInclusive value="1"/>
+							<xs:maxInclusive value="5"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="OtherShipCarrier" minOccurs="0">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:maxLength value="10"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="ShipService">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:maxLength value="50"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="TrackingNumberList">
+					<xs:complexType>
+						<xs:sequence maxOccurs="unbounded">
+							<xs:element name="TrackingNumber">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:minLength value="1"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

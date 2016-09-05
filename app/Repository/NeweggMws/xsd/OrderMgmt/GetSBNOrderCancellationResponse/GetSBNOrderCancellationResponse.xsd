@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OperationType" type="xs:string"/>
+				<xs:element name="ResponseDate" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="RequestDate" type="xs:string"/>
+							<xs:element name="OrderNumber" type="xs:int"/>							
+							<xs:element name="Result">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="Success"/>
+										<xs:enumeration value="Failed"/>
+										<xs:enumeration value="Processing"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element name="ErrorMessage" type="xs:string"/>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:pattern value="ItemLookupResponse"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="ResponseDate" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="PageInfo">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="TotalCount">
+											<xs:simpleType>
+												<xs:restriction base="xs:integer"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="TotalPageCount">
+											<xs:simpleType>
+												<xs:restriction base="xs:integer"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="PageSize">
+											<xs:simpleType>
+												<xs:restriction base="xs:integer"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="PageIndex">
+											<xs:simpleType>
+												<xs:restriction base="xs:integer"/>
+											</xs:simpleType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="RequestID" type="xs:string"/>
+							<xs:element name="RequestDate" type="xs:string"/>
+							<xs:element name="ItemList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Item" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="NeweggItemNumber" type="xs:string" minOccurs="0"/>
+													<xs:element name="UPC" type="xs:string" minOccurs="0"/>
+													<xs:element name="Condition" type="xs:integer"/>
+													<xs:element name="ManufacturerName" type="xs:string" minOccurs="0"/>
+													<xs:element name="ManufacturerPartNumber" type="xs:string" minOccurs="0"/>
+													<xs:element name="WebsiteShortTitle" type="xs:string" minOccurs="0"/>
+													<xs:element name="PacksOrSets" type="xs:integer" minOccurs="0"/>
+													<xs:element name="Note" type="xs:string" minOccurs="0"/>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

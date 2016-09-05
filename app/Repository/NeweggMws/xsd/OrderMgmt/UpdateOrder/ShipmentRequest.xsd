@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="Shipment">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="Header">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="SellerID">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:minLength value="1"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element name="SONumber" type="xs:int"/>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="PackageList">
+					<xs:complexType>
+						<xs:sequence maxOccurs="unbounded">
+							<xs:element name="Package">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="TrackingNumber" type="xs:string"/>										
+										<xs:element name="ShipCarrier">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ShipService">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="1"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="ItemList">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="Item" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:all>
+																<xs:element name="SellerPartNumber">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:string">
+																			<xs:minLength value="1"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="NeweggItemNumber" type="xs:string" minOccurs="0"/>
+																<xs:element name="ShippedQty" type="xs:int"/>
+															</xs:all>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

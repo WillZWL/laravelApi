@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggEnvelope">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="Header">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="DocumentVersion" fixed="1.0"/>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="MessageType" type="xs:string" fixed="Inventory"/>
+				<xs:element name="Overwrite" default="No" minOccurs="0">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="Yes"/>
+							<xs:enumeration value="No"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="Message">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="Inventory">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Item" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="SellerPartNumber" type="xs:string"/>
+													<xs:element name="NeweggItemNumber" type="xs:string" minOccurs="0"/>
+													<xs:element name="Currency" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="USD"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="MSRP" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:decimal">
+																<xs:totalDigits value="5"/>
+																<xs:fractionDigits value="2"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="MAP" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:decimal">
+																<xs:minInclusive value="0.00"/>
+																<xs:maxInclusive value="99999.00"/>
+																<xs:fractionDigits value="2"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="CheckoutMAP" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="True"/>
+																<xs:enumeration value="False"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="SellingPrice" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:decimal">
+																<xs:minExclusive value="0.00"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="Inventory" type="xs:integer" minOccurs="0"/>
+													<xs:element name="FulfillmentOption" default="Merchant" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="SBN"/>
+																<xs:enumeration value="Merchant"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="Shipping" default="default" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="default"/>
+																<xs:enumeration value="free"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ActivationMark" default="True" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="True"/>
+																<xs:enumeration value="False"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

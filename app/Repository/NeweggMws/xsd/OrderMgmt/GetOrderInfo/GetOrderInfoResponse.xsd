@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OperationType" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="PageInfo">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="TotalCount" type="xs:int"/>
+										<xs:element name="TotalPageCount" type="xs:int"/>
+										<xs:element name="PageSize" type="xs:int"/>
+										<xs:element name="PageIndex" type="xs:int"/>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="OrderInfoList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="OrderInfo" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="SellerID" type="xs:string"/>
+													<xs:element name="OrderNumber" type="xs:integer"/>
+													<xs:element name="InvoiceNumber" type="xs:integer"/>
+													<xs:element name="OrderDownloaded" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="true"/>
+																<xs:enumeration value="false"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="OrderDate" type="xs:string"/>
+													<xs:element name="OrderStatus" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:integer">
+																<xs:enumeration value="0"/>
+																<xs:enumeration value="1"/>
+																<xs:enumeration value="2"/>
+																<xs:enumeration value="3"/>
+																<xs:enumeration value="4"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="OrderStatusDescription" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="Unshipped"/>
+																<xs:enumeration value="Partially Shipped"/>
+																<xs:enumeration value="Shipped"/>
+																<xs:enumeration value="Invoiced"/>
+																<xs:enumeration value="Voided"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="CustomerName" type="xs:string"/>
+													<xs:element name="CustomerPhoneNumber" type="xs:string"/>
+													<xs:element name="CustomerEmailAddress" type="xs:string"/>
+													<xs:element name="ShipToAddress1" type="xs:string"/>
+													<xs:element name="ShipToAddress2" type="xs:string"/>
+													<xs:element name="ShipToCityName" type="xs:string"/>
+													<xs:element name="ShipToStateCode" type="xs:string"/>
+													<xs:element name="ShipToZipCode" type="xs:string"/>
+													<xs:element name="ShipToCountryCode" type="xs:string"/>
+													<xs:element name="ShipService" type="xs:string"/>
+													<xs:element name="ShipToFirstName" type="xs:string"/>
+													<xs:element name="ShipToLastName" type="xs:string"/>
+													<xs:element name="ShipToCompany" type="xs:string"/>
+													<xs:element name="OrderItemAmount" type="xs:decimal"/>
+													<xs:element name="ShippingAmount" type="xs:decimal"/>
+													<xs:element name="DiscountAmount" type="xs:decimal"/>
+												    <xs:element name="GSTorHSTAmount" type="xs:decimal"/>
+												    <xs:element name="PSTorQSTAmount" type="xs:decimal"/>
+													<xs:element name="OrderQty" type="xs:integer"/>
+													<xs:element name="RefundAmount" type="xs:decimal"/>
+													<xs:element name="OrderTotalAmount" type="xs:decimal"/>
+													<xs:element name="IsAutoVoid" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="true"/>
+																<xs:enumeration value="false"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="SalesChannel" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:int">
+																<xs:enumeration value="0"/>
+																<xs:enumeration value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="FulfillmentOption" minOccurs="0">
+														<xs:simpleType>
+															<xs:restriction base="xs:int">
+																<xs:enumeration value="0"/>
+																<xs:enumeration value="1"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="ItemInfoList">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="ItemInfo" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:all>
+																			<xs:element name="SellerPartNumber" type="xs:string"/>
+																			<xs:element name="NeweggItemNumber" type="xs:string"/>
+																			<xs:element name="MfrPartNumber" type="xs:string"/>
+																			<xs:element name="UPCCode" type="xs:string"/>
+																			<xs:element name="Description" type="xs:string"/>
+																			<xs:element name="OrderedQty" type="xs:integer"/>
+																			<xs:element name="ShippedQty" type="xs:integer"/>
+																			<xs:element name="UnitPrice" type="xs:decimal"/>
+																			<xs:element name="ExtendUnitPrice" type="xs:decimal"/>
+																			<xs:element name="UnitShippingCharge" type="xs:decimal"/>
+																			<xs:element name="ExtendShippingCharge" type="xs:decimal"/>
+																			<xs:element name="Status" minOccurs="0">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:integer">
+																						<xs:enumeration value="1"/>
+																						<xs:enumeration value="2"/>
+																						<xs:enumeration value="3"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="StatusDescription" type="xs:string" minOccurs="0"/>
+																		</xs:all>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+													<xs:element name="PackageInfoList">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="PackageInfo" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:all>
+																			<xs:element name="PackageType" minOccurs="0">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:string">
+																						<xs:enumeration value="Shipped"/>
+																						<xs:enumeration value="Unshipped"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="ShipCarrier" type="xs:string"/>
+																			<xs:element name="ShipService" type="xs:string"/>
+																			<xs:element name="TrackingNumber" type="xs:string"/>
+																			<xs:element name="ShipDate" type="xs:string"/>
+																			<xs:element name="ShipFromAddress" type="xs:string"/>
+																			<xs:element name="ShipFromAddress2" type="xs:string"/>
+																			<xs:element name="ShipFromCity" type="xs:string"/>
+																			<xs:element name="ShipFromState" type="xs:string"/>
+																			<xs:element name="ShipFromZipCode" type="xs:string"/>
+																			<xs:element name="ShipFromName" type="xs:string"/>
+																			<xs:element name="ItemInfoList">
+																				<xs:complexType>
+																					<xs:sequence>
+																						<xs:element name="ItemInfo" maxOccurs="unbounded">
+																							<xs:complexType>
+																								<xs:all>
+																									<xs:element name="SellerPartNumber" type="xs:string"/>
+																									<xs:element name="MfrPartNumber" type="xs:string"/>
+																									<xs:element name="ShippedQty" type="xs:integer"/>
+																								</xs:all>
+																							</xs:complexType>
+																						</xs:element>
+																					</xs:sequence>
+																				</xs:complexType>
+																			</xs:element>
+																		</xs:all>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string"/>
+				<xs:element name="ResponseDate" type="xs:string"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

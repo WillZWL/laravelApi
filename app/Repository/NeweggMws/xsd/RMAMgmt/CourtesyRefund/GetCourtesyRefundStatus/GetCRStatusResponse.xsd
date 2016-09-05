@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="GetCourtesyRefundRequestStatusResponse"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ResponseList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ResponseInfo" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="RequestId" type="xs:string"/>
+													<xs:element name="RequestType">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="COURTESYREFUND"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RequestDate" type="xs:string"/>
+													<xs:element name="RequestStatus">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="SUBMITTED"/>
+																<xs:enumeration value="IN_PROGRESS"/>
+																<xs:enumeration value="FINISHED"/>
+																<xs:enumeration value="CANCELLED"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="Result" minOccurs="0">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="CourtesyRefundInfo">
+																	<xs:complexType>
+																		<xs:all>
+																			<xs:element name="CourtesyRefundID" type="xs:string"/>
+																			<xs:element name="SONumber" type="xs:integer"/>
+																			<xs:element name="SOAmount" type="xs:decimal"/>
+																			<xs:element name="InvoiceNumber" type="xs:integer"/>
+																			<xs:element name="RefundAmount" type="xs:decimal"/>
+																			<xs:element name="ReasonCode">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:integer">
+																						<xs:enumeration value="1"/>
+																						<xs:enumeration value="2"/>
+																						<xs:enumeration value="3"/>
+																						<xs:enumeration value="4"/>
+																						<xs:enumeration value="5"/>
+																						<xs:enumeration value="6"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="Reason" type="xs:string"/>
+																			<xs:element name="NoteToCustomer" type="xs:string"/>
+																			<xs:element name="Status">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:string">
+																						<xs:enumeration value="Open"/>
+																						<xs:enumeration value="Close"/>
+																						<xs:enumeration value="Void"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="IsNeweggRefund">
+																				<xs:simpleType>
+																					<xs:restriction base="xs:string">
+																						<xs:enumeration value="true"/>
+																						<xs:enumeration value="false"/>
+																					</xs:restriction>
+																				</xs:simpleType>
+																			</xs:element>
+																			<xs:element name="InUserName" type="xs:string"/>
+																			<xs:element name="InDate" type="xs:string"/>
+																			<xs:element name="EditUserName" type="xs:string"/>
+																			<xs:element name="EditDate" type="xs:string"/>
+																		</xs:all>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

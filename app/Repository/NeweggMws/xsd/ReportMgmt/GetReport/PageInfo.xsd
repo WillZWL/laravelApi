@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="PageInfo">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="TotalCount" type="xs:int"/>
+				<xs:element name="TotalPageCount" type="xs:int"/>
+				<xs:element name="PageSize" type="xs:int"/>
+				<xs:element name="PageIndex" type="xs:int"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

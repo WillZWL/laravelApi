@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess" type="xs:boolean"/>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string"/>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID">
+					<xs:simpleType>
+						<xs:restriction base="xs:string"/>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="RMAInfo">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="RMANumber" type="xs:int" minOccurs="0"/>
+										<xs:element name="RMAType">
+											<xs:simpleType>
+												<xs:restriction base="xs:integer">
+													<xs:minInclusive value="1"/>
+													<xs:maxInclusive value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="RMATypeDescription" type="xs:string"/>
+										<xs:element name="SourceSONumber" type="xs:int"/>
+										<xs:element name="RMAShipMethod" type="xs:string"/>
+										<xs:element name="RMAShipMethodDescription" type="xs:string"/>
+										<xs:element name="RMANote" type="xs:string" minOccurs="0"/>
+										<xs:element name="IssueUser">
+											<xs:simpleType>
+												<xs:restriction base="xs:string"/>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="RMATransactionList">
+											<xs:complexType>
+												<xs:sequence maxOccurs="unbounded">
+													<xs:element name="RMATransaction">
+														<xs:complexType>
+															<xs:all>
+																<xs:element name="SellerPartNumber">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:string"/>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="ReturnQuantity" default="1">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:integer">
+																			<xs:minInclusive value="1"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="ReturnUnitPrice" type="xs:decimal" default="0.00" minOccurs="0"/>
+																<xs:element name="RefundShippingPrice" type="xs:decimal"/>
+																<xs:element name="RMAReason">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:integer">
+																			<xs:minInclusive value="1"/>
+																			<xs:maxInclusive value="9"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="RMAReasonDescription" type="xs:string"/>
+															</xs:all>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+				<xs:element name="ResponseDate" type="xs:string"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="QueryOrderStatusInfo">
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="OrderNumber" type="xs:string"/>
+				<xs:element name="OrderStatusCode">
+					<xs:simpleType>
+						<xs:restriction base="xs:int">
+							<xs:minInclusive value="0"/>
+							<xs:maxInclusive value="4"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="OrderStatusName">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="Unshipped"/>
+							<xs:enumeration value="PartiallyShipped"/>
+							<xs:enumeration value="Shipped"/>
+							<xs:enumeration value="Invoiced"/>
+							<xs:enumeration value="Void"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OrderDownloaded">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+							<xs:enumeration value="false"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

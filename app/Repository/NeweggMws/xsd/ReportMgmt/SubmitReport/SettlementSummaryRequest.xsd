@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIRequest">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IssueUser" type="xs:string" minOccurs="0"/>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:pattern value="SettlementSummaryReportRequest"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="RequestBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="SettlementSummaryReportCriteria">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="RequestType">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:enumeration value="SETTLEMENT_SUMMARY_REPORT"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="DateFrom">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+										<xs:element name="DateTo">
+											<xs:simpleType>
+												<xs:restriction base="xs:string">
+													<xs:minLength value="2"/>
+												</xs:restriction>
+											</xs:simpleType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

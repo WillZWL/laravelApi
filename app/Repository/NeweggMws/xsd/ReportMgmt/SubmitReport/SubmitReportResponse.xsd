@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="NeweggAPIResponse">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="OperationType">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="OrderListReportResponse"/>
+							<xs:enumeration value="SettlementSummaryReportResponse"/>
+							<xs:enumeration value="SettlementTransactionReportResponse"/>
+							<xs:enumeration value="DailyInventoryReportResponse"/>
+							<xs:enumeration value="RMAListReportResponse"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ResponseList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="ResponseInfo" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="RequestId" type="xs:string"/>
+													<xs:element name="RequestType">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="ORDER_LIST_REPORT"/>
+																<xs:enumeration value="SETTLEMENT_SUMMARY_REPORT"/>
+																<xs:enumeration value="SETTLEMENT_TRANSACTION_REPORT"/>
+																<xs:enumeration value="DAILY_INVENTORY_REPORT"/>
+																<xs:enumeration value="RMA_LIST_REPORT"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="RequestDate" type="xs:string"/>
+													<xs:element name="RequestStatus">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="SUBMITTED"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

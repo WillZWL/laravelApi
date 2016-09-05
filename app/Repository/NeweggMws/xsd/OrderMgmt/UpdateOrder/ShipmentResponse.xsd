@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="UpdateOrderStatusInfo">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="PackageProcessingSummary">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="TotalPackageCount" type="xs:integer"/>
+							<xs:element name="SuccessCount" type="xs:integer"/>
+							<xs:element name="FailCount" type="xs:integer"/>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Result">
+					<xs:complexType>
+						<xs:all>
+							<xs:element name="OrderNumber" type="xs:integer"/>
+							<xs:element name="SellerID" type="xs:string"/>
+							<xs:element name="OrderStatus">
+								<xs:simpleType>
+									<xs:restriction base="xs:string">
+										<xs:enumeration value="Shipped"/>
+										<xs:enumeration value="PartiallyShipped"/>
+									</xs:restriction>
+								</xs:simpleType>
+							</xs:element>
+							<xs:element name="Shipment">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="PackageList">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="Package" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:all>
+																<xs:element name="TrackingNumber" type="xs:string"/>
+																<xs:element name="ShipDate" type="xs:string"/>
+																<xs:element name="ProcessStatus">
+																	<xs:simpleType>
+																		<xs:restriction base="xs:string">
+																			<xs:enumeration value="true"/>
+																			<xs:enumeration value="false"/>
+																		</xs:restriction>
+																	</xs:simpleType>
+																</xs:element>
+																<xs:element name="ProcessResult" type="xs:string"/>
+																<xs:element name="ItemList">
+																	<xs:complexType>
+																		<xs:sequence>
+																			<xs:element name="ItemDes" maxOccurs="unbounded">
+																				<xs:complexType>
+																					<xs:all>
+																						<xs:element name="SellerPartNumber" type="xs:string"/>
+																						<xs:element name="NeweggItemNumber" type="xs:string"/>
+																						<xs:element name="ShippedQty" type="xs:integer"/>
+																					</xs:all>
+																				</xs:complexType>
+																			</xs:element>
+																		</xs:sequence>
+																	</xs:complexType>
+																</xs:element>
+															</xs:all>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

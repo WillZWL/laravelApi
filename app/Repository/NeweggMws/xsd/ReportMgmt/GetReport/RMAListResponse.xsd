@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:include schemaLocation="PageInfo.xsd"/>
+	<xs:element name="NeweggAPIResponse">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="IsSuccess">
+					<xs:simpleType>
+						<xs:restriction base="xs:string">
+							<xs:enumeration value="true"/>
+							<xs:enumeration value="false"/>
+						</xs:restriction>
+					</xs:simpleType>
+				</xs:element>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OperationType" type="xs:string"/>
+				<xs:element name="ResponseBody">
+					<xs:complexType>
+						<xs:all>
+							<xs:element ref="PageInfo"/>
+							<xs:element name="RMAInfoList">
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="RMAInfo" minOccurs="0" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:all>
+													<xs:element name="SellerID" type="xs:string"/>
+													<xs:element name="RMANumber" type="xs:int"/>
+													<xs:element name="RMATypeDescription"/>
+													<xs:element name="RMAType" type="xs:integer"/>
+													<xs:element name="RMADate"/>
+													<xs:element name="RMAStatus" type="xs:string"/>
+													<xs:element name="RMAStatusDescription"/>
+													<xs:element name="LastEditDate"/>
+													<xs:element name="LastEditUser" type="xs:string"/>
+													<xs:element name="OrderNumber" type="xs:int"/>
+													<xs:element name="OrderDate"/>
+													<xs:element name="InvoiceNumber" type="xs:int"/>
+													<xs:element name="OrderAmount" type="xs:decimal"/>
+													<xs:element name="RMAProcessedBy"/>
+													<xs:element name="CustomerName" type="xs:string"/>
+													<xs:element name="CustomerPhoneNumber" type="xs:string"/>
+													<xs:element name="CustomerAddress" type="xs:string"/>
+													<xs:element name="RMAReceivedDate" type="xs:string"/>
+													<xs:element name="RMANote" type="xs:string"/>
+                          <xs:element name="RefundGSTorHSTAmount" type="xs:decimal"/>
+                          <xs:element name="RefundPSTorQSTAmount" type="xs:decimal"/>
+													<xs:element name="RMATransactionList">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="RMATransaction" minOccurs="0" maxOccurs="unbounded">
+																	<xs:complexType>
+																		<xs:all>
+																			<xs:element name="SellerPartNumber" type="xs:string"/>
+																			<xs:element name="MfrPartNumber" type="xs:string"/>
+																			<xs:element name="NeweggItemNumber" type="xs:string"/>
+																			<xs:element name="Description" type="xs:string"/>
+																			<xs:element name="UnitPrice" type="xs:decimal"/>
+																			<xs:element name="RefundInfo" minOccurs="0">
+																				<xs:complexType>
+																					<xs:sequence>
+																						<xs:element name="ItemReturnQty" type="xs:int" minOccurs="0"/>
+																						<xs:element name="ItemRefundPerQty" type="xs:int" minOccurs="0"/>
+																						<xs:element name="ItemShippingRefund" type="xs:decimal" minOccurs="0"/>
+																						<xs:element name="RMATotalRefund" type="xs:decimal" minOccurs="0"/>
+																						<xs:element name="RefundReason" type="xs:string" minOccurs="0"/>
+																					</xs:sequence>
+																				</xs:complexType>
+																			</xs:element>
+																			<xs:element name="ReplacementInfo" minOccurs="0">
+																				<xs:complexType>
+																					<xs:sequence>
+																						<xs:element name="ItemReturnQty" type="xs:integer" minOccurs="0"/>
+																						<xs:element name="ShippedBy" type="xs:string" minOccurs="0"/>
+																						<xs:element name="ReplacementReason" type="xs:string" minOccurs="0"/>
+																						<xs:element name="ReplacementReasonDescription" type="xs:string" minOccurs="0"/>
+																						<xs:element name="RMAShipMethod" type="xs:string" minOccurs="0"/>
+																					</xs:sequence>
+																				</xs:complexType>
+																			</xs:element>
+																		</xs:all>
+																	</xs:complexType>
+																</xs:element>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:all>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+								</xs:complexType>
+							</xs:element>
+							<xs:element name="RequestID" type="xs:string"/>
+							<xs:element name="RequestDate" type="xs:string"/>
+						</xs:all>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="Memo" type="xs:string" minOccurs="0"/>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

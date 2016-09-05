@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2007 sp1 (http://www.altova.com) by as13 (EMBRACE) -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="OrderInfo">
+		<xs:annotation>
+			<xs:documentation>Comment describing your root element</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:all>
+				<xs:element name="SellerID" type="xs:string"/>
+				<xs:element name="OrderNumber" type="xs:int"/>
+				<xs:element name="InvoiceNumber" type="xs:int"/>
+				<xs:element name="OrderDownloaded" type="xs:boolean" minOccurs="0"/>
+				<xs:element name="OrderDate" type="xs:string"/>
+				<xs:element name="OrderStatus" type="xs:string"/>
+				<xs:element name="OrderStatusDescription" type="xs:string"/>
+				<xs:element name="CustomerName" type="xs:string"/>
+				<xs:element name="CustomerPhoneNumber" type="xs:string"/>
+				<xs:element name="CustomerEmailAddress" type="xs:string"/>
+				<xs:element name="ShipToAddress1" type="xs:string"/>
+				<xs:element name="ShipToAddress2" type="xs:string"/>
+				<xs:element name="ShipToCityName" type="xs:string"/>
+				<xs:element name="ShipToStateCode" type="xs:string"/>
+				<xs:element name="ShipToCountryCode" type="xs:string"/>
+				<xs:element name="ShipToZipCode" type="xs:string"/>
+				<xs:element name="ShipService" type="xs:string"/>
+				<xs:element name="ShipToFirstName" type="xs:string"/>
+				<xs:element name="ShipToLastName" type="xs:string"/>
+				<xs:element name="ShipToCompany" type="xs:string"/>
+				<xs:element name="OrderItemAmount" type="xs:decimal"/>
+				<xs:element name="ShippingAmount" type="xs:decimal"/>
+				<xs:element name="DiscountAmount" type="xs:decimal"/>
+        <xs:element name="GSTorHSTAmount" type="xs:decimal"/>
+        <xs:element name="PSTorQSTAmount" type="xs:decimal"/>
+				<xs:element name="RefundAmount" type="xs:decimal"/>
+				<xs:element name="OrderTotalAmount" type="xs:decimal"/>
+				<xs:element name="OrderQty" type="xs:int"/>
+				<xs:element name="IsAutoVoid" type="xs:string"/>
+				<xs:element name="SalesChannel" type="xs:integer"/>
+				<xs:element name="FulfillmentOption" type="xs:integer"/>
+				<xs:element name="ItemInfoList">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="ItemInfo" minOccurs="0" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="SellerPartNumber" type="xs:string"/>
+										<xs:element name="NeweggItemNumber" type="xs:string"/>
+										<xs:element name="MfrPartNumber" type="xs:string"/>
+										<xs:element name="UPCCode" type="xs:string"/>
+										<xs:element name="Description" type="xs:string"/>
+										<xs:element name="OrderedQty" type="xs:int"/>
+										<xs:element name="ShippedQty" type="xs:int"/>
+										<xs:element name="UnitPrice" type="xs:decimal"/>
+										<xs:element name="ExtendUnitPrice" type="xs:decimal"/>
+										<xs:element name="UnitShippingCharge" type="xs:decimal"/>
+										<xs:element name="ExtendShippingCharge" type="xs:decimal"/>
+										<xs:element name="Status" type="xs:string"/>
+										<xs:element name="StatusDescription" type="xs:string"/>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="PackageInfoList" minOccurs="0">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="PackageInfo" maxOccurs="unbounded">
+								<xs:complexType>
+									<xs:all>
+										<xs:element name="PackageType"/>
+										<xs:element name="ShipCarrier" type="xs:string"/>
+										<xs:element name="ShipService" type="xs:string"/>
+										<xs:element name="TrackingNumber" type="xs:string"/>
+										<xs:element name="ShipFromAddress"/>
+										<xs:element name="ShipFromAddress2"/>
+										<xs:element name="ShipFromCity"/>
+										<xs:element name="ShipFromState"/>
+										<xs:element name="ShipFromZipCode"/>
+										<xs:element name="ShipFromName"/>
+										<xs:element name="ShipDate" minOccurs="0"/>
+										<xs:element name="ItemInfoList">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="ItemInfo" maxOccurs="unbounded">
+														<xs:complexType>
+															<xs:sequence>
+																<xs:element name="SellerPartNumber" type="xs:string"/>
+																<xs:element name="MfrPartNumber" type="xs:string"/>
+																<xs:element name="ShippedQty" type="xs:int"/>
+															</xs:sequence>
+														</xs:complexType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:all>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:all>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

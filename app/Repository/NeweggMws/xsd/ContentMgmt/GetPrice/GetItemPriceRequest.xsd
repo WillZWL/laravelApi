@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="ContentQueryCriteria">
+    <xs:annotation>
+      <xs:documentation>Comment describing your root element</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="Type">
+          <xs:simpleType>
+            <xs:restriction base="xs:int">
+              <xs:minInclusive value="0"/>
+              <xs:maxInclusive value="2"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="Value">
+          <xs:simpleType>
+            <xs:restriction base="xs:string">
+              <xs:maxLength value="40"/>
+              <xs:minLength value="1"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name="Condition" default="1" minOccurs="0">
+          <xs:simpleType>
+            <xs:restriction base="xs:int">
+              <xs:minInclusive value="1"/>
+              <xs:maxInclusive value="6"/>
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
