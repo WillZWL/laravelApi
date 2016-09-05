@@ -16,23 +16,17 @@ class FnacProductUpdate extends FnacProductsCore
         return parent::callFnacApi($this->getRequestXml());
     }
 
-    public function setRequestUpdateOfferXml($processStatusProduct, $updateAction = '')
+    public function setRequestUpdateOfferXml($processStatusProduct)
     {
         $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
         $xmlData .= '<offers_update '. $this->getAuthKeyWithToken() .'>';
         foreach ($processStatusProduct as $index => $pendingSku) {
             $msgDom = '<offer>';
             $msgDom .=      '<offer_reference type="SellerSku">'. $pendingSku->marketplace_sku .'</offer_reference>';
-            if ($updateAction == 'Price') {
-                $msgDom .= '<price>'. $pendingSku->price .'</price>';
-            } else if ($updateAction == 'Inventory') {
-                $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
-            } else {
-                $msgDom .= '<price>'. $pendingSku->price .'</price>';
-                $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
-            }
+            $msgDom .= '<price>'. $pendingSku->price .'</price>';
+            $msgDom .= '<quantity>'. $pendingSku->inventory .'</quantity>';
+            $msgDom .= '<product_state>11</product_state>';
             $msgDom .= '</offer>';
-
             $xmlData .= $msgDom;
         }
         $xmlData .= '</offers_update>';

@@ -7,18 +7,17 @@ use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
-use PDF;
 
-//use lazada api package
-use App\Repository\LazadaMws\LazadaOrder;
-use App\Repository\LazadaMws\LazadaOrderList;
-use App\Repository\LazadaMws\LazadaOrderItemList;
-use App\Repository\LazadaMws\LazadaOrderStatus;
-use App\Repository\LazadaMws\LazadaDocument;
-use App\Repository\LazadaMws\LazadaShipmentProviders;
-use App\Repository\LazadaMws\LazadaMultipleOrderItems;
+//use newegg api package
+use App\Repository\NeweggMws\NeweggOrder;
+use App\Repository\NeweggMws\NeweggOrderList;
+use App\Repository\NeweggMws\NeweggOrderItemList;
+use App\Repository\NeweggMws\NeweggOrderStatus;
+use App\Repository\NeweggMws\NeweggDocument;
+use App\Repository\NeweggMws\NeweggShipmentProviders;
+use App\Repository\NeweggMws\NeweggMultipleOrderItems;
 
-class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
+class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 {
 	private $storeCurrency;
 	function __construct()
@@ -28,7 +27,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function getPlatformId()
 	{
-		return "Lazada";
+		return "Newegg";
 	}
 
 	public function retrieveOrder($storeName)
@@ -53,29 +52,33 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
 	public function getOrder($storeName,$orderId)
 	{
-		$this->lazadaOrder=new LazadaOrder($storeName);
-		$this->storeCurrency=$this->lazadaOrder->getStoreCurrency();
-		$this->lazadaOrder->setOrderId($orderId);
-		$returnData=$this->lazadaOrder->fetchOrder();
+		$this->neweggOrder=new NeweggOrder($storeName);
+		$this->storeCurrency=$this->neweggOrder->getStoreCurrency();
+		$this->neweggOrder->setOrderId($orderId);
+		$returnData=$this->neweggOrder->fetchOrder();
 		return $returnData;
 	}
 
 	public function getOrderList($storeName)
 	{
-		$this->lazadaOrderList=new LazadaOrderList($storeName);
-		$this->storeCurrency=$this->lazadaOrderList->getStoreCurrency();
-		$dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
-		$this->lazadaOrderList->setUpdatedAfter($dateTime);
-		$originOrderList=$this->lazadaOrderList->fetchOrderList();
+		$this->neweggOrderList=new NeweggOrderList($storeName);
+		$this->storeCurrency=$this->neweggOrderList->getStoreCurrency();
+		$lastAccessTime = $this->getSchedule()->last_access_time;
+		$pstTimezone = new \DateTimeZone("PST");
+		$dt = new \DateTime($lastAccessTime, $pstTimezone);
+		$dateTime = $dt->format("Y-m-d");
+
+		$this->neweggOrderList->setOrderDateFrom($dateTime);
+		$originOrderList=$this->neweggOrderList->fetchOrderList();
 		$this->saveDataToFile(serialize($originOrderList),"getOrderList");
         return $originOrderList;
 	}
 
 	public function getOrderItemList($storeName,$orderId)
 	{
-		$this->lazadaOrderItemList = new LazadaOrderItemList($storeName);
-		$this->lazadaOrderItemList->setOrderId($orderId);
-		$orginOrderItemList=$this->lazadaOrderItemList->fetchOrderItemList();
+		$this->neweggOrderItemList = new NeweggOrderItemList($storeName);
+		$this->neweggOrderItemList->setOrderId($orderId);
+		$orginOrderItemList=$this->neweggOrderItemList->fetchOrderItemList();
 		$this->saveDataToFile(serialize($orginOrderItemList),"getOrderItemList");
         return $orginOrderItemList;
 	}
@@ -104,7 +107,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                    $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
                 }
                 $this->getDocument($storeName,$orderItems,"invoice");
-
                 foreach($shippingObject as $trackinCode => $itemObject){
                     $itemObject["TrackingNumber"] = $trackinCode;
                     $result = $this->setStatusToReadyToShip($storeName,$itemObject);
@@ -118,93 +120,88 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
     public function getShipmentProviders($storeName)
     {
-        $this->lazadaShipmentProviders=new LazadaShipmentProviders($storeName);
-        $result = $this->lazadaShipmentProviders->fetchShipmentProviders();
+        $this->neweggShipmentProviders=new NeweggShipmentProviders($storeName);
+        $result = $this->neweggShipmentProviders->fetchShipmentProviders();
         return $result;
     }
 
 	public function setStatusToCanceled($storeName,$orderItemId)
 	{
-		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
-		$this->lazadaOrderStatus->setReason("reason");
-		$this->lazadaOrderStatus->setReasonDetail("reasonDetail");
-		$result=$this->lazadaOrderStatus->setStatusToCanceled();
-		return $this->checkResultData($result,$this->lazadaOrderStatus);
+		$this->neweggOrderStatus=new NeweggOrderStatus($storeName);
+		$this->neweggOrderStatus->setOrderItemId($orderItemId);
+		$this->neweggOrderStatus->setReason("reason");
+		$this->neweggOrderStatus->setReasonDetail("reasonDetail");
+		$result=$this->neweggOrderStatus->setStatusToCanceled();
+		return $this->checkResultData($result,$this->neweggOrderStatus);
 	}
 
 	public function setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider)
 	{
-		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
-		$this->lazadaOrderStatus->setDeliveryType("dropship");
-		$this->lazadaOrderStatus->setShippingProvider($shipmentProvider);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToPackedByMarketplace();
+		$this->neweggOrderStatus = new NeweggOrderStatus($storeName);
+		$this->neweggOrderStatus->setOrderItemIds($orderItemIds);
+		$this->neweggOrderStatus->setDeliveryType("dropship");
+		$this->neweggOrderStatus->setShippingProvider($shipmentProvider);
+		$orginOrderItemList=$this->neweggOrderStatus->setStatusToPackedByMarketplace();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToPackedByMarketplace");
         return $orginOrderItemList;
 	}
 
     public function getMultipleOrderItems($storeName,$orderIdList)
     {
-        $this->lazadaMultipleOrderItems = new LazadaMultipleOrderItems($storeName);
-        $this->lazadaMultipleOrderItems->setOrderIdList($orderIdList);
-        $orginOrderItemList=$this->lazadaMultipleOrderItems->fetchMultipleOrderItems();
+        $this->neweggMultipleOrderItems = new NeweggMultipleOrderItems($storeName);
+        $this->neweggMultipleOrderItems->setOrderIdList($orderIdList);
+        $orginOrderItemList=$this->neweggMultipleOrderItems->fetchMultipleOrderItems();
         $this->saveDataToFile(serialize($orginOrderItemList),"fetchMultipleOrderItems");
         return $orginOrderItemList;
     }
 
     public function getDocument($storeName,$orderItemIds,$documentType)
     {
-        $this->lazadaDocument = new LazadaDocument($storeName);
-        $this->lazadaDocument->setDocumentType($documentType);
-        $this->lazadaDocument->setOrderItemIds($orderItemIds);
-        $document = $this->lazadaDocument->fetchDocument();
-        if(isset($File)){
-            $fileData = base64_decode($document["File"]);
-            $filename =$this->getPlatformId().'/'.$documentType."/".$orderItemIds;  
-            $pdfFile= \Storage::disk('pdf')->getDriver()->getAdapter()->getPathPrefix().$filename.".pdf";
-            PDF::loadHTML($fileData)->setPaper('a4')->setOrientation('landscape')->setOption('margin-bottom', 0)->save($pdfFile);
-            return $pdfFile;
-        }
+        $this->neweggDocument = new NeweggDocument($storeName);
+        $this->neweggDocument->setDocumentType($documentType);
+        $this->neweggDocument->setOrderItemIds($orderItemIds);
+        $document = $this->neweggDocument->fetchDocument();
+        print_r($document);exit();
+        return $document;
     }
 
 	public function setStatusToReadyToShip($storeName,$itemObject)
 	{  
-		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemIds($itemObject["OrderItemId"]);
-		$this->lazadaOrderStatus->setDeliveryType("dropship");
-		$this->lazadaOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
-		$this->lazadaOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToReadyToShip();
+		$this->neweggOrderStatus = new NeweggOrderStatus($storeName);
+		$this->neweggOrderStatus->setOrderItemIds($itemObject["OrderItemId"]);
+		$this->neweggOrderStatus->setDeliveryType("dropship");
+		$this->neweggOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
+		$this->neweggOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
+		$orginOrderItemList=$this->neweggOrderStatus->setStatusToReadyToShip();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
         return $orginOrderItemList;
 	}
 
 	public function setStatusToShipped($storeName,$orderId)
 	{
-		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToShipped();
+		$this->neweggOrderStatus = new NeweggOrderStatus($storeName);
+		$this->neweggOrderStatus->setOrderItemId($orderItemId);
+		$orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
         return $orginOrderItemList;
 	}
 
 	public function setStatusToFailedDelivery($storeName,$orderId)
 	{
-		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
-		$this->lazadaOrderStatus->setReason("reason");
-		$this->lazadaOrderStatus->setReasonDetail("reasonDetail");
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToFailedDelivery();
+		$this->neweggOrderStatus = new NeweggOrderStatus($storeName);
+		$this->neweggOrderStatus->setOrderItemId($orderItemId);
+		$this->neweggOrderStatus->setReason("reason");
+		$this->neweggOrderStatus->setReasonDetail("reasonDetail");
+		$orginOrderItemList=$this->neweggOrderStatus->setStatusToFailedDelivery();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToFailedDelivery");
         return $orginOrderItemList;
 	}
 
 	public function setStatusToDelivered($storeName,$orderId)
 	{
-		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToDelivered();
+		$this->neweggOrderStatus = new NeweggOrderStatus($storeName);
+		$this->neweggOrderStatus->setOrderItemId($orderItemId);
+		$orginOrderItemList=$this->neweggOrderStatus->setStatusToDelivered();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToDelivered");
         return $orginOrderItemList;
 	}
@@ -220,14 +217,14 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		}
 		$object = [
             'platform' => $storeName,
-            'biz_type' => "Lazada",
+            'biz_type' => "Newegg",
             'platform_order_id' => $order['OrderId'],
             'platform_order_no' => $order['OrderNumber'],
             'purchase_date' => $order['CreatedAt'],
             'last_update_date' => $order['UpdatedAt'],
             'order_status' => $orderStatus,
             'esg_order_status'=>$this->getSoOrderStatus($orderStatus),
-            'buyer_email' => $order['OrderId']."@lazada-api.com",
+            'buyer_email' => $order['OrderId']."@newegg-api.com",
             'currency' => $this->storeCurrency,
             'shipping_address_id' => $addressId
         ];
@@ -357,8 +354,8 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 			$this->saveDataToFile(serialize($result),"setStatusToCanceled");
 			return true;
 		}else{
-			$error["message"]=$this->lazadaOrderStatus->errorMessage();
-			$error["code"]=$this->lazadaOrderStatus->errorCode();
+			$error["message"]=$this->neweggOrderStatus->errorMessage();
+			$error["code"]=$this->neweggOrderStatus->errorCode();
 			return $error;
 		}
 	}
@@ -367,22 +364,22 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	{
 		switch ($platformOrderStatus) {
 			case 'Canceled':
-				$status=PlatformMarketConstService::ORDER_STATUS_CANCEL;
+				$status=PlatformOrderService::ORDER_STATUS_CANCEL;
 				break;
 			case 'Shipped':
-				$status=PlatformMarketConstService::ORDER_STATUS_SHIPPED;
+				$status=PlatformOrderService::ORDER_STATUS_SHIPPED;
 				break;
             case 'ReadyToShip':
 			case 'Unshipped':
 			case 'Pending':
 			case 'Processing':
-				$status=PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
+				$status=PlatformOrderService::ORDER_STATUS_UNSHIPPED;
 				break;
 			case 'Delivered':
-				$status=PlatformMarketConstService::ORDER_STATUS_DELIVERED;
+				$status=PlatformOrderService::ORDER_STATUS_DELIVERED;
 				break;
 			case 'Failed':
-				$status=PlatformMarketConstService::ORDER_STATUS_FAIL;
+				$status=PlatformOrderService::ORDER_STATUS_FAIL;
 				break;
 			default:
 				return null;

@@ -86,8 +86,10 @@ Route::group(['middleware' => 'auth.basic.once'], function () {
 
 Route::auth();
 
-Route::post('oauth/access_token', function () {
-    return Response::json(Authorizer::issueAccessToken());
+Route::group(['middleware' => 'cors'], function () {
+    Route::post('oauth/access_token', function () {
+        return Response::json(Authorizer::issueAccessToken());
+    });
 });
 
 $api = app('Dingo\Api\Routing\Router');
@@ -98,3 +100,5 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('merchant', 'MerchantController');
     $api->resource('country', 'CountryController');
 });
+
+ Route::get('platform/test', 'InterfacePlatformOrder@index');
