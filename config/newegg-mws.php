@@ -12,10 +12,21 @@ return [
             'neweggServiceUrl' => "https://api.newegg.com/marketplace/",
             'apiKey' => "bc3e1dfb4b535de8761427c771ddd37c",
             'secretKey' => "cc4743c4-be1e-466b-9b49-d346524df6fe"
+        ],
+        'BCNEWEGGAU' => [
+            'name' => 'Brand Connect NewEgg',
+            'userId' => '',
+            'password' => '',
+            'currency'=>'AUD',
+        ],
+        'BCNEWEGGNZ' => [
+            'name' => 'Brand Connect NewEgg',
+            'userId' => '',
+            'password' => '',
+            'currency'=>'NZD',
         ]
     ],
 
     // Default service URL
     'NEWEGG_SERVICE_URL' => 'https://api.newegg.com/marketplace/',
-    'muteLog' => true
 ];
