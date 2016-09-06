@@ -15,12 +15,14 @@ class NeweggOrderList extends NeweggOrderCore
     {
         parent::__construct($store);
         $this->setResourceMethod("PUT");
+        //test demo 2
     }
 
     public function fetchOrderList()
     {
         $requestBody = $this->getRequestBody();
-        return parent::query($this->getResourceUrl(), $this->getResourceMethod(), $this->getRequestParams(), $requestBody);
+        $requestParams = $this->getRequestParams();
+        return parent::query($this->getResourceUrl(), $this->getResourceMethod(), $requestParams, $requestBody); 
     }
 
     protected function getRequestParams()
