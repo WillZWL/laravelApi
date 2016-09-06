@@ -15,7 +15,7 @@ return [
         ]
     ],
 
-    // Default service URL
+    // Default service URL test
     'NEWEGG_SERVICE_URL' => 'https://api.newegg.com/marketplace/',
     'muteLog' => true
 ];
