@@ -15,17 +15,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/', function () {
         return view('welcome');
     });
-    Route::get('/index/{id}', function () {
-        return view('welcome');
-    });
-});
-
-Route::group(['prefix' => 'v3', 'namespace' => 'V3', 'middleware' => 'auth'], function () {
-    Route::get('pricing/index/{mp?}', 'PricingController@index');
-    //Route::get('pricing/skuList', 'PricingController@getSkuList');
-    Route::get('pricing/info', 'PricingController@getPriceInfo');
-    Route::post('listingSku/save', 'ListingSkuManagement@save');
-    Route::resource('tracer', 'TracerSkuController');
 });
 
 /*
@@ -103,4 +92,4 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
 });
 
- Route::get('platform/test', 'InterfacePlatformOrder@index');
+Route::get('platform/test', 'InterfacePlatformOrder@index');
