@@ -7,7 +7,9 @@ use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
+use App\Models\So;
 use PDF;
+use Excel;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaOrder;
@@ -83,38 +85,112 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
 	{  
         return false;//testing
-		$storeName = $platformOrderIdList[$esgOrder->platform_order_id];
-		$orderItemIds = array();
-		$extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
-        foreach($extItemCd as $extItem){
-            $itemIds = explode("||",$extItem);
-            foreach($itemIds as $itemId){
-                $orderItemIds[] = $itemId;
-            }
-        }
-        //$shipmentProviders = $this->getShipmentProviders($storeName);
-        $countryCode = strtoupper(substr($storeName, -2));
-        $shipmentProvider = $this->getEsgShippingProvider($countryCode);
-        if ($esgOrderShipment) {
-            $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId,$shipmentProvider);
-            if($marketplacePacked){
-                //valid orderItem trackingNumber 
-                foreach($marketplacePacked as $packed){
-                   $shippingObject[$packed["TrackingNumber"]]["OrderItemId"][] = $packed["OrderItemId"];
-                   $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
-                }
-                $this->getDocument($storeName,$orderItems,"invoice");
-
-                foreach($shippingObject as $trackinCode => $itemObject){
-                    $itemObject["TrackingNumber"] = $trackinCode;
-                    $result = $this->setStatusToReadyToShip($storeName,$itemObject);
-                }
-    			return $marketplacePacked;
-            }else{
-                return false;
-            }
-        }
 	}
+
+    //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
+    public function allocatedOrderFufillment($soNoList)
+    {  
+        $esgOrders = So::whereIn('so_no', $soNoList)->get();
+        $esgOrderGroups = $esgOrders->groupBy('platform_id');
+        if(!$esgOrderGroups) return;
+        foreach($esgOrderGroups as $platformId => $esgOrderGroup){
+            $prefix = strtoupper(substr($platformId,3,2));
+            $countryCode = strtoupper(substr($platformId, -2));
+            $storeName = $prefix."LAZADA".$countryCode;
+            //$shipmentProviders = $this->getShipmentProviders($storeName);
+            $documentOrderItemIds = array(); $ordersIdList=array();
+            foreach($esgOrderGroup as $esgOrder)
+            {   
+                $orderItemIds = array();$result = "";
+                $ordersIdList[] = $esgOrder->platform_order_no; 
+                $extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
+                foreach($extItemCd as $extItem){
+                    $itemIds = explode("||",$extItem);
+                    foreach($itemIds as $itemId){
+                        $orderItemIds[] = $itemId;
+                    }
+                }
+                $documentOrderItemIds[]= $orderItemIds[0];
+                $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+                $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
+                $itemObject = array("orderItemIds" => $orderItemIds);
+                if ($orderItemIds) {
+                    $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
+                    if($marketplacePacked){
+                        $result = $this->setStatusToReadyToShip($storeName,$itemObject);
+                    }
+                }
+                $returnData[$esgOrder->so_no] = $result;
+            }
+            //$orderList = $this->getMultipleOrderItems($storeName,$ordersIdList);
+            //$this->exportTrackinNoCsvToDirectory($storeName,$orderList);
+            $this->getDocumentSaveToDirectory($storeName,$documentOrderItemIds);
+            return $returnData;
+        }
+    }
+
+    public function exportTrackinNoCsvToDirectory($storeName,$orderList)
+    {
+        $filePath = "/var/data/shop.eservicesgroup.com/lazada/tracking/".date("Y")."/".date("m")."/".date("d")."/";
+        $cellData[] = array('Marketplace', 'ESG SKU', 'SellerSku', 'OrderId', 'OrderItemId', 'Currency', 'ItemPrice', 'PaidPrice', 'TaxAmount', 'Name', 'PurchaseOrderNumber', 'PurchaseOrderId', 'PackageId');
+        foreach($orderList as $order){
+            foreach($order["OrderItems"]["OrderItem"] as $orderItem){
+                //$orderItem["TrackingCode"];
+                $cellRow = array(
+                    'marketplace_id' => $storeName,
+                    'sku' => $orderItem["Sku"],
+                    'marketplace_sku' => $orderItem["Sku"],
+                    'OrderId' => $orderItem["OrderId"],
+                    'OrderItemId' => $orderItem["OrderItemId"],
+                    'Currency' => $orderItem["Currency"],
+                    'ItemPrice' => $orderItem["ItemPrice"],
+                    'PaidPrice' => $orderItem["PaidPrice"],
+                    'TaxAmount' => $orderItem["TaxAmount"],
+                    'Name' => $orderItem["Name"],
+                    'PurchaseOrderNumber' => $orderItem["PurchaseOrderNumber"],
+                    'PurchaseOrderId' => $orderItem["PurchaseOrderId"],
+                    'PackageId' => $orderItem["PackageId"],
+                );
+                $cellData[] = $cellRow;
+            }
+        }
+        //Excel文件导出功能
+        Excel::create('LazadaOrderTrackingNo', function ($excel) use ($cellData) {
+            $excel->sheet('OrderTrackingNo', function ($sheet) use ($cellData) {
+                $sheet->rows($cellData);
+            });
+        })->store('csv',$filePath);
+    }
+
+    public function getDocumentSaveToDirectory($storeName,$orderItemIds)
+    {   
+        $fileDate=date("h-i-s");$documentStatus = true;
+        $pdfFilePath = "/var/data/shop.eservicesgroup.com/lazada/invoice".date("Y")."/".date("m")."/".date("d")."/";
+        if (!file_exists($pdfFilePath)) {
+            mkdir($pdfFilePath, 0755, true);
+        }
+        $invoicePdf = "";$manifestPdf = "";$shippingLabelPdf = "";
+        //$pdfPage = "<style type='text/css'>.page {overflow: hidden;page-break-inside: avoid;}</style>";
+        $invoicePdf = $this->getDocument($storeName,$orderItemIds,"invoice");
+        if($invoicePdf){
+            PDF::loadHTML($invoicePdf)->save($pdfFilePath.'invoice'.$fileDate.'.pdf');
+        }else{
+            $documentStatus = false;
+        }
+        $manifestPdf = $this->getDocument($storeName,$orderItemIds,"carrierManifest");
+        if($manifestPdf){
+            PDF::loadHTML($manifestPdf)->save($pdfFilePath.'manifest'.$fileDate.'.pdf');
+        }else{
+            $documentStatus = false;
+        }
+        $shippingLabelPdf = $this->getDocument($storeName,$orderItemIds,"shippingLabel");
+        if($shippingLabelPdf){
+            PDF::loadHTML($shippingLabelPdf)->save($pdfFilePath.'AWB'.$fileDate.'.pdf');
+        }else{
+            $documentStatus = false;
+        }
+        return $documentStatu;
+    }
 
     public function getShipmentProviders($storeName)
     {
@@ -155,25 +231,32 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
     public function getDocument($storeName,$orderItemIds,$documentType)
     {
+        //$orderItemIds可以是不同的order中一个orderItemId
+        $patterns = array('/class="logo"/');
+        $replacements = array('class="page"');
         $this->lazadaDocument = new LazadaDocument($storeName);
         $this->lazadaDocument->setDocumentType($documentType);
         $this->lazadaDocument->setOrderItemIds($orderItemIds);
-        $document = $this->lazadaDocument->fetchDocument();
-        if(isset($File)){
-            $fileData = base64_decode($document["File"]);
-            $filename =$this->getPlatformId().'/'.$documentType."/".$orderItemIds;  
-            $pdfFile= \Storage::disk('pdf')->getDriver()->getAdapter()->getPathPrefix().$filename.".pdf";
-            PDF::loadHTML($fileData)->setPaper('a4')->setOrientation('landscape')->setOption('margin-bottom', 0)->save($pdfFile);
-            return $pdfFile;
+        $documents = $this->lazadaDocument->fetchDocument();
+        if($documents){
+            foreach($documents as $document){
+                if(isset($document["File"]) && $document["DocumentType"] == $documentType){
+                    $fileHtml = base64_decode($document["File"]);
+                    //$filePdf = preg_replace($patterns, $replacements, $fileHtml,2);
+                    return $fileHtml;
+                }
+            }
         }
     }
 
 	public function setStatusToReadyToShip($storeName,$itemObject)
 	{  
 		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemIds($itemObject["OrderItemId"]);
+		$this->lazadaOrderStatus->setOrderItemIds($itemObject["orderItemIds"]);
 		$this->lazadaOrderStatus->setDeliveryType("dropship");
+        if(isset($itemObject["ShipmentProvider"]))
 		$this->lazadaOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
+        if(isset($itemObject["TrackingNumber"]))
 		$this->lazadaOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
 		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToReadyToShip();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
@@ -391,29 +474,35 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 	}
 
     /*
-        $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId);
-        if($marketplacePacked)
-        $orderItems = $this->getMultipleOrderItems($storeName,$esgOrder->platform_order_id);
-        foreach($orderItems as $orderItem){
-            $shippingObject[$orderItem["TrackingCode"]][] = array(
-                    ["OrderItemId"] = $orderItem["OrderItemId"],
-                    ["ShippingProviderType"] = $orderItem["ShippingProviderType"],
-                    ["PurchaseOrderNumber"] = $orderItem["PurchaseOrderNumber"],
-                );
+    public function getEsgShippingProvider($warehouseId,$shipmentProviders)
+    {
+        foreach ($shipmentProviders as $key => $shipmentProvider) {
+            if(strstr($shipmentProvider['name'], 'HK'); ){
+                return $shipmentProvider['name'];
+            }
         }
-    */
+    }*/
 
-    public function getEsgShippingProvider($countryCode)
+    public function getEsgShippingProvider($warehouseId,$countryCode)
     {
         $shipmentProvider = array(
-            "MY" => "AS-Poslaju-HK",      
-            "SG" => "LGS-SG3-HK",                
-            "TH" => "LGS-TH3-HK",       
-            "ID" => "LGS-LEX-ID-HK",
-            "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+            "ES_HK"=>array(
+                "MY" => "AS-Poslaju-HK",      
+                "SG" => "LGS-SG3-HK",                
+                "TH" => "LGS-TH3-HK",       
+                "ID" => "LGS-LEX-ID-HK",
+                "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+            ),
+            "ES_DGME"=>array(
+                "MY" => "AS-Poslaju",      
+                "SG" => "LGS-SG3",                
+                "TH" => "LGS-TH3",       
+                "ID" => "LGS-LEX-ID",
+                "PH" => "AS-LBC-JZ-HK Sellers-LZ"
+            )
         );
-        if(isset($shipmentProvider[$countryCode]))
-        return $shipmentProvider[$countryCode];
+        if(isset($shipmentProvider[$warehouseId]))
+        return $shipmentProvider[$warehouseId][$countryCode];
     }
 
 }

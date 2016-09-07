@@ -25,7 +25,7 @@ class LazadaDocument extends LazadaOrderCore
             $requestParams['DocumentType'] = $this->getDocumentType();
         }
         if ($this->getOrderItemIds()) {
-            $requestParams['OrderItemIds'] = $this->getOrderItemIds();
+            $requestParams['OrderItemIds'] = json_encode($this->getOrderItemIds());
         }
 
         return $requestParams;
@@ -33,8 +33,8 @@ class LazadaDocument extends LazadaOrderCore
 
     protected function prepare($data = array())
     {
-        if (isset($data['Body']) && isset($data['Body']['Document'])) {
-            return parent::fix($data['Body']['Document']);
+        if (isset($data['Body']) && isset($data['Body']['Documents']) && isset($data['Body']['Documents']['Document'])) {
+            return parent::fix($data['Body']['Documents']['Document']);
         }
 
         return null;
