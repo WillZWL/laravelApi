@@ -15,4 +15,9 @@ class Brand extends Model
     public $incrementing = false;
 
     protected $guarded = ['create_at'];
+
+    public function product()
+    {
+        return $this->hasMany('App\Models\Product');
+    }
 }

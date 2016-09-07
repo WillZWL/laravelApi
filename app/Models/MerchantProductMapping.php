@@ -23,4 +23,9 @@ class MerchantProductMapping extends Model
     {
         return $this->hasOne('App\Models\Product', 'sku', 'sku');
     }
+
+    public function marketplaceSkuMapping()
+    {
+        return $this->hasMany('App\Models\MarketplaceSkuMapping', 'sku', 'sku');
+    }
 }
