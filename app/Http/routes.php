@@ -99,6 +99,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('brand', 'BrandController');
     $api->resource('merchant', 'MerchantController');
     $api->resource('country', 'CountryController');
+    $api->resource('warehouse', 'WarehouseController');
+    $api->get('marketplace-product/search', 'MarketplaceProductController@search');
 });
 
  Route::get('platform/test', 'InterfacePlatformOrder@index');
