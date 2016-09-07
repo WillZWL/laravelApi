@@ -44,8 +44,8 @@
           Product Name : <span class="text-danger">{{ $selectedSku->name }}</span>
         </p>
         <p>
-          Supplier Name : <span class="text-danger"> {{ $selectedSku->product->supplierProduct()->supplier->name }} </span> |
-          Supply Status : <span class="text-danger"> {{ $lang[$selectedSku->product->supplierProduct()->supplier_status] }}</span>
+          Supplier Name : <span class="text-danger"> {{ $selectedSku->supplierProduct->supplier->name }} </span> |
+          Supply Status : <span class="text-danger"> {{ $lang[$selectedSku->supplierProduct->supplier_status] }}</span>
         </p>
         <p>
             <?php $inventoryCollection = $selectedSku->inventory()->get() ?>

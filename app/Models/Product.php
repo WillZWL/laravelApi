@@ -45,6 +45,11 @@ class Product extends Model
 
     public function supplierProduct()
     {
-        return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1)->first();
+        return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1);
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo('App\Models\Brand');
     }
 }

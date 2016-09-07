@@ -14,5 +14,10 @@ class SkuMapping extends Model
 
     public $incrementing = false;
 
-    protected $fillable = ['email'];
+    protected $guarded = [];
+
+    public function marketplaceSkuMapping()
+    {
+        return $this->hasMany('App\Models\MarketplaceSkuMapping', 'sku', 'sku');
+    }
 }

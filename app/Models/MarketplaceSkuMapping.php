@@ -26,6 +26,22 @@ class MarketplaceSkuMapping extends Model
     {
         return $this->hasMany('App\Models\Inventory', 'prod_sku', 'sku');
     }
+
+    public function supplierProduct()
+    {
+        return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1);
+    }
+
+    public function skuMapping()
+    {
+        return $this->belongsTo('App\Models\SkuMapping', 'sku', 'sku');
+    }
+
+    public function merchantProductMapping()
+    {
+        return $this->belongsTo('App\Models\MerchantProductMapping', 'sku', 'sku');
+    }
+
     public function fulfillmentCenter($fulfillment = null)
     {
         $relation = $this->hasMany('App\Models\FulfillmentCenter', 'mp_control_id', 'mp_control_id');
@@ -79,8 +95,8 @@ class MarketplaceSkuMapping extends Model
                     ->get();
     }
 
-    public function scopeProcessStatusProduct($query, $storeName,$processStatus)
-    {   
+    public function scopeProcessStatusProduct($query, $storeName, $processStatus)
+    {
         $marketplaceId = strtoupper(substr($storeName, 0, -2));
         $countryCode = strtoupper(substr($storeName, -2));
         return $pendingSkuGroup = $query->where('process_status', '&', $processStatus)
@@ -89,5 +105,4 @@ class MarketplaceSkuMapping extends Model
             ->where('country_id', '=', $countryCode)
             ->get();
     }
-
 }

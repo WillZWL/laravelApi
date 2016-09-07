@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Search\Filters;
+
+use Illuminate\Database\Eloquent\Builder;
+
+class SubSubCategoryId implements Filter
+{
+    /**
+     * Apply a given search value to the builder instance.
+     *
+     * @param Builder $builder
+     * @param mixed $value
+     * @return Builder $builder
+     */
+    public static function apply(Builder $builder, $value)
+    {
+        return $builder->whereHas('product', function ($q) use ($value) {
+            return $q->where('product.sub_sub_cat_id', $value);
+        });
+    }
+}
