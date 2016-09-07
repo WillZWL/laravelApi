@@ -19,9 +19,9 @@ class LazadaMultipleOrderItems extends LazadaOrderCore
     protected function getRequestParams()
     {
         $requestParams = parent::initRequestParams();
-        $requestParams["Action"] = "getGetMultipleOrderItems";
+        $requestParams["Action"] = "GetMultipleOrderItems";
         if ($this->getOrderIdList()) {
-            $requestParams["OrderIdList"] = $this->getOrderIdList();
+            $requestParams["OrderIdList"] = json_encode($this->getOrderIdList());
         }
         return $requestParams;
     }

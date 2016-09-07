@@ -46,6 +46,11 @@ class So extends Model
         return $this->hasMany('App\Models\SoItemDetail', 'so_no', 'so_no');
     }
 
+    public function soAllocate()
+    {
+        return $this->hasMany('App\Models\SoAllocate', 'so_no', 'so_no');
+    }
+
     public function client()
     {
         return $this->belongsTo('App\Models\Client', 'id', 'client_id');
