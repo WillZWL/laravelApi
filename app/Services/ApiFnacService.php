@@ -29,7 +29,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
 
     public function retrieveOrder($storeName)
     {
-        // $this->ackRefusedFraudOrder($storeName);
         $processCount = 0;
         if ($orginOrderList = $this->getOrderList($storeName)) {
             foreach ($orginOrderList as $order) {
@@ -54,6 +53,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         }
 
         $this->ackFnacAcceptedOrders($storeName);
+        $this->ackRefusedFraudOrder($storeName);
 
         if ($processCount > 0) {
             return true;
@@ -99,6 +99,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             ->where('order_status', '!=', 'Shipped')
             ->where('order_status', '!=', 'NotReceived')
             ->where('order_status', '!=', 'Received')
+            ->where('order_status', '!=', 'Refused')
             ->get();
 
         if ($platformMarketOrders) {
@@ -149,10 +150,8 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                     try {
                         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
                             ->firstOrFail();
-                        if ($platformMarketOrder) {
-                            $platformMarketOrder->order_status = $responseData['state'];
-                            $platformMarketOrder->save();
-                        }
+
+                        $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $responseData['state']);
                     } catch(Exception $e) {
                         echo 'Message: ' .$e->getMessage();
                     }
@@ -177,10 +176,10 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $this->fnacOrderList = new FnacOrderList($storeName);
             $this->fnacOrderList->setFnacOrderIds($fnacOrderIds);
 
-            if ($responseOrderList = $this->fnacOrderList->requestFnacPendingPayment()) {
-                $this->updateOrderPendingPaymentStatus($responseOrderList);
+            if ($responseDataList = $this->fnacOrderList->requestFnacPendingPayment()) {
+                $this->updateOrderPendingPaymentStatus($responseDataList);
 
-                $this->saveDataToFile(serialize($responseOrderList),"responseFnacPendingPayment");
+                $this->saveDataToFile(serialize($responseDataList),"responseFnacPendingPayment");
             }
         }
     }
@@ -212,13 +211,10 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
                         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
                             ->where('order_status', '=', 'ToShip')
                             ->firstOrFail();
-                        if ($platformMarketOrder) {
-                            $platformMarketOrder->order_status = $responseData['state'];
-                            $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($responseData['state']);
-                            $platformMarketOrder->save();
 
-                            return true;
-                        }
+                        $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $responseData['state']);
+
+                        return true;
                     } catch(Exception $e) {
                         echo 'Message: ' .$e->getMessage();
                     }
@@ -450,30 +446,43 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         return $method;
     }
 
-    public function updateOrderPendingPaymentStatus($responseOrderList)
+    public function updateOrderPendingPaymentStatus($responseDataList)
     {
-        foreach ($responseOrderList as $order) {
-            switch($order['state']) {
+        foreach ($responseDataList as $responseData) {
+            switch($responseData['state']) {
                 case "Accepted":
                     break;
 
                 case "ToShip":
                 case "Cancelled":
                     try {
-                        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $order['order_id'])
+                        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
                             ->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_PENDING)
                             ->firstOrFail();
-                        if ($platformMarketOrder) {
-                            $platformMarketOrder->order_status = $order['state'];
-                            $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($order['state']);
-                            $platformMarketOrder->save();
-                        }
+
+                        $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $responseData['state']);
                     } catch(Exception $e) {
                         echo 'Message: ' .$e->getMessage();
                     }
                     break;
 
                 default:
+            }
+        }
+    }
+
+    private function _updatePlatformMarketOrderStatus($platformMarketOrder, $orderState)
+    {
+        if ($platformMarketOrder) {
+            $platformMarketOrder->order_status = $orderState;
+            $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderState);
+            $platformMarketOrder->save();
+
+            if ($orderItems = $platformMarketOrder->platformMarketOrderItem()->get()) {
+                foreach ($orderItems as $orderItem) {
+                    $orderItem->status = $orderState;
+                    $orderItem->save();
+                }
             }
         }
     }
