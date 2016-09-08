@@ -22,13 +22,15 @@ class LazadaOrderStatus extends LazadaOrderCore
     public function setStatusToCanceled()
     {
         $this->_requestParams['Action'] = 'SetStatusToCanceled';
+        if ($this->getOrderItemId() && intval($this->getOrderItemId()) > 0) {
+            $this->_requestParams['OrderItemId'] = $this->getOrderItemId();
+        }
         if ($this->getReason()) {
             $this->_requestParams['Reason'] = $this->getReason();
         }
         if ($this->getReasonDetail()) {
             $this->_requestParams['ReasonDetail'] = $this->getReasonDetail();
         }
-
         return parent::query($this->_requestParams);
     }
 
@@ -41,7 +43,9 @@ class LazadaOrderStatus extends LazadaOrderCore
         if ($this->getShippingProvider()) {
             $this->_requestParams['ShippingProvider'] = $this->getShippingProvider();
         }
-
+        if ($this->getOrderItemIds() && !empty($this->getOrderItemIds())) {
+            $this->_requestParams['OrderItemIds'] = json_encode($this->getOrderItemIds());
+        }
         return parent::query($this->_requestParams);
     }
 
@@ -57,33 +61,9 @@ class LazadaOrderStatus extends LazadaOrderCore
         if ($this->getTrackingNumber()) {
             $this->_requestParams['TrackingNumber'] = $this->getTrackingNumber();
         }
-
-        return parent::query($this->_requestParams);
-    }
-
-    public function setStatusToShipped()
-    {
-        $this->_requestParams['Action'] = 'SetStatusToShipped';
-
-        return parent::query($this->_requestParams);
-    }
-
-    public function setStatusToFailedDelivery($value)
-    {
-        $this->_requestParams['Action'] = 'SetStatusToFailedDelivery';
-        if ($this->getReason()) {
-            $this->_requestParams['Reason'] = $this->getReason();
+        if ($this->getOrderItemIds() && !empty($this->getOrderItemIds())) {
+            $this->_requestParams['OrderItemIds'] = json_encode($this->getOrderItemIds());
         }
-        if ($this->getReasonDetail()) {
-            $this->_requestParams['ReasonDetail'] = $this->getReasonDetail();
-        }
-
-        return parent::query($this->_requestParams);
-    }
-
-    public function setStatusToDelivered($value)
-    {
-        $this->_requestParams['Action'] = 'SetStatusToDelivered';
 
         return parent::query($this->_requestParams);
     }
@@ -91,12 +71,6 @@ class LazadaOrderStatus extends LazadaOrderCore
     protected function getRequestParams()
     {
         $this->_requestParams = parent::initRequestParams();
-        if ($this->getOrderItemId() && intval($this->getOrderItemId()) > 0) {
-            $this->_requestParams['OrderItemId'] = $this->getOrderItemId();
-        }
-        if ($this->getOrderItemIds() && !empty($this->getOrderItemIds())) {
-            $this->_requestParams['OrderItemIds'] = $this->OrderItemIds();
-        }
     }
 
     protected function prepare($data = array())
