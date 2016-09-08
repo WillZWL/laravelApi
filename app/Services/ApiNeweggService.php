@@ -33,9 +33,10 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 	public function retrieveOrder($storeName)
 	{
 		$originOrderList=$this->getOrderList($storeName);
-        if($originOrderList){
-        	foreach($originOrderList as $order){
-				if (isset($order['AddressShipping'])) {
+    	$orderInfoList = $originOrderList["OrderInfoList"]["OrderInfo"];
+        if($orderInfoList){
+        	foreach($orderInfoList as $order){
+				if (isset($order['ShipToCountryCode'])) {
 					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
 				}
 				$this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
@@ -69,10 +70,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 		$dateTime = $dt->format("Y-m-d");
 
 		$this->neweggOrderList->setOrderDateFrom($dateTime);
-		// $this->neweggOrderList->setStatus();
 		$originOrderList=$this->neweggOrderList->fetchOrderList();
-
-// above
 		$this->saveDataToFile(serialize($originOrderList),"getOrderList");
         return $originOrderList;
 	}
@@ -320,19 +318,20 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 	public function updateOrCreatePlatformMarketShippingAddress($order,$storeName)
 	{
 		$object=array();
-		$object['platform_order_id']=$order['OrderId'];
-        $object['name'] = $order['AddressShipping']['FirstName']." ".$order['AddressShipping']['LastName'];
-        $object['address_line_1'] = $order['AddressShipping']['Address1'];
-        $object['address_line_2'] = $order['AddressShipping']['Address2'];
-        $object['address_line_3'] = $order['AddressShipping']['Address3']."-".$order['AddressShipping']['Address4']."-".$order['AddressShipping']['Address5'];
-        $object['city'] = $order['AddressShipping']['Address3'];
-        $object['county'] = $order['AddressShipping']['Country'];
+		$object['platform_order_id']=$order['OrderNumber'];
+        $object['name'] = $order['CustomerName'];
+        $object['address_line_1'] = $order['ShipToAddress1'];
+        $object['address_line_2'] = $order['ShipToAddress2'];
+        $object['address_line_3'] = "";
+        $object['city'] = $order['ShipToCityName'];
+        $object['county'] = $order['ShipToStateCode'];
         $object['country_code'] = strtoupper(substr($storeName, -2));
-        $object['district'] = $order['AddressShipping']['Ward'];
-        $object['state_or_region'] = $order['AddressShipping']['Region'];
-        $object['postal_code'] = $order['AddressShipping']['PostCode'];
-        $object['phone'] = $order['AddressShipping']['Phone'];
+        $object['district'] = '';
+        $object['state_or_region'] = $order['ShipToStateCode'];
+        $object['postal_code'] = $order['ShipToZipCode'];
+        $object['phone'] = $order['CustomerPhoneNumber'];
 
+// ping stop here
         $object['bill_name'] = $order['AddressBilling']['FirstName']." ".$order['AddressBilling']['LastName'];
         $object['bill_address_line_1'] = $order['AddressBilling']['Address1'];
         $object['bill_address_line_2'] = $order['AddressBilling']['Address2'];

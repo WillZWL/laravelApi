@@ -10,8 +10,10 @@ class NeweggCore
     protected $mwsName = 'newegg-mws';
     private $currency;
     private $countryCode;
+    private $storeName = "";
     protected $errorResponse = array();
     private $itAlertEmail = "it@eservicesgroup.net";
+    private $userAlertEmail = array();
 
     public function __construct($storeName)
     {
@@ -22,6 +24,7 @@ class NeweggCore
 
     public function query($resourceUrl="", $resourceMethod="GET", $requestParams=array(), $requestBody=array())
     {
+        $dataResponse = null;
         $requestInfo = $error = array();
         if($resourceUrl) {
             
@@ -31,23 +34,17 @@ class NeweggCore
                 $xml = $curlResponse["xml"];
                 $data = $this->convert($xml);
             } else {
-// HANDLE ERROR HERE
                 $requestInfo = $curlResponse["requestInfo"];
                 $error = $curlResponse["error"];
             }
         }
-        // if (isset($data['Head']) && isset($data['Head']['ErrorCode'])) {
-        //     $this->ErrorResponse = $data['Head'];
 
-        //     return null;
-        // }
+        if(!$error) {
+            $dataResponse = $this->prepare($data);
+        }
 
-        if($error) {
-var_dump(__LINE__. ' neweggcore');
-dd($error);
-            return null;
-        } 
-        return $this->prepare($data);
+        $returnArr = ["data"=>$dataResponse, "requestInfo"=>$requestInfo, "error"=>$error];
+        return $returnArr;
     }
 
     // public function curlPostDataToApi($requestParams, $xmlData)
@@ -104,7 +101,6 @@ dd($error);
      */
     protected function prepare($data = array())
     {
-        dd($data);
         if (isset($data['ResponseBody'])) {
             return $data['ResponseBody'];
         } else {
@@ -162,7 +158,7 @@ dd($error);
         $response = $xml = "";
         $error = array();
         $status = FALSE;
-        $requiredParam["sellerid"] = ''; //$this->options['sellerId'];
+        $requiredParam["sellerid"] = $this->options['sellerId'];
         if($requestParams)
             $requestParams = array_merge($requestParams, $requiredParam);
         $queryString = http_build_query($requestParams, '', '&', PHP_QUERY_RFC3986);
@@ -302,6 +298,11 @@ dd($error);
         }
     }
 
+    public function sendMail($to, $subject, $message, $from="admin@eservicesgroup.com")
+    {
+        $headers = "From: {$from}\r\n";
+        mail($to, $subject, $message, $headers);
+    }
     public function getCurrency()
     {
         return $this->currency;
@@ -312,10 +313,21 @@ dd($error);
         return $this->countryCode;
     }
 
+    public function getStoreName()
+    {
+        return $this->storeName;
+    }
+
     public function getItAlertEmail()
     {
         return $this->itAlertEmail;
     }
+
+    public function getUserAlertEmail()
+    {
+        return $this->userAlertEmail;
+    }
+    
 
     // //ADD SANDBOX FUNCTION
     private function initMwsName()
