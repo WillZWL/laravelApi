@@ -28,16 +28,18 @@ class ApiTangaService extends ApiBaseService implements ApiPlatformInterface
         $orginOrderList = $this->getOrderList($storeName);
         if ($orginOrderList) {
             foreach ($orginOrderList as $order) {
-                if (isset($order['shipping_name'])) {
-                    $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
-                }
+                if ($order) {
+                    if (isset($order['shipping_name'])) {
+                        $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
+                    }
 
-                $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+                    $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 
-                $originOrderItemList=$this->getOrderItemList($order,$order["order_id"]);
-                if($originOrderItemList){
-                    foreach($originOrderItemList as $orderItem){
-                        $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                    $originOrderItemList=$this->getOrderItemList($order,$order["order_id"]);
+                    if($originOrderItemList){
+                        foreach($originOrderItemList as $orderItem){
+                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                        }
                     }
                 }
             }

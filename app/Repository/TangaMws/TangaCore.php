@@ -16,10 +16,10 @@ class TangaCore
         $this->setConfig();
     }
 
-    public function query($requestParams)
+    public function query($requestParams, $type = '')
     {
         $signRequestParams = $this->signature($requestParams);
-        $json = $this->curl($signRequestParams);
+        $json = $this->curl($signRequestParams, $type);
 
         $data = $this->convert($json);
 
@@ -40,29 +40,23 @@ class TangaCore
      *
      * @return string
      */
-    private function curl($params, &$info = array())
+    protected function curl($params, $type='', &$info = array())
     {
-        $user_email = $params['email'];
-        $user_password = $params['password'];
-        unset($params['email']);
-        unset($params['password']);
-
         $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-
-        $ch = curl_init();
-        // Open Curl connection
 
         $header = [
             'Accept: application/json',
         ];
 
         $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_POST, $type=='POST' ? 1 : 0);
         curl_setopt($ch, CURLOPT_URL, $this->url . $this->tangaPath . '?' . $queryString);
-        curl_setopt($ch, CURLOPT_USERPWD, "{$user_email}:{$user_password}");
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_USERPWD, $this->userId .":". $this->password);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
         $data = curl_exec($ch);
         $info = curl_getinfo($ch);
         curl_close($ch);
@@ -77,7 +71,7 @@ class TangaCore
      *
      * @return array
      */
-    private function convert($jsonData)
+    protected function convert($jsonData)
     {
         if ($jsonData != '') {
             $array = json_decode($jsonData, true);
@@ -115,9 +109,9 @@ class TangaCore
 
     public function setConfig()
     {
-        $tangaServiceUrl = Config::get($this->mwsName.'.SERVICE_URL');
-        if (isset($tangaServiceUrl)) {
-            $this->url = $tangaServiceUrl . $this->vendorAppId;
+        $serviceUrl = Config::get($this->mwsName.'.SERVICE_URL');
+        if (isset($serviceUrl)) {
+            $this->url = $serviceUrl;
         } else {
             throw new Exception('Config file does not exist or cannot be read!');
         }
@@ -189,21 +183,6 @@ class TangaCore
         }
 
         return array(0 => $arr);
-    }
-
-    /**
-     * Init common params.
-     *
-     * @return array
-     */
-    protected function initRequestParams()
-    {
-        $requestParams = [
-            'email' => $this->userId,
-            'password' => $this->password,
-        ];
-
-        return $requestParams;
     }
 
     /**
