@@ -24,7 +24,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
     
     }
 
-    protected function submitProductPriceAndInventory($storeName)
+    public function submitProductPriceAndInventory($storeName)
     {
         $this->submitProductPrice($storeName);
         $this->submitProductInventory($storeName); 
