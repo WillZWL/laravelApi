@@ -42,6 +42,6 @@ class MarketplaceProductSearch
 
     private static function getResults(Builder $query)
     {
-        return $query->get();
+        return $query->paginate(30);
     }
 }

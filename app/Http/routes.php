@@ -77,6 +77,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('country', 'CountryController');
     $api->resource('warehouse', 'WarehouseController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
+    $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
+
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@allocatedEsgOrder');
 });
 

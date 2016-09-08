@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Search\MarketplaceProductSearch;
 use App\Services\MarketplaceProductService;
 use App\Transformers\MarketplaceProductTransformer;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
-
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
@@ -45,7 +43,8 @@ class MarketplaceProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -56,7 +55,8 @@ class MarketplaceProductController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -67,7 +67,8 @@ class MarketplaceProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -78,8 +79,9 @@ class MarketplaceProductController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -90,7 +92,8 @@ class MarketplaceProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
@@ -100,7 +103,13 @@ class MarketplaceProductController extends Controller
 
     public function search(Requests\MarketplaceProductSearchRequest $searchRequest)
     {
-        $products = MarketplaceProductSearch::apply($searchRequest);
-        return $this->collection($products, new MarketplaceProductTransformer());
+        $products = $this->marketplaceProductService->search($searchRequest);
+
+        return $this->response->paginator($products, new MarketplaceProductTransformer());
+    }
+
+    public function estimate(Requests\ProfitEstimateRequest $profitRequest)
+    {
+        return response()->json($this->marketplaceProductService->estimate($profitRequest));
     }
 }
