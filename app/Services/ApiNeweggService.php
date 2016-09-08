@@ -53,7 +53,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 	public function getOrder($storeName,$orderId)
 	{
 		$this->neweggOrder=new NeweggOrder($storeName);
-		$this->storeCurrency=$this->neweggOrder->getStoreCurrency();
+		// $this->storeCurrency=$this->neweggOrder->getStoreCurrency();
 		$this->neweggOrder->setOrderId($orderId);
 		$returnData=$this->neweggOrder->fetchOrder();
 		return $returnData;
@@ -62,14 +62,17 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 	public function getOrderList($storeName)
 	{
 		$this->neweggOrderList=new NeweggOrderList($storeName);
-		$this->storeCurrency=$this->neweggOrderList->getStoreCurrency();
+		// $this->storeCurrency=$this->neweggOrderList->getStoreCurrency();
 		$lastAccessTime = $this->getSchedule()->last_access_time;
 		$pstTimezone = new \DateTimeZone("PST");
 		$dt = new \DateTime($lastAccessTime, $pstTimezone);
 		$dateTime = $dt->format("Y-m-d");
 
 		$this->neweggOrderList->setOrderDateFrom($dateTime);
+		// $this->neweggOrderList->setStatus();
 		$originOrderList=$this->neweggOrderList->fetchOrderList();
+
+// above
 		$this->saveDataToFile(serialize($originOrderList),"getOrderList");
         return $originOrderList;
 	}

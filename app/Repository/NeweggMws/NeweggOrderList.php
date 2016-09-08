@@ -33,13 +33,6 @@ class NeweggOrderList extends NeweggOrderCore
 
     protected function getRequestBody()
     {
-        if ($this->getOrderDateTo()) {
-            $requestParams['OrderDateTo'] = $this->getOrderDateTo();
-        }
-        if ($this->getStatus()) {
-            $requestParams['Status'] = $this->getStatus();
-        }
-
         $requestXml[] = "<NeweggAPIRequest>";
         $requestXml[] = "<OperationType>GetOrderInfoRequest</OperationType>";
         $requestXml[] = "<RequestBody>";
@@ -55,17 +48,14 @@ class NeweggOrderList extends NeweggOrderCore
         if ($this->getOrderDateTo()) {
             $requestXml[] = "<OrderDateTo>" . $this->getOrderDateTo() . "</OrderDateTo>";
         }
+        if ($this->getCountryCode()) {
+            $requestXml[] = "<CountryCode>" . $this->getCountryCode() . "</CountryCode>";
+        }
 
         $requestXml[] = "</RequestCriteria>";
         $requestXml[] = "</RequestBody>";
         $requestXml[] = "</NeweggAPIRequest>";
     
-        // libxml_use_internal_errors(true);
-        // $xml = new \DOMDocument();
-        // $xml->loadXML($requestXml); 
-        // if(!$xml->schemaValidate(app_path("Repository/NeweggMws/xsd/OrderMgmt/GetOrderInfo/GetOrderInfoRequest.xsd"))) {
-        //     $errors = libxml_get_errors();
-        // }
         return implode("\n", $requestXml);
     }
 
