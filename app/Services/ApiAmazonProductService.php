@@ -10,6 +10,7 @@ use Config;
 
 //use fnac api package
 use Peron\AmazonMws\AmazonFeed;
+use Peron\AmazonMws\AmazonReportRequest;
 
 class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProductInterface
 {
@@ -152,4 +153,21 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
     {
         $this->runProductUpdate($storeName, 'pendingProduct');
     }
+
+    public function fulfilledInventoryReport($storeName)
+    {   
+        $stores = Config::get('amazon-mws.store');
+        $amazonReport = new AmazonReportRequest($storeName);
+        $amazonReport->setReportType('_GET_AFN_INVENTORY_DATA_');
+        $amazonReport->setMarketplaces($stores[$storeName]['marketplaceId']);
+        //$amazonReport->setTimeLimits();
+        $amazonReport->requestReport();
+        $response = $amazonReport->getResponse();
+        print_r($response);exit();
+    }
+
+    public function getReportType($reportType)
+    {
+        return '_GET_AFN_INVENTORY_DATA_';
+    }   
 }

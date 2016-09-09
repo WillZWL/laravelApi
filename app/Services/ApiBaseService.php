@@ -102,6 +102,11 @@ class ApiBaseService extends PlatformMarketConstService
         }
     }
 
+    public function sendMailMessage($alertEmail, $subject, $message)
+    {
+        mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+    }
+
     public function getSchedule()
     {
         return $this->schedule;
