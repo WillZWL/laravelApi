@@ -23,7 +23,6 @@ class ProfitEstimateRequest extends Request
     {
         return [
             'id' => 'required',
-            'delivery_type' => 'required',
             'selling_price' => 'required',
         ];
     }

@@ -12,19 +12,32 @@ class MarketplaceProductService
     private $marketplaceProductRepository;
     private $pricingService;
 
-    public function __construct(MarketplaceProductRepository $marketplaceProductRepository)
+    public function __construct(MarketplaceProductRepository $marketplaceProductRepository, PricingService $pricingService)
     {
         $this->marketplaceProductRepository = $marketplaceProductRepository;
+        $this->pricingService = $pricingService;
     }
 
     public function search(MarketplaceProductSearchRequest $searchRequest)
     {
-        return MarketplaceProductSearch::apply($searchRequest);
+        $products = MarketplaceProductSearch::apply($searchRequest);
+
+        $products->map(function ($product) {
+            $profitRequest = new ProfitEstimateRequest();
+            $profitRequest->merge([
+                'id' => $product->id,
+                'selling_price' => $product->price,
+            ]);
+            $availableShppingWithProfit = $this->estimate($profitRequest);
+            $product->available_delivery_type = $availableShppingWithProfit;
+            return $product;
+        });
+
+        return $products;
     }
 
     public function estimate(ProfitEstimateRequest $profitRequest)
     {
-        $this->pricingService = new PricingService();
         return $this->pricingService->availableShippingWithProfit($profitRequest);
     }
 }

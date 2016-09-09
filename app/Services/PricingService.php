@@ -15,9 +15,8 @@ use App\Models\MpFixedFee;
 use App\Models\MpListingFee;
 use App\Models\PaymentGateway;
 use App\Models\ProductComplementaryAcc;
-use App\Models\Quotation;
 use App\Models\SupplierProd;
-use App\Models\WeightCourier;
+use App\Repository\DeliveryQuotationRepository;
 
 class PricingService
 {
@@ -25,6 +24,15 @@ class PricingService
     private $destination;
     private $exchangeRate;
     private $adjustRate = 0.9725;
+    private $deliveryQuotationRepository;
+
+
+    // TODO
+    // 只处理 Pricing 相关的业务逻辑, 通过在 __construct() 中加入 repository 方式拆分逻辑
+    public function __construct(DeliveryQuotationRepository $deliveryQuotationRepository)
+    {
+        $this->deliveryQuotationRepository = $deliveryQuotationRepository;
+    }
 
     public function availableShippingWithProfit(ProfitEstimateRequest $request)
     {
@@ -33,6 +41,10 @@ class PricingService
                                 ->findOrFail($request->get('id'));
 
         $marketplaceProduct->price = $request->get('selling_price');
+
+        if ($marketplaceProduct->price <= 0) {
+            return collect();
+        }
 
         // TODO
         // 将 country_state.is_default_state 移到 mp_control table 中
@@ -59,7 +71,9 @@ class PricingService
         $marketplaceFixedFee = $this->getMarketplaceFixedFee($marketplaceProduct);
         $paymentGatewayFee = $this->getPaymentGatewayFee($marketplaceProduct);
         $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($marketplaceProduct);
-        $availableDeliveryTypeWithCost = $this->getQuotationCost($marketplaceProduct);
+
+        $availableDeliveryTypeWithCost = $this->deliveryQuotationRepository->getQuotationCost($marketplaceProduct);
+
         $supplierCost = $this->getSupplierCost($marketplaceProduct);
         $accessoryCost = $this->getAccessoryCost($marketplaceProduct);
         $pricingType = $this->getMerchantType($marketplaceProduct);
@@ -80,7 +94,7 @@ class PricingService
             } elseif ($pricingType == 'cost') {
                 $shippingType->put('profit', $totalCharged - $shippingType->get('totalCost'));
             }
-            $shippingType->put('margin', round($shippingType->get('profit') / $sellingPrice * 100, 2).'%');
+            $shippingType->put('margin', round($shippingType->get('profit') / $sellingPrice * 100, 2));
 
             return $shippingType;
         });
@@ -128,7 +142,7 @@ class PricingService
     {
         $exception = DeclarationException::where('platform_type', '=', 'ACCELERATOR')
             ->select(['absolute_value', 'declared_ratio', 'max_absolute_value'])
-            ->where('delivery_country_id', '=', $this->destination->country_id)
+            ->where('delivery_country_id', '=', $marketplaceProduct->mpControl->country_id)
             ->where('ref_from_amt', '>=', $marketplaceProduct->price)
             ->where('ref_to_amt_exclusive', '<', $marketplaceProduct->price)
             ->where('status', '=', 1)
@@ -252,98 +266,6 @@ class PricingService
         $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $marketplaceProduct->price * $paymentGateway->admin_fee_percent / 100;
 
         return round($paymentGatewayAdminFee, 2);
-    }
-
-    //TODO
-    // move to quotation service
-    public function getQuotationCost(MarketplaceSkuMapping $marketplaceProduct)
-    {
-        $quotation = new Quotation();
-        $quotationVersion = $quotation->getAcceleratorQuotationByProduct($marketplaceProduct->product);
-
-        $actualWeight = WeightCourier::getWeightId($marketplaceProduct->product->weight);
-        $volumeWeight = WeightCourier::getWeightId($marketplaceProduct->product->vol_weight);
-        $battery = $marketplaceProduct->product->battery;
-
-        if ($battery == 1) {
-            $quotationVersion->forget('acc_external_postage');
-        }
-
-        $quotation = collect();
-        foreach ($quotationVersion as $quotationType => $quotationVersionId) {
-            if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage')) {
-                $weight = $actualWeight;
-            } else {
-                $weight = max($actualWeight, $volumeWeight);
-            }
-
-            $quotationItem = Quotation::getQuotation($this->destination, $weight, $quotationVersionId);
-            if ($quotationItem) {
-                $quotation->push($quotationItem);
-            }
-        }
-
-        // 已选中的 courier 如果不支持 battery 则 pass.
-        $availableQuotation = $quotation->filter(function ($quotationItem) use ($battery) {
-            switch ($battery) {
-                case '1':
-                    if (!$quotationItem->courierInfo->allow_builtin_battery) {
-                        return false;
-                    }
-                    break;
-
-                case '2':
-                    if (!$quotationItem->courierInfo->allow_external_battery) {
-                        return false;
-                    }
-                    break;
-            }
-
-            return true;
-        });
-
-        // convert HKD to target currency.
-        $currencyRate = $this->exchangeRate->rate;
-        $adjustRate = $this->adjustRate;
-
-        $quotationCost = $availableQuotation->map(function ($item) use ($currencyRate, $adjustRate) {
-            $item->cost = round($item->cost * $currencyRate / $adjustRate, 2);
-
-            return $item;
-        })->pluck('cost', 'quotation_type');
-
-        // if $quotation contains both built-in and external quotation, choose the cheapest quotation.
-        if ($quotationCost->has('acc_builtin_postage') && $quotationCost->has('acc_external_postage')) {
-            if ($quotationCost->get('acc_builtin_postage') > $quotationCost->get('acc_external_postage')) {
-                $quotationCost->forget('acc_builtin_postage');
-            } else {
-                $quotationCost->forget('acc_external_postage');
-            }
-        }
-
-        // convert quotation type to delivery type
-        $freightCost = collect();
-        $quotationCost->map(function ($cost, $quotationType) use ($freightCost) {
-            switch ($quotationType) {
-                case 'acc_builtin_postage':
-                case 'acc_external_postage':
-                    $freightCost->put('STD', collect(['deliveryCost' => $cost]));
-                    break;
-                case 'acc_courier':
-                    $freightCost->put('EXPED', collect(['deliveryCost' => $cost]));
-                    break;
-                case 'acc_courier_exp':
-                    $freightCost->put('EXP', collect(['deliveryCost' => $cost]));
-                    break;
-                case 'acc_fba':
-                    $freightCost->put('FBA', collect(['deliveryCost' => $cost]));
-                    break;
-                case 'acc_mcf':
-                    $freightCost->put('MCF', collect(['deliveryCost' => $cost]));
-            }
-        });
-
-        return $freightCost;
     }
 
     public function getSupplierCost(MarketplaceSkuMapping $marketplaceProduct)

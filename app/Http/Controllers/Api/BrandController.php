@@ -29,7 +29,7 @@ class BrandController extends Controller
     {
         $brands = $this->brandService->all();
 
-        return $this->collection($brands, new BrandTransformer());
+        return $this->response->collection($brands, new BrandTransformer());
     }
 
     /**
