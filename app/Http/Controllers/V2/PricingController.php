@@ -12,6 +12,8 @@ use App\Http\Controllers\Controller;
 
 class PricingController extends Controller
 {
+    private $pricingToolService;
+
     public function __construct(PricingToolService $pricingToolService)
     {
         $this->pricingToolService = $pricingToolService;

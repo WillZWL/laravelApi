@@ -3,21 +3,26 @@
 namespace App\Transformers;
 
 use League\Fractal\TransformerAbstract;
+use Illuminate\Support\Collection;
 
 class LazadaAllocatedTransformer extends TransformerAbstract
 {
-    public function transform($result)
+    static function transform(Collection $response)
     {
-        foreach($result as $soNo => $orderItem){
-            if($orderItem) {
-                $status="success";
-            }else{
-                $status="false";
+        if($response->result["response"]=="success"){
+            foreach($response->result["message"] as $soNo => $orderItem){
+                if($orderItem) {
+                    $status="success";
+                }else{
+                    $status="false";
+                }
+                $data[] = array(
+                    "so_no" => $soNo,
+                    "status" => $status,
+                    );
             }
-            $data[] = array(
-                "so_no" => $soNo,
-                "status" => $status,
-                );
+        }else{
+            $data = $response->result;
         }
         return $data;
     }

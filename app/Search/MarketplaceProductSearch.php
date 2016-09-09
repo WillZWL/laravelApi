@@ -27,7 +27,7 @@ class MarketplaceProductSearch
             }
         }
 
-        return static::getResults($query);
+        return static::getResults($query)->appends($request->input());
     }
 
     private static function createFilterDecorator($name)
@@ -42,6 +42,6 @@ class MarketplaceProductSearch
 
     private static function getResults(Builder $query)
     {
-        return $query->get();
+        return $query->paginate(30);
     }
 }
