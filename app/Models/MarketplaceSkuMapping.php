@@ -57,6 +57,11 @@ class MarketplaceSkuMapping extends Model
         return $this->belongsTo('App\Models\MpControl', 'mp_control_id', 'control_id');
     }
 
+    public function mpCategoryCommission()
+    {
+        return $this->hasOne('App\Models\MpCategoryCommission', 'mp_id', 'mp_sub_category_id');
+    }
+
     public function scopePendingProductSkuGroups($query, $marketplaceId)
     {
         return $query->join('product', 'marketplace_sku_mapping.sku', '=', 'product.sku')
