@@ -57,6 +57,8 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('pricing/simulate', 'PricingController@simulate');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
     Route::get('listingSku/index', 'ListingSkuManagement@index');
+    Route::resource('/marketplaceCategory', 'MarketplaceCategoryController');
+    Route::get('marketplaceCategory/marketplace/{id}', 'MarketplaceCategoryController@showTopCategoriesForControlId');
     Route::get('listingSku/getCategory', 'ListingSkuManagement@getCategory');
     Route::post('listingSku/add', 'ListingSkuManagement@add');
     Route::get('listingSku/getData', 'ListingSkuManagement@getData');
