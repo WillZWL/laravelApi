@@ -20,8 +20,6 @@ class TangaOrderList extends TangaOrderCore
 
     protected function getRequestParams()
     {
-        $requestParams = parent::initRequestParams();
-
         if ($this->getStartAt()) {
             $requestParams['start_at'] = $this->getStartAt();
         }
@@ -43,7 +41,7 @@ class TangaOrderList extends TangaOrderCore
 
     public function setTangaPath()
     {
-        $this->tangaPath = '/unshipped_items';
+        $this->tangaPath = 'api/vendors/'. $this->vendorAppId .'/unshipped_items';
     }
 
     public function getStartAt()

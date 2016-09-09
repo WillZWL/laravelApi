@@ -2,14 +2,19 @@
 
 namespace App\Http\Controllers\Api\Marketplace;
 
-use Illuminate\Http\Request;
+use Dingo\Api\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Services\ApiLazadaService;
+use Dingo\Api\Routing\Helpers;
+use App\Transformers\LazadaAllocatedTransformer;
+use Illuminate\Support\Collection;
 use PDF;
+
 class LazadaApiController extends Controller
 {
+    use Helpers;
     private $apiLazadaService;
     
     public function __construct(ApiLazadaService $apiLazadaService)
@@ -24,9 +29,16 @@ class LazadaApiController extends Controller
      */
     public function getShipmentProviders(Request $request)
     {
-        //
-        $storeName = $request->input("storeName");
+        
+        //$storeName = $request->input("storeName");
+        /*$storeNameArr =["BCLAZADAMY","BCLAZADASG","BCLAZADATH","BCLAZADAID","BCLAZADAPH"];
+        foreach( $storeNameArr as  $storeName){
+            $shipmentProviders[]= $this->apiLazadaService->getShipmentProviders($storeName);
+        }
+        return  $shipmentProviders;*/
+        $storeName="BCLAZADASG";
         return $this->apiLazadaService->getShipmentProviders($storeName);
+      
     }
 
     /**
@@ -48,13 +60,30 @@ class LazadaApiController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function allocatedEsgOrder(Request $request)
-    {   
+    public function esgOrderReadyToShip(Request $request)
+    {  
         $soNoList = $request->input("so_no");
-        $result = $this->apiLazadaService->allocatedOrderFufillment($soNoList);
-        return $this->collection($result, new LazadaAllocatedTransformer());
+        $result = $this->apiLazadaService->esgOrderReadyToShip($soNoList);
+        return \Response::json($result);
+        /*$response = new Collection();
+        $response->result = $result;
+        return $this->response->item($response,new LazadaAllocatedTransformer())->setStatusCode(200);*/
     }
 
+    public function donwloadLazadaLabelFile(Request $request)
+    {
+        $doucment = $request->input("doucment");
+        if($doucment){
+            return response()->download($doucment);   
+        }  
+    }
+
+    public function index(Request $request)
+    {
+        $aa=\Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix()."aa.jpg";
+        $url=asset($aa);
+        print_r($url);
+    }
 
     /**
      * Store a newly created resource in storage.

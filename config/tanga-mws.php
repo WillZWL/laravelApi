@@ -12,6 +12,6 @@ return [
     ],
 
     // Default service URL
-    'SERVICE_URL' => 'https://vendors.tanga.com/api/vendors/',
+    'SERVICE_URL' => 'https://vendors.tanga.com/',
     'muteLog' => true
 ];
