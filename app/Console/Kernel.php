@@ -28,6 +28,8 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketUpdatePendingStatus::class,
         Commands\PlatformMarketProductFeed::class,
         Commands\PlatformMarketRemoveFileSystem::class,
+        Commands\PlatformMarketProductReport::class,
+        Commands\PlatformMarketOrderReport::class,
     ];
 
     /**
@@ -81,6 +83,9 @@ class Kernel extends ConsoleKernel
             ->dailyAt('12:00');
         $schedule->command('platformMarket:updateShipment', array('--api' => 'all'))
             ->dailyAt('12:20');
+
+         $schedule->command('platformMarket:orderReport alertOrder', array('--api' => 'lazada'))
+            ->dailyAt('01:00');
 
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();

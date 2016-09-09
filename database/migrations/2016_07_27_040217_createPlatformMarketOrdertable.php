@@ -36,7 +36,7 @@ class CreatePlatformMarketOrdertable extends Migration
             $table->dateTime('earliest_delivery_date');
             $table->dateTime('latest_delivery_date');
             $table->tinyInteger('acknowledge')->default(0);
-            $table->dateTime('remarks');
+            $table->string('remarks');
             $table->timestamps();
         });
     }
