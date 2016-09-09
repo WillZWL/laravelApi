@@ -40,4 +40,13 @@ class MarketplaceProductService
     {
         return $this->pricingService->availableShippingWithProfit($profitRequest);
     }
+
+    public function update($bulkUpdateRequest)
+    {
+        $products = $bulkUpdateRequest->input();
+
+        foreach ($products as $product) {
+            $this->marketplaceProductRepository->update($product);
+        }
+    }
 }
