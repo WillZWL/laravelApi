@@ -13,9 +13,9 @@ class TangaProductUpdate extends TangaOrderCore
         $this->settangaPath();
     }
 
-    public function updateInventoryToTanga()
+    public function updateInventory($csvData)
     {
-        return $this->query($this->getRequestParams(), 'POST');
+        return $this->postDataToAPI($csvData, 'csv');
     }
 
     protected function getRequestParams()
@@ -33,7 +33,7 @@ class TangaProductUpdate extends TangaOrderCore
 
     public function setTangaPath()
     {
-        $this->tangaPath = 'api/v1/drop_shippers/'. $this->vendorAppId .'/inventory';
+        $this->tangaPath = 'api/v1/drop_shippers/'. $this->vendorAppId .'/inventory/file';
     }
 
 
