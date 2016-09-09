@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a702a062477d9b4dbd5ec9d7637f8c8a",
-    "content-hash": "bb1d14e01de03677452ca232f09d508e",
+    "hash": "859653036b243c7f1619af431250c000",
+    "content-hash": "2c7027bb7bcd344ac3e472f66d139f33",
     "packages": [
         {
             "name": "barryvdh/laravel-debugbar",
@@ -227,6 +227,56 @@
                 }
             ],
             "time": "2016-06-13 19:28:20"
+        },
+        {
+            "name": "chumper/zipper",
+            "version": "0.6.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Chumper/Zipper.git",
+                "reference": "313e364259398557bdcc2f68e6ff20d71aaea811"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Chumper/Zipper/zipball/313e364259398557bdcc2f68e6ff20d71aaea811",
+                "reference": "313e364259398557bdcc2f68e6ff20d71aaea811",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/filesystem": "5.x",
+                "illuminate/support": "5.x",
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "mockery/mockery": "dev-master",
+                "phpunit/phpunit": "3.7.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Chumper\\Zipper": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache2"
+            ],
+            "authors": [
+                {
+                    "name": "Nils Plaschke",
+                    "email": "github@nilsplaschke.de",
+                    "homepage": "http://nilsplaschke.de",
+                    "role": "Developer"
+                }
+            ],
+            "description": "This is a little neat helper for the ZipArchive methods with handy functions",
+            "homepage": "http://github.com/Chumper/zipper",
+            "keywords": [
+                "archive",
+                "laravel",
+                "zip"
+            ],
+            "time": "2015-02-16 11:38:11"
         },
         {
             "name": "classpreloader/classpreloader",
@@ -1831,7 +1881,6 @@
                 "oauth2",
                 "server"
             ],
-            "abandoned": "laravel/passport",
             "time": "2016-01-29 13:11:59"
         },
         {
@@ -3885,16 +3934,16 @@
         },
         {
             "name": "friendsofphp/php-cs-fixer",
-            "version": "v1.12.0",
+            "version": "v1.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/FriendsOfPHP/PHP-CS-Fixer.git",
-                "reference": "ddac737e1c06a310a0bb4b3da755a094a31a916a"
+                "reference": "d33ee60f3d3e6152888b7f3a385f49e5c43bf1bf"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/ddac737e1c06a310a0bb4b3da755a094a31a916a",
-                "reference": "ddac737e1c06a310a0bb4b3da755a094a31a916a",
+                "url": "https://api.github.com/repos/FriendsOfPHP/PHP-CS-Fixer/zipball/d33ee60f3d3e6152888b7f3a385f49e5c43bf1bf",
+                "reference": "d33ee60f3d3e6152888b7f3a385f49e5c43bf1bf",
                 "shasum": ""
             },
             "require": {
@@ -3939,7 +3988,7 @@
                 }
             ],
             "description": "A tool to automatically fix PHP code style",
-            "time": "2016-08-17 00:17:27"
+            "time": "2016-09-07 06:48:24"
         },
         {
             "name": "fzaninotto/faker",

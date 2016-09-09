@@ -173,6 +173,7 @@ return [
         LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider::class,
         LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class,
         Dingo\Api\Provider\LaravelServiceProvider::class,
+        Chumper\Zipper\ZipperServiceProvider::class,
     ],
 
     /*
@@ -223,6 +224,7 @@ return [
         'Authorizer' => LucaDegasperi\OAuth2Server\Facades\Authorizer::class,
         'PDF' => Barryvdh\Snappy\Facades\SnappyPdf::class,
         'SnappyImage' => Barryvdh\Snappy\Facades\SnappyImage::class,
+        'Zipper' => Chumper\Zipper\Zipper::class,
     ],
 
 ];
