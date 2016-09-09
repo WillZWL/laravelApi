@@ -24,7 +24,7 @@ class MarketplaceProductTransformer extends TransformerAbstract
             'margin' => $product->margin,
             'warehouse' => $product->inventory()->get(['warehouse_id', 'inventory'])->keyBy('warehouse_id')->toArray(),
             'selected_delivery_type' => $product->delivery_type,
-            'available_delivery_type' => ['STD', 'EXP', 'EXPED'],
+            'available_delivery_type' => $product->available_delivery_type,
             'listing_status' => $product->listing_status,
             'listing_quantity' => $product->inventory,
             'updated_at' => $product->modify_on,
