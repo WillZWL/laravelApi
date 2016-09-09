@@ -33,33 +33,24 @@ class ApiTangaProductService extends ApiBaseService implements ApiPlatformProduc
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
 
         if(!$processStatusProduct->isEmpty()){
-            $this->tangaProductUpdate = new TangaProductUpdate($storeName);
-            $this->storeCurrency = $this->tangaProductUpdate->getStoreCurrency();
-
-            $result = [];
-            $success = 0;
+            $csvData = "vendor_sku_code,quantity";
 
             foreach ($processStatusProduct as $index => $pendingSku) {
-                $this->tangaProductUpdate->setVendorSkuCode($pendingSku->marketplace_sku);
-                $this->tangaProductUpdate->setInStock($pendingSku->inventory);
-                if ($respose = $this->tangaProductUpdate->updateInventoryToTanga()) {
-                    if (
-                        isset($respose['sku_code'])
-                        && $respose['sku_code'] == $pendingSku->marketplace_sku
-                        && $respose['available_to_sell_count'] == $pendingSku->inventory
-                        && $respose['vendor_in_stock_count'] == $pendingSku->inventory
-                    ) {
-                        $success += 1;
-                        $result[] = $respose;
-                    }
-                }
-
+                $csvData .= "\r\n$pendingSku->marketplace_sku,$pendingSku->inventory";
             }
 
-            if (count($processStatusProduct) == $success) {
-                $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
+            $this->saveDataToFile($csvData, 'requestProductInventory', 'csv');
+
+            $this->tangaProductUpdate = new TangaProductUpdate($storeName);
+            $this->storeCurrency = $this->tangaProductUpdate->getStoreCurrency();
+            $responseData = $this->tangaProductUpdate->updateInventory($csvData);
+
+            $this->saveDataToFile(serialize($responseData), 'responseProductInventory');
+
+            if ( $responseData['status'] == 'ok') {
                 $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
-                return $result;
+
+                return $responseData;
             }
         }
     }
