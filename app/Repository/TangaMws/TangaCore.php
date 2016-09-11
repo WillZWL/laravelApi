@@ -42,7 +42,7 @@ class TangaCore
      */
     protected function curl($params, &$info = array())
     {
-        $queryString = http_build_query($params, '&', PHP_QUERY_RFC3986);
+        $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 
         $header[] = 'Accept: application/json';
 
@@ -78,7 +78,9 @@ class TangaCore
         $client = new \GuzzleHttp\Client($apiHeader);
         $response = $client->request('POST', $this->url . $this->tangaPath, ['body' => $postData, 'auth'=>[$this->userId, $this->password]]);
         $responseData = $response->getBody()->getContents();
+
         $data = $this->convert($responseData);
+
         return $data;
     }
 

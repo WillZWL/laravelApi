@@ -22,4 +22,9 @@ class ApiPlatformProductFactoryService
     {
         return $this->apiPlatformProductInterface->submitProductUpdate($storeName);
     }
+
+    public function fulfilledInventoryReport($storeName)
+    {
+        return $this->apiPlatformProductInterface->fulfilledInventoryReport($storeName);
+    }
 }

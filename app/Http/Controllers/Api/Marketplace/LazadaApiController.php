@@ -72,7 +72,7 @@ class LazadaApiController extends Controller
 
     public function donwloadLazadaLabelFile(Request $request)
     {
-        $doucment = $request->input("doucment");
+        $doucment = $request->input("file");
         if($doucment){
             return response()->download($doucment);   
         }  
@@ -80,9 +80,7 @@ class LazadaApiController extends Controller
 
     public function index(Request $request)
     {
-        $aa=\Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix()."aa.jpg";
-        $url=asset($aa);
-        print_r($url);
+
     }
 
     /**

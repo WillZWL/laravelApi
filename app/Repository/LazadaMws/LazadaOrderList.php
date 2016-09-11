@@ -8,6 +8,7 @@ class LazadaOrderList extends LazadaOrderCore
     private $createdBefore;
     private $updatedAfter;
     private $updatedBefore;
+    private $status;
 
     public function __construct($store)
     {
@@ -34,6 +35,9 @@ class LazadaOrderList extends LazadaOrderCore
         }
         if ($this->getUpdatedBefore()) {
             $requestParams['UpdatedBefore'] = $this->getUpdatedBefore();
+        }
+        if ($this->getStatus()) {
+            $requestParams['Status'] = $this->getStatus();
         }
 
         return $requestParams;
@@ -86,5 +90,15 @@ class LazadaOrderList extends LazadaOrderCore
     public function setUpdatedBefore($value)
     {
         $this->updatedBefore = $value;
+    }
+
+    public function getStatus()
+    {
+        return $this->status;
+    }
+
+    public function setStatus($value)
+    {
+        $this->status = $value;
     }
 }
