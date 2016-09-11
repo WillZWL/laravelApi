@@ -81,6 +81,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('warehouse', 'WarehouseController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
+    $api->POST('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
+    $api->resource('marketplace-product', 'MarketplaceProductController');
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
 });
 
