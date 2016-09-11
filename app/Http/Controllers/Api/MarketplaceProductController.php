@@ -112,4 +112,9 @@ class MarketplaceProductController extends Controller
     {
         return response()->json($this->marketplaceProductService->estimate($profitRequest));
     }
+
+    public function bulkUpdate(Requests\BatchUpdateMarketplaceProductRequest $bulkUpdateRequest)
+    {
+        return $this->marketplaceProductService->update($bulkUpdateRequest);
+    }
 }
