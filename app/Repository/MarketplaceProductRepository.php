@@ -27,6 +27,8 @@ class MarketplaceProductRepository
 
         if ($p->delivery_type != $product['delivery_type']) {
             $p->delivery_type = $product['delivery_type'];
+            $p->fulfillment = ($p->delivery_type == 'FBA') ? 'AFN' : 'MFN';
+
             $p->process_status = $p->process_status | self::INVENTORY_UPDATED;
         }
 
