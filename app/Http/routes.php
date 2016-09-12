@@ -77,6 +77,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('marketplace', 'MarketplaceController');
     $api->resource('brand', 'BrandController');
     $api->resource('merchant', 'MerchantController');
+    $api->resource('supplier', 'SupplierController');
     $api->resource('country', 'CountryController');
     $api->resource('warehouse', 'WarehouseController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
