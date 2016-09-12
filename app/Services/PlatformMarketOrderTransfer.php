@@ -187,13 +187,14 @@ class PlatformMarketOrderTransfer
                 //重新赋值delivery_type_id;
                 $so->delivery_type_id = 'FBA';
                 $so->dispatch_date = $order->latest_ship_date;
-            } else {
+            } else if ($order->biz_type == "Lazada"){
+                $so->delivery_type_id = 'EXP';
+            }else{
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
                     ->whereIn('delivery_type', ['EXP', 'EXPED', 'STD'])
                     ->orderBy(\DB::raw('FIELD(delivery_type, "EXP", "EXPED", "STD")'))
                     ->first();
-
                 if ($marketplaceProduct) {
                     $so->delivery_type_id = $marketplaceProduct->delivery_type;
                 } else {

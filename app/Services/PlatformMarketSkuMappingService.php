@@ -32,6 +32,7 @@ class PlatformMarketSkuMappingService
         } else {
             $filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';
         }
+        $result = "";
         Excel::load($filePath, function ($reader) {
             $sheetItem = $reader->all();
             $mappingData = null;
@@ -67,16 +68,19 @@ class PlatformMarketSkuMappingService
                                 'marketplace_id' => $this->marketplaceId,
                                 'country_id' => $this->countryCode,
                                 'lang_id' => 'en',
-                                'asin'=> $itemData['ASIN'],
+                                'asin'=> isset($itemData['ASIN']) ? $itemData['ASIN']:'',
                                 'currency' => $this->store['currency'],
                                 );
                                 $this->firstOrCreateMarketplaceSkuMapping($mappingData);
                             }
+                        }else{
+                            $result["error_sku"][] = $itemData['esg_sku'];
                         }
                     }
                 }
             }
         });
+        return $result;
     }
     //2 init Marketplace SKU Mapping
     public function updateOrCreateSellingPlatform($storeName, $store)
