@@ -587,7 +587,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         foreach($esgOrders as $esgOrder){
             $message .="ESG Order No ".$esgOrder->so_no." (Platform Order No ".$esgOrder->platform_order_id.") status is ".$esgOrder->status.".\r\n";
         }
-        $message = "Thanks\r\n";
+        $message .= "Thanks\r\n";
         $this->sendMailMessage('storemanager@brandsconnect.net,fiona@etradegroup.net', $subject, $message);
         return false;
     }
