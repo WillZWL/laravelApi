@@ -84,6 +84,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->POST('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
     $api->resource('marketplace-product', 'MarketplaceProductController');
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
+    $api->post('product-upload', 'ProductUploadController@upload');
+    $api->get('product-upload', 'ProductUploadController@index');
 });
 
 Route::get('platform/test', 'InterfacePlatformOrder@index');
