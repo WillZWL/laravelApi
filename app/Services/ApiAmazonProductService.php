@@ -383,7 +383,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
         // Email content
         // Content-type can be text/plain or text/html
-        $message = "The Attachment Is Amazon FBA  Unsuppressed Inventory Report!".PHP_EOL;
+        $message = "The Attachment Is Amazon FBA  Unsuppressed Inventory Report In 2 Weeks Platform Sales!".PHP_EOL;
         $message .= "Thanks".PHP_EOL.PHP_EOL;
         $message .= "--".$boundary.PHP_EOL;
 
