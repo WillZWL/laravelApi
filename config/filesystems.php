@@ -69,6 +69,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('marketplace-xml'),
         ],
+        'report' => [
+            'driver' => 'local',
+            'root' => storage_path('marketplace-report'),
+        ],
 
     ],
 

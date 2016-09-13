@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use App\Models\MarketplaceSkuMapping;
+use Excel;
+
 class ApiBaseService extends PlatformMarketConstService
 {
     private $request;
@@ -107,9 +110,65 @@ class ApiBaseService extends PlatformMarketConstService
         mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
     }
 
-    public function getEsgOrderReportByDate($date)
+    public function generateMultipleSheetsExcel($fileName,$cellDataArr,$path)
     {
-        return null;
+        $excelFile = Excel::create($fileName, function($excel) use ($cellDataArr) {
+            // Our first sheet
+            foreach($cellDataArr as $key => $cellData){
+                if($cellData){
+                    $excel->sheet($key, function($sheet) use ($cellData) {
+                        $sheet->rows($cellData);
+                    });
+                }
+            }
+        })->store("xlsx",$path);
+        if($excelFile){
+            $attachment = array("path"=>$this->getDateReportPath(),"file_name"=>$fileName.".xlsx");
+            return $attachment;
+        }
+    }
+
+    public function getPlatformSkuOrderedList($platformOrderGroups)
+    {
+        $platformSkuOrderedList = array();
+        foreach($platformOrderGroups as $index =>  $platformOrderGroup){
+            $platformPrefix = strtoupper(substr($index, 3, 2));
+            $platformAcronym = strtoupper(substr($index, 5, 2));
+            $countryCode = strtoupper(substr($index, -2));
+            $marketplaceId = $platformPrefix.$this->platformAcronym[$platformAcronym];
+            $skuOrderedList = $this->getSkuOrderedListByGroupOrder($platformOrderGroup,$marketplaceId,$countryCode);
+            $platformSkuOrderedList[$marketplaceId.$countryCode] = $skuOrderedList;
+        };
+        return $platformSkuOrderedList; 
+    }
+
+    private function getSkuOrderedListByGroupOrder($platformOrderGroup,$marketplaceId,$countryCode)
+    {
+        $skuOrderedList = null;$newSkuOrderedList = null;
+        $marketplaceSkuList = MarketplaceSkuMapping::where("marketplace_id","=",$marketplaceId)
+                    ->where("country_id","=",$countryCode)
+                    ->get()
+                    ->pluck('marketplace_sku', 'sku')
+                    ->toArray();
+        foreach($platformOrderGroup as $platformOrder){
+            if(isset($marketplaceSkuList[$platformOrder->prod_sku])){
+                $skuOrderedList[$platformOrder->prod_sku]["marketplace_sku"]=$marketplaceSkuList[$platformOrder->prod_sku];
+            }
+            $skuOrderedList[$platformOrder->prod_sku]["sku"]=$platformOrder->prod_sku;
+            if(isset($skuOrderedList[$platformOrder->prod_sku]["qty"])){
+                $skuOrderedList[$platformOrder->prod_sku]["qty"] +=$platformOrder->qty;
+            }else{
+                $skuOrderedList[$platformOrder->prod_sku]["qty"] =$platformOrder->qty;
+            }
+            $skuOrderedList[$platformOrder->prod_sku]["product_name"]=$platformOrder->product_name;
+            $skuOrderedList[$platformOrder->prod_sku]["brand_name"]=$platformOrder->brand_name;
+            $skuOrderedList[$platformOrder->prod_sku]["master_sku"]=$platformOrder->master_sku;
+        }
+        foreach($skuOrderedList as $skuOrdered){
+            if(isset($skuOrdered["marketplace_sku"]))
+            $newSkuOrderedList[$skuOrdered["marketplace_sku"]]= $skuOrdered;
+        }
+        return $newSkuOrderedList;
     }
 
     public function getSchedule()
