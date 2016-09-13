@@ -18,7 +18,7 @@ class MarketplaceProductSearch
     private static function applyDecoratorsFromRequest(MarketplaceProductSearchRequest $request, Builder $query)
     {
         foreach ($request->all() as $filterName => $value) {
-            if (!empty($value)) {
+            if ($value !== '') {
                 $decorator = static::createFilterDecorator($filterName);
 
                 if (static::isValidDecorator($decorator)) {
