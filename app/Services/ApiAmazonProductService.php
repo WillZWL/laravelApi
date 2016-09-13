@@ -187,7 +187,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             }
         }
         if($reportIds){
-            $this->updateReportAcknowledgements($storeName,$reportIds,$acknowledger);
+            $this->updateReportAcknowledgements($storeName,$reportIds,"true");
         }
     }
 
@@ -357,7 +357,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
     public function sendAttachmentMail($alertEmail,$subject,$attachment)
     {
         /* Attachment File */
-        $fileName = $attachment["file"];
+        $fileName = $attachment["file_name"];
         $path = $attachment["path"];
 
         // Read the file content
@@ -383,8 +383,8 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
         // Email content
         // Content-type can be text/plain or text/html
-        $message = "Content-type:text/plain; charset=iso-8859-1".PHP_EOL;
-        $message .= "Content-Transfer-Encoding: 7bit".PHP_EOL.PHP_EOL;
+        $message = "The Attachment Is Amazon FBA  Unsuppressed Inventory Report In 2 Weeks Platform Sales!".PHP_EOL;
+        $message .= "Thanks".PHP_EOL.PHP_EOL;
         $message .= "--".$boundary.PHP_EOL;
 
         // Attachment
@@ -394,8 +394,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         $message .= "Content-Disposition: attachment; filename=\"".$fileName."\"".PHP_EOL.PHP_EOL;
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
-        //mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
-        mail("jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+        mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
     }
 
 }
