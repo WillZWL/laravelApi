@@ -80,6 +80,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('supplier', 'SupplierController');
     $api->resource('country', 'CountryController');
     $api->resource('warehouse', 'WarehouseController');
+    $api->resource('category', 'CategoryController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
     $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
