@@ -8,7 +8,7 @@
 </style>
 <div class="right_col" role="main">
   	<div class="row main">
-  	<h3>Marketplace SKU Mapping</h3>
+  	<h3>Marketplace SKU2222 Mapping</h3>
 		<form  action="#" name="edit-form" method="post" enctype="multipart/form-data">
 			<div>
 				<select name="check">

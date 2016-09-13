@@ -102,6 +102,26 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->setStatusToDelivered($storeName, $orderItemId);
     }
 
+    public function alertSetOrderReadyToShip($storeName)
+    {
+        $platformOrderIdList = $this->apiPlatformInterface->alertSetOrderReadyToShip($storeName);
+        if($platformOrderIdList){
+            $esgOrders = So::whereIn('platform_order_id', $platformOrderIdList)
+            ->where('platform_group_order', '=', '1')
+            ->where('status', '!=', '0')
+            ->get()
+            ->map(function ($esgOrder, $key) {
+                 $esgOrder->status = $this->getFormatEsgOrderStatus($esgOrder->status);
+                 return $esgOrder;
+            });
+            if(!$esgOrders->isEmpty()){
+                $this->apiPlatformInterface->sendAlertMailMessage($storeName,$esgOrders);
+            }else{
+                return false;
+            }
+        }
+    }
+
     public function getStoreSchedule($storeName)
     {
         $previousSchedule = Schedule::where('store_name', '=', $storeName)
@@ -180,4 +200,20 @@ class ApiPlatformFactoryService
         $platformMarketOrder->esg_order_status = 6;
         $platformMarketOrder->save();
     }
+
+    private function getFormatEsgOrderStatus($status)
+    {
+        $esgStatus = array(
+            "0" => "Inactive",
+            "1" => "New",
+            "2" => "Paid",
+            "3" => "Fulfilment AKA Credit Checked",
+            "4" => "Partial Allocated ",
+            "5" => "Full Allocated",
+            "6" => "Shipped",
+        );
+        if(isset($esgStatus[$status]))
+        return $esgStatus[$status];
+    }
+
 }

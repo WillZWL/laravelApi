@@ -16,10 +16,10 @@ class TangaCore
         $this->setConfig();
     }
 
-    public function query($requestParams, $type = '')
+    public function query($requestParams)
     {
         $signRequestParams = $this->signature($requestParams);
-        $json = $this->curl($signRequestParams, $type);
+        $json = $this->curl($signRequestParams);
 
         $data = $this->convert($json);
 
@@ -40,17 +40,15 @@ class TangaCore
      *
      * @return string
      */
-    protected function curl($params, $type='', &$info = array())
+    protected function curl($params, &$info = array())
     {
         $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 
-        $header = [
-            'Accept: application/json',
-        ];
+        $header[] = 'Accept: application/json';
 
         $ch = curl_init();
 
-        curl_setopt($ch, CURLOPT_POST, $type=='POST' ? 1 : 0);
+        curl_setopt($ch, CURLOPT_POST, 0);
         curl_setopt($ch, CURLOPT_URL, $this->url . $this->tangaPath . '?' . $queryString);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         curl_setopt($ch, CURLOPT_USERPWD, $this->userId .":". $this->password);
@@ -60,6 +58,28 @@ class TangaCore
         $data = curl_exec($ch);
         $info = curl_getinfo($ch);
         curl_close($ch);
+
+        return $data;
+    }
+
+    public function postDataToAPI($postData, $type = '')
+    {
+
+        $header[] = 'Accept: application/json';
+
+        if ($type == 'csv') {
+            $header[] = 'Content-Type: text/csv';
+        }
+
+        $apiHeader = array(
+            'headers' => $header,
+        );
+
+        $client = new \GuzzleHttp\Client($apiHeader);
+        $response = $client->request('POST', $this->url . $this->tangaPath, ['body' => $postData, 'auth'=>[$this->userId, $this->password]]);
+        $responseData = $response->getBody()->getContents();
+
+        $data = $this->convert($responseData);
 
         return $data;
     }

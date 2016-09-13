@@ -74,6 +74,14 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $originOrderList;
 	}
 
+    public function getPendingOrderList($storeName)
+    {
+        $this->lazadaOrderList=new LazadaOrderList($storeName);
+        $this->lazadaOrderList->setStatus("pending");
+        $originOrderList=$this->lazadaOrderList->fetchOrderList();
+        return $originOrderList;
+    }
+
 	public function getOrderItemList($storeName,$orderId)
 	{
 		$this->lazadaOrderItemList = new LazadaOrderItemList($storeName);
@@ -101,6 +109,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             foreach($esgOrderGroups as $platformId => $esgOrderGroup){
                 $returnData = $this->runApiOrderFufillmentToShip($platformId,$esgOrderGroup,$pdfFilePath);
             }
+            $returnData["file"] = url("lazada-api/donwload-label?file=".$returnData['document']."&access_token = ".$access_token);
             return $result = array("response" => "success","message" => $returnData); 
         }else{
             return $result = array("response" => "failed","message" => "Invalid Order");
@@ -233,9 +242,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             }
         }
         if($doucment) {
-            $zipperFile = $pdfFilePath.'readyToShipLabel'.date("H-i-s").'.zip';
-            Zipper::make($zipperFile)->add($doucment)->close();
-            return $zipperFile;
+            $fileName ='readyToShipLabel'.date("H-i-s").'.zip';
+            Zipper::make($pdfFilePath.$fileName)->add($doucment)->close();
+            return $fileName;
         }
     }
 
@@ -553,6 +562,34 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         }else{
             return null;
         }
+    }
+
+    public function alertSetOrderReadyToShip($storeName)
+    {
+        $pendingOrderList = $this->getPendingOrderList($storeName);
+        $orderId = null;
+        if($pendingOrderList){
+            foreach($pendingOrderList as $pendingOrder){
+                $expierDate = strtotime("+2 days",strtotime($pendingOrder["CreatedAt"]));
+                $currentDate = strtotime(date("Y-m-d 23:59:59"));
+                if($expierDate - $currentDate <= 0)  {
+                    $orderId[] = $pendingOrder['OrderNumber'];
+                }
+            }
+            return $orderId;
+        }
+    }
+
+    public function sendAlertMailMessage($storeName,$esgOrders)
+    {
+        $subject = "MarketPlace: [{$storeName}] Order Ready To Ship Alert!\r\n";
+        $message = "These order will be late for ready to ship. Please act now!\r\n";
+        foreach($esgOrders as $esgOrder){
+            $message .="ESG Order No ".$esgOrder->so_no." (Platform Order No ".$esgOrder->platform_order_id.") status is ".$esgOrder->status.".\r\n";
+        }
+        $message .= "Thanks\r\n";
+        $this->sendMailMessage('storemanager@brandsconnect.net,fiona@etradegroup.net', $subject, $message);
+        return false;
     }
 
 }

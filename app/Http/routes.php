@@ -37,7 +37,7 @@ Route::group(['middleware' => 'auth'], function () {
     });
 });
 
-Route::group(['prefix' => '/scout', ['middleware' => 'auth']], function () {
+Route::group(['prefix' => '/scout', 'middleware' => 'auth'], function () {
     Route::get('/{vue_route?}', function () {
         return view('scout');
     })->where('vue_route', '[\/\w\.-]*');
@@ -57,6 +57,8 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('pricing/simulate', 'PricingController@simulate');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
     Route::get('listingSku/index', 'ListingSkuManagement@index');
+    Route::resource('/marketplaceCategory', 'MarketplaceCategoryController');
+    Route::get('marketplaceCategory/marketplace/{id}', 'MarketplaceCategoryController@showTopCategoriesForControlId');
     Route::get('listingSku/getCategory', 'ListingSkuManagement@getCategory');
     Route::post('listingSku/add', 'ListingSkuManagement@add');
     Route::get('listingSku/getData', 'ListingSkuManagement@getData');
@@ -75,10 +77,13 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('marketplace', 'MarketplaceController');
     $api->resource('brand', 'BrandController');
     $api->resource('merchant', 'MerchantController');
+    $api->resource('supplier', 'SupplierController');
     $api->resource('country', 'CountryController');
     $api->resource('warehouse', 'WarehouseController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
+    $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
+    $api->resource('marketplace-product', 'MarketplaceProductController');
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
 });
 

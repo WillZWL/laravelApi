@@ -12,13 +12,13 @@ class ApiBaseService extends PlatformMarketConstService
         $this->request = $request;
     }
 
-    public function saveDataToFile($data, $fileName)
+    public function saveDataToFile($data, $fileName, $ext = 'txt')
     {
         $filePath = storage_path().'/app/ApiPlatform/'.$this->getPlatformId().'/'.$fileName.'/'.date('Y');
         if (!file_exists($filePath)) {
             mkdir($filePath, 0755, true);
         }
-        $file = $filePath.'/'.date('Y-m-d-H-i').'.txt';
+        $file = $filePath .'/'. date('Y-m-d-H-i') .'.'. $ext;
         //write json data into data.json file
         if (file_put_contents($file, $data)) {
             //echo 'Data successfully saved';
@@ -100,6 +100,16 @@ class ApiBaseService extends PlatformMarketConstService
             }
             return $result;
         }
+    }
+
+    public function sendMailMessage($alertEmail, $subject, $message)
+    {
+        mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+    }
+
+    public function getEsgOrderReportByDate($date)
+    {
+        return null;
     }
 
     public function getSchedule()
