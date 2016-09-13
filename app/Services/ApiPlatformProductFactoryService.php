@@ -27,4 +27,9 @@ class ApiPlatformProductFactoryService
     {
         return $this->apiPlatformProductInterface->fulfilledInventoryReport($storeName);
     }
+
+    public function getEsgUnSuppressedReport(){
+
+        return $this->apiPlatformProductInterface->getEsgUnSuppressedReport();
+    }
 }

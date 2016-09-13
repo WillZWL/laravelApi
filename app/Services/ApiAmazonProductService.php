@@ -3,11 +3,10 @@
 namespace App\Services;
 
 use App\Contracts\ApiPlatformProductInterface;
-use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
+use App\Models\So;
 use App\Models\PlatformProductFeed;
 use Config;
-use Excel;
 
 //use fnac api package
 use Peron\AmazonMws\AmazonFeed;
@@ -164,9 +163,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
     }
 
     public function fulfilledInventoryReport($storeName)
-    { 
-        $this->readReport();
-        exit();
+    {   
         $reportTypeList = $this->getReportType();
         $reportScheduleList = $this->getReportScheduleList($storeName,$reportTypeList);
         if(!empty($reportScheduleList)){
@@ -181,13 +178,17 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
                 $reportSchedule = $this->setManageReportSchedule($storeName,$reportType);
             }
         }
+        //get exit report from Amazon
         $reportList = $this->getReportList($storeName);
+        $reportIds = null;
         foreach($reportList as $report){
             if(in_array($report["ReportType"],$this->getReportType())){
-                $reportFile = $this->getReport($storeName,$report["ReportId"]);
+                $reportIds[] = $this->getReport($storeName,$report["ReportId"]);
             }
         }
-        
+        if($reportIds){
+            $this->updateReportAcknowledgements($storeName,$reportIds,$acknowledger);
+        }
     }
 
     public function getReportRequest($storeName,$reportType)
@@ -201,11 +202,9 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function setManageReportSchedule($storeName,$reportType)
     {
-        //$scheduledDate = strtotime(date("Y-m-d 00:30:00",strtotime("+1 day")));
         $amazonReportScheduleManager = new AmazonReportScheduleManager($storeName);
         $amazonReportScheduleManager->setReportType($reportType);
-        $amazonReportScheduleManager->setSchedule("_NEVER_");
-        //$amazonReportScheduleManager->setScheduledDate($scheduledDate);
+        $amazonReportScheduleManager->setSchedule("_1_HOUR_");
         $amazonReportScheduleManager->manageReportSchedule();
         return $amazonReportScheduleManager->getList();
     }
@@ -231,7 +230,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function getReport($storeName,$reportId)
     {   
-        $path = $this->getUnSuppressedReportPath();
+        $path = $this->getDateReportPath("UNSUPPRESSED");
         if (!file_exists($path)) {
             mkdir($path, 0755, true);
         }
@@ -240,7 +239,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         $amazonReport->setReportId($reportId);
         $amazonReport->fetchReport();
         $result = $amazonReport->saveReport($pathFile);
-        return $result ? $pathFile : null;
+        return $result ? $reportId : null;
     }
 
     public function updateReportAcknowledgements($storeName,$reportIds,$acknowledger)
@@ -259,43 +258,144 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         );
     }
 
-    public function getEsgUnSuppressedReportPath()
+    public function getEsgUnSuppressedReport()
     {
-        $reportPath = $this->getUnSuppressedReportPath();
-        $cellData = null;
+        $reportPath = $this->getDateReportPath("UNSUPPRESSED");
+        $cellDataArr = array();$orderSkuOrderedList =null;
         $reportFiles = \File::allFiles($reportPath);
+        $marketOrderSkuOrderedList = $this->getAmazonFbaOrderSkuOrderedList();
         foreach($reportFiles as $reportFile){
-        	$fileName=basename($reportFile,'.txt');
-        	$row = 1;
-			if (($handle = fopen($reportFile, "r")) !== FALSE) {
-			    while (($data = fgetcsv($handle, 1000, "\t")) !== FALSE) {
-			        $num = count($data);
-			        //echo "<p> $num fields in line $row: <br /></p>\n";
-			       if($row > 1){
-			        	$cellData[]=array(
-			        	"fileName" => $fileName,
-			        	"sku" => $data['0'],
-			        	"inventory" => isset($data['10']) ? $data['10'] : "",
-			        	);
-			        }
-			        $row++;
-			    }
-			    fclose($handle);
-			}
+            $marketplace=basename($reportFile,'.txt');
+            if(isset($marketOrderSkuOrderedList[$marketplace])){
+              $orderSkuOrderedList = $marketOrderSkuOrderedList[$marketplace];          
+            }
+            $row = 1;$cellData = null;
+            if (($handle = fopen($reportFile, "r")) !== FALSE) {
+                while (($data = fgetcsv($handle, 1000, "\t")) !== FALSE) {
+                    $num = count($data); $orderSkuOrdered= null;
+                    //echo "<p> $num fields in line $row: <br /></p>\n";
+                   if($row == 1){
+                    $cellData[]=array(
+                        "marketplace" => "Marketplace",
+                        "marketplace_sku" => 'Marketplace Sku',
+                        "amazon_inventory" => 'Amazon Inventory',
+                        "esg_sku" => 'ESG Sku',
+                        "esg_ordered_qty" => 'ESG Ordered Qty',
+                        "product_name" => 'ESG Product Name',
+                        "brand_name" => 'ESG Brand Name',
+                        "master_sku" => 'ESG Master Sku',
+                        );
+                   }else {
+                        if($orderSkuOrderedList && isset($orderSkuOrderedList[$data['0']])){
+                            $orderSkuOrdered = $orderSkuOrderedList[$data['0']];
+                        }
+                        $reportCellData = $this->setReportCellData($marketplace,$data,$orderSkuOrdered);
+                        if($reportCellData){
+                            $cellData[] = $reportCellData;
+                        }
+                    }
+                    $row++;
+                }
+                fclose($handle);
+            }
+            $cellDataArr[$marketplace] = $cellData;
         }
-        if($cellData){
-        	$excel = \App::make('excel');
-    		Excel::create("amazonReport", function ($excel) use ($cellData) {
-        		$excel->sheet("amazonReport", function ($sheet) use ($cellData) {
-	                	$sheet->rows($cellData);
-	            	});
-	    	})->store("csv",$this->getUnSuppressedReportPath());
-	    }
+        $attachment = $this->generateMultipleSheetsExcel('amazonInvenotryReport',$cellDataArr,$this->getDateReportPath());
+        //send attachment Mail
+        if($attachment){
+            $subject = "Amazon Invenotry report!";
+            $this->sendAttachmentMail('storemanager@brandsconnect.net,fiona@etradegroup.net',$subject,$attachment);
+        }
     }
 
-    public function getUnSuppressedReportPath()
+    public function getAmazonFbaOrderSkuOrderedList()
+    {   
+        $fromDate = date("Y-m-d 00:00:00",strtotime("-2 weeks"));
+        $toDate = date("Y-m-d 23:59:59");
+        $amazonOrders = So::join('so_item', 'so_item.so_no', '=', 'so.so_no')
+                        ->join('product', 'product.sku', '=', 'so_item.prod_sku')
+                        ->join('brand', 'brand.id', '=', 'product.brand_id')
+                        ->join('sku_mapping', 'sku_mapping.sku', '=', 'so_item.prod_sku')
+                        ->where("so.biz_type","=","AMAZON")
+                        ->where("so.delivery_type_id","=","FBA")
+                        ->where("so.platform_group_order","=","1")
+                        ->where("so.create_on",">",$fromDate)
+                        ->where("so.create_on","<",$toDate)
+                        ->select('so.so_no','so.platform_id','so_item.prod_sku','so_item.qty','product.name as product_name','brand.brand_name','sku_mapping.ext_sku as master_sku')
+                        ->get();
+        $amazonOrderGroups = $amazonOrders->groupBy("platform_id");
+        return $this->getPlatformSkuOrderedList($amazonOrderGroups);
+    }
+
+    public function setReportCellData($marketplace,$data,$orderSkuOrdered="")
     {
-        return \Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix().date('Y').'/'.date("m").'/'.date("d")."/UNSUPPRESSED";
+        $amazonInventory = isset($data['10']) ? $data['10'] : "";
+        $esgorderedQty = isset($orderSkuOrdered['qty']) ? $orderSkuOrdered['qty'] : "";
+        $productName = isset($orderSkuOrdered['product_name']) ? $orderSkuOrdered['product_name'] : "";
+        $brandName = isset($orderSkuOrdered['brand_name']) ? $orderSkuOrdered['brand_name'] : "";
+        $masterSku = isset($orderSkuOrdered['master_sku']) ? $orderSkuOrdered['master_sku'] : "";
+        if($amazonInventory || $esgorderedQty){
+            $cellData = array(
+                "marketplace" => $marketplace,
+                "marketplace_sku" => $data['0'],
+                "amazon_inventory" => $amazonInventory,
+                "esg_sku" => isset($orderSkuOrdered['sku']) ? $orderSkuOrdered['sku'] : "",
+                "esg_ordered_qty" => $esgorderedQty,
+                "product_name" => $productName,
+                "brand_name" => $brandName,
+                "master_sku" => $masterSku,
+            );
+            return $cellData;
+        }
+    }
+
+    public function getDateReportPath($reportType="")
+    {
+        return \Storage::disk('report')->getDriver()->getAdapter()->getPathPrefix().date('Y').'/'.date("m").'/'.date("d")."/Amazon/".$reportType;
+    }
+
+    public function sendAttachmentMail($alertEmail,$subject,$attachment)
+    {
+        /* Attachment File */
+        $fileName = $attachment["file"];
+        $path = $attachment["path"];
+
+        // Read the file content
+        $file = $path.$fileName;
+        $fileSize = filesize($file);
+        $handle = fopen($file, "r");
+        $content = fread($handle, $fileSize);
+        fclose($handle);
+        $content = chunk_split(base64_encode($content));
+
+        /* Set the email header */
+        // Generate a boundary
+        $boundary = md5(uniqid(time()));
+
+        // Email header
+        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $header .= "MIME-Version: 1.0".PHP_EOL;
+
+        // Multipart wraps the Email Content and Attachment
+        $header .= "Content-Type: multipart/mixed; boundary=\"".$boundary."\"".PHP_EOL;
+        $header .= "This is a multi-part message in MIME format.".PHP_EOL;
+        $header .= "--".$boundary.PHP_EOL;
+
+        // Email content
+        // Content-type can be text/plain or text/html
+        $message = "Content-type:text/plain; charset=iso-8859-1".PHP_EOL;
+        $message .= "Content-Transfer-Encoding: 7bit".PHP_EOL.PHP_EOL;
+        $message .= "--".$boundary.PHP_EOL;
+
+        // Attachment
+        // Edit content type for different file extensions
+        $message .= "Content-Type: application/xml; name=\"".$fileName."\"".PHP_EOL;
+        $message .= "Content-Transfer-Encoding: base64".PHP_EOL;
+        $message .= "Content-Disposition: attachment; filename=\"".$fileName."\"".PHP_EOL.PHP_EOL;
+        $message .= $content.PHP_EOL;
+        $message .= "--".$boundary."--";
+        //mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+        mail("jimmy.gao@eservicesgroup.com", $subject, $message, $header);
     }
 
 }

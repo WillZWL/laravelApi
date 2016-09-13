@@ -47,12 +47,25 @@ class PlatformMarketProductReport extends BaseApiPlatformCommand
     {
         if ($stores){
             $action = $this->argument('action');
-            foreach ($stores as $storeName => $store) {
-                if($action == "inventory"){
-                    //\Log::info('Report inventory. '.\Carbon\Carbon::now());exit();
-                    $this->getApiPlatformProductFactoryService($apiName)->fulfilledInventoryReport($storeName);  
-                }
+            if($action == "getInventory"){
+                //\Log::info('Report inventory. '.\Carbon\Carbon::now());exit();
+                $this->getInventory($stores,$apiName);
+            }else if($action == "getReport"){
+                $this->getReport($apiName);
             }
         }
+    }
+
+    //loop $store function 
+    public function getInventory($stores,$apiName)
+    {   foreach ($stores as $storeName => $store) {
+            $this->getApiPlatformProductFactoryService($apiName)->fulfilledInventoryReport($storeName); 
+        }
+    }
+
+    //no need loop $store 
+    public function getReport($apiName)
+    {
+        $this->getApiPlatformProductFactoryService($apiName)->getEsgUnSuppressedReport(); 
     }
 }
