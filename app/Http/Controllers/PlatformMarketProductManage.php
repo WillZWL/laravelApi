@@ -34,7 +34,7 @@ class PlatformMarketProductManage extends Controller
 
     public function uploadMarketplacdeSkuMapping(Request $request)
     {
-        $platform = $request->input('check');
+        $platform = $request->input('check');$message = "";
         if ($platform != '' && $request->hasFile('sku_file')) {
             $file = $request->file('sku_file');
             $extension = $file->getClientOriginalExtension();
@@ -43,12 +43,16 @@ class PlatformMarketProductManage extends Controller
             $request->file('sku_file')->move($destinationPath, $fileName);
             $stores = $this->getStores($platform);
             $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
-            $platformMarketSkuMappingService->initMarketplaceSkuMapping($fileName);
-
-            return redirect('platform-market/upload-mapping');
+            $result = $platformMarketSkuMappingService->initMarketplaceSkuMapping($fileName);
+            if(isset($result["error_sku"])){
+                foreach($result["error_sku"] as $errorSku){
+                    $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";
+                }
+            }else{
+                $message = "Upload Marketplace SKU Mapping Success!";
+            }
         }
-
-        return response()->view('platform-manager.uplaod-mapping');
+        return \Redirect::back()->with('message',$message);
     }
 
     public function getMarketplacdeSkuMappingFile($filename)

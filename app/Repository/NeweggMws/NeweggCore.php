@@ -8,8 +8,12 @@ class NeweggCore
 {
     private $options;
     protected $mwsName = 'newegg-mws';
-    private $storeCurrency;
+    private $currency;
+    private $countryCode;
+    private $storeName = "";
     protected $errorResponse = array();
+    private $itAlertEmail = "it@eservicesgroup.net";
+    private $userAlertEmail = array();
 
     public function __construct($storeName)
     {
@@ -20,24 +24,27 @@ class NeweggCore
 
     public function query($resourceUrl="", $resourceMethod="GET", $requestParams=array(), $requestBody=array())
     {
+        $dataResponse = null;
+        $requestInfo = $error = array();
         if($resourceUrl) {
-                $params["sellerid"] = $this->options['sellerId'];
-            if($requestParams)
-                $params = array_merge($params, $requestParams);
-            // $requestParams["version"] = '304';
+            
+            $curlResponse = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
 
-            // $signRequestParams = $this->signature($requestParams);
-            $xml = $this->curl($resourceUrl, strtoupper($resourceMethod), $params, $requestBody);
-            $data = $this->convert($xml);
-    echo "<pre>";print($data);die();
-        }
-        if (isset($data['Head']) && isset($data['Head']['ErrorCode'])) {
-            $this->ErrorResponse = $data['Head'];
-
-            return null;
+            if($curlResponse["status"]) {
+                $xml = $curlResponse["xml"];
+                $data = $this->convert($xml);
+            } else {
+                $requestInfo = $curlResponse["requestInfo"];
+                $error = $curlResponse["error"];
+            }
         }
 
-        return $this->prepare($data);
+        if(!$error) {
+            $dataResponse = $this->prepare($data);
+        }
+
+        $returnArr = ["data"=>$dataResponse, "requestInfo"=>$requestInfo, "error"=>$error];
+        return $returnArr;
     }
 
     // public function curlPostDataToApi($requestParams, $xmlData)
@@ -94,8 +101,8 @@ class NeweggCore
      */
     protected function prepare($data = array())
     {
-        if (isset($data['Body'])) {
-            return $data['Body'];
+        if (isset($data['ResponseBody'])) {
+            return $data['ResponseBody'];
         } else {
             return null;
         }
@@ -141,43 +148,58 @@ class NeweggCore
      * @param $info array - reference for curl status info
      *
      * @return string
+     *
+     * http://docs.guzzlephp.org/en/latest/quickstart.html#using-responses
+     *
+     * https://docs.aws.amazon.com/aws-sdk-php/v2/api/namespace-Guzzle.Http.html
      */
-    private function curl($resourceUrl, $resourceMethod, $requestParams, $requestBody)
+    private function curl($resourceUrl, $resourceMethod, $requestParams=array(), $requestBody="")
     {
-        $response = "";
+        $response = $xml = "";
+        $error = array();
+        $status = FALSE;
+        $requiredParam["sellerid"] = $this->options['sellerId'];
+        if($requestParams)
+            $requestParams = array_merge($requestParams, $requiredParam);
         $queryString = http_build_query($requestParams, '', '&', PHP_QUERY_RFC3986);
-        $request = "https://api.newegg.com/marketplac/{$resourceUrl}?".$queryString;
+        $requestInfo["request"] = $request = "{$this->urlbase}{$resourceUrl}?".$queryString;
         
-        $headerArray = $this->initAuthParams();
-
-        $client = new \GuzzleHttp\Client();
         $requestOption["headers"] = $this->initAuthParams();
         $requestOption["body"] = $requestBody;
-        $requestOption["http_errors"] = true;
+        $requestOption["http_errors"] = TRUE;
+        $requestInfo["request"] = $requestOption;
+
+        $client = new \GuzzleHttp\Client();
         try {
-            $response = $client->request('PUT', $request, $requestOption);
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            $response = $client->request($resourceMethod, $request, $requestOption);
+            $xml = $response->getBody()->getContents();
+            $status = TRUE;
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            $error[] = "NeweggCore.php ".__LINE__." networking error. ";
+            $error[] = "message: {$e->getMessage()}. ";
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            # 400-level errors
+            $error[] = "NeweggCore.php ".__LINE__." client 400-level error. ";
+            if($e->hasResponse()) {
+                $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
+            } else {
+                $error[] = "message: {$e->getMessage()}. ";
+            }
+        } catch (\GuzzleHttp\Exception\ServerException $e) {
 
-            echo 'Uh oh! ' . $e->getMessage();
-            echo 'HTTP request URL: ' . $e->getRequest()->getUrl() . "\n";
-            echo 'HTTP request: ' . $e->getRequest() . "\n";
-            echo 'HTTP response status: ' . $e->getResponse()->getStatusCode() . "\n";
-            echo 'HTTP response: ' . $e->getResponse() . "\n";
+            $error[] = "NeweggCore.php ".__LINE__." server 500-level error. ";
+            if($e->hasResponse()) {
+                $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
+            } else {
+                $error[] = "message: {$e->getMessage()}. ";
+            }
+        } catch (\Exception  $e) {
+            $error[] = "NeweggCore.php ".__LINE__." other error. ";
+            $error[] = "message: {$e->getMessage()}. ";
+        } 
 
-        } catch (\GuzzleHttp\Exception\CurlException $e) {
-
-            echo 'Uh oh 2! ' . $e->getMessage();
-            // echo 'HTTP request URL: ' . $e->getRequest()->getUrl() . "\n";
-            // echo 'HTTP request: ' . $e->getRequest() . "\n";
-            // echo 'HTTP response status: ' . $e->getResponse()->getStatusCode() . "\n";
-            // echo 'HTTP response: ' . $e->getResponse() . "\n";
-        }
-echo "<pre>";
-var_dump($response);
-die();
+        $data = ["status"=>$status, "xml"=>$xml, "requestInfo"=>$requestInfo, "error"=>$error];
         return $data;
-
-
     }
 
     /**
@@ -190,13 +212,10 @@ die();
     private function convert($xml)
     {
         if ($xml != '') {
-            var_dump($xml);die();
             $obj = simplexml_load_string($xml);
             $array = json_decode(json_encode($obj), true);
-            echo "<pre>";var_dump($array);die();
             if (is_array($array)) {
                 $array = $this->sanitize($array);
-
                 return $array;
             }
         }
@@ -220,6 +239,8 @@ die();
                 } else {
                     $arr[$k] = '';
                 }
+            } elseif ($v !== "") {
+                $arr[$k] = $v;
             }
         }
 
@@ -258,9 +279,16 @@ die();
                 $this->log('Access Secret Key is missing!', 'Warning');
             }
             if (array_key_exists('currency', $store[$s])) {
-                $this->storeCurrency = $store[$s]['currency'];
+                $this->currency = $store[$s]['currency'];
             }
-          // Overwrite Newegg service url if specified
+            if (array_key_exists('country', $store[$s])) {
+                $this->countryCode = $store[$s]['country'];
+            }
+            if (array_key_exists('userAlertEmail', $store[$s])) {
+                $this->userAlertEmail = $store[$s]['userAlertEmail'];
+            }
+
+            // Overwrite Newegg service url if specified
             if (array_key_exists('neweggServiceUrl', $store[$s])) {
                 $this->urlbase = $store[$s]['neweggServiceUrl'];
             }
@@ -270,10 +298,36 @@ die();
         }
     }
 
-    public function getStoreCurrency()
+    public function sendMail($to, $subject, $message, $from="admin@eservicesgroup.com")
     {
-        return $this->storeCurrency;
+        $headers = "From: {$from}\r\n";
+        mail($to, $subject, $message, $headers);
     }
+    public function getCurrency()
+    {
+        return $this->currency;
+    }
+
+    public function getCountryCode()
+    {
+        return $this->countryCode;
+    }
+
+    public function getStoreName()
+    {
+        return $this->storeName;
+    }
+
+    public function getItAlertEmail()
+    {
+        return $this->itAlertEmail;
+    }
+
+    public function getUserAlertEmail()
+    {
+        return $this->userAlertEmail;
+    }
+    
 
     // //ADD SANDBOX FUNCTION
     private function initMwsName()
@@ -286,4 +340,5 @@ die();
             $this->mwsName = $sandbox;
         }
     }
+
 }
