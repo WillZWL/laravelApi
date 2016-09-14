@@ -9,6 +9,7 @@ return [
             'secretKey' => 'Ae2iSLn1gsi0bZIRFhxw/PlDHssWgoRbAb1GF2yF',
             'amazonServiceUrl' => 'https://mws.amazonservices.com/',
             'platform' => 'US',
+            'currency' => 'USD',
         ],
         'BCAMAZONCA' => [
             'merchantId' => 'A31GWB3ZYX0LWJ',
@@ -17,6 +18,7 @@ return [
             'secretKey' => 'Ae2iSLn1gsi0bZIRFhxw/PlDHssWgoRbAb1GF2yF',
             'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
             'platform' =>'CA',
+            'currency' => 'CAD',
         ],
         'BCAMAZONMX' => [
             'merchantId' => 'A31GWB3ZYX0LWJ',
@@ -25,6 +27,7 @@ return [
             'secretKey' => 'Ae2iSLn1gsi0bZIRFhxw/PlDHssWgoRbAb1GF2yF',
             'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
             'platform' =>'MX',
+            'currency' => 'MXN'
         ],
         'BCAMAZONGB' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
@@ -33,6 +36,7 @@ return [
             'secretKey' => 'wsrUK4NIc/s3VgIv/yeIwZAGzNCI1a5mBr1OHrqS',
             'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
             'platform' =>'GB',
+            'currency' => 'GBP',
         ],
         'BCAMAZONDE' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
@@ -41,6 +45,7 @@ return [
             'secretKey' => 'wsrUK4NIc/s3VgIv/yeIwZAGzNCI1a5mBr1OHrqS',
             'amazonServiceUrl' => 'https://mws.amazonservices.de/',
             'platform' =>'DE',
+            'currency' => 'EUR',
         ],
         'BCAMAZONES' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
@@ -49,6 +54,7 @@ return [
             'secretKey' => 'wsrUK4NIc/s3VgIv/yeIwZAGzNCI1a5mBr1OHrqS',
             'amazonServiceUrl' => 'https://mws.amazonservices.es/',
             'platform' =>'ES',
+            'currency' => 'EUR',
         ],
         'BCAMAZONFR' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
@@ -57,6 +63,7 @@ return [
             'secretKey' => 'wsrUK4NIc/s3VgIv/yeIwZAGzNCI1a5mBr1OHrqS',
             'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
             'platform' =>'FR',
+            'currency' => 'EUR',
         ],
         'BCAMAZONIT' => [
             'merchantId' => 'A3C4BSI6HUJD6J',
@@ -65,6 +72,7 @@ return [
             'secretKey' => 'wsrUK4NIc/s3VgIv/yeIwZAGzNCI1a5mBr1OHrqS',
             'amazonServiceUrl' => 'https://mws.amazonservices.it/',
             'platform' =>'IT',
+            'currency' => 'EUR',
         ],
         'BCAMAZONJP' => [
             'merchantId' => 'A31MKVVQWZLA3D',
@@ -73,6 +81,7 @@ return [
             'secretKey' => 'zVfzt5ajj5HrJKoUAbJJQWh3JVN8u+vgsxnYcNKF',
             'amazonServiceUrl' => 'https://mws.amazonservices.jp/',
             'platform' =>'JP',
+            'currency' => 'JPY',
         ],
 
         'PXAMAZONGB' => [
@@ -82,6 +91,7 @@ return [
             'secretKey' => 'jFejZwKvNgIqcGG7K7a93gvyb4CpG0EfOcb9+ScE',
             'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
             'platform' =>'GB',
+            'currency' => 'GBP',
         ],
         'PXAMAZONDE' => [
             'merchantId' => 'AK4II4CA9MIL3',
@@ -90,6 +100,7 @@ return [
             'secretKey' => 'jFejZwKvNgIqcGG7K7a93gvyb4CpG0EfOcb9+ScE',
             'amazonServiceUrl' => 'https://mws.amazonservices.de/',
             'platform' =>'DE',
+            'currency' => 'EUR',
         ],
         'PXAMAZONES' => [
             'merchantId' => 'AK4II4CA9MIL3',
@@ -98,6 +109,7 @@ return [
             'secretKey' => 'jFejZwKvNgIqcGG7K7a93gvyb4CpG0EfOcb9+ScE',
             'amazonServiceUrl' => 'https://mws.amazonservices.es/',
             'platform' =>'ES',
+            'currency' => 'EUR',
         ],
         'PXAMAZONFR' => [
             'merchantId' => 'AK4II4CA9MIL3',
@@ -106,6 +118,7 @@ return [
             'secretKey' => 'jFejZwKvNgIqcGG7K7a93gvyb4CpG0EfOcb9+ScE',
             'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
             'platform' =>'FR',
+            'currency' => 'EUR',
         ],
         'PXAMAZONIT' => [
             'merchantId' => 'AK4II4CA9MIL3',
@@ -114,6 +127,7 @@ return [
             'secretKey' => 'jFejZwKvNgIqcGG7K7a93gvyb4CpG0EfOcb9+ScE',
             'amazonServiceUrl' => 'https://mws.amazonservices.it/',
             'platform' =>'IT',
+            'currency' => 'EUR',
         ],
 
          'CVAMAZONUS' => [
@@ -123,6 +137,7 @@ return [
              'secretKey' => 'c9L+tUzb++/47qc2JIVFckg3tVQ5Ri/ZbBMTVWUh',
              'amazonServiceUrl' => 'https://mws.amazonservices.com/',
              'platform' => 'US',
+             'currency' => 'USD',
          ],
          'CVAMAZONCA' => [
              'merchantId' => 'A2FG3KS48AERP3',
@@ -131,6 +146,7 @@ return [
              'secretKey' => 'c9L+tUzb++/47qc2JIVFckg3tVQ5Ri/ZbBMTVWUh',
              'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
              'platform' =>'CA',
+             'currency' => 'CAD',
          ],
          'CVAMAZONMX' => [
              'merchantId' => 'A2FG3KS48AERP3',
@@ -139,6 +155,7 @@ return [
              'secretKey' => 'c9L+tUzb++/47qc2JIVFckg3tVQ5Ri/ZbBMTVWUh',
              'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
              'platform' =>'MX',
+             'currency' => 'MXN'
          ],
          'CVAMAZONGB' => [
              'merchantId' => 'A2FP4K69BWZNT0',
@@ -147,6 +164,7 @@ return [
              'secretKey' => 'EgGiZkDAIiZk023l2XqTKyCmb4UKlG3brYqrDA0C',
              'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
              'platform' =>'GB',
+             'currency' => 'GBP',
          ],
          'CVAMAZONDE' => [
              'merchantId' => 'A2FP4K69BWZNT0',
@@ -155,6 +173,7 @@ return [
              'secretKey' => 'EgGiZkDAIiZk023l2XqTKyCmb4UKlG3brYqrDA0C',
              'amazonServiceUrl' => 'https://mws.amazonservices.de/',
              'platform' =>'DE',
+             'currency' => 'EUR',
          ],
          'CVAMAZONES' => [
              'merchantId' => 'A2FP4K69BWZNT0',
@@ -163,6 +182,7 @@ return [
              'secretKey' => 'EgGiZkDAIiZk023l2XqTKyCmb4UKlG3brYqrDA0C',
              'amazonServiceUrl' => 'https://mws.amazonservices.es/',
              'platform' =>'ES',
+             'currency' => 'EUR',
          ],
          'CVAMAZONFR' => [
              'merchantId' => 'A2FP4K69BWZNT0',
@@ -171,6 +191,7 @@ return [
              'secretKey' => 'EgGiZkDAIiZk023l2XqTKyCmb4UKlG3brYqrDA0C',
              'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
              'platform' =>'FR',
+             'currency' => 'EUR',
          ],
          'CVAMAZONIT' => [
              'merchantId' => 'A2FP4K69BWZNT0',
@@ -179,6 +200,7 @@ return [
              'secretKey' => 'EgGiZkDAIiZk023l2XqTKyCmb4UKlG3brYqrDA0C',
              'amazonServiceUrl' => 'https://mws.amazonservices.it/',
              'platform' =>'IT',
+             'currency' => 'EUR',
          ],
 
           //'3DAMAZONUS' => [
@@ -196,6 +218,7 @@ return [
           //    'secretKey' => 'pxBkJ3MBRKO7FYTd1KaLkp2PCOCLpFV/eqxxemmQ',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.ca/',
           //    'platform' =>'CA',
+          //    'currency' => 'CAD',
           //],
           //'3DAMAZONMX' => [
           //    'merchantId' => 'A596P66U645JG',
@@ -204,6 +227,7 @@ return [
           //    'secretKey' => 'pxBkJ3MBRKO7FYTd1KaLkp2PCOCLpFV/eqxxemmQ',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.com.mx/',
           //    'platform' =>'MX',
+          //    'currency' => 'MXN'
           //],
           //'3DAMAZONGB' => [
           //    'merchantId' => 'A2LTPCO6A3S9S4',
@@ -212,6 +236,7 @@ return [
           //    'secretKey' => '7B1z7Dmto2IOLuq2RZdhbLzlA1s6e//j8Kv4zYjU',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.co.uk/',
           //    'platform' =>'GB',
+          //    'currency' => 'GBP',
           //],
           //'3DAMAZONDE' => [
           //    'merchantId' => 'A2LTPCO6A3S9S4',
@@ -220,6 +245,7 @@ return [
           //    'secretKey' => '7B1z7Dmto2IOLuq2RZdhbLzlA1s6e//j8Kv4zYjU',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.de/',
           //    'platform' =>'DE',
+          //    'currency' => 'EUR',
           //],
           //'3DAMAZONES' => [
           //    'merchantId' => 'A2LTPCO6A3S9S4',
@@ -228,6 +254,7 @@ return [
           //    'secretKey' => '7B1z7Dmto2IOLuq2RZdhbLzlA1s6e//j8Kv4zYjU',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.es/',
           //    'platform' =>'ES',
+          //    'currency' => 'EUR',
           //],
           //'3DAMAZONFR' => [
           //    'merchantId' => 'A2LTPCO6A3S9S4',
@@ -236,6 +263,7 @@ return [
           //    'secretKey' => '7B1z7Dmto2IOLuq2RZdhbLzlA1s6e//j8Kv4zYjU',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.fr/',
           //    'platform' =>'FR',
+          //    'currency' => 'EUR',
           //],
           //'3DAMAZONIT' => [
           //    'merchantId' => 'A2LTPCO6A3S9S4',
@@ -244,6 +272,7 @@ return [
           //    'secretKey' => '7B1z7Dmto2IOLuq2RZdhbLzlA1s6e//j8Kv4zYjU',
           //    'amazonServiceUrl' => 'https://mws.amazonservices.it/',
           //    'platform' =>'IT',
+          //    'currency' => 'EUR',
           //],
     ],
 
