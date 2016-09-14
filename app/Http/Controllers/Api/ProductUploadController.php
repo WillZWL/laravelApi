@@ -26,16 +26,18 @@ class ProductUploadController extends Controller
     public function upload(Requests\ProductUploadRequest $updateProductRequest)
     {
         $upload_dir = storage_path() .'/bulk-product-upload/';
-        if (!is_dir($upload_dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/')) {
-            $options['upload_dir'] = $this->mkUploadDir($upload_dir);
-        } else {
-            $options['upload_dir'] = $upload_dir.date('Y').'/'.date('m').'/'.date('d').'/';
-        }
+        $options['upload_dir'] = $this->mkUploadDir($upload_dir);
         $options['print_response'] = false;
-        $upload_response = new JqueryFileUploadHandler($options);
+        try {
+            $upload_response = new JqueryFileUploadHandler($options);
+        } catch (\Exception $e) {
+            mail('will.zhang@eservicesgroup.com', 'Product Upload Failed - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
         $response = $upload_response->response;
         if ($response) {
             $upload_file_path = $options['upload_dir'].$response['files'][0]->name;
+            $productService = New ProductService();
+            $productService->handleUploadFile($upload_file_path);
         }
         return response()->json($response);
     }
@@ -44,14 +46,14 @@ class ProductUploadController extends Controller
     {
         if (!is_dir($dir.date('Y').'/')) {
             mkdir($dir.date('Y').'/', 775, true);
-            if (!is_dir($dir.date('Y').'/'.date('m').'/')) {
-                mkdir($dir.date('Y').'/'.date('m').'/', 775, true);
-                    if (!is_dir($dir.date('Y').'/'.date('m').'/'.date('d').'/')) {
-                        mkdir($dir.date('Y').'/'.date('m').'/'.date('d').'/', 775, true);
-                        return $dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/';
-                    }
-            }
         }
+        if (!is_dir($dir.date('Y').'/'.date('m').'/')) {
+            mkdir($dir.date('Y').'/'.date('m').'/', 775, true);
+        }
+        if (!is_dir($dir.date('Y').'/'.date('m').'/'.date('d').'/')) {
+            mkdir($dir.date('Y').'/'.date('m').'/'.date('d').'/', 775, true);
+        }
+        return $dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/';
     }
 
     public function testExcelToDatabase()
