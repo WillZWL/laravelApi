@@ -23,9 +23,9 @@ class ApiPlatformProductFactoryService
         return $this->apiPlatformProductInterface->submitProductUpdate($storeName);
     }
 
-    public function fulfilledInventoryReport($storeName)
+    public function warehouseInventoryReport()
     {
-        return $this->apiPlatformProductInterface->fulfilledInventoryReport($storeName);
+        return $this->apiPlatformProductInterface->warehouseInventoryReport();
     }
 
     public function getEsgUnSuppressedReport(){

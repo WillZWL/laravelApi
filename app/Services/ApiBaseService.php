@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\MarketplaceSkuMapping;
+use App\Models\WmsWarehouseMapping;
 use Excel;
 
 class ApiBaseService extends PlatformMarketConstService
@@ -128,47 +129,47 @@ class ApiBaseService extends PlatformMarketConstService
         }
     }
 
-    public function getPlatformSkuOrderedList($platformOrderGroups)
+    public function getWmsWarehouseSkuOrderedList($warehouseOrderGroups)
     {
-        $platformSkuOrderedList = array();
-        foreach($platformOrderGroups as $index =>  $platformOrderGroup){
-            $platformPrefix = strtoupper(substr($index, 3, 2));
-            $platformAcronym = strtoupper(substr($index, 5, 2));
-            $countryCode = strtoupper(substr($index, -2));
+        $warehouseSkuOrderedList = array();
+        foreach($warehouseOrderGroups as $warehouseId => $warehouseOrderGroup){
+            $warehouseMapping = WmsWarehouseMapping::where("warehouse_id","=",$warehouseId)->first();
+            $platformPrefix = strtoupper(substr($warehouseMapping->platform_id, 3, 2));
+            $platformAcronym = strtoupper(substr($warehouseMapping->platform_id, 5, 2));
+            $countryCode = strtoupper(substr($warehouseMapping->platform_id, -2));
             $marketplaceId = $platformPrefix.$this->platformAcronym[$platformAcronym];
-            $skuOrderedList = $this->getSkuOrderedListByGroupOrder($platformOrderGroup,$marketplaceId,$countryCode);
-            $platformSkuOrderedList[$marketplaceId.$countryCode] = $skuOrderedList;
-        };
-        return $platformSkuOrderedList; 
+            $marketplaceSkuList = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+                        ->join('brand', 'brand.id', '=', 'product.brand_id')
+                        ->join('sku_mapping', 'sku_mapping.sku', '=', 'product.sku')
+                        ->where("marketplace_id","=",$marketplaceId)
+                        ->where("country_id","=",$countryCode)
+                        ->select('marketplace_sku_mapping.sku','marketplace_sku_mapping.marketplace_sku','product.name as product_name','brand.brand_name','sku_mapping.ext_sku as master_sku')
+                        ->get()
+                        ->toArray();
+            $platformSkuOrderedList = $this->getPlatformSkuOrderedList($warehouseOrderGroup,$marketplaceSkuList);
+            $warehouseSkuOrderedList[$warehouseId] = $platformSkuOrderedList;
+        }
+        return $warehouseSkuOrderedList;
     }
 
-    private function getSkuOrderedListByGroupOrder($platformOrderGroup,$marketplaceId,$countryCode)
+    private function getPlatformSkuOrderedList($warehouseOrderGroup,$marketplaceSkuList)
     {
-        $skuOrderedList = null;$newSkuOrderedList = null;
-        $marketplaceSkuList = MarketplaceSkuMapping::where("marketplace_id","=",$marketplaceId)
-                    ->where("country_id","=",$countryCode)
-                    ->get()
-                    ->pluck('marketplace_sku', 'sku')
-                    ->toArray();
-        foreach($platformOrderGroup as $platformOrder){
-            if(isset($marketplaceSkuList[$platformOrder->prod_sku])){
-                $skuOrderedList[$platformOrder->prod_sku]["marketplace_sku"]=$marketplaceSkuList[$platformOrder->prod_sku];
-            }
-            $skuOrderedList[$platformOrder->prod_sku]["sku"]=$platformOrder->prod_sku;
-            if(isset($skuOrderedList[$platformOrder->prod_sku]["qty"])){
-                $skuOrderedList[$platformOrder->prod_sku]["qty"] +=$platformOrder->qty;
+        $skuOrderedQtyList = null;$platformSkuOrderedList = null;
+        foreach($warehouseOrderGroup as $warehouseOrder){
+            if(isset($skuOrderedQtyList[$warehouseOrder->prod_sku])){
+                $skuOrderedQtyList[$warehouseOrder->prod_sku] +=$warehouseOrder->qty;
             }else{
-                $skuOrderedList[$platformOrder->prod_sku]["qty"] =$platformOrder->qty;
+                $skuOrderedQtyList[$warehouseOrder->prod_sku] =$warehouseOrder->qty;
             }
-            $skuOrderedList[$platformOrder->prod_sku]["product_name"]=$platformOrder->product_name;
-            $skuOrderedList[$platformOrder->prod_sku]["brand_name"]=$platformOrder->brand_name;
-            $skuOrderedList[$platformOrder->prod_sku]["master_sku"]=$platformOrder->master_sku;
         }
-        foreach($skuOrderedList as $skuOrdered){
-            if(isset($skuOrdered["marketplace_sku"]))
-            $newSkuOrderedList[$skuOrdered["marketplace_sku"]]= $skuOrdered;
+        foreach($marketplaceSkuList as $marketplaceSku){
+            if(isset($skuOrderedQtyList[$marketplaceSku["sku"]])){
+                $marketplaceSku["qty"] = $skuOrderedQtyList[$marketplaceSku["sku"]];
+            }
+            //can set only order show the product mapping info
+            $platformSkuOrderedList[$marketplaceSku["marketplace_sku"]] = $marketplaceSku;
         }
-        return $newSkuOrderedList;
+        return $platformSkuOrderedList;
     }
 
     public function getSchedule()
