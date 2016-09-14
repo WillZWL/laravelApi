@@ -310,6 +310,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
                         "product_name" => 'ESG Product Name',
                         "brand_name" => 'ESG Brand Name',
                         "esg_ordered_qty" => 'ESG Ordered Qty',
+                        "replenish" => 'Replenish',
                         );
                    }else {
                         if($orderSkuOrderedList && isset($orderSkuOrderedList[$data['0']])){
@@ -337,7 +338,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
     public function getAmazonFbaOrderSkuOrderedList()
     {   
         $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
-        $toDate = date("Y-m-d 23:59:59");
+        $toDate = date("Y-m-d 00:00:00");
         $amazonFbaOrders = So::join('so_item', 'so_item.so_no', '=', 'so.so_no')
                         ->join('wms_warehouse_mapping as wwm', 'wwm.platform_id', '=', 'so.platform_id')
                         ->where("so.biz_type","=","AMAZON")
@@ -358,6 +359,11 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         $productName = isset($orderSkuOrdered['product_name']) ? $orderSkuOrdered['product_name'] : "";
         $brandName = isset($orderSkuOrdered['brand_name']) ? $orderSkuOrdered['brand_name'] : "";
         $masterSku = isset($orderSkuOrdered['master_sku']) ? $orderSkuOrdered['master_sku'] : "";
+        if($esgorderedQty >= $amazonInventory){
+           $replenish = "Y";
+        }else{
+           $replenish = "N"; 
+        }
         if($esgorderedQty || $amazonInventory){
             $cellData = array(
                 "warehouse _id" => $warehouseId,
@@ -368,6 +374,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
                 "product_name" => $productName,
                 "brand_name" => $brandName,
                 "esg_ordered_qty" => $esgorderedQty,
+                "replenish" => $replenish,
             );
             return $cellData;
         }
