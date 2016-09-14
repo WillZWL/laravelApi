@@ -38,9 +38,9 @@ class ApiWishProductService extends ApiWishAuthService implements ApiPlatformPro
         if(!$processStatusProduct->isEmpty()){
             $wishClient = $this->initWishClient($storeName);
             foreach ($processStatusProduct as $index => $pendingSku) {
-                $variant = $wishClient->getProductVariatonBySKU($pendingSku->marketplace_sku);
+                $variant = $wishClient->getProductVariationBySKU($pendingSku->marketplace_sku);
                 $variant->price = $pendingSku->price;
-                $result = $wishClient->updateProductVariant($variant);
+                $result = $wishClient->updateProductVariation($variant);
             }
             if($result){
                 $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_PRICE);

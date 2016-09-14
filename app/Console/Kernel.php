@@ -90,7 +90,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('platformMarket:productReport getInventory', array('--api' => 'amazon'))
             ->dailyAt('00:00');
         $schedule->command('platformMarket:productReport getReport', array('--api' => 'amazon'))
-            ->dailyAt('00:10');
+            ->dailyAt('00:30');
 
         //$schedule->command('feed:product')
         //    ->everyTenMinutes();
