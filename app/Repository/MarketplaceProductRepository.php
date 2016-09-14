@@ -36,8 +36,8 @@ class MarketplaceProductRepository
             $p->listing_status = $product['listing_status'];
         }
 
-        if (isset($product['listing_qty']) && ($p->inventory != $product['listing_qty'])) {
-            $p->inventory = $product['listing_qty'];
+        if (isset($product['listing_quantity']) && ($p->inventory != $product['listing_quantity'])) {
+            $p->inventory = $product['listing_quantity'];
             $p->process_status = $p->process_status | self::INVENTORY_UPDATED;
         }
 
