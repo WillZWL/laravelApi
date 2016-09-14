@@ -49,7 +49,7 @@ class PlatformMarketProductReport extends BaseApiPlatformCommand
             $action = $this->argument('action');
             if($action == "getInventory"){
                 //\Log::info('Report inventory. '.\Carbon\Carbon::now());exit();
-                $this->getInventory($stores,$apiName);
+                $this->getInventory($apiName);
             }else if($action == "getReport"){
                 $this->getReport($apiName);
             }
@@ -57,10 +57,9 @@ class PlatformMarketProductReport extends BaseApiPlatformCommand
     }
 
     //loop $store function 
-    public function getInventory($stores,$apiName)
-    {   foreach ($stores as $storeName => $store) {
-            $this->getApiPlatformProductFactoryService($apiName)->fulfilledInventoryReport($storeName); 
-        }
+    public function getInventory($apiName)
+    {   
+        $this->getApiPlatformProductFactoryService($apiName)->warehouseInventoryReport(); 
     }
 
     //no need loop $store 

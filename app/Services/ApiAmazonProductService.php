@@ -6,6 +6,7 @@ use App\Contracts\ApiPlatformProductInterface;
 use App\Models\MpControl;
 use App\Models\So;
 use App\Models\PlatformProductFeed;
+use App\Models\WmsWarehouseMapping;
 use Config;
 
 //use fnac api package
@@ -162,8 +163,44 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         $this->runProductUpdate($storeName, 'pendingProduct');
     }
 
-    public function fulfilledInventoryReport($storeName)
+    public function warehouseInventoryReport()
+    {
+        $platformIds = null ;
+        foreach($this->stores as $storeName => $store){
+            $platformAccount = strtoupper(substr($storeName, 0, 2));
+            $platformIds[$storeName] = 'AC-'.$platformAccount.'AZ-GROUP'.$store["platform"];
+        }
+        $platformStoreName = array_flip($platformIds);
+        $warehouseIdList = WmsWarehouseMapping::whereIn("platform_id",$platformIds)
+                            ->get()
+                            ->pluck('warehouse_id', 'platform_id')
+                            ->toArray();
+        $warehouseIdList = array_unique($warehouseIdList);
+        foreach($warehouseIdList as $platformId => $warehouseId){
+            if(isset($platformStoreName[$platformId])){
+                $this->fulfilledInventoryReport($platformStoreName[$platformId],$warehouseId);
+            }
+        }
+    }
+
+    public function fulfilledInventoryReport($storeName,$warehouseId)
     {   
+        //$this->setAmazonReportSchedule($storeName);
+        //get exit report from Amazon
+        $reportList = $this->getReportList($storeName);
+        $reportIds = null;
+        foreach($reportList as $report){
+            if(in_array($report["ReportType"],$this->getReportType())){
+                $reportIds[] = $this->getReport($storeName,$report["ReportId"],$warehouseId);
+            }
+        }
+        if($reportIds){
+            $this->updateReportAcknowledgements($storeName,$reportIds,"true");
+        }
+    }
+
+    private function setAmazonReportSchedule($storeName)
+    {
         $reportTypeList = $this->getReportType();
         $reportScheduleList = $this->getReportScheduleList($storeName,$reportTypeList);
         if(!empty($reportScheduleList)){
@@ -177,17 +214,6 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             foreach($reportTypeList as $reportType){
                 $reportSchedule = $this->setManageReportSchedule($storeName,$reportType);
             }
-        }
-        //get exit report from Amazon
-        $reportList = $this->getReportList($storeName);
-        $reportIds = null;
-        foreach($reportList as $report){
-            if(in_array($report["ReportType"],$this->getReportType())){
-                $reportIds[] = $this->getReport($storeName,$report["ReportId"]);
-            }
-        }
-        if($reportIds){
-            $this->updateReportAcknowledgements($storeName,$reportIds,"true");
         }
     }
 
@@ -228,13 +254,13 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         return $amazonRepoatList->getList();
     }
 
-    public function getReport($storeName,$reportId)
+    public function getReport($storeName,$reportId,$warehouseId)
     {   
         $path = $this->getDateReportPath("UNSUPPRESSED");
         if (!file_exists($path)) {
             mkdir($path, 0755, true);
         }
-        $pathFile = $path.'/'.$storeName.".txt";
+        $pathFile = $path.'/'.$warehouseId.".txt";
         $amazonReport = new AmazonReport($storeName);
         $amazonReport->setReportId($reportId);
         $amazonReport->fetchReport();
@@ -265,9 +291,9 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
         $reportFiles = \File::allFiles($reportPath);
         $marketOrderSkuOrderedList = $this->getAmazonFbaOrderSkuOrderedList();
         foreach($reportFiles as $reportFile){
-            $marketplace=basename($reportFile,'.txt');
-            if(isset($marketOrderSkuOrderedList[$marketplace])){
-              $orderSkuOrderedList = $marketOrderSkuOrderedList[$marketplace];          
+            $warehouseId = basename($reportFile,'.txt');
+            if(isset($marketOrderSkuOrderedList[$warehouseId])){
+              $orderSkuOrderedList = $marketOrderSkuOrderedList[$warehouseId];
             }
             $row = 1;$cellData = null;
             if (($handle = fopen($reportFile, "r")) !== FALSE) {
@@ -276,20 +302,20 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
                     //echo "<p> $num fields in line $row: <br /></p>\n";
                    if($row == 1){
                     $cellData[]=array(
-                        "marketplace" => "Marketplace",
+                        "warehouse_id" => "Warehouse Id",
                         "marketplace_sku" => 'Marketplace Sku',
                         "amazon_inventory" => 'Amazon Inventory',
                         "esg_sku" => 'ESG Sku',
-                        "esg_ordered_qty" => 'ESG Ordered Qty',
+                        "master_sku" => 'ESG Master Sku',
                         "product_name" => 'ESG Product Name',
                         "brand_name" => 'ESG Brand Name',
-                        "master_sku" => 'ESG Master Sku',
+                        "esg_ordered_qty" => 'ESG Ordered Qty',
                         );
                    }else {
                         if($orderSkuOrderedList && isset($orderSkuOrderedList[$data['0']])){
                             $orderSkuOrdered = $orderSkuOrderedList[$data['0']];
                         }
-                        $reportCellData = $this->setReportCellData($marketplace,$data,$orderSkuOrdered);
+                        $reportCellData = $this->setReportCellData($warehouseId,$data,$orderSkuOrdered);
                         if($reportCellData){
                             $cellData[] = $reportCellData;
                         }
@@ -298,52 +324,50 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
                 }
                 fclose($handle);
             }
-            $cellDataArr[$marketplace] = $cellData;
+            $cellDataArr[$warehouseId] = $cellData;
         }
-        $attachment = $this->generateMultipleSheetsExcel('amazonInvenotryReport',$cellDataArr,$this->getDateReportPath());
+        $attachment = $this->generateMultipleSheetsExcel('amazonFbaInvenotryReport',$cellDataArr,$this->getDateReportPath());
         //send attachment Mail
         if($attachment){
-            $subject = "Amazon Invenotry report!";
+            $subject = "Amazon FBA Invenotry Report!";
             $this->sendAttachmentMail('storemanager@brandsconnect.net,fiona@etradegroup.net',$subject,$attachment);
         }
     }
 
     public function getAmazonFbaOrderSkuOrderedList()
     {   
-        $fromDate = date("Y-m-d 00:00:00",strtotime("-2 weeks"));
+        $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
         $toDate = date("Y-m-d 23:59:59");
-        $amazonOrders = So::join('so_item', 'so_item.so_no', '=', 'so.so_no')
-                        ->join('product', 'product.sku', '=', 'so_item.prod_sku')
-                        ->join('brand', 'brand.id', '=', 'product.brand_id')
-                        ->join('sku_mapping', 'sku_mapping.sku', '=', 'so_item.prod_sku')
+        $amazonFbaOrders = So::join('so_item', 'so_item.so_no', '=', 'so.so_no')
+                        ->join('wms_warehouse_mapping as wwm', 'wwm.platform_id', '=', 'so.platform_id')
                         ->where("so.biz_type","=","AMAZON")
                         ->where("so.delivery_type_id","=","FBA")
                         ->where("so.platform_group_order","=","1")
                         ->where("so.create_on",">",$fromDate)
                         ->where("so.create_on","<",$toDate)
-                        ->select('so.so_no','so.platform_id','so_item.prod_sku','so_item.qty','product.name as product_name','brand.brand_name','sku_mapping.ext_sku as master_sku')
+                        ->select('so.so_no','so.platform_id','wwm.warehouse_id','so_item.prod_sku','so_item.qty')
                         ->get();
-        $amazonOrderGroups = $amazonOrders->groupBy("platform_id");
-        return $this->getPlatformSkuOrderedList($amazonOrderGroups);
+        $amazonFbaOrderGroups = $amazonFbaOrders->groupBy("warehouse_id");
+        return $this->getWmsWarehouseSkuOrderedList($amazonFbaOrderGroups);
     }
 
-    public function setReportCellData($marketplace,$data,$orderSkuOrdered="")
+    public function setReportCellData($warehouseId,$data,$orderSkuOrdered="")
     {
         $amazonInventory = isset($data['10']) ? $data['10'] : "";
-        $esgorderedQty = isset($orderSkuOrdered['qty']) ? $orderSkuOrdered['qty'] : "";
+        $esgorderedQty = isset($orderSkuOrdered['qty']) ? $orderSkuOrdered['qty'] : "0";
         $productName = isset($orderSkuOrdered['product_name']) ? $orderSkuOrdered['product_name'] : "";
         $brandName = isset($orderSkuOrdered['brand_name']) ? $orderSkuOrdered['brand_name'] : "";
         $masterSku = isset($orderSkuOrdered['master_sku']) ? $orderSkuOrdered['master_sku'] : "";
-        if($amazonInventory || $esgorderedQty){
+        if($esgorderedQty || $amazonInventory){
             $cellData = array(
-                "marketplace" => $marketplace,
+                "warehouse _id" => $warehouseId,
                 "marketplace_sku" => $data['0'],
                 "amazon_inventory" => $amazonInventory,
                 "esg_sku" => isset($orderSkuOrdered['sku']) ? $orderSkuOrdered['sku'] : "",
-                "esg_ordered_qty" => $esgorderedQty,
+                "master_sku" => $masterSku,
                 "product_name" => $productName,
                 "brand_name" => $brandName,
-                "master_sku" => $masterSku,
+                "esg_ordered_qty" => $esgorderedQty,
             );
             return $cellData;
         }
