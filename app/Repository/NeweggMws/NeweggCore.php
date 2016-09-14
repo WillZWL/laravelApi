@@ -8,7 +8,8 @@ class NeweggCore
 {
     private $options;
     protected $mwsName = 'newegg-mws';
-    private $currency;
+    private $orderCurrency;
+    private $storeCurrency;
     private $countryCode;
     private $storeName = "";
     protected $errorResponse = array();
@@ -30,9 +31,10 @@ class NeweggCore
             
             $curlResponse = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
 
+
             if($curlResponse["status"]) {
-                $xml = $curlResponse["xml"];
-                $data = $this->convert($xml);
+                $json = $curlResponse["json"];
+                $data = $this->convertJsonToArr($json);
             } else {
                 $requestInfo = $curlResponse["requestInfo"];
                 $error = $curlResponse["error"];
@@ -134,7 +136,7 @@ class NeweggCore
           'Authorization' => $this->options["apiKey"],
           'SecretKey' => $this->options["secretKey"],
           'Content-Type' => 'application/xml',
-          'Accept' => 'application/xml'
+          'Accept' => 'application/json'
         );
 
         return $authParams;
@@ -155,7 +157,7 @@ class NeweggCore
      */
     private function curl($resourceUrl, $resourceMethod, $requestParams=array(), $requestBody="")
     {
-        $response = $xml = "";
+        $response = $json = "";
         $error = array();
         $status = FALSE;
         $requiredParam["sellerid"] = $this->options['sellerId'];
@@ -172,14 +174,16 @@ class NeweggCore
         $client = new \GuzzleHttp\Client();
         try {
             $response = $client->request($resourceMethod, $request, $requestOption);
-            $xml = $response->getBody()->getContents();
+            $json = $response->getBody()->getContents();
             $status = TRUE;
         } catch (\GuzzleHttp\Exception\ConnectException $e) {
             $error[] = "NeweggCore.php ".__LINE__." networking error. ";
+            $error[] = "Request: {$request}";
             $error[] = "message: {$e->getMessage()}. ";
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             # 400-level errors
             $error[] = "NeweggCore.php ".__LINE__." client 400-level error. ";
+            $error[] = "Request: {$request}";
             if($e->hasResponse()) {
                 $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
             } else {
@@ -188,6 +192,7 @@ class NeweggCore
         } catch (\GuzzleHttp\Exception\ServerException $e) {
 
             $error[] = "NeweggCore.php ".__LINE__." server 500-level error. ";
+            $error[] = "Request: {$request}";
             if($e->hasResponse()) {
                 $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
             } else {
@@ -195,10 +200,11 @@ class NeweggCore
             }
         } catch (\Exception  $e) {
             $error[] = "NeweggCore.php ".__LINE__." other error. ";
+            $error[] = "Request: {$request}";
             $error[] = "message: {$e->getMessage()}. ";
         } 
 
-        $data = ["status"=>$status, "xml"=>$xml, "requestInfo"=>$requestInfo, "error"=>$error];
+        $data = ["status"=>$status, "json"=>$json, "requestInfo"=>$requestInfo, "error"=>$error];
         return $data;
     }
 
@@ -222,6 +228,23 @@ class NeweggCore
 
         return null;
     }
+
+    /**
+     * Convert response JSON to associative array.
+     *
+     * @param $json string
+     *
+     * @return array
+     */
+    private function convertJsonToArr($json)
+    {
+        if (trim($json)) {
+           return json_decode(preg_replace('/[\x00-\x1F\x80-\xFF]/', '', $json), true);
+        }
+
+        return null;
+    }
+    
 
     /**
      * Clear array after convert. Remove empty arrays and change to string.
@@ -278,9 +301,13 @@ class NeweggCore
             } else {
                 $this->log('Access Secret Key is missing!', 'Warning');
             }
-            if (array_key_exists('currency', $store[$s])) {
-                $this->currency = $store[$s]['currency'];
+            if (array_key_exists('orderCurrency', $store[$s])) {
+                $this->orderCurrency = $store[$s]['orderCurrency'];
             }
+            if (array_key_exists('storeCurrency', $store[$s])) {
+                $this->storeCurrency = $store[$s]['storeCurrency'];
+            }
+
             if (array_key_exists('country', $store[$s])) {
                 $this->countryCode = $store[$s]['country'];
             }
@@ -303,9 +330,15 @@ class NeweggCore
         $headers = "From: {$from}\r\n";
         mail($to, $subject, $message, $headers);
     }
-    public function getCurrency()
+
+    public function getOrderCurrency()
     {
-        return $this->currency;
+        return $this->orderCurrency;
+    }
+
+    public function getStoreCurrency()
+    {
+        return $this->storeCurrency;
     }
 
     public function getCountryCode()

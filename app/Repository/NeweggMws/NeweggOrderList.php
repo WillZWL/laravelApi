@@ -4,6 +4,7 @@ namespace App\Repository\NeweggMws;
 
 class NeweggOrderList extends NeweggOrderCore
 {
+    private $orderNumberList;
     private $orderDateFrom;
     private $orderDateTo;
     private $status;
@@ -63,28 +64,29 @@ class NeweggOrderList extends NeweggOrderCore
         } else {
 
             $data = $result["data"];
-            if ($data["OrderInfoList"]["OrderInfo"]) {
+            if ($data["PageInfo"]["TotalCount"] && is_array($data["OrderInfoList"])) {
                 # start with page 1's orders
-                $orderInfo = $data["OrderInfoList"]["OrderInfo"];
+                $orderInfo = $data["OrderInfoList"];
             }
 
-
             # if first time calling this function, check if there are more pages
-            if($pageIndex == 1 && $data && $data["PageInfo"]["TotalPageCount"] > 0) {
-                for ($i=1; $i < $data["PageInfo"]["TotalPageCount"]; $i++) {
-                    $nextPage = $i+1;
-                    $nextResult = $this->fetchOrderByPage($nextPage);
+            if($pageIndex == 1 && $data) {
+                if($data["PageInfo"]["TotalPageCount"] > 0) {
+                    for ($i=1; $i < $data["PageInfo"]["TotalPageCount"]; $i++) {
+                        $nextPage = $i+1;
+                        $nextResult = $this->fetchOrderByPage($nextPage);
 
-                    if($nextResult["data"]["OrderInfoList"]["OrderInfo"])
-                        $orderInfo = array_merge($orderInfo, $nextResult["data"]["OrderInfoList"]["OrderInfo"]);
-                    if($nextResult["error"])
-                        $allError[$nextPage] = $nextResult["error"];
-                    if($nextResult["requestInfo"])
-                        $allRequestInfo[$nextPage] = $nextResult["requestInfo"];
+                        if(is_array($nextResult["data"]["OrderInfoList"]))
+                            $orderInfo = array_merge($orderInfo, $nextResult["data"]["OrderInfoList"]);
+                        if($nextResult["error"])
+                            $allError[$nextPage] = $nextResult["error"];
+                        if($nextResult["requestInfo"])
+                            $allRequestInfo[$nextPage] = $nextResult["requestInfo"];
+                    }                    
                 }
 
-                # rewrite OrderInfo with orders from all pages
-                $data["OrderInfoList"]["OrderInfo"] = $orderInfo;
+                # rewrite OrderInfoList with orders from all pages
+                $data["OrderInfoList"]= $orderInfo;
             }
         }
 
@@ -94,7 +96,7 @@ class NeweggOrderList extends NeweggOrderCore
 
     protected function getRequestParams()
     {
-        $requestParams = ["version"=>"304"];
+        $requestParams = ["version"=>"306"];
         return $requestParams;
     }
 
@@ -104,8 +106,18 @@ class NeweggOrderList extends NeweggOrderCore
         $requestXml[] = "<OperationType>GetOrderInfoRequest</OperationType>";
         $requestXml[] = "<RequestBody>";
         $requestXml[] = "<PageIndex>{$pageIndex}</PageIndex>";
-$requestXml[] = "<PageSize>2</PageSize>";
+        $requestXml[] = "<PageSize>100</PageSize>";
         $requestXml[] = "<RequestCriteria>";
+
+        // $this->setOrderNumberList(array("222485619"));
+        // this will ignore other search conditions
+        if(is_array($this->getOrderNumberList())) {
+            $requestXml[] = "<OrderNumberList>";
+            foreach ($this->getOrderNumberList() as $key => $orderNumber) {
+                $requestXml[] = "<OrderNumber>{$orderNumber}</OrderNumber>";
+            }
+            $requestXml[] = "</OrderNumberList>";            
+        }
 
         if ($this->getStatus()) {
             $requestXml[] = "<Status>" . $this->getStatus() . "</Status>";
@@ -144,6 +156,16 @@ $requestXml[] = "<PageSize>2</PageSize>";
     public function setOrderDateFrom($value)
     {
         $this->orderDateFrom = $value;
+    }
+
+    public function getOrderNumberList()
+    {
+        return $this->orderNumberList;
+    }
+
+    public function setOrderNumberList($value)
+    {
+        $this->orderNumberList = $value;
     }
 
     public function getOrderDateTo()
