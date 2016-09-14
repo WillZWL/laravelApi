@@ -11,6 +11,7 @@
     <link href="/css/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
     <link href="/css/iCheck/skins/flat/green.css" rel="stylesheet" type="text/css">
     <link href="/css/datatables-net.css" rel="stylesheet" type="text/css">
+    <link href="/css/select2.min.css" rel="stylesheet" type="text/css">
     <link href="/css/custom.css" rel="stylesheet" type="text/css">
 </head>
 <body class="nav-sm">
@@ -23,6 +24,7 @@
 <script src="/js/jquery.fileupload.js" type="text/javascript"></script>
 <script src="/js/jquery.isloading.min.js" type="text/javascript"></script>
 <script src="/js/url.min.js" type="text/javascript"></script>
+<script src="/js/select2.min.js" type="text/javascript"></script>
 <script src="/js/main.js" type="text/javascript"></script>
 </body>
 </html>
