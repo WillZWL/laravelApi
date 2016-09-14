@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-class SubmitPlatformOrderFufillment extends BaseApiPlatformCommand
+class PlatformMarketOrderFufillment extends BaseApiPlatformCommand
 {
     /**
       * The name and signature of the console command.

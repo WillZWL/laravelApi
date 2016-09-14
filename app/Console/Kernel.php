@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketOrderRetrieve::class,
         Commands\PlatformMarketReadyOrderTransfer::class,
         Commands\PlatformMarketplaceSkuMapping::class,
-        Commands\SubmitPlatformOrderFufillment::class,
+        Commands\PlatformMarketOrderFufillment::class,
         Commands\PlatformMarketUpdatePendingStatus::class,
         Commands\PlatformMarketProductFeed::class,
         Commands\PlatformMarketRemoveFileSystem::class,
