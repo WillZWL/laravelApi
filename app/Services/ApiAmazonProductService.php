@@ -128,7 +128,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
                     $xml .= $messageNode;
                 } catch (\Exception $e) {
-                    mail('jimmy@eservciesgroup.com', 'SOS', 'Invenotry Feed Error');
+                    mail('jimmy@eservciesgroup.com', 'SOS', 'Inventory Feed Error');
                 }
             }
             $xml .= '</AmazonEnvelope>';
@@ -327,10 +327,10 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             }
             $cellDataArr[$warehouseId] = $cellData;
         }
-        $attachment = $this->generateMultipleSheetsExcel('amazonFbaInvenotryReport',$cellDataArr,$this->getDateReportPath());
+        $attachment = $this->generateMultipleSheetsExcel('amazonFbaInventoryReport',$cellDataArr,$this->getDateReportPath());
         //send attachment Mail
         if($attachment){
-            $subject = "Amazon FBA Invenotry Report!";
+            $subject = "Amazon FBA Inventory Report!";
             $this->sendAttachmentMail('storemanager@brandsconnect.net,fiona@etradegroup.net',$subject,$attachment);
         }
     }
