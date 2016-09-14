@@ -7,6 +7,7 @@ use Dingo\Api\Routing\Helpers;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Websafe\Blueimp\JqueryFileUploadHandler;
+use App\Services\ProductService;
 
 class ProductUploadController extends Controller
 {
@@ -28,11 +29,14 @@ class ProductUploadController extends Controller
         if (!is_dir($upload_dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/')) {
             $options['upload_dir'] = $this->mkUploadDir($upload_dir);
         } else {
-            $options['upload_dir'] = $upload_dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/';
+            $options['upload_dir'] = $upload_dir.date('Y').'/'.date('m').'/'.date('d').'/';
         }
         $options['print_response'] = false;
         $upload_response = new JqueryFileUploadHandler($options);
         $response = $upload_response->response;
+        if ($response) {
+            $upload_file_path = $options['upload_dir'].$response['files'][0]->name;
+        }
         return response()->json($response);
     }
 
@@ -44,10 +48,20 @@ class ProductUploadController extends Controller
                 mkdir($dir.date('Y').'/'.date('m').'/', 775, true);
                     if (!is_dir($dir.date('Y').'/'.date('m').'/'.date('d').'/')) {
                         mkdir($dir.date('Y').'/'.date('m').'/'.date('d').'/', 775, true);
-
                         return $dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/';
                     }
             }
         }
+    }
+
+    public function testExcelToDatabase()
+    {
+
+        $file = storage_path() .'/bulk-product-upload/2016/09/13/UploadExample.csv';
+
+        $productService = New ProductService();
+
+        $productService->handleUploadFile($file);
+
     }
 }
