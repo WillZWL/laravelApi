@@ -25,7 +25,7 @@ class ApiWishService extends ApiWishAuthService  implements ApiPlatformInterface
     public function retrieveOrder($storeName)
     {
         $orginOrderList = $this->getOrderList($storeName);
-        // Now no any order, Temporarily cannot take data, No clearly tanga order item fotmat, go on deal with tanga after wait a new order
+        // Now no any order, Temporarily cannot take data, No clearly Wish order item fotmat, go on deal with Wish after wait a new order
         if ($orginOrderList) {
             foreach ($orginOrderList as $order) {
                 if (isset($order['ShippingDetail'])) {
@@ -35,8 +35,6 @@ class ApiWishService extends ApiWishAuthService  implements ApiPlatformInterface
                     $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
                 }
             }
-            //update order qty shipped && qty unshipped && total_amout
-            //$this->updateToConfirmSalesOrderByOrderItem($storeName, $order['purchaseid']);
             return true;
         }
     }
