@@ -65,16 +65,13 @@ class LazadaApiController extends Controller
         $soNoList = $request->input("so_no");
         $result = $this->apiLazadaService->esgOrderReadyToShip($soNoList);
         return \Response::json($result);
-        /*$response = new Collection();
-        $response->result = $result;
-        return $this->response->item($response,new LazadaAllocatedTransformer())->setStatusCode(200);*/
     }
 
-    public function donwloadLazadaLabelFile(Request $request)
+    public function donwloadLazadaLabelFile($doucment)
     {
-        $doucment = $request->input("file");
+        $pdfFilePath = "/var/data/shop.eservicesgroup.com/lazada/invoice".date("Y")."/".date("m")."/".date("d")."/";
         if($doucment){
-            return response()->download($doucment);   
+            return response()->download($pdfFilePath.$doucment);   
         }  
     }
 
