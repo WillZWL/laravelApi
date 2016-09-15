@@ -142,7 +142,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $storeName = $prefix."LAZADA".$countryCode;
         //$shipmentProviders = $this->getShipmentProviders($storeName);
         $documentOrderItemIds = array(); $ordersIdList=array();
-        /*foreach($esgOrderGroup as $esgOrder)
+        foreach($esgOrderGroup as $esgOrder)
         {   
             $orderItemIds = array();$responseResult = "";
             $ordersIdList[] = $esgOrder->platform_order_no; 
@@ -164,8 +164,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 }
             }
             $returnData[$esgOrder->so_no] = $responseResult;
-        }*/
-        $documentOrderItemIds = array('10569699','10404541');
+        }
         $returnData["document"] = $this->getDocumentSaveToDirectory($storeName,$documentOrderItemIds,$pdfFilePath);
         return $returnData;
     }
