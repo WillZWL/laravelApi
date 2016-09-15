@@ -99,7 +99,10 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
     public function esgOrderReadyToShip($soNoList)
     {  
-        $pdfFilePath = "/var/data/shop.eservicesgroup.com/lazada/invoice".date("Y")."/".date("m")."/".date("d")."/";
+        $pdfFilePath = "/var/data/shop.eservicesgroup.com/marketplace/".date("Y")."/".date("m")."/".date("d")."/lazada/label";
+        if (!file_exists($pdfFilePath)) {
+            mkdir($pdfFilePath, 0755, true);
+        }
         $result = "";$returnData = "";
         $esgOrders = So::whereIn('so_no', $soNoList)
                 ->where("biz_type","like","%Lazada")

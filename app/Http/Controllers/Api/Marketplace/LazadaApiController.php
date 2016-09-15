@@ -69,7 +69,7 @@ class LazadaApiController extends Controller
 
     public function donwloadLazadaLabelFile($doucment)
     {
-        $pdfFilePath = "/var/data/shop.eservicesgroup.com/lazada/invoice".date("Y")."/".date("m")."/".date("d")."/";
+        $pdfFilePath = "/var/data/shop.eservicesgroup.com/marketplace/".date("Y")."/".date("m")."/".date("d")."/lazada/label";
         if($doucment){
             return response()->download($pdfFilePath.$doucment);   
         }  
