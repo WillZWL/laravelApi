@@ -8,6 +8,6 @@ class MerchantRepository
 {
     public function all()
     {
-        return Merchant::all();
+        return Merchant::whereStatus(1)->get();
     }
 }

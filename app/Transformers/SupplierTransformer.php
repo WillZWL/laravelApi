@@ -12,6 +12,7 @@ class SupplierTransformer extends TransformerAbstract
         return [
             'supplier_id' => $supplier->id,
             'supplier_name' => $supplier->name,
+            'supplier_currency_id' => $supplier->currency_id,
         ];
     }
 }
