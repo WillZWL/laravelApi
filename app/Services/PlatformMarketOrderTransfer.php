@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Repository\DeliveryQuotationRepository;
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
 use App\Services\PlatformValidate\PriceMinisterValidateService;
@@ -45,6 +46,7 @@ class PlatformMarketOrderTransfer
 
     public function __construct()
     {
+        $this->pricingService = new PricingService(new DeliveryQuotationRepository());
     }
 
     public function transferReadyOrder()
@@ -76,7 +78,8 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        mail('jimmy.gao@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                        mail('jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
+                            .$e->getLine());
                     }
                 }
             }
@@ -371,8 +374,24 @@ class PlatformMarketOrderTransfer
             $newOrderItemDetail->outstanding_qty = $item->quantity_ordered;
             $newOrderItemDetail->unit_price = $item->item_price / $item->quantity_ordered;
             $newOrderItemDetail->vat_total = 0;   // not sure.
-            $newOrderItemDetail->profit = $item->mapping->profit * $item->quantity_ordered;
-            $newOrderItemDetail->margin = $item->mapping->margin;
+
+            $request = new ProfitEstimateRequest();
+            $request->merge([
+                'id' => $item->mapping->id,
+                'selling_price' => $newOrderItemDetail->unit_price,
+            ]);
+
+            $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
+            if ($marginAndProfit->get($item->mapping->delivery_type)->get('profit')) {
+                $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
+                $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)->get('margin');
+            } else {
+                $selectedProfit = 0;
+                $selectedMargin = 0;
+            }
+
+            $newOrderItemDetail->profit = $selectedProfit * $item->quantity_ordered;
+            $newOrderItemDetail->margin = $selectedMargin;
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
             $newOrderItemDetail->modify_on = Carbon::now();

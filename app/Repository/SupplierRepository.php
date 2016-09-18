@@ -8,6 +8,6 @@ class SupplierRepository
 {
     public function all()
     {
-        return Supplier::where('status', 1)->get();
+        return Supplier::whereStatus(1)->get();
     }
 }

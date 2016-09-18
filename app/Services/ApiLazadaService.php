@@ -99,7 +99,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
     public function esgOrderReadyToShip($soNoList)
     {  
-        $pdfFilePath = "/var/data/shop.eservicesgroup.com/lazada/invoice".date("Y")."/".date("m")."/".date("d")."/";
+        $pdfFilePath = "/var/data/shop.eservicesgroup.com/marketplace/".date("Y")."/".date("m")."/".date("d")."/lazada/label/";
         $result = "";$returnData = "";
         $esgOrders = So::whereIn('so_no', $soNoList)
                 ->where("biz_type","like","%Lazada")
@@ -109,7 +109,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             foreach($esgOrderGroups as $platformId => $esgOrderGroup){
                 $returnData = $this->runApiOrderFufillmentToShip($platformId,$esgOrderGroup,$pdfFilePath);
             }
-            $returnData["file"] = url("lazada-api/donwload-label?file=".$returnData['document']."&access_token = ".$access_token);
+            $returnData["file"] = url("lazada-api/donwload-label/".$returnData['document']);
             return $result = array("response" => "success","message" => $returnData); 
         }else{
             return $result = array("response" => "failed","message" => "Invalid Order");
@@ -165,7 +165,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             }
             $returnData[$esgOrder->so_no] = $responseResult;
         }
-        $returnData["document"] = $this->getDocumentSaveToDirectory($storeName,$documentOrderItemIds);
+        $returnData["document"] = $this->getDocumentSaveToDirectory($storeName,$documentOrderItemIds,$pdfFilePath);
         return $returnData;
     }
 
@@ -227,7 +227,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 
     public function getDocumentSaveToDirectory($storeName,$orderItemIds,$pdfFilePath)
     {   
-        $fileDate=date("h-i-s");$doucment = null;
+        $fileDate = date("h-i-s");$doucment = null;
         if (!file_exists($pdfFilePath)) {
             mkdir($pdfFilePath, 0755, true);
         }

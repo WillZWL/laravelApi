@@ -9,7 +9,7 @@ use App\Models\CountryState;
 use App\Models\ExchangeRate;
 
 // TODO
-// delivery quotation 不应每个 sku 读计算一次, 应当只与 merchant/weight/battery/destination 有关.
+// delivery quotation 不应每个 sku 都计算一次, 应当只与 merchant/weight/battery/destination 有关.
 class DeliveryQuotationRepository
 {
     private $destination;
