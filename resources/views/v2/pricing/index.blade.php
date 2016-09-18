@@ -91,9 +91,14 @@
                             {{ ($platformInfo['listingStatus'] === 'Y') ? 'Listed' : 'Not Listed' }}
                           &nbsp;|&nbsp;
                         </span>
-                        <span class="price {{ ($platformInfo['margin'] > 0) ? 'text-success' : 'text-danger' }}">
-                            {{ $platformInfo['margin'] }}%
-                        </span>
+                        @if(isset($platformInfo['deliveryOptions'][$platformInfo['delivery_type']]['margin']))
+                          <span class="price {{ ($platformInfo['deliveryOptions'][$platformInfo['delivery_type']]['margin'] > 0) ? 'text-success' : 'text-danger' }}">
+                            {{ $platformInfo['deliveryOptions'][$platformInfo['delivery_type']]['margin'] }}%
+                          </span>
+                        @else
+                        <span class="price"> N/A </span>
+                        @endif
+
                         @if($platformInfo['link'])
                         <span>
                             &nbsp;|&nbsp;
