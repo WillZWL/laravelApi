@@ -70,7 +70,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
-    Route::resource('lazada-api/donwload-label/{file}', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
+    Route::resource('lazada-api/donwload-label', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
@@ -79,7 +79,6 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('merchant', 'MerchantController');
     $api->resource('supplier', 'SupplierController');
     $api->resource('country', 'CountryController');
-    $api->resource('warehouse', 'WarehouseController');
     $api->resource('category', 'CategoryController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
