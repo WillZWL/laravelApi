@@ -1,21 +1,50 @@
 <?php
 
-// For Newegg Config
+// For Newegg Config, SBF #10337
 return [
     'store' => [
         'BCNEWEGGUS' => [
             'name' => 'Brand Connect Newegg',
-            'userId' => 'portal.sandbox.41@gmail.com',
-            'password' => '8YbV6gDu',
-            'currency'=>'USD',
-            'sellerId' => "ABVF",
-            'userAlertEmail' => array(),
+            'userId' => 'newegg@eservicesgroup.com',
+            'password' => 'aCC21salES5k',
+            'orderCurrency'=>'USD',  // currently all Newegg orders in USD
+            'storeCurrency'=>'USD', // for product listing
+            'countryCode' => 'USA', // Newegg's country code
+            'sellerId' => "AAJM",
+            'userAlertEmail' => ["newegg@brandsconnect.net"],
             'neweggServiceUrl' => "https://api.newegg.com/marketplace/",
-            'apiKey' => "bc3e1dfb4b535de8761427c771ddd37c",
-            'secretKey' => "cc4743c4-be1e-466b-9b49-d346524df6fe"
+            'apiKey' => "4863bc9e0421f7591b8c17999eb07bf1",
+            'secretKey' => "ce43dfdf-a480-4037-ac67-ef12e64cebf7"
+        ],
+        'BCNEWEGGNZ' => [
+            'name' => 'Brand Connect Newegg',
+            'userId' => 'newegg@eservicesgroup.com',
+            'password' => 'aCC21salES5k',
+            'orderCurrency'=>'USD',  // currently all Newegg orders in USD
+            'storeCurrency'=>'NZD', // for product listing
+            'countryCode' => 'NZL', // Newegg's country code
+            'sellerId' => "AAJM",
+            'userAlertEmail' => ["newegg@brandsconnect.net"],
+            'neweggServiceUrl' => "https://api.newegg.com/marketplace/",
+            'apiKey' => "4863bc9e0421f7591b8c17999eb07bf1",
+            'secretKey' => "ce43dfdf-a480-4037-ac67-ef12e64cebf7"
+        ],
+        'BCNEWEGGAU' => [
+            'name' => 'Brand Connect Newegg',
+            'userId' => 'newegg@eservicesgroup.com',
+            'password' => 'aCC21salES5k',
+            'orderCurrency'=>'USD',  // currently all Newegg orders in USD
+            'storeCurrency'=>'AUS', // for product listing
+            'countryCode' => 'AUD', // Newegg's country code
+            'sellerId' => "AAJM",
+            'userAlertEmail' => ["newegg@brandsconnect.net"],
+            'neweggServiceUrl' => "https://api.newegg.com/marketplace/",
+            'apiKey' => "4863bc9e0421f7591b8c17999eb07bf1",
+            'secretKey' => "ce43dfdf-a480-4037-ac67-ef12e64cebf7"
         ],
     ],
 
-    // Default service URL
+    // Default service URL test
     'NEWEGG_SERVICE_URL' => 'https://api.newegg.com/marketplace/',
+    'muteLog' => true
 ];
