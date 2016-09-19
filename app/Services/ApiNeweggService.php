@@ -8,11 +8,12 @@ use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
 
-//use newegg api package
-use App\Repository\NeweggMws\NeweggOrder;
-use App\Repository\NeweggMws\NeweggOrderList;
+// Newegg API
 use App\Repository\NeweggMws\NeweggOrderItemList;
 use App\Repository\NeweggMws\NeweggOrderStatus;
+// below not yet set up
+use App\Repository\NeweggMws\NeweggOrder;
+use App\Repository\NeweggMws\NeweggOrderList;
 use App\Repository\NeweggMws\NeweggDocument;
 use App\Repository\NeweggMws\NeweggShipmentProviders;
 use App\Repository\NeweggMws\NeweggMultipleOrderItems;
@@ -34,6 +35,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
     {
         $originOrderList=$this->getOrderList($storeName);
         $orderInfoList = $originOrderList["OrderInfoList"];
+
         if($orderInfoList){
             foreach($orderInfoList as $order){
                 if (isset($order['ShipToCountryCode'])) {
@@ -42,23 +44,16 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 
                 $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
                 $originOrderItemList=$this->getOrderItemList($order,$order["OrderNumber"]);
+                $i = 0;
                 if($originOrderItemList){
                     foreach($originOrderItemList as $orderItem){
                         $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                        $i++;
                     }
                 }
             }
             return true;
         }
-    }
-
-    public function getOrder($storeName,$orderId)
-    {
-        $this->neweggOrder=new NeweggOrder($storeName);
-        // $this->storeCurrency=$this->neweggOrder->getStoreCurrency();
-        $this->neweggOrder->setOrderId($orderId);
-        $returnData=$this->neweggOrder->fetchOrder();
-        return $returnData;
     }
 
     public function getOrderList($storeName)
@@ -67,11 +62,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         // $this->storeCurrency=$this->neweggOrderList->getStoreCurrency();
         $lastAccessTime = $this->getSchedule()->last_access_time;
 
-        // set timezone
-        $dt = new \DateTime($lastAccessTime);
-        $dt->setTimezone(new \DateTimeZone("PST"));
-        $dateTime = $dt->format("Y-m-d");
-
+        $dateTime = $this->convertFromUtcToPst($lastAccessTime, "Y-m-d");
         $this->neweggOrderList->setOrderDateFrom($dateTime);
         $originOrderList=$this->neweggOrderList->fetchOrderList();
         $this->saveDataToFile(serialize($originOrderList),"getOrderList");
@@ -84,136 +75,11 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         return $originOrderItemList;
     }
 
-    public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
-    {  
-        return false;//testing
-        $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
-        $orderItemIds = array();
-        $extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
-        foreach($extItemCd as $extItem){
-            $itemIds = explode("||",$extItem);
-            foreach($itemIds as $itemId){
-                $orderItemIds[] = $itemId;
-            }
-        }
-        //$shipmentProviders = $this->getShipmentProviders($storeName);
-        $countryCode = strtoupper(substr($storeName, -2));
-        $shipmentProvider = $this->getEsgShippingProvider($countryCode);
-        if ($esgOrderShipment) {
-            $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId,$shipmentProvider);
-            if($marketplacePacked){
-                //valid orderItem trackingNumber 
-                foreach($marketplacePacked as $packed){
-                   $shippingObject[$packed["TrackingNumber"]]["OrderItemId"][] = $packed["OrderItemId"];
-                   $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
-                }
-                $this->getDocument($storeName,$orderItems,"invoice");
-                foreach($shippingObject as $trackinCode => $itemObject){
-                    $itemObject["TrackingNumber"] = $trackinCode;
-                    $result = $this->setStatusToReadyToShip($storeName,$itemObject);
-                }
-                return $marketplacePacked;
-            }else{
-                return false;
-            }
-        }
-    }
-
-    public function getShipmentProviders($storeName)
-    {
-        $this->neweggShipmentProviders=new NeweggShipmentProviders($storeName);
-        $result = $this->neweggShipmentProviders->fetchShipmentProviders();
-        return $result;
-    }
-
-    public function setStatusToCanceled($storeName,$orderItemId)
-    {
-        $this->neweggOrderStatus=new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemId($orderItemId);
-        $this->neweggOrderStatus->setReason("reason");
-        $this->neweggOrderStatus->setReasonDetail("reasonDetail");
-        $result=$this->neweggOrderStatus->setStatusToCanceled();
-        return $this->checkResultData($result,$this->neweggOrderStatus);
-    }
-
-    public function setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider)
-    {
-        $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemIds($orderItemIds);
-        $this->neweggOrderStatus->setDeliveryType("dropship");
-        $this->neweggOrderStatus->setShippingProvider($shipmentProvider);
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToPackedByMarketplace();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToPackedByMarketplace");
-        return $orginOrderItemList;
-    }
-
-    public function getMultipleOrderItems($storeName,$orderIdList)
-    {
-        $this->neweggMultipleOrderItems = new NeweggMultipleOrderItems($storeName);
-        $this->neweggMultipleOrderItems->setOrderIdList($orderIdList);
-        $orginOrderItemList=$this->neweggMultipleOrderItems->fetchMultipleOrderItems();
-        $this->saveDataToFile(serialize($orginOrderItemList),"fetchMultipleOrderItems");
-        return $orginOrderItemList;
-    }
-
-    public function getDocument($storeName,$orderItemIds,$documentType)
-    {
-        $this->neweggDocument = new NeweggDocument($storeName);
-        $this->neweggDocument->setDocumentType($documentType);
-        $this->neweggDocument->setOrderItemIds($orderItemIds);
-        $document = $this->neweggDocument->fetchDocument();
-        print_r($document);exit();
-        return $document;
-    }
-
-    public function setStatusToReadyToShip($storeName,$itemObject)
-    {  
-        $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemIds($itemObject["OrderItemId"]);
-        $this->neweggOrderStatus->setDeliveryType("dropship");
-        $this->neweggOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
-        $this->neweggOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToReadyToShip();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
-        return $orginOrderItemList;
-    }
-
-    public function setStatusToShipped($storeName,$orderId)
-    {
-        $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemId($orderItemId);
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
-        return $orginOrderItemList;
-    }
-
-    public function setStatusToFailedDelivery($storeName,$orderId)
-    {
-        $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemId($orderItemId);
-        $this->neweggOrderStatus->setReason("reason");
-        $this->neweggOrderStatus->setReasonDetail("reasonDetail");
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToFailedDelivery();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToFailedDelivery");
-        return $orginOrderItemList;
-    }
-
-    public function setStatusToDelivered($storeName,$orderId)
-    {
-        $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemId($orderItemId);
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToDelivered();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToDelivered");
-        return $orginOrderItemList;
-    }
-
     //update or insert data to database
     public function updateOrCreatePlatformMarketOrder($order,$addressId,$storeName)
     {
         # Newegg's time is in PST
-        $dtOrderdate = \DateTime::createFromFormat("d/m/Y H:i:s", $order['OrderDate'], new \DateTimeZone("PST"));
-        $dtOrderdate->setTimezone(new \DateTimeZone("UTC"));
-        $utcOrderDate = $dtOrderdate->format("Y-m-d H:i:s");
+        $utcOrderDate = $this->convertFromPstToUtc($order['OrderDate'], "d/m/Y H:i:s", "Y-m-d H:i:s");
 
         $object = [
             'platform' => $storeName,
@@ -222,7 +88,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
             'platform_order_no' => $order['OrderNumber'],
             'purchase_date' => $utcOrderDate,
             'last_update_date' => '0000-00-00 00:00:00',
-            'order_status' => studly_case("({$orderItem['Status']}) {$orderItem["StatusDescription"]}"),
+            'order_status' => studly_case("({$order['OrderStatus']}) {$order["OrderStatusDescription"]}"),
             'esg_order_status'=>$this->getSoOrderStatus($order['OrderStatus']),
             'buyer_email' => $order['CustomerEmailAddress'],
             'currency' => $this->neweggOrderList->getOrderCurrency(),
@@ -240,10 +106,12 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         }
 
         if(isset($order["SalesChannel"])) {
+            # 0 = Newegg order, 1 = Multi-channel order
             $object["sales_channel"] = $order["SalesChannel"];
         }
 
         if(isset($order["FulfillmentOption"])) {
+            # 0 = Ship by Seller, 1 = Ship by Newegg
             $object["fulfillment_channel"] = $order["FulfillmentOption"];
         }
 
@@ -276,7 +144,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
             $object['quantity_shipped'] = $orderItem['ShippedQty'];
         }
         if (isset($orderItem['UnitPrice'])) {
-            $object['item_price'] = $orderItem['UnitPrice'];
+            $object['item_price'] = number_format($orderItem['UnitPrice'] * $orderItem["OrderedQty"], 2, '.', '');            
         }
         if (isset($order['ShippingAmount'])) {
             $object['shipping_price'] = $order['ShippingAmount'];
@@ -303,7 +171,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         }
 
         if (isset($orderItem['ExtendShippingCharge'])) {
-            $object['shipping_tax'] = $orderItem['ExtendShippingCharge'];
+            $object['shipping_price'] = $orderItem['ExtendShippingCharge'];
         }
 
         if (isset($orderItem['Status'])) {
@@ -363,19 +231,6 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         return $platformMarketShippingAddress->id;
     }
 
-
-    private function checkResultData($result)
-    {
-        if($result){
-            $this->saveDataToFile(serialize($result),"setStatusToCanceled");
-            return true;
-        }else{
-            $error["message"]=$this->neweggOrderStatus->errorMessage();
-            $error["code"]=$this->neweggOrderStatus->errorCode();
-            return $error;
-        }
-    }
-
     public function getSoOrderStatus($platformOrderStatus)
     {
         switch ($platformOrderStatus) {
@@ -402,21 +257,96 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         return $status;
     }
 
-    /*
-        $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId);
-        if($marketplacePacked)
-        $orderItems = $this->getMultipleOrderItems($storeName,$esgOrder->platform_order_id);
-        foreach($orderItems as $orderItem){
-            $shippingObject[$orderItem["TrackingCode"]][] = array(
-                    ["OrderItemId"] = $orderItem["OrderItemId"],
-                    ["ShippingProviderType"] = $orderItem["ShippingProviderType"],
-                    ["PurchaseOrderNumber"] = $orderItem["PurchaseOrderNumber"],
-                );
+    public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
+    {
+# copied from lazada, not yet set up for Newegg
+        return false;
+
+        $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+        $orderItemIds = array();
+        $extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
+        foreach($extItemCd as $extItem){
+            $itemIds = explode("||",$extItem);
+            foreach($itemIds as $itemId){
+                $orderItemIds[] = $itemId;
+            }
         }
-    */
+        //$shipmentProviders = $this->getShipmentProviders($storeName);
+        $countryCode = strtoupper(substr($storeName, -2));
+        $shipmentProvider = $this->getEsgShippingProvider($countryCode);
+        if ($esgOrderShipment) {
+            $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId,$shipmentProvider);
+            if($marketplacePacked){
+                //valid orderItem trackingNumber 
+                foreach($marketplacePacked as $packed){
+                   $shippingObject[$packed["TrackingNumber"]]["OrderItemId"][] = $packed["OrderItemId"];
+                   $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
+                }
+                $this->getDocument($storeName,$orderItems,"invoice");
+                foreach($shippingObject as $trackinCode => $itemObject){
+                    $itemObject["TrackingNumber"] = $trackinCode;
+                    $result = $this->setStatusToReadyToShip($storeName,$itemObject);
+                }
+                return $marketplacePacked;
+            }else{
+                return false;
+            }
+        }
+    }
+
+    public function getShipmentProviders($storeName)
+    {
+# copied from lazada, not yet set up for Newegg
+        return false;
+        
+        $this->neweggShipmentProviders=new NeweggShipmentProviders($storeName);
+        $result = $this->neweggShipmentProviders->fetchShipmentProviders();
+        return $result;
+    }
+
+    private function checkResultData($result)
+    {
+        if($result){
+            $this->saveDataToFile(serialize($result),"setStatusToCanceled");
+            return true;
+        }else{
+            $error["message"]=$this->neweggOrderStatus->errorMessage();
+            $error["code"]=$this->neweggOrderStatus->errorCode();
+            return $error;
+        }
+    }
+
+    private function convertFromUtcToPst($timestamp, $format = "Y-m-d")
+    {
+        if($timestamp) {
+             // change timezone to Pacific Standard
+            $dt = new \DateTime($timestamp);
+            $dt->setTimezone(new \DateTimeZone("PST"));
+            $dateTime = $dt->format($format);
+            return $dateTime;
+        }
+
+        return "";
+    }
+
+    private function convertFromPstToUtc($timestamp, $timestampFormat = "d/m/Y H:i:s", $format = "Y-m-d H:i:s")
+    {
+        if($timestamp) {
+            # Newegg's time is in PST
+            # let DateTime know the format of your $timestamp
+            $dtOrderdate = \DateTime::createFromFormat($timestampFormat, $timestamp, new \DateTimeZone("PST"));
+            $dtOrderdate->setTimezone(new \DateTimeZone("UTC"));
+            $utcOrderDate = $dtOrderdate->format($format);
+            return $utcOrderDate;
+        }
+
+        return "";
+    }
 
     public function getEsgShippingProvider($countryCode)
     {
+/*
+# copied from Lazada, pending set up
         $shipmentProvider = array(
             "MY" => "AS-Poslaju-HK",      
             "SG" => "LGS-SG3-HK",                
@@ -426,6 +356,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         );
         if(isset($shipmentProvider[$countryCode]))
         return $shipmentProvider[$countryCode];
+*/
     }
 
 }

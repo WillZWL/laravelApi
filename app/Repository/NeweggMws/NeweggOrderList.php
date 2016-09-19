@@ -15,13 +15,15 @@ class NeweggOrderList extends NeweggOrderCore
     public function __construct($store)
     {
         parent::__construct($store);
+
+        # set the method for curl
         $this->setResourceMethod("PUT");
-        //test demo 2
     }
 
     public function fetchOrderList()
     {
         $error_message = "";
+        $fetchList["data"] = [];
         $fetchList = $this->fetchOrderByPage(1);
         if($fetchList["allError"]) {
             $error_message = ""; 
