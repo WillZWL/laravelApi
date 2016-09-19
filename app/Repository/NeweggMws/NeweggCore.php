@@ -52,6 +52,7 @@ class NeweggCore
     /**
      * Make request to API url.
      *
+     * @param [string] $resourceUrl API resource to use in endpoint, e.g. 'ordermgmt/order/orderinfo'
      * @param [array] $requestParams query to build URL
      * @param [string] $requestBody request XML to send
      *
