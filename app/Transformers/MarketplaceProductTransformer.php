@@ -26,6 +26,7 @@ class MarketplaceProductTransformer extends TransformerAbstract
             'available_delivery_type' => $product->available_delivery_type,
             'listing_status' => $product->listing_status,
             'listing_quantity' => $product->inventory,
+            'surplus_quantity' => $product->product->surplus_quantity,
             'updated_at' => $product->modify_on,
             'updated_by' => $product->modify_by,
         ];
