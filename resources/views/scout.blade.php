@@ -25,6 +25,7 @@
 <script src="/js/jquery.isloading.min.js" type="text/javascript"></script>
 <script src="/js/url.min.js" type="text/javascript"></script>
 <script src="/js/select2.min.js" type="text/javascript"></script>
+<script src="/js/jquery.datepicker.js" type="text/javascript"></script>
 <script src="/js/main.js" type="text/javascript"></script>
 </body>
 </html>
