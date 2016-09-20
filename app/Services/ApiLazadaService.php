@@ -116,13 +116,13 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         }
     }
 
-    public function merchantManagerOrderFufillmentToShip($platform)
+    public function merchantOrderFufillmentReadyToShip($platform)
     {   
         $path = \Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix();
         $pdfFilePath = $path."/invoice".date("Y")."/".date("m")."/".date("d")."/";
         $result = "";$returnData = "";
         $esgOrderGroup = So::whereIn('so_no', $soNoList)
-                ->where("biz_type","like","%Lazada")
+                ->where("biz_type","like","%Mattel")
                 ->get();
         if(!$esgOrderGroup->isEmpty()) {
             $returnData = $this->runApiOrderFufillmentToShip($platformId,$esgOrderGroup,$pdfFilePath);
@@ -131,6 +131,15 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             return $result = array("response" => "success","message" => $returnData); 
         }else{
             return $result = array("response" => "failed","message" => "Invalid Order");
+        }
+    }
+
+    public function merchantOrderFufillmentGetDocument($storeName,$orderItemIds,$doucmentType)
+    {
+        $doucmentFile = $this->getDocument($storeName,$orderItemIds,$doucmentType);
+        if($doucmentFile){
+            $file = $pdfFilePath.$doucmentType.$fileDate.'.pdf';
+            return PDF::loadHTML($doucmentFile)->download($file);
         }
     }
 
@@ -230,8 +239,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $fileDate = date("h-i-s");$doucment = null;
         if (!file_exists($pdfFilePath)) {
             mkdir($pdfFilePath, 0755, true);
-        }
-        //$pdfPage = "<style type='text/css'>.page {overflow: hidden;page-break-inside: avoid;}</style>";
+        } 
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
         foreach($doucmentTypeArr as $doucmentType){
             $doucmentFile = $this->getDocument($storeName,$orderItemIds,$doucmentType);
@@ -255,12 +263,12 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $result;
     }
 
-	public function setStatusToCanceled($storeName,$orderItemId)
+	public function setStatusToCanceled($storeName,$orderStatus)
 	{
 		$this->lazadaOrderStatus=new LazadaOrderStatus($storeName);
-		$this->lazadaOrderStatus->setOrderItemId($orderItemId);
-		$this->lazadaOrderStatus->setReason("reason");
-		$this->lazadaOrderStatus->setReasonDetail("reasonDetail");
+		$this->lazadaOrderStatus->setOrderItemId($orderStatus["orderItemId"]);
+		$this->lazadaOrderStatus->setReason($orderStatus["reason"]);
+		$this->lazadaOrderStatus->setReasonDetail($orderStatus["reasonDetail"]);
 		$result=$this->lazadaOrderStatus->setStatusToCanceled();
 		return $this->checkResultData($result,$this->lazadaOrderStatus);
 	}
@@ -511,6 +519,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 			case 'Shipped':
 				$status=PlatformMarketConstService::ORDER_STATUS_SHIPPED;
 				break;
+            case 'ReadyToShip':
+                $status=PlatformMarketConstService::ORDER_STATUS_READYTOSHIP;
+                break;
             case 'ReadyToShip':
 			case 'Unshipped':
 			case 'Pending':

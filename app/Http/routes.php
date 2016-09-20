@@ -63,14 +63,12 @@ Route::group(['middleware' => ['cors']], function () {
     Route::post('listingSku/add', 'ListingSkuManagement@add');
     Route::get('listingSku/getData', 'ListingSkuManagement@getData');
 
-    Route::get('platform-market/index', 'PlatformMarketOrderManage@index');
-    Route::get('platform-market/transfer-order', 'PlatformMarketOrderManage@transferOrder');
     Route::get('platform-market/product', 'PlatformMarketProductManage@getProductList');
     Route::get('platform-market/update-product-price', 'PlatformMarketProductManage@submitProductPrice');
     Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
-    Route::resource('lazada-api/donwload-label', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
+    Route::get('lazada-api/donwload-label/{file}', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
