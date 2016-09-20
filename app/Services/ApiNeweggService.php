@@ -42,14 +42,10 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                 if (isset($order['ShipToCountryCode'])) {
                     $addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
                 }
-
                 $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
-                $originOrderItemList=$this->getOrderItemList($order,$order["OrderNumber"]);
-                $i = 0;
-                if($originOrderItemList){
-                    foreach($originOrderItemList as $orderItem){
+                if($order["ItemInfoList"]){
+                    foreach($order["ItemInfoList"] as $orderItem){
                         $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
-                        $i++;
                     }
                 }
             }
@@ -68,12 +64,6 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         $originOrderList=$this->neweggOrderList->fetchOrderList();
         $this->saveDataToFile(serialize($originOrderList),"getOrderList");
         return $originOrderList;
-    }
-
-    public function getOrderItemList($order,$orderId)
-    {
-        $originOrderItemList = $order["ItemInfoList"];
-        return $originOrderItemList;
     }
 
     //update or insert data to database
