@@ -80,9 +80,11 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('colour', 'ColourController');
     $api->resource('version', 'VersionController');
     $api->resource('category', 'CategoryController');
+    $api->resource('hscode_category', 'HscodeCategoryController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
     $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
+    $api->post('marketplace-product/add-update', 'MarketplaceProductController@addOrUpdate');
     $api->resource('marketplace-product', 'MarketplaceProductController');
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
 });

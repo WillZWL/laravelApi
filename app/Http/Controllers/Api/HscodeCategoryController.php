@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\MarketplaceProductService;
-use App\Transformers\MarketplaceProductTransformer;
+use App\Services\HscodeCategoryService;
+use App\Transformers\HscodeCategoryTransformer;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
+
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class MarketplaceProductController extends Controller
+class HscodeCategoryController extends Controller
 {
     use Helpers;
 
-    private $marketplaceProductService;
+    private $hscodeCategoryService;
 
-    public function __construct(MarketplaceProductService $marketplaceProductService)
+    public function __construct(HscodeCategoryService $hscodeCategoryService)
     {
-        $this->marketplaceProductService = $marketplaceProductService;
+        $this->hscodeCategoryService = $hscodeCategoryService;
     }
-
     /**
      * Display a listing of the resource.
      *
@@ -27,7 +27,9 @@ class MarketplaceProductController extends Controller
      */
     public function index()
     {
-        //
+        $hscodeCategorys = $this->hscodeCategoryService->all();
+
+        return $this->collection($hscodeCategorys, new hscodeCategoryTransformer());
     }
 
     /**
@@ -43,8 +45,7 @@ class MarketplaceProductController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     *
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
@@ -55,8 +56,7 @@ class MarketplaceProductController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -67,8 +67,7 @@ class MarketplaceProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -79,9 +78,8 @@ class MarketplaceProductController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
-     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -92,34 +90,11 @@ class MarketplaceProductController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
     {
         //
-    }
-
-    public function search(Requests\MarketplaceProductSearchRequest $searchRequest)
-    {
-        $products = $this->marketplaceProductService->search($searchRequest);
-
-        return $this->response->paginator($products, new MarketplaceProductTransformer());
-    }
-
-    public function estimate(Requests\ProfitEstimateRequest $profitRequest)
-    {
-        return response()->json($this->marketplaceProductService->estimate($profitRequest));
-    }
-
-    public function bulkUpdate(Requests\BatchUpdateMarketplaceProductRequest $bulkUpdateRequest)
-    {
-        return $this->marketplaceProductService->update($bulkUpdateRequest);
-    }
-
-    public function addOrUpdate(Request $request)
-    {
-        return response()->json($request);
     }
 }
