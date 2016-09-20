@@ -73,6 +73,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('marketplace-report'),
         ],
+        'productUpload' => [
+            'driver' => 'local',
+            'root' => storage_path('bulk-product-upload'),
+        ]
 
     ],
 

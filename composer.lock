@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "82bac40e7800e18f2ee0e443551631b5",
-    "content-hash": "a6f8784145bdeae73ca6c72a445e39ca",
+    "hash": "d9bbe9c5045820b4640835fe6e624578",
+    "content-hash": "1667fdbd22426f23a1b605758d828fd0",
     "packages": [
         {
             "name": "barryvdh/laravel-cors",
@@ -3777,6 +3777,59 @@
                 "validate"
             ],
             "time": "2016-08-09 15:02:57"
+        },
+        {
+            "name": "websafe/lib-websafe-blueimp-jquery-file-upload-handler",
+            "version": "v9.11.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/websafe/lib-websafe-blueimp-jquery-file-upload-handler.git",
+                "reference": "5b21564d6ffa65cdf9119d7e0cebe64872c7b79d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/websafe/lib-websafe-blueimp-jquery-file-upload-handler/zipball/5b21564d6ffa65cdf9119d7e0cebe64872c7b79d",
+                "reference": "5b21564d6ffa65cdf9119d7e0cebe64872c7b79d",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "require-dev": {
+                "fabpot/php-cs-fixer": "dev-master",
+                "zendframework/zendframework": "dev-master",
+                "zendframework/zftool": "dev-master"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.0.1-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Websafe": "library/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Sebastian Tschan",
+                    "homepage": "https://blueimp.net",
+                    "role": "Developer"
+                },
+                {
+                    "name": "Thomas Szteliga",
+                    "email": "ts@websafe.pl",
+                    "homepage": "https://websafe.pl",
+                    "role": "Packager"
+                }
+            ],
+            "description": "Repackaged PHP handler from Blueimp Jquery-File-Upload. Composer and autoloader ready. Contains only the PHP handler class. Install frontend assets with bower.",
+            "time": "2015-09-10 09:24:58"
         },
         {
             "name": "wish/php-sdk",

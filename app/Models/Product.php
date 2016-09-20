@@ -52,4 +52,9 @@ class Product extends Model
     {
         return $this->belongsTo('App\Models\Brand');
     }
+
+    public function productFeatures()
+    {
+        return $this->hasMany('App\Models\ProductFeatures', 'esg_sku', 'sku');
+    }
 }
