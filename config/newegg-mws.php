@@ -34,8 +34,8 @@ return [
             'userId' => 'newegg@eservicesgroup.com',
             'password' => 'aCC21salES5k',
             'orderCurrency'=>'USD',  // currently all Newegg orders in USD
-            'storeCurrency'=>'AUS', // for product listing
-            'countryCode' => 'AUD', // Newegg's country code
+            'storeCurrency'=>'AUD', // for product listing
+            'countryCode' => 'AUS', // Newegg's country code
             'sellerId' => "AAJM",
             'userAlertEmail' => ["newegg@brandsconnect.net"],
             'neweggServiceUrl' => "https://api.newegg.com/marketplace/",
