@@ -11,7 +11,7 @@ use Config;
 
 abstract class BaseApiPlatformCommand extends Command
 {
-    public $platfromMakert = array('lazada','priceminister');
+    public $platfromMakert = array('lazada','priceminister', 'newegg');
     abstract public function runApiPlatformServiceFunction($stores, $apiName);
 
     public function __construct()

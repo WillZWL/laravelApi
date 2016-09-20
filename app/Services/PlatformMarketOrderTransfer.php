@@ -8,6 +8,7 @@ use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
 use App\Services\PlatformValidate\PriceMinisterValidateService;
 use App\Services\PlatformValidate\FnacValidateService;
+use App\Services\PlatformValidate\NeweggValidateService;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
@@ -102,14 +103,14 @@ class PlatformMarketOrderTransfer
             case 'Fnac':
                 $validateService =new FnacValidateService($order);
                 break;
+            case 'Newegg':
+                $validateService = new NeweggValidateService($order);
+                break;
            /* case 'Tanga':
                 $validateService =new TangaValidateService($order);
                 break;
             case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
-                break;
-            case 'Newegg':
-                $validateService =new NeweggValidateService($order);
                 break;
             case 'Paytm':
                 $validateService =new PaytmValidateService($order);

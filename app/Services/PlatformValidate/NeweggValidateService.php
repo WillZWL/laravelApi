@@ -33,7 +33,7 @@ class NeweggValidateService extends BaseValidateService
         switch ($platformAccount) {
             case 'BC':
                 $platform['accountName'] = 'BrandsConnect';
-                $platform['alertEmail'] = 'newegg@eservicesgroup.com';
+                $platform['alertEmail'] = 'newegg@brandsconnect.net';
                 break;
         }
 
