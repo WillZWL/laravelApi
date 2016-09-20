@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Http\Requests\ProfitEstimateRequest;
 use App\Repository\DeliveryQuotationRepository;
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;

@@ -63,14 +63,12 @@ Route::group(['middleware' => ['cors']], function () {
     Route::post('listingSku/add', 'ListingSkuManagement@add');
     Route::get('listingSku/getData', 'ListingSkuManagement@getData');
 
-    Route::get('platform-market/index', 'PlatformMarketOrderManage@index');
-    Route::get('platform-market/transfer-order', 'PlatformMarketOrderManage@transferOrder');
     Route::get('platform-market/product', 'PlatformMarketProductManage@getProductList');
     Route::get('platform-market/update-product-price', 'PlatformMarketProductManage@submitProductPrice');
     Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
-    Route::resource('lazada-api/donwload-label', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
+    Route::get('lazada-api/donwload-label/{file}', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
     Route::get('product-upload/donwload-example-file/{file}', 'Api\ProductUploadController@donwloadExampleFile');
 });
 
@@ -83,9 +81,11 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('colour', 'ColourController');
     $api->resource('version', 'VersionController');
     $api->resource('category', 'CategoryController');
+    $api->resource('hscode_category', 'HscodeCategoryController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
     $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
+    $api->post('marketplace-product/add-update', 'MarketplaceProductController@addOrUpdate');
     $api->resource('marketplace-product', 'MarketplaceProductController');
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
     $api->post('product-upload', 'ProductUploadController@upload');

@@ -6,10 +6,14 @@ namespace App\Services;
 
 abstract class PlatformMarketConstService
 {
+
     const ORDER_STATUS_CANCEL = 0;
+    const ORDER_STATUS_NEW = 1;
     const ORDER_STATUS_PAID = 2;
+    const ORDER_STATUS_FULFILMENT_CHECKED = 3;
     const ORDER_STATUS_READYTOSHIP = 5;
     const ORDER_STATUS_SHIPPED = 6;
+    
     const ORDER_STATUS_RETURENED = 7;
     const ORDER_STATUS_RETURENED_REJECTED = 8;
     const ORDER_STATUS_DELIVERED = 9;
