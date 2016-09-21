@@ -276,6 +276,11 @@ class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInter
         $platformMarketOrder->save();
     }
 
+    public function getShipedOrderState()
+    {
+        return  "SHIPPED";
+    }
+
     public function getSoOrderStatus($platformOrderStatus)
     {
         switch ($platformOrderStatus) {
