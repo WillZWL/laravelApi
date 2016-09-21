@@ -117,34 +117,30 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
-    public function setStatusToCanceled($storeName, $orderItemId)
+    public function merchantOrderFufillmentReadyToShip($soNoList)
     {
-        return $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderItemId);
+        return $this->apiPlatformInterface->merchantOrderFufillmentReadyToShip($soNoList);
     }
 
-    public function setStatusToReadyToShip($storeName, $orderItemId)
+    public function merchantOrderFufillmentGetDocument($soNoList,$doucmentType)
     {
-        return $this->apiPlatformInterface->setStatusToReadyToShip($storeName, $orderItemId);
+        return $this->apiPlatformInterface->merchantOrderFufillmentGetDocument($soNoList,$doucmentType);
     }
 
-    public function setStatusToPackedByMarketplace($storeName, $orderItemId)
+    public function setStatusToCanceled($soNoList, $orderParam)
     {
-        return $this->apiPlatformInterface->setStatusToPackedByMarketplace($storeName, $orderItemId);
+        $extItemCd = So::join("so_item","so.so_no","so_item.so_no")
+                ->whereIn('so_no', $soNoList)
+                ->select("so_item.ext_item_cd")
+                ->first();
+        $orderItemIds = array_filter(explode("||",$extItemCd));
+        $orderParam["orderItemId"] = $orderItemIds[0];
+        return $this->apiPlatformInterface->setStatusToCanceled($soNoList, $orderParam);
     }
 
     public function setStatusToShipped($storeName, $orderItemId)
     {
         return $this->apiPlatformInterface->setStatusToShipped($storeName, $orderItemId);
-    }
-
-    public function setStatusToFailedDelivery($storeName, $orderItemId)
-    {
-        return $this->apiPlatformInterface->setStatusToFailedDelivery($storeName, $orderItemId);
-    }
-
-    public function setStatusToDelivered($storeName, $orderItemId)
-    {
-        return $this->apiPlatformInterface->setStatusToDelivered($storeName, $orderItemId);
     }
 
     public function alertSetOrderReadyToShip($storeName)
