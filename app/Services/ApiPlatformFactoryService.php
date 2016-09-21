@@ -86,7 +86,7 @@ class ApiPlatformFactoryService
             foreach ($esgOrderGroup as $esgOrder) {
                 $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
                 if ($esgOrderShipment) {
-                    $xmlData .= $this->apiPlatformInterface->setOrderFufillmentXmlData($esgOrder, $esgOrderShipment);
+                    $xmlData = $this->apiPlatformInterface->setOrderFufillmentXmlData($esgOrder, $esgOrderShipment);
                 }
                 $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
             }
@@ -105,9 +105,8 @@ class ApiPlatformFactoryService
     private function updateEsgMarketOrderStatus($esgOrder,$orderState)
     {
         try {
-            $this->updatePlatformMarketOrderStatus($esgOrder->platform_order_id,$orderState);
             $this->markSplitOrderShipped($esgOrder);
-            $this->markPlatformMarketOrderShipped($esgOrder);
+            $this->markPlatformMarketOrderShipped($esgOrder->platform_order_id,$orderState);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
         }
@@ -240,13 +239,6 @@ class ApiPlatformFactoryService
         });
     }
 
-    private function markPlatformMarketOrderShipped($order)
-    {
-        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $order->platform_order_id)->first();
-        $platformMarketOrder->esg_order_status = 6;
-        $platformMarketOrder->save();
-    }
-
     private function getFormatEsgOrderStatus($status)
     {
         $esgStatus = array(
@@ -262,7 +254,7 @@ class ApiPlatformFactoryService
         return $esgStatus[$status];
     }
 
-    public function updatePlatformMarketOrderStatus($orderId,$orderState,$esgOrderStatus)
+    public function markPlatformMarketOrderShipped($orderId,$orderState,$esgOrderStatus)
     {
         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
                             ->firstOrFail();

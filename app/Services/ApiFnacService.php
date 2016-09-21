@@ -186,6 +186,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             $xmlData .=    '<order_detail>';
             $xmlData .=       '<action>Shipped</action>';
             $xmlData .=       '<tracking_number>'. $esgOrderShipment->tracking_no .'</tracking_number>';
+            if($esgOrderShipment->courier_name)
             $xmlData .=       '<tracking_company>'. $esgOrderShipment->courier_name .'</tracking_company>';
             $xmlData .=    '</order_detail>';
             $xmlData .= '</order>';
@@ -193,20 +194,21 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         return $xmlData;
     }
 
-    public function submitOrderFufillment($platformOrderIdList,$xmlData)
+    public function submitOrderFufillment($storeName,$xmlData)
     {
         $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
-        print_r($xmlData);exit();
         $result = "";
+        print_r($xmlData);
         $responseDataList = $this->fnacOrderUpdate->updateTrackingNumber($xmlData);
+        print_r($responseDataList);
         if ($responseDataList) {
             $this->saveDataToFile(serialize($responseData),"responseFnacOrderTracking");
             foreach ($responseDataList as $key => $responseData) {
                 if ($responseData['status'] == 'OK'
                     && $responseData['state'] == 'Shipped'
                     && $responseData['order_id'] == $fnacOrderId
-                ) {
-                    $result[$responseData['order_id']] = $responseData['state'];
+                ){
+                    $result[] = $responseData['order_id'];
                 }
             }
             return $result;
@@ -218,7 +220,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     public function updateOrCreatePlatformMarketOrder($order, $addressId, $storeName)
     {
         $itemCost = 0;
-
         if (Arr::isAssoc($order['order_detail'])) {
             $itemCost = $order['order_detail']['price'] + $order['order_detail']['shipping_price'];
         } else {
@@ -256,9 +257,7 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         if (isset($order['nb_messages'])){
             $object['remarks'] = $order['nb_messages'];
         }
-
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
-
         return $platformMarketOrder;
     }
 
@@ -446,7 +445,6 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
             switch($responseData['state']) {
                 case "Accepted":
                     break;
-
                 case "ToShip":
                 case "Cancelled":
                     try {
