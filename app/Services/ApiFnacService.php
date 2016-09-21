@@ -182,12 +182,13 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     public function  setOrderFufillmentXmlData($esgOrder, $esgOrderShipment)
     {
         if ($esgOrderShipment) {
+            $courier = $esgOrderShipment->courierInfo->courier_name;
             $xmlData = '<order order_id="'. $esgOrder->platform_order_id .'" action="confirm_all_to_send">';
             $xmlData .=    '<order_detail>';
             $xmlData .=       '<action>Shipped</action>';
             $xmlData .=       '<tracking_number>'. $esgOrderShipment->tracking_no .'</tracking_number>';
-            if($esgOrderShipment->courier_name)
-            $xmlData .=       '<tracking_company>'. $esgOrderShipment->courier_name .'</tracking_company>';
+            if($courier)
+            $xmlData .=       '<tracking_company>'. $courier .'</tracking_company>';
             $xmlData .=    '</order_detail>';
             $xmlData .= '</order>';
         }
@@ -198,11 +199,11 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
     {
         $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
         $result = "";
-        print_r($xmlData);
+        print_r($xmlData);exit();
         $responseDataList = $this->fnacOrderUpdate->updateTrackingNumber($xmlData);
         print_r($responseDataList);
         if ($responseDataList) {
-            $this->saveDataToFile(serialize($responseData),"responseFnacOrderTracking");
+            $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderTracking");
             foreach ($responseDataList as $key => $responseData) {
                 if ($responseData['status'] == 'OK'
                     && $responseData['state'] == 'Shipped'
