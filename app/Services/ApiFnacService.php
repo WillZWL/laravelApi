@@ -135,29 +135,24 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         if (!$storeName || !$orderDetailAction || !$fnacOrderIds) {
             return false;
         }
-
         $orderAction = 'accept_all_orders';
-
         $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
         $this->fnacOrderUpdate->setFnacOrderIds($fnacOrderIds);
         $this->fnacOrderUpdate->setOrderAction($orderAction);
         $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
 
         if ($responseDataList = $this->fnacOrderUpdate->updateFnacOrdersStatus()) {
-
             foreach ($responseDataList as $responseData) {
                 if ($responseData['status'] == 'OK' && $responseData['state'] == $orderDetailAction) {
                     try {
                         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
                             ->firstOrFail();
-
                         $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $responseData['state']);
                     } catch(Exception $e) {
                         echo 'Message: ' .$e->getMessage();
                     }
                 }
             }
-
             $this->saveDataToFile(serialize($responseDataList),"responseFnacOrder". $orderDetailAction);
         }
     }
@@ -184,44 +179,38 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         }
     }
 
-    public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
+    public function  setOrderFufillmentXmlData($esgOrder, $esgOrderShipment)
     {
         if ($esgOrderShipment) {
-            $orderAction = 'confirm_all_to_send';
-            $orderDetailAction = 'Shipped';
-            $fnacOrderId = $esgOrder->platform_order_id;
-            $storeName = $platformOrderIdList[$fnacOrderId];
+            $xmlData = '<order order_id="'. $esgOrder->platform_order_id .'" action="confirm_all_to_send">';
+            $xmlData .=    '<order_detail>';
+            $xmlData .=       '<action>Shipped</action>';
+            $xmlData .=       '<tracking_number>'. $esgOrderShipment->tracking_no .'</tracking_number>';
+            $xmlData .=       '<tracking_company>'. $esgOrderShipment->courier_name .'</tracking_company>';
+            $xmlData .=    '</order_detail>';
+            $xmlData .= '</order>';
+        }
+        return $xmlData;
+    }
 
-            $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
-            $this->fnacOrderUpdate->setOrderId($fnacOrderId);
-            $this->fnacOrderUpdate->setTrackingNumber($esgOrderShipment->tracking_no);
-            $this->fnacOrderUpdate->setCourierName($esgOrderShipment->courier_name);
-            $this->fnacOrderUpdate->setOrderAction($orderAction);
-            $this->fnacOrderUpdate->setOrderDetailAction($orderDetailAction);
-
-            if ($responseData = $this->fnacOrderUpdate->updateTrackingNumber()) {
-
-                $this->saveDataToFile(serialize($responseData),"responseFnacOrderTracking");
-
+    public function submitOrderFufillment($platformOrderIdList,$xmlData)
+    {
+        $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
+        print_r($xmlData);exit();
+        $result = "";
+        $responseDataList = $this->fnacOrderUpdate->updateTrackingNumber($xmlData);
+        if ($responseDataList) {
+            $this->saveDataToFile(serialize($responseData),"responseFnacOrderTracking");
+            foreach ($responseDataList as $key => $responseData) {
                 if ($responseData['status'] == 'OK'
                     && $responseData['state'] == 'Shipped'
                     && $responseData['order_id'] == $fnacOrderId
                 ) {
-                    try {
-                        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $responseData['order_id'])
-                            ->where('order_status', '=', 'ToShip')
-                            ->firstOrFail();
-
-                        $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $responseData['state']);
-
-                        return true;
-                    } catch(Exception $e) {
-                        echo 'Message: ' .$e->getMessage();
-                    }
+                    $result[$responseData['order_id']] = $responseData['state'];
                 }
             }
+            return $result;
         }
-
         return false;
     }
 
@@ -355,6 +344,11 @@ class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
 
         return $platformMarketShippingAddress->id;
+    }
+
+    public function getShipedOrderState()
+    {
+        return  "Shipped";
     }
 
     public function getSoOrderStatus($platformOrderStatus)

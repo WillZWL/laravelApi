@@ -16,28 +16,18 @@ class FnacOrderUpdate extends FnacOrderCore
         $this->setFnacAction('orders_update');
     }
 
-    public function updateTrackingNumber()
+    public function updateTrackingNumber($xmlData="")
     {
-        $this->setRequestTrackingNumberXml();
-
+        $this->setRequestTrackingNumberXml($xmlData);
         return parent::query($this->getRequestXml());
     }
 
-    protected function setRequestTrackingNumberXml()
+    protected function setRequestTrackingNumberXml($xmlData)
     {
-        $xmlData = '<?xml version="1.0" encoding="utf-8"?>';
-        $xmlData .= '<orders_update '. $this->getAuthKeyWithToken() .'>';
-        $xmlData .=     '<order order_id="'. $this->getOrderId() .'" action="'. $this->getOrderAction() .'">';
-        $xmlData .=         '<order_detail>';
-        $xmlData .=             '<action>'. $this->getOrderDetailAction() .'</action>';
-        $xmlData .=             '<shipping_method>21</shipping_method>';
-        $xmlData .=             '<tracking_number>'. $this->getTrackingNumber() .'</tracking_number>';
-        $xmlData .=             '<tracking_company>'. $this->getCourierName() .'</tracking_company>';
-        $xmlData .=         '</order_detail>';
-        $xmlData .=     '</order>';
-        $xmlData .= '</orders_update>';
-
-        $this->requestXml = $xmlData;
+        $this->requestXml = '<?xml version="1.0" encoding="utf-8"?>';
+        $this->requestXml .= '<orders_update '. $this->getAuthKeyWithToken() .'>';
+        $this->requestXml .= $xmlData;
+        $this->requestXml .= '</orders_update>';
     }
 
     public function updateFnacOrdersStatus()

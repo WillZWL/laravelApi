@@ -91,11 +91,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $orginOrderItemList;
 	}
 
-	public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
-	{  
-        return false;//testing
-	}
-
     //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
     public function esgOrderReadyToShip($soNoList)
     {  

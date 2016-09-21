@@ -50,20 +50,66 @@ class ApiPlatformFactoryService
         $bizType = $this->apiPlatformInterface->getPlatformId($apiName);
         $platformOrderIdList = $this->getPlatformOrderIdList($bizType);
         $esgOrders = $this->getEsgOrders($platformOrderIdList);
-        if ($esgOrders) {
-            foreach ($esgOrders as $esgOrder) {
-                $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
-                if ($esgOrderShipment) {
-                    $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
-                    if ($response) {
-                        $this->markSplitOrderShipped($esgOrder);
-                        $this->markPlatformMarketOrderShipped($esgOrder);
-                        if ($bizType == 'Amazon') {
-                            $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
-                        }
+        $orderFufillmentByGroup = ["Fnac"];
+        if($esgOrders){
+            if(in_array($bizType, $orderFufillmentByGroup)){
+                $this->submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList);
+            }else{
+                $this->submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList);
+            }
+        }
+    }
+    //1 post one by one 
+    public function submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList)
+    {
+        foreach ($esgOrders as $esgOrder) {
+            $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
+            if ($esgOrderShipment) {
+                $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
+                if ($response) {
+                    $orderState = $this->apiPlatformInterface->getShipedOrderState();
+                    $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
+                    if ($bizType == 'Amazon') {
+                        $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
                     }
                 }
             }
+        }
+    }
+    
+    //2 post all data once
+    public function submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList)
+    {   
+        $xmlData = null;
+        $esgOrderGroups = $esgOrders->groupBy("platform_id");
+        foreach ($esgOrderGroups as $esgOrderGroup) {
+            foreach ($esgOrderGroup as $esgOrder) {
+                $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
+                if ($esgOrderShipment) {
+                    $xmlData .= $this->apiPlatformInterface->setOrderFufillmentXmlData($esgOrder, $esgOrderShipment);
+                }
+                $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+            }
+            $response = $this->apiPlatformInterface->submitOrderFufillment($storeName,$xmlData);
+            if ($response) {
+                foreach ($esgOrderGroup as $esgOrder) {
+                    $orderState = $this->apiPlatformInterface->getShipedOrderState();
+                    if(in_array($esgOrder->platform_order_id, $response)){
+                        $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
+                    }
+                }
+            }
+        }  
+    }
+
+    private function updateEsgMarketOrderStatus($esgOrder,$orderState)
+    {
+        try {
+            $this->updatePlatformMarketOrderStatus($esgOrder->platform_order_id,$orderState);
+            $this->markSplitOrderShipped($esgOrder);
+            $this->markPlatformMarketOrderShipped($esgOrder);
+        } catch(Exception $e) {
+            echo 'Message: ' .$e->getMessage();
         }
     }
 
@@ -216,4 +262,20 @@ class ApiPlatformFactoryService
         return $esgStatus[$status];
     }
 
+    public function updatePlatformMarketOrderStatus($orderId,$orderState,$esgOrderStatus)
+    {
+        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
+                            ->firstOrFail();
+        if ($platformMarketOrder) {
+            $platformMarketOrder->order_status = $orderState;
+            $platformMarketOrder->esg_order_status = 6;
+            $platformMarketOrder->save();
+            if ($orderItems = $platformMarketOrder->platformMarketOrderItem()->get()) {
+                foreach ($orderItems as $orderItem) {
+                    $orderItem->status = $orderState;
+                    $orderItem->save();
+                }
+            }
+        }
+    }
 }
