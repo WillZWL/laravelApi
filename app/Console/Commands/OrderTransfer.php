@@ -446,10 +446,16 @@ class OrderTransfer extends Command
             ]);
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if ($marginAndProfit->get($item->mapping->delivery_type)->get('profit')) {
-                $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
-                $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)->get('margin');
-            } else {
+            if(!$marginAndProfit->isEmpty()){
+                $profit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
+                if($profit){
+                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
+                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)->get('margin');
+                }else{
+                    $selectedProfit = 0;
+                    $selectedMargin = 0;
+                }   
+            }else{
                 $selectedProfit = 0;
                 $selectedMargin = 0;
             }
