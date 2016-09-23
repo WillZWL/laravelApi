@@ -130,7 +130,7 @@ return [
             'currency' => 'EUR',
         ],
         'PXAMAZONUS' => [
-            'merchantId' => 'A174OCMJXUUPFSs',
+            'merchantId' => 'A174OCMJXUUPFS',
             'marketplaceId' => 'ATVPDKIKX0DER',
             'keyId' => 'AKIAJTXHDTYMFYJQENHA',
             'secretKey' => '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',
@@ -139,7 +139,7 @@ return [
             'currency' => 'USD',
         ],
         'PXAMAZONMX' => [
-            'merchantId' => 'A174OCMJXUUPFSs',
+            'merchantId' => 'A174OCMJXUUPFS',
             'marketplaceId' => 'A1AM78C64UM0Y8',
             'keyId' => 'AKIAJTXHDTYMFYJQENHA',
             'secretKey' => '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',
@@ -148,7 +148,7 @@ return [
             'currency' => 'MXN',
         ],
         'PXAMAZONCA' => [
-            'merchantId' => 'A174OCMJXUUPFSs',
+            'merchantId' => 'A174OCMJXUUPFS',
             'marketplaceId' => 'A2EUQ1WTGCTBG2',
             'keyId' => 'AKIAJTXHDTYMFYJQENHA',
             'secretKey' => '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',
