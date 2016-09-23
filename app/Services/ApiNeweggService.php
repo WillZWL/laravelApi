@@ -42,7 +42,6 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                 if (isset($order['ShipToCountryCode'])) {
                     $addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
                 }
-
                 $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
                 if(isset($order["ItemInfoList"]) && !empty($order["ItemInfoList"])){
                     foreach($order["ItemInfoList"] as $orderItem){
