@@ -76,6 +76,10 @@ return [
         'productUpload' => [
             'driver' => 'local',
             'root' => storage_path('bulk-product-upload'),
+        ],
+        'merchant' => [
+            'driver' => 'local',
+            'root' => storage_path('merchant'),
         ]
 
     ],

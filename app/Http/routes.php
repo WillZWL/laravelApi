@@ -92,4 +92,10 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('product-upload', 'ProductUploadController@index');
 });
 
+$api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['cors']], function ($api) {
+    $api->post('merchant-api/order-fufillment', 'MerchantApiController@orderFufillmentAction');
+    $api->post('merchant-api/order-picking-list', 'MerchantApiController@getPickingList');
+    $api->get('merchant-api/download-label/{file}', 'MerchantApiController@donwloadLabel');
+});
+
 Route::get('platform/test', 'InterfacePlatformOrder@index');
