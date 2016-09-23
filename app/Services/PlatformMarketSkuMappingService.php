@@ -58,6 +58,11 @@ class PlatformMarketSkuMappingService
                                 $insertActive = true;
                             }
                             if ($insertActive) {
+                                if(isset($this->store['currency'])){
+                                    $currency = $this->store['currency'];
+                                }else if(isset($this->store['orderCurrency'])){
+                                    $currency = $this->store['orderCurrency'];
+                                }
                                 $mappingData = array(
                                 'marketplace_sku' => $itemData['marketplace_sku'],
                                 'sku' => $itemData['esg_sku'],
@@ -69,7 +74,7 @@ class PlatformMarketSkuMappingService
                                 'country_id' => $this->countryCode,
                                 'lang_id' => 'en',
                                 'asin'=> isset($itemData['ASIN']) ? $itemData['ASIN']:'',
-                                'currency' => $this->store['currency'],
+                                'currency' =>  $currency,
                                 );
                                 $this->firstOrCreateMarketplaceSkuMapping($mappingData);
                             }
@@ -117,7 +122,12 @@ class PlatformMarketSkuMappingService
         $object['selling_platform_id'] = $sellingPlatformId;
         $object['platform_country_id'] = $countryCode;
         $object['dest_country'] = $countryCode;
-        $object['platform_currency_id'] = $store['currency'];
+        if(isset($store['currency'])){
+            $currency =  $store['currency'];
+        }else if(isset($store['orderCurrency'])){
+            $currency =  $store['orderCurrency'];
+        }
+        $object['platform_currency_id'] = $currency;
         $object['language_id'] = 'en';
         $object['delivery_type'] = 'EXP';
         $object['create_on'] = date('Y-m-d H:i:s');
