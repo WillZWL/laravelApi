@@ -109,36 +109,36 @@ return [
             'currency'=>'IDR',
         ],
         
-        'PXLAZADAMY' => [
-            'name'=>'Product Xpress Lazada',
+        'CFLAZADAMY' => [
+            'name'=>'China Finest Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '575f613e83fee7f0a2b3098110b177109a20fa47',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
             'currency'=>'MYR',
         ],
-        'PXLAZADASG' => [
-            'name'=>'Product Xpress Lazada',
+        'CFLAZADASG' => [
+            'name'=>'China Finest Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '1bf34d47695451e80b9b05fcb22d86e3281ba84f',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
             'currency'=>'SGD',
         ],
-        'PXLAZADATH' => [
-            'name'=>'Product Xpress Lazada',
+        'CFLAZADATH' => [
+            'name'=>'China Finest Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '0f42c6115fe80506ce52d7c452fe5991ede50e1f',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
             'currency'=>'THB',
         ],
-        'PXLAZADAPH' => [
-            'name'=>'Product Xpress Lazada',
+        'CFLAZADAPH' => [
+            'name'=>'China Finest Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '73fb06dc02628a9797dc2759945e372a745f0a4d',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
             'currency'=>'PHP',
         ],
-        'PXLAZADAID' => [
-            'name'=>'Product Xpress Lazada',
+        'CFLAZADAID' => [
+            'name'=>'China Finest Lazada',
             'userId' => 'lazada@eservicesgroup.com', 
             'apiToken' => '9cfc107ba37aef42b1f6911489f8b49f6e077f52',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
