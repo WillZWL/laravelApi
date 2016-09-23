@@ -256,6 +256,11 @@ class ApiAmazonService extends ApiBaseService implements ApiPlatformInterface
         return $amazonOrderShippingAddress->id;
     }
 
+    public function getShipedOrderState()
+    {
+        return  "Shipped";
+    }
+
     public function getSoOrderStatus($platformOrderStatus)
     {
         switch ($platformOrderStatus) {

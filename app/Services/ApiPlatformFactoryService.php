@@ -50,20 +50,65 @@ class ApiPlatformFactoryService
         $bizType = $this->apiPlatformInterface->getPlatformId($apiName);
         $platformOrderIdList = $this->getPlatformOrderIdList($bizType);
         $esgOrders = $this->getEsgOrders($platformOrderIdList);
-        if ($esgOrders) {
-            foreach ($esgOrders as $esgOrder) {
-                $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
-                if ($esgOrderShipment) {
-                    $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
-                    if ($response) {
-                        $this->markSplitOrderShipped($esgOrder);
-                        $this->markPlatformMarketOrderShipped($esgOrder);
-                        if ($bizType == 'Amazon') {
-                            $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
-                        }
+        $orderFufillmentByGroup = ["Fnac"];
+        if($esgOrders){
+            if(in_array($bizType, $orderFufillmentByGroup)){
+                $this->submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList);
+            }else{
+                $this->submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList);
+            }
+        }
+    }
+    //1 post one by one 
+    public function submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList)
+    {
+        foreach ($esgOrders as $esgOrder) {
+            $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
+            if ($esgOrderShipment) {
+                $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
+                if ($response) {
+                    $orderState = $this->apiPlatformInterface->getShipedOrderState();
+                    $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
+                    if ($bizType == 'Amazon') {
+                        $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
                     }
                 }
             }
+        }
+    }
+    
+    //2 post all data once
+    public function submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList)
+    {   
+        $xmlData = null;
+        $esgOrderGroups = $esgOrders->groupBy("platform_id");
+        foreach ($esgOrderGroups as $esgOrderGroup) {
+            foreach ($esgOrderGroup as $esgOrder) {
+                $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
+                if ($esgOrderShipment) {
+                    $xmlData = $this->apiPlatformInterface->setOrderFufillmentXmlData($esgOrder, $esgOrderShipment);
+                }
+                $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+            }
+            $response = $this->apiPlatformInterface->submitOrderFufillment($storeName,$xmlData);
+            if ($response) {
+                foreach ($esgOrderGroup as $esgOrder) {
+                    $orderState = $this->apiPlatformInterface->getShipedOrderState();
+                    if(in_array($esgOrder->platform_order_id, $response)){
+                        $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
+                    }
+                }
+            }
+        }  
+    }
+
+    private function updateEsgMarketOrderStatus($esgOrder,$orderState)
+    {
+        try {
+            $this->markSplitOrderShipped($esgOrder);
+            $this->markPlatformMarketOrderShipped($esgOrder->platform_order_id,$orderState);
+        } catch(Exception $e) {
+            echo 'Message: ' .$e->getMessage();
         }
     }
 
@@ -72,34 +117,30 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
-    public function setStatusToCanceled($storeName, $orderItemId)
+    public function merchantOrderFufillmentReadyToShip($soNoList)
     {
-        return $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderItemId);
+        return $this->apiPlatformInterface->merchantOrderFufillmentReadyToShip($soNoList);
     }
 
-    public function setStatusToReadyToShip($storeName, $orderItemId)
+    public function merchantOrderFufillmentGetDocument($soNoList,$doucmentType)
     {
-        return $this->apiPlatformInterface->setStatusToReadyToShip($storeName, $orderItemId);
+        return $this->apiPlatformInterface->merchantOrderFufillmentGetDocument($soNoList,$doucmentType);
     }
 
-    public function setStatusToPackedByMarketplace($storeName, $orderItemId)
+    public function setStatusToCanceled($soNoList, $orderParam)
     {
-        return $this->apiPlatformInterface->setStatusToPackedByMarketplace($storeName, $orderItemId);
+        $extItemCd = So::join("so_item","so.so_no","so_item.so_no")
+                ->whereIn('so_no', $soNoList)
+                ->select("so_item.ext_item_cd")
+                ->first();
+        $orderItemIds = array_filter(explode("||",$extItemCd));
+        $orderParam["orderItemId"] = $orderItemIds[0];
+        return $this->apiPlatformInterface->setStatusToCanceled($soNoList, $orderParam);
     }
 
     public function setStatusToShipped($storeName, $orderItemId)
     {
         return $this->apiPlatformInterface->setStatusToShipped($storeName, $orderItemId);
-    }
-
-    public function setStatusToFailedDelivery($storeName, $orderItemId)
-    {
-        return $this->apiPlatformInterface->setStatusToFailedDelivery($storeName, $orderItemId);
-    }
-
-    public function setStatusToDelivered($storeName, $orderItemId)
-    {
-        return $this->apiPlatformInterface->setStatusToDelivered($storeName, $orderItemId);
     }
 
     public function alertSetOrderReadyToShip($storeName)
@@ -194,13 +235,6 @@ class ApiPlatformFactoryService
         });
     }
 
-    private function markPlatformMarketOrderShipped($order)
-    {
-        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $order->platform_order_id)->first();
-        $platformMarketOrder->esg_order_status = 6;
-        $platformMarketOrder->save();
-    }
-
     private function getFormatEsgOrderStatus($status)
     {
         $esgStatus = array(
@@ -216,4 +250,20 @@ class ApiPlatformFactoryService
         return $esgStatus[$status];
     }
 
+    public function markPlatformMarketOrderShipped($orderId,$orderState,$esgOrderStatus)
+    {
+        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
+                            ->firstOrFail();
+        if ($platformMarketOrder) {
+            $platformMarketOrder->order_status = $orderState;
+            $platformMarketOrder->esg_order_status = 6;
+            $platformMarketOrder->save();
+            if ($orderItems = $platformMarketOrder->platformMarketOrderItem()->get()) {
+                foreach ($orderItems as $orderItem) {
+                    $orderItem->status = $orderState;
+                    $orderItem->save();
+                }
+            }
+        }
+    }
 }

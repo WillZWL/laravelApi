@@ -21,19 +21,25 @@ class PlatformMarketOrderManage extends Controller
         return response()->view('platform-manager.index', $data);
     }
 
-    public function setOrderStatusReadyToShip(Request $request)
+    public function merchantOrderFufillmentReadyToShip(Request $request)
     {
-        
+        $soNoList = $request->input("so_no");
+        $this->apiPlatformFactoryService->merchantOrderFufillmentReadyToShip($soNoList);
     }
 
-    public function setOrderStatusCancel(Request $request)
+    public function merchantOrderFufillmentGetDocument(Request $request)
     {
-        
+        $soNoList = $request->input("so_no");
+        $doucmentType = $request->input("doucment_type");
+        $this->apiPlatformFactoryService->merchantOrderFufillmentGetDocument($soNoList,$doucmentType);
     }
 
-    public function printOrderLabel(Request $request)
+    public function setOrderStatusToCanceled(Request $request)
     {
-        
+        $soNoList = $request->input("so_no");
+        $orderParam["reason"] = $request->input("reason");
+        $orderParam["reasonDetail"] = $request->input("reason_detail");
+        $this->apiPlatformFactoryService->setStatusToCanceled($soNoList,$orderParam);
     }
 
     public function uploadMarketplacdeSkuMapping(Request $request)
