@@ -43,6 +43,9 @@ class DeliveryQuotationRepository
 
         $quotation = collect();
         foreach ($quotationVersion as $quotationType => $quotationVersionId) {
+            if (substr($marketplaceProduct->marketplace_id, 2) === 'LAZADA' && $quotationType !== 'acc_courier_exp') {
+                continue;
+            }
             if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage')) {
                 $weight = $actualWeight;
             } else {
