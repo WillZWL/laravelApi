@@ -576,7 +576,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $shipmentProvider = array(
             "ES_HK"=>array(
                 "MY" => "AS-Poslaju-HK",      
-                //"SG" => "LGS-SG3",                
+                "SG" => "LGS-SG3",                
                 "TH" => "LGS-TH3-HK",       
                 "ID" => "LGS-LEX-ID-HK",
                 "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
@@ -584,7 +584,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             "ES_DGME"=>array(
                 "MY" => "AS-Poslaju",      
                 "SG" => "LGS-SG3",                
-                //"TH" => "LGS-TH3-HK",       
+                "TH" => "LGS-TH3-HK",       
                 "ID" => "LGS-Tiki-ID",
                 "PH" => "LGS-PH1"
             )
