@@ -54,7 +54,7 @@ class PricingToolService
         $tax = $this->getTax($request, $declaredValue);
         $duty = $this->getDuty($request, $declaredValue);
 
-        $esgCommission = $this->getEsgCommission($request);
+        $targetMargin = $this->getTargetMargin($request);
         $marketplaceCommission = $this->getMarketplaceCommission($request);
         $marketplaceListingFee = $this->getMarketplaceListingFee($request);
         $marketplaceFixedFee = $this->getMarketplaceFixedFee($request);
@@ -76,7 +76,6 @@ class PricingToolService
                 $priceInfo[$deliveryType] = [];
                 $priceInfo[$deliveryType]['tax'] = $tax;
                 $priceInfo[$deliveryType]['duty'] = $duty;
-                $priceInfo[$deliveryType]['esgCommission'] = $esgCommission;
                 $priceInfo[$deliveryType]['marketplaceCommission'] = $marketplaceCommission;
                 $priceInfo[$deliveryType]['marketplaceListingFee'] = $marketplaceListingFee;
                 $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
@@ -87,6 +86,7 @@ class PricingToolService
                 $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
                 $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
                 $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
+                $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
 
                 $priceInfo[$deliveryType]['price'] = $request->input('price');
                 $priceInfo[$deliveryType]['declaredValue'] = $declaredValue;
@@ -100,11 +100,7 @@ class PricingToolService
                 }
 
                 if ($request->input('price') > 0) {
-                    if ($pricingType == 'revenue') {
-                        $priceInfo[$deliveryType]['profit'] = $esgCommission;
-                    } elseif ($pricingType == 'cost') {
-                        $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
-                    }
+                    $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
                     $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->input('price') * 100, 2);
                 } else {
                     $priceInfo[$deliveryType]['profit'] = 'N/A';
@@ -132,9 +128,9 @@ class PricingToolService
         }
     }
 
-    public function getEsgCommission(Request $request)
+    public function getTargetMargin(Request $request)
     {
-        $esgCommission = 0;
+        $targetMargin = 0;
         $merchantInfo = MerchantProductMapping::join('merchant_client_type', 'merchant_client_type.merchant_id', '=', 'merchant_product_mapping.merchant_id')
             ->select(['revenue_value', 'cost_value'])
             ->where('sku', '=', $request->sku)
@@ -142,10 +138,10 @@ class PricingToolService
             ->firstOrFail();
 
         if ($merchantInfo->revenue_value) {
-            $esgCommission = $request->price * $merchantInfo->revenue_value / 100;
+            $targetMargin = $merchantInfo->revenue_value;
         }
 
-        return round($esgCommission, 2);
+        return round($targetMargin, 2);
     }
 
     public function getDeclaredValue(Request $request)
