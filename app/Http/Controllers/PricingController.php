@@ -251,7 +251,7 @@ class PricingController extends Controller
             ->firstOrFail();
 
         if ($merchantInfo->revenue_value) {
-            $esgCommission = $request->price * $merchantInfo->revenue_value / 100;
+            $esgCommission =  $merchantInfo->revenue_value;
         }
 
         return round($esgCommission, 2);
