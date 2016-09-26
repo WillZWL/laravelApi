@@ -9,6 +9,7 @@ use App\Models\So;
 use App\Models\SoShipment;
 use Carbon\Carbon;
 use App\Models\PlatformMarketOrder;
+use App\Models\PlatformMarketOrderItem;
 use App\Models\MarketplaceSkuMapping;
 
 class ApiPlatformFactoryService
@@ -124,7 +125,7 @@ class ApiPlatformFactoryService
         return $this->merchantOrderReadyToShip($platformMarketOrders);
     }
 
-    public function merchantOrderFufillmentReadyToShip()
+    public function merchantOrderFufillmentReadyToShip($orderIds)
     {
         $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
         return $this->merchantOrderReadyToShip($platformMarketOrders);
@@ -205,20 +206,16 @@ class ApiPlatformFactoryService
 
     public function setMerchantOrderToShipped($storeName,$trackingNo)
     {
-        $orderItems = PlatformMarketOrderItem::where("tracking_no",$trackingNo)->get();
-
+        $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();
         if(!$orderItems->isEmpty()){
             foreach ($orderItems as $orderItem) {
-                $orderItem->update("status","Shipped");
+                $orderItem->update(array("status"=>"Shipped"));
                 $platformOrderId = $orderItem->platform_order_id;
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-            PlatformMarketOrder::update(
-                [
-                    'platform_order_id' => $platformOrderId
-                ],$object
-            );
+            $platformMarketOrder = PlatformMarketOrder::where("platform_order_id",$platformOrderId)->first();
+            $platformMarketOrder->update($object);
         }
     }
 
@@ -374,9 +371,12 @@ class ApiPlatformFactoryService
             PlatformMarketConstService::ORDER_STATUS_NEW,
             PlatformMarketConstService::ORDER_STATUS_PAID,
             PlatformMarketConstService::ORDER_STATUS_FULFILMENT_CHECKED,
+            PlatformMarketConstService::ORDER_STATUS_PENDING,
+            PlatformMarketConstService::ORDER_STATUS_UNSHIPPED,
         );
         $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status",$esgOrderStatus)->where("platform", "=", $platform)
             ->get();
+        return $platformMarketOrders;
     }
 
     public function getWarehouseByPlatform($platform,$platformMarketOrderGroups)
