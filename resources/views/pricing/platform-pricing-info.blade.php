@@ -71,7 +71,6 @@
                         <th class="hidden">Decl.</th>
                         <th class="hidden">Tax</th>
                         <th class="hidden">Duty</th>
-                        <th>esg COMM.</th>
                         <th>MP. COMM.</th>
                         <th>Listing Fee</th>
                         <th>Fixed Fee</th>
@@ -85,6 +84,7 @@
                         <th>Total Charged</th>
                         <th>Profit</th>
                         <th>Margin</th>
+                        <th>Target Margin</th>
                     </tr>
                     @foreach($platformInfo['deliveryOptions'] as $deliveryType => $item)
                         <tr>
@@ -101,7 +101,6 @@
                             <td class="hidden">{{ $item['declaredValue'] }}</td>
                             <td class="hidden">{{ $item['tax'] }}</td>
                             <td class="hidden">{{ $item['duty'] }}</td>
-                            <td>{{ $item['esgCommission'] }}</td>
                             <td>{{ $item['marketplaceCommission'] }}</td>
                             <td>{{ $item['marketplaceListingFee'] }}</td>
                             <td>{{ $item['marketplaceFixedFee'] }}</td>
@@ -115,6 +114,7 @@
                             <td>{{ $item['totalCharged'] }}</td>
                             <td data-name="profit">{{ $item['profit'] }}</td>
                             <td data-name="margin" class="{{ ($item['margin'] < 0) ? 'text-danger' : '' }}">{{ $item['margin'] }}%</td>
+                            <td>{{ $item['targetMargin'] }}%</td>
                         </tr>
                     @endforeach
                     <tr>
