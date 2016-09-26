@@ -35,7 +35,7 @@ class MerchantApiController extends Controller
             $result = $this->apiPlatformFactoryService->merchantOrderFufillmentReadyToShip($orderIds);
         }else if($action == "allocate") {
             $platform = $request->input("platform");
-            $result = $this->merchantOrderAllocatedReadyToShip($platform);
+            $result = $this->apiPlatformFactoryService->merchantOrderAllocatedReadyToShip($platform);
         }else if($action == "cancelOrder"){
             $orderParam["reason"] = $request->input("reason");
             $orderParam["reasonDetail"] = $request->input("reason_detail");
@@ -72,12 +72,15 @@ class MerchantApiController extends Controller
         } 
     }
 
-    public function setMerchantOrderToShipped()
+    public function scanMerchantTrackingNo(Request $request)
     {
+        $result = null;
         $trackingNo = $request->input("tracking_no");
+        $platform = $request->input("platform");
         if($trackingNo){
-            $this->apiPlatformFactoryService->setMerchantOrderToShipped($trackingNo);
+            $result = $this->apiPlatformFactoryService->setMerchantOrderToShipped($platform,$trackingNo);
         }
+        return \Response::json($result);
     }
 
     /**
