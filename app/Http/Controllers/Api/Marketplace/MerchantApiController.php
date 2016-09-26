@@ -33,6 +33,9 @@ class MerchantApiController extends Controller
         $action = $request->input("action");
         if($action == "readyToShip"){
             $result = $this->apiPlatformFactoryService->merchantOrderFufillmentReadyToShip($orderIds);
+        }else if($action == "allocate") {
+            $platform = $request->input("platform");
+            $result = $this->merchantOrderAllocatedReadyToShip($platform);
         }else if($action == "cancelOrder"){
             $orderParam["reason"] = $request->input("reason");
             $orderParam["reasonDetail"] = $request->input("reason_detail");
@@ -67,6 +70,14 @@ class MerchantApiController extends Controller
         if($doucment){
             return response()->download($pdfFilePath.$doucment);   
         } 
+    }
+
+    public function setMerchantOrderToShipped()
+    {
+        $trackingNo = $request->input("tracking_no");
+        if($trackingNo){
+            $this->apiPlatformFactoryService->setMerchantOrderToShipped($trackingNo);
+        }
     }
 
     /**
