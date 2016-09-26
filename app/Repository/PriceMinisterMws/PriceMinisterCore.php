@@ -105,7 +105,7 @@ class PriceMinisterCore extends CommonMws
     {
         $requestParams = array(
             'login' => 'BrandConnect',
-            'pwd' => '34ea992973ff43ada912664c856862ac',
+            'pwd' => 'sALe16hI8gh',
         );
 
         return $requestParams;
