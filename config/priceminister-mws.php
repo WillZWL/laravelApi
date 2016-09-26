@@ -6,7 +6,7 @@ return [
         'BCPRICEMINISTERFR' => [
             'name' => 'Brand Connect PriceMinister',
             'userId' => 'BrandConnect',
-            'password' => 'sALe16hI8gh',
+            'password' => '34ea992973ff43ada912664c856862ac',
             'currency'=>'EUR',
         ]
     ],
