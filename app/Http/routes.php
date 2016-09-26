@@ -90,6 +90,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
     $api->post('product-upload', 'ProductUploadController@upload');
     $api->get('product-upload', 'ProductUploadController@index');
+
+    $api->get('/getOrders', 'OrderController@getOrders');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['cors']], function ($api) {
