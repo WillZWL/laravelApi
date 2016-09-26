@@ -11,10 +11,10 @@ class MarketStoreSeeder extends Seeder
      */
     public function run()
     {
+        $convertedAmazonStores = [];
+
         // add amazon stores.
         $amazonStores = Config::get('amazon-mws.store');
-
-        $convertedAmazonStores = [];
         foreach ($amazonStores as $platformId => $store) {
             $convertedAmazonStores[] = [
                 'store_name' => substr($platformId, 0, 2),
@@ -34,8 +34,8 @@ class MarketStoreSeeder extends Seeder
             ];
         }
 
+        // add lazada stores.
         $lazadaStores = Config::get('lazada-mws.store');
-
         foreach ($lazadaStores as $platformId => $store) {
             $convertedAmazonStores[] = [
                 'store_name' => substr($platformId, 0, 2),
@@ -53,6 +53,52 @@ class MarketStoreSeeder extends Seeder
             ];
         }
 
-        DB::table('market_stores')->insert($convertedAmazonStores);
+        // add fnac stores.
+        $fnacStores = Config::get('fnac-mws.store');
+        foreach ($fnacStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'partnerId' => $store['partnerId'],
+                    'shopId' => $store['shopId'],
+                    'key' => $store['key'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        // add priceminister stores.
+        $priceministerStores = Config::get('priceminister-mws.store');
+        foreach ($priceministerStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        foreach ($convertedAmazonStores as $convertedAmazonStore) {
+            DB::table('market_stores')->updateOrInsert(
+                [
+                    'store_code' => $convertedAmazonStore['store_code'],
+                    'marketplace' => $convertedAmazonStore['marketplace'],
+                    'country' => $convertedAmazonStore['country'],
+                ],
+                $convertedAmazonStore
+            );
+        }
     }
 }
