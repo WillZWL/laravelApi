@@ -47,6 +47,10 @@ class LazadaValidateService extends BaseValidateService
                 $platform['accountName'] = 'ProductXpress';
                 $platform['alertEmail'] = 'lazada@eservicesgroup.com';
                 break;
+            case 'BM':
+                $platform['accountName'] = 'Blue Microphones';
+                $platform['alertEmail'] = 'bluemic@chatandvision.com';
+                break;
         }
 
         return  $platform;
