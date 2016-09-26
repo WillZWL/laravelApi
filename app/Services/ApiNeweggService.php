@@ -70,7 +70,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
     public function updateOrCreatePlatformMarketOrder($order,$addressId,$storeName)
     {
         # Newegg's time is in PST
-        $utcOrderDate = $this->convertFromPstToUtc($order['OrderDate'], "d/m/Y H:i:s", "Y-m-d H:i:s");
+        $utcOrderDate = $this->convertFromPstToUtc($order['OrderDate'], "m/d/Y H:i:s", "Y-m-d H:i:s");
 
         $object = [
             'platform' => $storeName,
@@ -320,7 +320,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         return "";
     }
 
-    private function convertFromPstToUtc($timestamp, $timestampFormat = "d/m/Y H:i:s", $format = "Y-m-d H:i:s")
+    private function convertFromPstToUtc($timestamp, $timestampFormat = "m/d/Y H:i:s", $format = "Y-m-d H:i:s")
     {
         if($timestamp) {
             # Newegg's time is in PST
