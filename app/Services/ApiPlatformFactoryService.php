@@ -216,7 +216,7 @@ class ApiPlatformFactoryService
             $object["esg_order_status"] = 6;
             PlatformMarketOrder::update(
                 [
-                    'platform_order_id' => $platformOrderId;
+                    'platform_order_id' => $platformOrderId
                 ],$object
             );
         }
