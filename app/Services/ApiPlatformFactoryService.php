@@ -70,7 +70,7 @@ class ApiPlatformFactoryService
             $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
             if ($esgOrderShipment) {
                 $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
-                if ($response) {
+                if ($response == true) {
                     $orderState = $this->apiPlatformInterface->getShipedOrderState();
                     $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
                     if ($bizType == 'Amazon') {
@@ -346,7 +346,7 @@ class ApiPlatformFactoryService
         return $esgStatus[$status];
     }
 
-    public function markPlatformMarketOrderShipped($orderId,$orderState,$esgOrderStatus)
+    public function markPlatformMarketOrderShipped($orderId,$orderState,$esgOrderStatus='')
     {
         $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
                             ->firstOrFail();
