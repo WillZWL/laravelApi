@@ -51,8 +51,12 @@
     var marketplaceSku = trElement.find('input[name=price]').data('marketplaceSku');
     var profit = trElement.find('td[data-name=profit]').text();
     var margin = trElement.find('td[data-name=margin]').text();
+    var targetMargin = trElement.find('td[data-name=target_margin]').text();
 
-    console.log(inventory);
+    if (parseFloat(targetMargin) > parseFloat(margin)) {
+      alert("margin is less than target margin")
+      return;
+    }
 
     if (inventory == 0 || inventory === undefined) {
       alert('Please mind the inventory is no greater than 0');
