@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\MarketplaceSkuMapping;
+use App\Models\UserStore;
+use App\Models\MarketStore;
 
 class ApiPlatformFactoryService
 {
@@ -119,9 +121,10 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
-    public function merchantOrderAllocatedReadyToShip($platform)
+    public function merchantOrderAllocatedReadyToShip()
     {   
-        $platformMarketOrders = $this->allocatedPlatformMarketOrders($platform);
+        $storeName = $this->getCurrentUserStoreName();
+        $platformMarketOrders = $this->allocatedPlatformMarketOrders();
         return $this->merchantOrderReadyToShip($platformMarketOrders);
     }
 
@@ -204,8 +207,9 @@ class ApiPlatformFactoryService
         }
     }
 
-    public function setMerchantOrderToShipped($storeName,$trackingNo)
+    public function setMerchantOrderToShipped($trackingNo)
     {
+        $storeName = $this->getCurrentUserStoreName();
         $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();
         if(!$orderItems->isEmpty()){
             foreach ($orderItems as $orderItem) {
@@ -404,4 +408,13 @@ class ApiPlatformFactoryService
         }
         return $warehouse;
     }
+
+    private function getCurrentUserStoreName()
+    {
+        $userId = \Authorizer::getResourceOwnerId();
+        $marketStoreId = UserStore::find("id",$userId)->market_store_id;
+        $storeName = MarketStore::find("id",$marketStoreId)->store_name;
+        return $storeName;
+    }
+    
 }
