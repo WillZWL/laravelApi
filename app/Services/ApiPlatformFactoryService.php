@@ -140,7 +140,7 @@ class ApiPlatformFactoryService
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
                 $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                $returnData[$platform] = $this->apiPlatformInterface->merchantOrderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
+                $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
             }
             return $result = array("status" => "success","message" => $returnData); 
         }else{
@@ -218,8 +218,8 @@ class ApiPlatformFactoryService
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-            $platformMarketOrder = PlatformMarketOrder::where("platform_order_id",$platformOrderId)->first();
-            $platformMarketOrder->update($object);
+            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
+            //remove warehoure retreive num;
         }
     }
 

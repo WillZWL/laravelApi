@@ -107,12 +107,15 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         }
     }
 
-    public function merchantOrderFufillmentReadyToShip($orderGroup,$warehouse)
+    public function orderFufillmentReadyToShip($orderGroup,$warehouse)
     {   
-        $returnData = array();
-        foreach($orderGroup as $order){   
-            $warehouse = $this->checkWarehouseInventory($order,$warehouse);
-            if($warehouse){
+        $returnData = array();$warehouseInventory = null;
+        foreach($orderGroup as $order){ 
+            if(iseset($warehouseInventory["warehouse"])){
+                $warehouse = $warehouseInventory["warehouse"]; 
+            }
+            $warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
+            if($warehouseInventory["inventory"]){
                 $orderItemIds = array();
                 foreach($order->platformMarketOrderItem as $orderItem){
                     $orderItemIds[] = $orderItem->order_item_id;
@@ -123,8 +126,8 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             }
             $this->updateOrderStatusToShipped($storeName,$orderIdList);
         }
-        $this->updateWarehouseInventory($warehouse);
-        return $returnData;   
+        parent::updateWarehouseInventory($warehouseInventory["warehouse"]);
+        return $returnData; 
     }
 
     public function merchantOrderFufillmentGetDocument($orderGroups,$doucmentType)
@@ -201,10 +204,8 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 'order_status' => "ReadyToShip",
                 'esg_order_status' => $this->getSoOrderStatus("ReadyToShip")
                 );
-            PlatformMarketOrder::update(
-                ['platform_order_id' => $order['OrderId']],$orderObject
-            );
-            So::where('platform_order_id', "=",$order['OrderId'])->update(['status' => 5]);
+            PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
+            So::where('platform_order_id',$order['OrderId'])->update(['status' => 5]);
             foreach($order["OrderItems"]["OrderItem"] as $orderItem){
                 $object = array(
                     'platform_order_id' => $orderItem["OrderId"],
@@ -213,12 +214,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                     'tracking_code' => $orderItem["TrackingCode"],
                     'status' => $orderItem["Status"],
                 );
-                PlatformMarketOrderItem::updateOrCreate(
-                    [
-                        'platform_order_id' => $orderItem['OrderId'],
-                        'order_item_id' => $orderItem['OrderItemId']
-                    ],$object
-                );
+                PlatformMarketOrder::where("platform_order_id",$orderItem['OrderId'])
+                                ->where('order_item_id',$orderItem['OrderItemId'])
+                                ->update($object);
             }
         }
     }
