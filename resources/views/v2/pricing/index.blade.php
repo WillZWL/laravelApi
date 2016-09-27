@@ -182,7 +182,7 @@
                     <td>{{ $item['totalCharged'] }}</td>
                     <td data-name="profit">{{ $item['profit'] }}</td>
                     <td data-name="margin" class="{{ ($item['margin'] < 0) ? 'text-danger' : '' }}">{{ $item['margin'] }}%</td>
-                    <td>{{ $item['targetMargin'] }}%</td>
+                    <td data-name="target_margin">{{ $item['targetMargin'] }}%</td>
                   </tr>
                 @endforeach
 

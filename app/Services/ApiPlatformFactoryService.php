@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\MarketplaceSkuMapping;
+use App\Models\UserStore;
+use App\Models\MarketStore;
 
 class ApiPlatformFactoryService
 {
@@ -119,9 +121,10 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
-    public function merchantOrderAllocatedReadyToShip($platform)
+    public function merchantOrderAllocatedReadyToShip()
     {   
-        $platformMarketOrders = $this->allocatedPlatformMarketOrders($platform);
+        $storeName = $this->getCurrentUserStoreName();
+        $platformMarketOrders = $this->allocatedPlatformMarketOrders();
         return $this->merchantOrderReadyToShip($platformMarketOrders);
     }
 
@@ -137,7 +140,7 @@ class ApiPlatformFactoryService
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
                 $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                $returnData[$platform] = $this->apiPlatformInterface->merchantOrderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
+                $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
             }
             return $result = array("status" => "success","message" => $returnData); 
         }else{
@@ -204,8 +207,9 @@ class ApiPlatformFactoryService
         }
     }
 
-    public function setMerchantOrderToShipped($storeName,$trackingNo)
+    public function setMerchantOrderToShipped($trackingNo)
     {
+        $storeName = $this->getCurrentUserStoreName();
         $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();
         if(!$orderItems->isEmpty()){
             foreach ($orderItems as $orderItem) {
@@ -214,8 +218,8 @@ class ApiPlatformFactoryService
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-            $platformMarketOrder = PlatformMarketOrder::where("platform_order_id",$platformOrderId)->first();
-            $platformMarketOrder->update($object);
+            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
+            //remove warehoure retreive num;
         }
     }
 
@@ -404,4 +408,13 @@ class ApiPlatformFactoryService
         }
         return $warehouse;
     }
+
+    private function getCurrentUserStoreName()
+    {
+        $userId = \Authorizer::getResourceOwnerId();
+        $marketStoreId = UserStore::find("id",$userId)->market_store_id;
+        $storeName = MarketStore::find("id",$marketStoreId)->store_name;
+        return $storeName;
+    }
+    
 }
