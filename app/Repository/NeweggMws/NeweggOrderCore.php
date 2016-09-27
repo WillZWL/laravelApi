@@ -20,4 +20,5 @@ class NeweggOrderCore extends NeweggCore
     {
         $this->orderId = $value;
     }
+
 }
