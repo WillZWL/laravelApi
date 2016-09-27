@@ -174,7 +174,7 @@ class ApiBaseService extends PlatformMarketConstService
 
     public function checkWarehouseInventory($platformMarketOrder,$warehouse)
     {
-        $inventory = true;
+        $inventory = true;$warehouseInventory = null;
         foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
             $remainInventroy = $warehouse[$orderItem->sell_sku]["inventory"] - $orderItem->quantity_ordered - $warehouse[$orderItem->sell_sku]["retrieve"];
             if($remainInventroy >= 0){
@@ -184,14 +184,20 @@ class ApiBaseService extends PlatformMarketConstService
                 $inventory = false;
             }
         }
-        return $inventory ? $warehouse : null;
+        $warehouseInventory["warehouse"] = $warehouse;
+        $warehouseInventory["inventory"] = $inventory;
+
+        return $warehouseInventory;
     }
 
     public function updateWarehouseInventory($warehouse)
     {
         foreach($warehouse as $warehouseObject){
            if($warehouseObject["update"] ==1){
-                Warehouse::where("warehouse_id",$warehouseObject["warehouse_id"])->where("sku",$warehouseObject["sku"])->update("retrieve",$warehouseObject["retrieve"]);
+                $warehouse = Warehouse::where("warehouse_id",$warehouseObject["warehouse_id"])->where("sku",$warehouseObject["sku"])->first();
+                if($warehouse->isEmpty()){
+                    return $warehouse->update(array("retrieve"=>$warehouseObject["retrieve"]));
+                }
            }  
         }
     }
