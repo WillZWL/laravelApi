@@ -107,22 +107,27 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         }
     }
 
-    public function merchantOrderFufillmentReadyToShip($orderGroups)
+    public function orderFufillmentReadyToShip($orderGroup,$warehouse)
     {   
-        $returnData = array(); 
-        foreach($orderGroups as $storeName => $orderGroup)
-        {
-            foreach($orderGroup as $order){   
-                $orderItemIds = array();$responseResult = "";
+        $returnData = array();$warehouseInventory = null;
+        foreach($orderGroup as $order){ 
+            if(iseset($warehouseInventory["warehouse"])){
+                $warehouse = $warehouseInventory["warehouse"]; 
+            }
+            $warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
+            if($warehouseInventory["inventory"]){
+                $orderItemIds = array();
                 foreach($order->platformMarketOrderItem as $orderItem){
                     $orderItemIds[] = $orderItem->order_item_id;
                 }
                 $shipmentProvider = "";
                 $returnData[$order->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                $orderIdList[] = $order->platform_order_id;
             }
-            //$orderList = $this->getMultipleOrderItems($storeName,$orderGroup->plunk("platform_order_id"));
+            $this->updateOrderStatusToShipped($storeName,$orderIdList);
         }
-        return $returnData;
+        parent::updateWarehouseInventory($warehouseInventory["warehouse"]);
+        return $returnData; 
     }
 
     public function merchantOrderFufillmentGetDocument($orderGroups,$doucmentType)
@@ -174,6 +179,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
             } 
         }
+        $this->updateOrderStatusToShipped($storeName,$esgOrders->plunk("txn_id"));
         $returnData["document"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
         return $returnData;
     }
@@ -190,11 +196,16 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $responseResult;
     }
 
-    public function updateOrderStatusToShipped($storeName)
+    public function updateOrderStatusToShipped($storeName,$ordersIdList)
     {
-        $ordersIdList = "";
         $orderList = $this->getMultipleOrderItems($storeName,$ordersIdList);
         foreach($orderList as $order){
+            $orderObject = array(
+                'order_status' => "ReadyToShip",
+                'esg_order_status' => $this->getSoOrderStatus("ReadyToShip")
+                );
+            PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
+            So::where('platform_order_id',$order['OrderId'])->update(['status' => 5]);
             foreach($order["OrderItems"]["OrderItem"] as $orderItem){
                 $object = array(
                     'platform_order_id' => $orderItem["OrderId"],
@@ -203,12 +214,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                     'tracking_code' => $orderItem["TrackingCode"],
                     'status' => $orderItem["Status"],
                 );
-                PlatformMarketOrderItem::updateOrCreate(
-                    [
-                        'platform_order_id' => $orderItem['OrderId'],
-                        'order_item_id' => $orderItem['OrderItemId']
-                    ],$object
-                );
+                PlatformMarketOrder::where("platform_order_id",$orderItem['OrderId'])
+                                ->where('order_item_id',$orderItem['OrderItemId'])
+                                ->update($object);
             }
         }
     }
@@ -566,7 +574,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $shipmentProvider = array(
             "ES_HK"=>array(
                 "MY" => "AS-Poslaju-HK",      
-                //"SG" => "LGS-SG3",                
+                "SG" => "LGS-SG3",                
                 "TH" => "LGS-TH3-HK",       
                 "ID" => "LGS-LEX-ID-HK",
                 "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
@@ -574,7 +582,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             "ES_DGME"=>array(
                 "MY" => "AS-Poslaju",      
                 "SG" => "LGS-SG3",                
-                //"TH" => "LGS-TH3-HK",       
+                "TH" => "LGS-TH3-HK",       
                 "ID" => "LGS-Tiki-ID",
                 "PH" => "LGS-PH1"
             )

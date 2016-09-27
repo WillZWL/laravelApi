@@ -98,6 +98,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'mid
     $api->post('merchant-api/order-fufillment', 'MerchantApiController@orderFufillmentAction');
     $api->post('merchant-api/order-picking-list', 'MerchantApiController@getPickingList');
     $api->get('merchant-api/download-label/{file}', 'MerchantApiController@donwloadLabel');
+    $api->post('merchant-api/scan-tracking-no', 'MerchantApiController@scanMerchantTrackingNo');
 });
 
 Route::get('platform/test', 'InterfacePlatformOrder@index');

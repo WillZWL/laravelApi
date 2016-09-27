@@ -172,6 +172,36 @@ class ApiBaseService extends PlatformMarketConstService
         return $platformSkuOrderedList;
     }
 
+    public function checkWarehouseInventory($platformMarketOrder,$warehouse)
+    {
+        $inventory = true;$warehouseInventory = null;
+        foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
+            $remainInventroy = $warehouse[$orderItem->sell_sku]["inventory"] - $orderItem->quantity_ordered - $warehouse[$orderItem->sell_sku]["retrieve"];
+            if($remainInventroy >= 0){
+                $warehouse[$orderItem->sell_sku]["retrieve"] += $orderItem->quantity_ordered ;
+                $warehouse[$orderItem->sell_sku]["update"] = 1;
+            }else{
+                $inventory = false;
+            }
+        }
+        $warehouseInventory["warehouse"] = $warehouse;
+        $warehouseInventory["inventory"] = $inventory;
+
+        return $warehouseInventory;
+    }
+
+    public function updateWarehouseInventory($warehouse)
+    {
+        foreach($warehouse as $warehouseObject){
+           if($warehouseObject["update"] ==1){
+                $warehouse = Warehouse::where("warehouse_id",$warehouseObject["warehouse_id"])->where("sku",$warehouseObject["sku"])->first();
+                if($warehouse->isEmpty()){
+                    return $warehouse->update(array("retrieve"=>$warehouseObject["retrieve"]));
+                }
+           }  
+        }
+    }
+
     public function getSchedule()
     {
         return $this->schedule;

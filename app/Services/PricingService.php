@@ -65,7 +65,7 @@ class PricingService
         $tax = $this->getTax($marketplaceProduct, $declaredValue);
         $duty = $this->getDuty($marketplaceProduct, $declaredValue);
 
-        $esgCommission = $this->getEsgCommission($marketplaceProduct);
+        $targetMargin = $this->getTargetMargin($marketplaceProduct);
         $marketplaceCommission = $this->getMarketplaceCommission($marketplaceProduct);
         $marketplaceListingFee = $this->getMarketplaceListingFee($marketplaceProduct);
         $marketplaceFixedFee = $this->getMarketplaceFixedFee($marketplaceProduct);
@@ -82,18 +82,14 @@ class PricingService
         $totalCharged = $marketplaceProduct->price + $deliveryCharge;
 
         $totalCostExcludeDeliveryCost = array_sum([
-            $tax, $duty, $esgCommission, $marketplaceCommission,
+            $tax, $duty, $marketplaceCommission,
             $marketplaceListingFee, $marketplaceFixedFee, $paymentGatewayFee, $paymentGatewayAdminFee,
             $supplierCost, $accessoryCost, $deliveryCharge,
         ]);
 
-        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingType) use ($sellingPrice, $totalCharged, $pricingType, $esgCommission, $totalCostExcludeDeliveryCost) {
+        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingType) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $totalCostExcludeDeliveryCost) {
             $shippingType->put('totalCost', $shippingType->get('deliveryCost') + $totalCostExcludeDeliveryCost);
-            if ($pricingType == 'revenue') {
-                $shippingType->put('profit', $esgCommission);
-            } elseif ($pricingType == 'cost') {
-                $shippingType->put('profit', $totalCharged - $shippingType->get('totalCost'));
-            }
+            $shippingType->put('profit', $totalCharged - $shippingType->get('totalCost'));
             $shippingType->put('margin', round($shippingType->get('profit') / $sellingPrice * 100, 2));
 
             return $shippingType;
@@ -122,7 +118,7 @@ class PricingService
         }
     }
 
-    public function getEsgCommission(MarketplaceSkuMapping $marketplaceProduct)
+    public function getTargetMargin(MarketplaceSkuMapping $marketplaceProduct)
     {
         $esgCommission = 0;
         $merchantInfo = MerchantProductMapping::join('merchant_client_type', 'merchant_client_type.merchant_id', '=', 'merchant_product_mapping.merchant_id')

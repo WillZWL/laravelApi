@@ -9,7 +9,10 @@ use App\Models\So;
 use App\Models\SoShipment;
 use Carbon\Carbon;
 use App\Models\PlatformMarketOrder;
+use App\Models\PlatformMarketOrderItem;
 use App\Models\MarketplaceSkuMapping;
+use App\Models\UserStore;
+use App\Models\MarketStore;
 
 class ApiPlatformFactoryService
 {
@@ -118,16 +121,27 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
-    public function merchantOrderFufillmentReadyToShip($orderIds = array(),$allcate=false)
+    public function merchantOrderAllocatedReadyToShip()
     {   
-        if($allcate){
-            $platformMarketOrders = $this->allocatedPlatformMarketOrdersOrders();
-        }else{
-            $platformMarketOrders = $this->getPlatformMarketOrdersOrders($orderIds);
-        }
+        $storeName = $this->getCurrentUserStoreName();
+        $platformMarketOrders = $this->allocatedPlatformMarketOrders();
+        return $this->merchantOrderReadyToShip($platformMarketOrders);
+    }
+
+    public function merchantOrderFufillmentReadyToShip($orderIds)
+    {
+        $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
+        return $this->merchantOrderReadyToShip($platformMarketOrders);
+    }
+
+    public function merchantOrderReadyToShip($platformMarketOrders)
+    {   
         if(!$platformMarketOrders->isEmpty()) {
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
-            $this->apiPlatformInterface->merchantOrderFufillmentReadyToShip($platformMarketOrderGroups);
+            foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
+                $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
+                $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
+            }
             return $result = array("status" => "success","message" => $returnData); 
         }else{
             return $result = array("status" => "failed","message" => "Invalid Order");
@@ -136,7 +150,7 @@ class ApiPlatformFactoryService
 
     public function merchantOrderFufillmentGetDocument($orderIds,$doucmentType)
     {   
-        $platformMarketOrders = $this->getPlatformMarketOrdersOrders($orderIds);
+        $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
         if(!$platformMarketOrders->isEmpty()) {
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             $document = $this->apiPlatformInterface->merchantOrderFufillmentGetDocument($platformMarketOrderGroups,$doucmentType);
@@ -148,7 +162,7 @@ class ApiPlatformFactoryService
 
     public function getOrderFufillmentPickingList($orderIds)
     {
-        $platformMarketOrders = $this->getPlatformMarketOrdersOrders($orderIds);
+        $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
         $result = null;
         foreach ($platformMarketOrders as $platformMarketOrder) {
             $countryCode = strtoupper(substr($platformMarketOrder->platform, -2));
@@ -178,7 +192,7 @@ class ApiPlatformFactoryService
 
     public function setMerchantOrderCanceled($orderIds,$orderParam)
     {
-        $platformMarketOrders = $this->getPlatformMarketOrdersOrders($orderIds);
+        $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
         if(!$platformMarketOrders->isEmpty()) {
             $platformMarketOrderGroups = $platformMarketOrders->groupBy("platform");
             foreach($platformMarketOrderGroups as $storeName => $platformMarketOrderGroup){
@@ -190,6 +204,22 @@ class ApiPlatformFactoryService
                  }
             }
             return $result;
+        }
+    }
+
+    public function setMerchantOrderToShipped($trackingNo)
+    {
+        $storeName = $this->getCurrentUserStoreName();
+        $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();
+        if(!$orderItems->isEmpty()){
+            foreach ($orderItems as $orderItem) {
+                $orderItem->update(array("status"=>"Shipped"));
+                $platformOrderId = $orderItem->platform_order_id;
+            }
+            $object["order_status"] = "Shipped";
+            $object["esg_order_status"] = 6;
+            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
+            //remove warehoure retreive num;
         }
     }
 
@@ -333,32 +363,58 @@ class ApiPlatformFactoryService
         }
     }
 
-    public function getPlatformMarketOrdersOrders($orderIds)
+    public function getPlatformMarketOrders($orderIds)
     {
        return $esgOrderGroup = PlatformMarketOrder::whereIn('id', $orderIds)
                 ->get();
     }
 
-    public function allocatedPlatformMarketOrdersOrders()
+    public function allocatedPlatformMarketOrders($platform)
     {
-        $warehouseId = array(
-            "MATTEL_DC_MY_KT",
-            "MATTEL_DC_TH_WD",
-            "MATTEL_DC_ID_EY",
-            "MATTEL_DC_SG_EY",
-            "MATTEL_DC_PH_RP",
-            "MATTEL_DC_VN_PT"
-        );
         $esgOrderStatus = array(
             PlatformMarketConstService::ORDER_STATUS_NEW,
             PlatformMarketConstService::ORDER_STATUS_PAID,
             PlatformMarketConstService::ORDER_STATUS_FULFILMENT_CHECKED,
+            PlatformMarketConstService::ORDER_STATUS_PENDING,
+            PlatformMarketConstService::ORDER_STATUS_UNSHIPPED,
         );
-        $platformMarketOrder = PlatformMarketOrder::join("platform_market_order_item as pi","platform_order_id","pi.platform_order_id")
-                ->whereIn("esg_order_status",$esgOrderStatus)
-                ->where("platform", "=", $platform)
-                ->get();
-
-        Inventory::whereIn("warehouse_id",$warehouseId)->get;
+        $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status",$esgOrderStatus)->where("platform", "=", $platform)
+            ->get();
+        return $platformMarketOrders;
     }
+
+    public function getWarehouseByPlatform($platform,$platformMarketOrderGroups)
+    {
+        $mattelWarehouse = array(
+            "MY" => "MATTEL_DC_MY_KT",
+            "TH" => "MATTEL_DC_TH_WD",
+            "ID" => "MATTEL_DC_ID_EY",
+            "SG" => "MATTEL_DC_SG_EY",
+            "PH" => "MATTEL_DC_PH_RP",
+            "VN" => "MATTEL_DC_VN_PT"
+        );
+        $warehouse = null;
+        $countryCode = strtoupper(substr($platform, -2));
+        $marketplaceId = strtoupper(substr($platform, 0, -2));
+        $marketplaceProducts = MarketplaceSkuMapping::join("inventory","inventory.prod_sku","=","marketplace_sku_mapping.sku")
+                    ->where("marketplace_id","=",$marketplaceId)
+                    ->where("country_id","=",$countryCode)
+                    ->whereIn("warehouse_id",$mattelWarehouse[$countryCode])
+                    ->pluck("sku","marketplace_sku","inventory.inventory","inventory.retrieve")
+                    ->get()
+                    ->toArray();
+        foreach($marketplaceProducts as $marketplaceProduct){
+            $warehouse[$marketplaceProduct["marketplace_sku"]]= $marketplaceProduct;
+        }
+        return $warehouse;
+    }
+
+    private function getCurrentUserStoreName()
+    {
+        $userId = \Authorizer::getResourceOwnerId();
+        $marketStoreId = UserStore::find("id",$userId)->market_store_id;
+        $storeName = MarketStore::find("id",$marketStoreId)->store_name;
+        return $storeName;
+    }
+    
 }
