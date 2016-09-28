@@ -15,14 +15,9 @@ class PlatformMarketOrder extends Model
     /****              relations method             ****/
     /***************************************************/
 
-    public function marketStore()
+    public function store()
     {
-        return $this->belongsTo('App\Models\MarketStore');
-    }
-
-    public function userStore()
-    {
-        return $this->belongsToMany('App\Models\UserStore');
+        return $this->belongsTo('App\Models\Store');
     }
 
     public function platformMarketShippingAddress()
