@@ -59,7 +59,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		$this->lazadaOrder=new LazadaOrder($storeName);
 		$this->storeCurrency=$this->lazadaOrder->getStoreCurrency();
 		$this->lazadaOrder->setOrderId($orderId);
-		$returnData=$this->lazadaOrder->fetchOrder();
+		$returnData = $this->lazadaOrder->fetchOrder();
 		return $returnData;
 	}
 
@@ -155,32 +155,37 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     private function esgOrderApiReadyToShip($esgOrders,$pdfFilePath)
     {
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
+        $ordersIdList = null; $document = null; $returnData = null;
         foreach($esgOrders as $esgOrder)
         {   
             $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
             $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
             $storeName = $prefix."LAZADA".$countryCode;
             //$shipmentProviders = $this->getShipmentProviders($storeName);
-            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-            $responseResult = "";
-            $orderItemIds = $this->checkEsgOrderIventory($warehouse,$esgOrder)
-            if($orderItemIds){
-                $ordersIdList[] = $esgOrder->platform_order_no; 
-                $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
-                //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                $orderItemId = array($orderItemIds[0]);
-                foreach($doucmentTypeArr as $doucmentType ){
-                    $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
+            if(!$esgOrder->soAllocate->isEmpty()){
+                $warehouseId = $esgOrder->soAllocate->warehouse_id;
+                $responseResult = "";
+                $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
+                if($orderItemIds){
+                    $ordersIdList[] = $esgOrder->platform_order_no; 
+                    $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
+                    //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                    $orderItemId = array($orderItemIds[0]);
+                    foreach($doucmentTypeArr as $doucmentType ){
+                        $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
+                    }
                 }
             }
-             
         }
+        if($ordersIdList)
         $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
+        if($document)
         $returnData["document"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+        
         return $returnData;
     }
 
-    private function checkEsgOrderIventory($warehouse,$esgOrder)
+    private function checkEsgOrderIventory($warehouseId,$esgOrder)
     {
         $orderItemIds = array();
         foreach($esgOrder->soItem as $soItem){
@@ -188,8 +193,8 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 $inventory = Inventory::where("warehouse_id",$warehouseId)
                     ->whereIn("prod_sku",$soItem->prod_sku)
                     ->first();
-                $remain = ($inventory - $soItem->qty);
-                return false;
+                $remain = $inventory - $soItem->qty;
+                if($remain <= 0){return false;}
             }
             $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
             foreach($itemIds as $itemId){
