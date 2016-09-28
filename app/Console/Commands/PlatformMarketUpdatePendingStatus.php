@@ -22,7 +22,7 @@ class PlatformMarketUpdatePendingStatus extends BaseApiPlatformCommand
      *
      * @var string
      */
-    protected $description = 'Update pending payment platform order status to atomesg database';
+    protected $description = 'Update pending payment platform order status ,so that can import to atomesg database';
 
     /**
      * Create a new command instance.
