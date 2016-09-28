@@ -384,7 +384,7 @@ class ApiPlatformFactoryService
         return $platformMarketOrders;
     }
 
-    public function getWarehouseByPlatform($platform,$platformMarketOrderGroups)
+    public function getWarehouseByPlatform($platform,$platformMarketOrderGroup)
     {
         $mattelWarehouse = array(
             "MY" => "MATTEL_DC_MY_KT",
@@ -394,6 +394,12 @@ class ApiPlatformFactoryService
             "PH" => "MATTEL_DC_PH_RP",
             "VN" => "MATTEL_DC_VN_PT"
         );
+        $sellSkuList = null;
+        foreach ($platformMarketOrderGroup as $platformMarketOrder) {
+            foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
+                $sellSkuList[] = $orderItem->seller_sku;
+            }
+        }
         $warehouse = null;
         $countryCode = strtoupper(substr($platform, -2));
         $marketplaceId = strtoupper(substr($platform, 0, -2));
@@ -401,11 +407,11 @@ class ApiPlatformFactoryService
                     ->where("marketplace_id","=",$marketplaceId)
                     ->where("country_id","=",$countryCode)
                     ->whereIn("warehouse_id",$mattelWarehouse[$countryCode])
-                    ->pluck("sku","marketplace_sku","inventory.inventory","inventory.retrieve")
-                    ->get()
-                    ->toArray();
+                    ->whereIn("marketplace_sku", $sellSkuList)
+                    ->select("sku","marketplace_sku","inventory.inventory","inventory.warehouse_id")
+                    ->get();
         foreach($marketplaceProducts as $marketplaceProduct){
-            $warehouse[$marketplaceProduct["marketplace_sku"]]= $marketplaceProduct;
+            $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
         }
         return $warehouse;
     }
