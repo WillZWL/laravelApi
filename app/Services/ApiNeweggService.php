@@ -17,6 +17,7 @@ use App\Repository\NeweggMws\NeweggOrderList;
 use App\Repository\NeweggMws\NeweggDocument;
 use App\Repository\NeweggMws\NeweggShipmentProviders;
 use App\Repository\NeweggMws\NeweggMultipleOrderItems;
+use App\Models\CourierInfo;
 // test feature 1
 
 class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
@@ -250,35 +251,30 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 
     public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
     {
-# copied from lazada, not yet set up for Newegg
-        return false;
 
         $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
         $orderItemIds = array();
-        $extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
-        foreach($extItemCd as $extItem){
-            $itemIds = explode("||",$extItem);
-            foreach($itemIds as $itemId){
-                $orderItemIds[] = $itemId;
-            }
+        $extorderno = $esgOrder->platform_order_id;
+
+        foreach($esgOrder->soItem as $item)
+        {
+            $eaitem['sellersku'] = $item->prod_sku;
+            $eaitem['qty'] = $item->qty;
+            $eaitem['ext_item_cd'] = $item->ext_item_cd;
+            $selleritem[] = $eaitem;
         }
-        //$shipmentProviders = $this->getShipmentProviders($storeName);
-        $countryCode = strtoupper(substr($storeName, -2));
-        $shipmentProvider = $this->getEsgShippingProvider($countryCode);
+
         if ($esgOrderShipment) {
-            $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemId,$shipmentProvider);
-            if($marketplacePacked){
-                //valid orderItem trackingNumber 
-                foreach($marketplacePacked as $packed){
-                   $shippingObject[$packed["TrackingNumber"]]["OrderItemId"][] = $packed["OrderItemId"];
-                   $shippingObject[$packed["TrackingNumber"]]["ShipmentProvider"]= $packed["ShipmentProvider"];
+            $response = $this->setStatusToShipped($storeName, $extorderno, $selleritem,$esgOrderShipment);
+            if($response){
+                $ship_status = $response['data']['Result']['OrderStatus'];
+                if($ship_status == 'Shipped')
+                {
+                        return true;
+                } else {
+                        return false;
                 }
-                $this->getDocument($storeName,$orderItems,"invoice");
-                foreach($shippingObject as $trackinCode => $itemObject){
-                    $itemObject["TrackingNumber"] = $trackinCode;
-                    $result = $this->setStatusToReadyToShip($storeName,$itemObject);
-                }
-                return $marketplacePacked;
+                //return $response;
             }else{
                 return false;
             }
@@ -294,6 +290,34 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         $result = $this->neweggShipmentProviders->fetchShipmentProviders();
         return $result;
     }
+
+    public function setStatusToShipped($storeName, $extorderno, $selleritem, $esgOrderShipment)
+    {
+        $shipmentProvider = CourierInfo::where('courier_id', '=', $esgOrderShipment->courier_id)->where('status', '=', '1')->first();
+        $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
+        $this->neweggOrderStatus->setOrderItemIds($selleritem);
+        $this->neweggOrderStatus->setShipService("Air");
+        $this->neweggOrderStatus->setOrderNumber($extorderno);
+        $this->neweggOrderStatus->setTrackingNumber($esgOrderShipment->tracking_no);
+        $this->neweggOrderStatus->setShipCarrier($shipmentProvider->courier_name);
+        $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
+        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
+        return $orginOrderItemList;
+    }
+
+    public function getShipedOrderState()
+    {
+        return  "Shipped";
+    }
+
+    // public function setStatusToShipped($storeName,$orderId)
+    // {
+    //     $this->neweggOrderStatus = new NewwggOrderStatus($storeName);
+    //     $this->neweggOrderStatus->setOrderItemId($orderItemId);
+    //     $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
+    //     $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
+    //     return $orginOrderItemList;
+    // }
 
     private function checkResultData($result)
     {

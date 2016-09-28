@@ -42,7 +42,8 @@ class NeweggCore
         }
 
         if(!$error) {
-            $dataResponse = $this->prepare($data);
+            $dataResponse = $data;
+            //$dataResponse = $this->prepare($data);
         }
 
         $returnArr = ["data"=>$dataResponse, "requestInfo"=>$requestInfo, "error"=>$error];
@@ -140,14 +141,16 @@ class NeweggCore
      *
      * @return null|array
      */
-    protected function prepare($data = array())
-    {
-        if (isset($data['ResponseBody'])) {
-            return $data['ResponseBody'];
-        } else {
-            return null;
-        }
-    }
+    // protected function prepare($data = array())
+    // {
+    //     dd('sdseee');
+    //     dd($data['Result']);
+    //     if (isset($data['ResponseBody'])) {
+    //         return $data['ResponseBody'];
+    //     } else {
+    //         return null;
+    //     }
+    // }
 
     /**
      * Fix issue with single result in response.
@@ -165,6 +168,23 @@ class NeweggCore
         return array(0 => $arr);
     }
     /**
+     * Init common params.
+     *
+     * @return array
+     */
+    protected function initRequestParams()
+    {
+        $authParams = array(
+          'Authorization' => $this->options["apiKey"],
+          'SecretKey' => $this->options["secretKey"],
+          'Content-Type' => 'application/xml',
+          'Accept' => 'application/json'
+        );
+
+        return $authParams;
+    }
+
+     /**
      * Init common params.
      *
      * @return array
@@ -261,6 +281,7 @@ class NeweggCore
             $this->storeName = $s;
             if (array_key_exists('sellerId', $store[$s])) {
                 $this->options['sellerId'] = $store[$s]['sellerId'];
+                $this->sellerId = $store[$s]['sellerId'];
             } else {
                 $this->log('Seller ID is missing!', 'Warning');
             }

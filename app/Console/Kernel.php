@@ -81,6 +81,10 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
+
+        $schedule->command('platformMarket:updateShipment', array('--api' => 'newegg'))
+            ->dailyAt('12:10');
+            
         $schedule->command('platformMarket:updateShipment', array('--api' => 'all'))
             ->dailyAt('12:20');
 
