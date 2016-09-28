@@ -7,15 +7,14 @@ use App\Models\PlatformMarketOrder;
 
 class PlatformMarketOrderRepository
 {
-    public function getOrdersByStore(Request $request)
+    public function getOrdersByStore(Request $request, Array $stores = [])
     {
         $query = PlatformMarketOrder::with('platformMarketOrderItem')
-            ->join('user_stores', 'user_stores.market_store_id', '=', 'platform_market_order.market_store_id', 'inner')
-            ->where('user_stores.user_id', '=', \Authorizer::getResourceOwnerId());
+            ->whereIn('platform_market_order.store_id', $stores);
 
         switch ($request->get('status')) {
             case 'new':
-                $query = $query->where('platform_market_order.esg_order_status', '<', 5);
+                $query = $query->whereIn('platform_market_order.esg_order_status', [1, 2, 3, 4, 13, 14]);
                 break;
 
             case 'ready':
@@ -27,6 +26,6 @@ class PlatformMarketOrderRepository
                 break;
         }
 
-        return $query->get();
+        return $query->paginate(30);
     }
 }

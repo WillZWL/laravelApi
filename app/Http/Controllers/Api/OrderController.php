@@ -22,7 +22,8 @@ class OrderController extends Controller
 
     public function getOrders(Request $request)
     {
-        $orders = $this->orderService->getOrdersByStore($request);
-        return $this->collection($orders, new PlatformOrderTransformer());
+        $orders = $this->orderService->getOrders($request);
+
+        return $this->response->paginator($orders, new PlatformOrderTransformer());
     }
 }
