@@ -91,7 +91,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->post('product-upload', 'ProductUploadController@upload');
     $api->get('product-upload', 'ProductUploadController@index');
 
-    $api->get('/getOrders', 'OrderController@getOrders');
+    $api->resource('orders', 'OrderController');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['cors']], function ($api) {

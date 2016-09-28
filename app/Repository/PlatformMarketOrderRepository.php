@@ -28,4 +28,11 @@ class PlatformMarketOrderRepository
 
         return $query->paginate(30);
     }
+
+    public function getOrderDetails($id)
+    {
+        return PlatformMarketOrder::with('platformMarketOrderItem')
+            ->with('platformMarketShippingAddress')
+            ->where('id', $id)->get();
+    }
 }
