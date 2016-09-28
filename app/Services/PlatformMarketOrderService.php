@@ -22,4 +22,9 @@ class PlatformMarketOrderService
 
         return $this->orderRepository->getOrdersByStore($request, $stores);
     }
+
+    public function getOrderDetails($id)
+    {
+        return $this->orderRepository->getOrderDetails($id);
+    }
 }
