@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
+use App\Models\InvMovement;
 use Excel;
 
 class ApiBaseService extends PlatformMarketConstService
@@ -218,14 +219,16 @@ class ApiBaseService extends PlatformMarketConstService
         }
     }
 
+    //when cancel the order at ready to ship page
     public function deleteWarehouseInventory($soNo,$updateObject)
     {
         foreach($updateObjects as $updateObject){
-            $object = array(
-                "ship_ref" => $soNo."-01",
-                "sku" => $updateObject["sku"]
-            );
-            $invMovement = InvMovement::delete($object);
+            $invMovement = InvMovement::where("ship_ref", $soNo."-01")
+                    ->where("sku", $updateObject["sku"])
+                    ->first();
+            if(!$invMovement->isEmpty()){
+                $invMovement->delete();
+            }
         }
     }
 

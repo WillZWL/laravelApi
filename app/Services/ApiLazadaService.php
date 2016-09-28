@@ -186,7 +186,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
         if($document)
         $returnData["document"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
-        print_r($returnData);exit();
         return $returnData;
     }
 
