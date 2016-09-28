@@ -123,8 +123,10 @@ class ApiPlatformFactoryService
 
     public function merchantOrderAllocatedReadyToShip()
     {   
-        $storeName = $this->getCurrentUserStoreName();
-        $platformMarketOrders = $this->allocatedPlatformMarketOrders();
+        $storeNames = $this->getCurrentUserStoreName();
+        if($storeNames){
+            $platformMarketOrders = $this->allocatedPlatformMarketOrders($storeNames);
+        }
         return $this->merchantOrderReadyToShip($platformMarketOrders);
     }
 
@@ -209,7 +211,6 @@ class ApiPlatformFactoryService
 
     public function setMerchantOrderToShipped($trackingNo)
     {
-        $storeName = $this->getCurrentUserStoreName();
         $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();
         if(!$orderItems->isEmpty()){
             foreach ($orderItems as $orderItem) {
@@ -369,7 +370,7 @@ class ApiPlatformFactoryService
                 ->get();
     }
 
-    public function allocatedPlatformMarketOrders($platform)
+    public function allocatedPlatformMarketOrders($platforms)
     {
         $esgOrderStatus = array(
             PlatformMarketConstService::ORDER_STATUS_NEW,
@@ -378,7 +379,7 @@ class ApiPlatformFactoryService
             PlatformMarketConstService::ORDER_STATUS_PENDING,
             PlatformMarketConstService::ORDER_STATUS_UNSHIPPED,
         );
-        $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status",$esgOrderStatus)->where("platform", "=", $platform)
+        $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status",$esgOrderStatus)->whereIn("platform",$platforms)
             ->get();
         return $platformMarketOrders;
     }
@@ -411,10 +412,14 @@ class ApiPlatformFactoryService
 
     private function getCurrentUserStoreName()
     {
+        $storeNames = null;
         $userId = \Authorizer::getResourceOwnerId();
-        $marketStoreId = UserStore::find("id",$userId)->market_store_id;
-        $storeName = MarketStore::find("id",$marketStoreId)->store_name;
-        return $storeName;
+        $marketStoreIds = UserStore::find("id",$userId)->plunk("market_store_id");
+        $marketStores = MarketStore::whereIn("id",$marketStoreIds)->get();
+        foreach($marketStores as $marketStore){
+            $storeNames[] = $marketStore->store_name;
+        }
+       return $storeNames;
     }
     
 }
