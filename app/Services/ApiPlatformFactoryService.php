@@ -73,7 +73,7 @@ class ApiPlatformFactoryService
                 if ($response == true) {
                     $orderState = $this->apiPlatformInterface->getShipedOrderState();
                     $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
-                    if ($bizType == 'Amazon') {
+                    if ($esgOrder->bizType == 'Amazon') {
                         $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
                     }
                 }

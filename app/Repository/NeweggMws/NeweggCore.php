@@ -30,7 +30,7 @@ class NeweggCore
         if($resourceUrl) {
             
             $curlResponse = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
-
+            dd($curlResponse);
 
             if($curlResponse["status"]) {
                 $json = $curlResponse["json"];

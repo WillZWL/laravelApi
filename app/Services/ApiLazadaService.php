@@ -124,7 +124,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 $returnData[$order->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
                 $orderIdList[] = $order->platform_order_id;
             }
-            $this->updateOrderStatusToShipped($storeName,$orderIdList);
+            $this->updateOrderStatusReadyToShip($storeName,$orderIdList);
         }
         parent::updateWarehouseInventory($warehouseInventory["warehouse"]);
         return $returnData; 
@@ -157,31 +157,46 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
         foreach($esgOrders as $esgOrder)
         {   
-            $prefix = strtoupper(substr($platformId,3,2));
-            $countryCode = strtoupper(substr($platformId, -2));
+            $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
+            $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
             $storeName = $prefix."LAZADA".$countryCode;
             //$shipmentProviders = $this->getShipmentProviders($storeName);
-
-            $orderItemIds = array();$responseResult = "";
-            $ordersIdList[] = $esgOrder->platform_order_no; 
-            $extItemCd = $esgOrder->soItem->pluck("ext_item_cd");
-            foreach($extItemCd as $extItem){
-                $itemIds = explode("||",$extItem);
-                foreach($itemIds as $itemId){
-                    $orderItemIds[] = $itemId;
+            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+            $responseResult = "";
+            $orderItemIds = $this->checkEsgOrderIventory($warehouse,$esgOrder)
+            if($orderItemIds){
+                $ordersIdList[] = $esgOrder->platform_order_no; 
+                $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
+                //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                $orderItemId = array($orderItemIds[0]);
+                foreach($doucmentTypeArr as $doucmentType ){
+                    $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
                 }
             }
-            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-            $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
-            $returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-            $orderItemId = array($orderItemIds[0]);
-            foreach($doucmentTypeArr as $doucmentType ){
-                $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
-            } 
+             
         }
-        $this->updateOrderStatusToShipped($storeName,$esgOrders->plunk("txn_id"));
+        $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
         $returnData["document"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
         return $returnData;
+    }
+
+    private function checkEsgOrderIventory($warehouse,$esgOrder)
+    {
+        $orderItemIds = array();
+        foreach($esgOrder->soItem as $soItem){
+            if($warehouseId){
+                $inventory = Inventory::where("warehouse_id",$warehouseId)
+                    ->whereIn("prod_sku",$soItem->prod_sku)
+                    ->first();
+                $remain = ($inventory - $soItem->qty);
+                return false;
+            }
+            $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
+            foreach($itemIds as $itemId){
+                $orderItemIds[] = $itemId;
+            }
+        }
+        return $orderItemIds;
     }
 
     private function setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider)
@@ -196,7 +211,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $responseResult;
     }
 
-    public function updateOrderStatusToShipped($storeName,$ordersIdList)
+    public function updateOrderStatusReadyToShip($storeName,$ordersIdList)
     {
         $orderList = $this->getMultipleOrderItems($storeName,$ordersIdList);
         foreach($orderList as $order){
