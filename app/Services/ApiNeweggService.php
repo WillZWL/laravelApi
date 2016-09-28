@@ -251,7 +251,6 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 
     public function submitOrderFufillment($esgOrder,$esgOrderShipment,$platformOrderIdList)
     {
-        dd($esgOrder);
         $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
         $orderItemIds = array();
         $extorderno = $esgOrder->platform_order_id;
@@ -275,7 +274,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                         $message = "Update failure has occur for ESG Order [{$esgOrder->so_no}], [{$storeName}] Order [{$esgOrder->platform_order_id}]\r\n";
                         $message .="Please check and update manually to avoid order cancellation by [{$storeName}] \r\n";
                         $message .= "Thanks\r\n";
-                        $this->sendAlertMailMessage($subject, $message, $storeName, $esgOrder);
+                        $this->sendAlertMailMessage($subject, $message);
                         return false;
                 }
                 //return $response;
