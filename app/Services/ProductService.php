@@ -40,6 +40,8 @@ class ProductService
             $data['status'] = 1;
         }
 
+        $data['sku_type'] = 1;
+
         return $this->updateOrCreateProduct($data);
     }
 
