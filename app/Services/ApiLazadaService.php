@@ -164,22 +164,26 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
             $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
             $storeName = $prefix."LAZADA".$countryCode;
-            //$shipmentProviders = $this->getShipmentProviders($storeName);
+            $lazadaShipments = $this->getShipmentProviders($storeName);
             if(!$esgOrder->soAllocate->isEmpty()){
                 $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
                 $responseResult = "";
                 $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
                 if($orderItemIds){
                     $ordersIdList[] = $esgOrder->txn_id; 
-                    $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
-                    $returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                    $orderItemId = array($orderItemIds[0]);
-                    foreach($doucmentTypeArr as $doucmentType ){
-                        if(isset($document[$doucmentType])){
-                            $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
-                        }else{
-                            $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                    $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
+                    if($shipmentProvider){
+                        $returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                        $orderItemId = array($orderItemIds[0]);
+                        foreach($doucmentTypeArr as $doucmentType ){
+                            if(isset($document[$doucmentType])){
+                                $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
+                            }else{
+                                $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                            }
                         }
+                    }else{
+                        $returnData[$esgOrder->so_no] = "Shipment Provider is not exit in lazada admin system.";
                     }
                 }
             }
@@ -598,26 +602,35 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         }
     }*/
 
-    public function getEsgShippingProvider($warehouseId,$countryCode)
+    public function getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments)
     {
-        $shipmentProvider = array(
-            "ES_HK"=>array(
-                "MY" => "AS-Poslaju-HK",      
-                "SG" => "LGS-SG3",                
-                "TH" => "LGS-TH3-HK",       
-                "ID" => "LGS-LEX-ID-HK",
-                "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
-            ),
-            "ES_DGME"=>array(
-                "MY" => "AS-Poslaju",      
-                "SG" => "LGS-SG3",                
-                "TH" => "LGS-TH3-HK",       
-                "ID" => "LGS-Tiki-ID",
-                "PH" => "LGS-PH1"
-            )
-        );
-        if(isset($shipmentProvider[$warehouseId])){
-            return $shipmentProvider[$warehouseId][$countryCode];
+        switch ($warehouseId){
+            case 'ES_HK':
+                $shipmentProvier = array(
+                    "MY" => "AS-Poslaju-HK",      
+                    "SG" => "LGS-SG3-HK",                
+                    "TH" => "LGS-TH3-HK",       
+                    "ID" => "LGS-LEX-ID-HK",
+                    "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+                    );
+                break;
+           case 'ES_DGME':
+           case '4PX_DGPL':
+                $shipmentProvier = array(
+                    "MY" => "AS-Poslaju-HK",      
+                    "SG" => "LGS-SG3-HK",                
+                    "TH" => "LGS-TH3-HK",       
+                    "ID" => "LGS-LEX-ID-HK",
+                    "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+                    );
+                break;
+        }
+        if($shipmentProvider && isset($shipmentProvider[$countryCode])){
+           foreach ($lazadaShipments as $lazadaShipment) {
+               if($shipmentProvider[$countryCode] == $lazadaShipment["name"]){
+                    return $shipmentProvider[$countryCode];
+               }
+           }
         }else{
             return null;
         }
