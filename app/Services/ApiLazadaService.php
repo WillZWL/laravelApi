@@ -111,7 +111,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
     {   
         $returnData = array();$warehouseInventory = null;
-        foreach($orderGroup as $order){ 
+        foreach($orderGroup as $order){
             if(isset($warehouseInventory["warehouse"])){
                 $warehouse = $warehouseInventory["warehouse"]; 
             }
@@ -122,10 +122,12 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                     $orderItemIds[] = $orderItem->order_item_id;
                 }
                 $shipmentProvider = "";
-                $returnData[$order->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                $returnData[$order->so_no] = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
                 $orderIdList[] = $order->txn_id;
-                $this->updateOrderStatusReadyToShip($storeName,$orderIdList);
-                parent::updateWarehouseInventory($soNo,$warehouseInventory["updateObject"]);
+                if(!$returnData[$order->so_no]){
+                    $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
+                    parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                }
             }
         }
         return $returnData;
@@ -170,7 +172,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 if($orderItemIds){
                     $ordersIdList[] = $esgOrder->txn_id; 
                     $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
-                    //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                    $returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
                     $orderItemId = array($orderItemIds[0]);
                     foreach($doucmentTypeArr as $doucmentType ){
                         if(isset($document[$doucmentType])){
@@ -246,7 +248,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 }
             }
         }
-        
     }
 
     public function exportTrackinNoCsvToDirectory($storeName,$orderList)

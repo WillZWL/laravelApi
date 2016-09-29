@@ -72,8 +72,9 @@ class PlatformMarketOrderTransfer
                     \DB::connection('mysql_esg')->beginTransaction();
                     try {
                         $this->createSplitOrder($order);
-                        $this->createGroupOrder($order);
+                        $soNo = $this->createGroupOrder($order);
                         $order->acknowledge = 1;
+                        $order->so_no = $soNo;
                         $order->save();
                         \DB::connection('mysql_esg')->commit();
                         \DB::commit();
@@ -154,6 +155,7 @@ class PlatformMarketOrderTransfer
         $this->addComplementaryAccessory($so);
 
         $this->setGroupOrderRecommendCourierAndCharge($so);
+        return $so->so_no;
     }
 
     public function createSplitOrder(PlatformMarketOrder $order)

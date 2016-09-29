@@ -178,15 +178,15 @@ class ApiBaseService extends PlatformMarketConstService
         $updateAction = true; $warehouseInventory = null; $updateObject = null;
         $newWarehouse = $orginWarehouse;
         foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
-            $remainInventroy = $newWarehouse[$orderItem->sell_sku]["inventory"] - $orderItem->quantity_ordered;
+            $remainInventroy = $newWarehouse[$orderItem->seller_sku]["inventory"] - $orderItem->quantity_ordered;
             if($remainInventroy >= 0){
-                $newWarehouse[$orderItem->sell_sku]["inventory"] = $remainInventroy;
-                if(isset($updateObject[$orderItem->sell_sku])){
-                    $updateObject[$orderItem->sell_sku]["qty"] += $orderItem->qty;
+                $newWarehouse[$orderItem->seller_sku]["inventory"] = $remainInventroy;
+                if(isset($updateObject[$orderItem->seller_sku])){
+                    $updateObject[$orderItem->seller_sku]["qty"] += $orderItem->quantity_ordered;
                 }else{
-                    $updateObject[$orderItem->sell_sku]["qty"] = $orderItem->qty;
-                    $updateObject[$orderItem->sell_sku]["sku"] = $newWarehouse[$orderItem->sell_sku]["sku"];
-                    $updateObject[$orderItem->sell_sku]["warehouse_id"] = $newWarehouse[$orderItem->sell_sku]["warehouse_id"];
+                    $updateObject[$orderItem->seller_sku]["qty"] = $orderItem->quantity_ordered;
+                    $updateObject[$orderItem->seller_sku]["sku"] = $newWarehouse[$orderItem->seller_sku]["sku"];
+                    $updateObject[$orderItem->seller_sku]["warehouse_id"] = $newWarehouse[$orderItem->seller_sku]["warehouse_id"];
                 }
             }else{
                 $updateAction = false;
@@ -197,7 +197,7 @@ class ApiBaseService extends PlatformMarketConstService
         return $warehouseInventory;
     }
 
-    public function updateWarehouseInventory($soNo,$updateObject)
+    public function updateWarehouseInventory($soNo,$updateObjects)
     {
         foreach($updateObjects as $updateObject){
             $object = array(
@@ -216,19 +216,6 @@ class ApiBaseService extends PlatformMarketConstService
                 ],
                 $object
             );
-        }
-    }
-
-    //when cancel the order at ready to ship page
-    public function deleteWarehouseInventory($soNo,$updateObject)
-    {
-        foreach($updateObjects as $updateObject){
-            $invMovement = InvMovement::where("ship_ref", $soNo."-01")
-                    ->where("sku", $updateObject["sku"])
-                    ->first();
-            if(!$invMovement->isEmpty()){
-                $invMovement->delete();
-            }
         }
     }
 
