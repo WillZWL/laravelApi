@@ -82,6 +82,17 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('version', 'VersionController');
     $api->resource('category', 'CategoryController');
     $api->resource('hscode_category', 'HscodeCategoryController');
+    $api->post('product/product-mapping', 'ProductController@productMapping');
+    $api->post('product/supplier-product', 'ProductController@supplierProduct');
+    $api->post('product/weight-dimension', 'ProductController@weightDimension');
+    $api->post('product/product-content', 'ProductController@productContent');
+    $api->post('product/product-code', 'ProductController@productCode');
+    $api->post('product/product-features', 'ProductController@productFeatures');
+    $api->post('product/upload-image', 'ProductController@uploadProductImage');
+    $api->post('product/delete-image', 'ProductController@deleteImage');
+    $api->post('product/{sku}', 'ProductController@update');
+    $api->get('product/{sku}/{lang}', 'ProductController@show');
+    $api->resource('product', 'ProductController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
     $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');

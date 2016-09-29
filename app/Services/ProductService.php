@@ -2,15 +2,339 @@
 
 namespace App\Services;
 
+use App\Models\Country;
 use App\Models\Product;
 use App\Models\ProductFeatures;
+use App\Models\Supplier;
 use App\Models\SupplierProd;
 use App\Models\Sequence;
 use App\Models\MerchantProductMapping;
+use App\Models\ProductContent;
+use App\Models\ProductImage;
+use App\Models\ProductCustomClassification;
+use App\Models\ExchangeRate;
 use Excel;
 
 class ProductService
 {
+
+    public function getProduct($sku)
+    {
+        return Product::whereSku($sku)->first();
+    }
+
+    public function store($data)
+    {
+        $prod_grp_cd = $this->generateProdGrpCd();
+        $data['prod_grp_cd'] = $prod_grp_cd;
+
+        $sku = '';
+        if ( $prod_grp_cd && isset($data['version_id']) && isset($data['colour_id']) ) {
+            $sku = $prod_grp_cd .'-'. $data['version_id'] .'-'. $data['colour_id'];
+            $data['sku'] = $sku;
+        } else {
+            return ['fialed' => true, 'msg' => 'Create failed, Cannot generate new SKU'];
+        }
+
+        if (! isset($data['status'])) {
+            $data['status'] = 1;
+        }
+
+        return $this->updateOrCreateProduct($data);
+    }
+
+    public function update($data, $sku)
+    {
+        if ($data['sku'] != $sku ) {
+            return ['fialed' => true, 'msg' => 'Error, Submit an illegal product SKU'];
+        }
+
+        return $this->updateOrCreateProduct($data);
+    }
+
+    public function updateOrCreateProduct($data)
+    {
+        if (! isset($data['sku'])) {
+            return ['fialed' => true, 'msg' => 'Failed, Cannot take product sku'];
+        }
+
+        $productInfo = [
+            'sku',
+            'prod_grp_cd',
+            'prod_grp_cd_name',
+            'colour_id',
+            'version_id',
+            'name',
+            'declared_desc',
+            'hscode_cat_id',
+            'cat_id',
+            'sub_cat_id',
+            'sub_sub_cat_id',
+            'brand_id',
+            'clearance',
+            'ean',
+            'mpn',
+            'upc',
+            'discount',
+            'proc_status',
+            'website_status',
+            'sourcing_status',
+            'expected_delivery_date',
+            'warranty_in_month',
+            'vol_weight',
+            'weight',
+            'length',
+            'width',
+            'height',
+            'fragile',
+            'packed',
+            'battery',
+            'sku_type',
+            'status',
+        ];
+
+        $object = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $productInfo)) {
+                $object[$key] = $value;
+            }
+        }
+
+        $product = Product::updateOrCreate(['sku' => $data['sku']], $object);
+        if (! $product) {
+            return ['fialed' => true, 'msg' => 'Failed, Cannot take product info'];
+        } else {
+            if (isset($data['hs_code'])) {
+                $countrys = Country::whereStatus(1)->get();
+                if ($countrys) {
+                    foreach ($countrys as $country) {
+                        ProductCustomClassification::updateOrCreate(['sku' => $product->sku,'country_id' => $country->id], ['code' => $data['hs_code']]);
+                    }
+                }
+
+            }
+
+            return ['success' => true, 'product_info' => $product, 'msg' => 'Basic product info save success'];
+        }
+    }
+
+    public function productMapping($data)
+    {
+        $product = Product::whereSku($data['sku'])->first();
+
+        if (! $product) {
+            return ['fialed' => true, 'msg' => 'Failed, By sku check product info fail'];
+        }
+
+        $object = [
+            'merchant_id' => $data['merchant_id'],
+            'merchant_sku' => $data['merchant_sku'],
+            'colour_id' => $product->colour_id,
+            'version_id' => $product->version_id,
+        ];
+
+        $result = MerchantProductMapping::updateOrCreate(['sku' => $data['sku']], $object);
+        if ($result) {
+            return ['success' => true, 'prod_map_info' => $result, 'msg' => 'Save merchant product mapping info success'];
+        }
+    }
+
+    public function supplierProduct($data) {
+        $supplier = Supplier::whereId($data['supplier_id'])->first();
+        $hkdRate = ExchangeRate::getRate($supplier->currency_id, 'HKD');
+        $object = [
+            'currency_id' => $supplier->currency_id,
+            'cost' => $data['cost'],
+            'pricehkd' => round($data['cost'] * $hkdRate, 2),
+            'declared_value' => $data['declared_value'],
+            'declared_value_currency_id' => $supplier->currency_id,
+            'order_default' => 1,
+            'lead_day' => 0,
+            'moq' => 1,
+            'qty_per_carton' => 9999,
+            'carton_per_pallet' => 9999,
+        ];
+
+        if (isset($data['supplier_status'])) {
+            $object['supplier_status'] = $data['supplier_status'];
+        } else {
+            $object['supplier_status'] = 'A';
+        }
+
+        $result = SupplierProd::updateOrCreate(['prod_sku' => $data['sku'], 'supplier_id'=>$data['supplier_id']], $object);
+
+        if ($result) {
+            $this->updateOrCreateProduct($data);
+
+            return ['success' => true, 'supplier_product' => $result, 'msg' => 'Save supplier product info success'];
+        }
+    }
+
+    public function weightDimension($data) {
+        return $this->updateOrCreateProduct($data);
+    }
+
+    public function productCode($data) {
+        return $this->updateOrCreateProduct($data);
+    }
+
+    public function productContent($data) {
+        $object = [
+            'prod_name' => $data['prod_name'],
+        ];
+
+        if (isset($data['contents'])) {
+            $object['contents'] = $data['contents'];
+            $object['contents_original'] = isset($data['contents_original']) ? 1 : 0;
+        }
+
+        if (isset($data['detail_desc'])) {
+            $object['detail_desc'] = $data['detail_desc'];
+            $object['detail_desc_original'] = isset($data['detail_desc_original']) ? 1 : 0;
+        }
+
+        $result = ProductContent::updateOrCreate(['prod_sku' => $data['sku'], 'lang_id' => $data['lang_id']], $object);
+
+        if ($result) {
+            return ['success' => true, 'product_content' => $result, 'msg' => 'Save product content info success'];
+        }
+    }
+
+    public function productFeatures($data)
+    {
+        if (isset($data['ids'])) {
+            foreach ($data['ids'] as $key => $id) {
+                $feature = $data['feature_'. $id];
+
+                if (empty($feature)) {
+                    ProductFeatures::whereId($id)->delete();
+                } else {
+                    $object = [
+                        'esg_sku' => $data['sku'],
+                        'feature' => $feature,
+                    ];
+
+                    ProductFeatures::updateOrCreate(['id' => $id], $object);
+
+                }
+            }
+        }
+
+        if (isset($data['add_feature'])) {
+            foreach ($data['add_feature'] as $key => $feature) {
+                if (empty($feature)) continue;
+
+                $object = [
+                    'esg_sku' => $data['sku'],
+                    'feature' => $feature,
+                ];
+
+                ProductFeatures::firstOrCreate($object);
+            }
+        }
+
+        $prodFeatures =  ProductFeatures::whereEsgSku($data['sku'])->get();
+        if ($prodFeatures) {
+            return ['success' => true, 'product_features' => $prodFeatures, 'msg' => 'Save product features success'];
+        } else {
+            return ['fialed' => true, 'msg' => 'Currently no input product features'];
+        }
+    }
+
+    public function deleteImage($data)
+    {
+        $prodImg = ProductImage::whereId($data['id'])->whereSku($data['sku'])->first();
+
+        if ($prodImg) {
+            $img = $prodImg->sku ."_". $prodImg->id .".". $prodImg->image;
+            if ($data['id'] == $prodImg->id) {
+                if ($prodImg->delete()) {
+                    @unlink(public_path() . "/product-images/". $img);
+                    @unlink(public_path() . "/product-images/thumbnail/". $img);
+
+                    return ['success' => true, 'msg' => 'Delete image is success'];
+                } else {
+                    return ['fialed' => true, 'msg' => 'Delete image is failed'];
+                }
+            }
+        }
+    }
+
+    public function saveProductImage($data)
+    {
+        $sku = $data['prod_sku'];
+
+        $num = ProductImage::whereSku($sku)->whereStatus(1)->select('sku', 'id', 'image', 'priority')->count();
+        if ($num == 60) {
+            return $response['files'][0]->error = "The maximum number of allow uploads has been exceeded";
+        }
+
+        $imgID = $this->generateImageID();
+
+        try {
+            $options = $this->allowOptions($imgID, $sku);
+
+            $uploadResponse = new FileUploadService($options);
+        } catch (\Exception $e) {
+            mail('brave.liu@eservicesgroup.com', 'Product Upload Images Failed - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
+
+        $response = $uploadResponse->response;
+        if ($response && !isset($response['files'][0]->error)) {
+            $extension = $response['files'][0]->extension;
+            $priority = ProductImage::whereSku($sku)->max('priority');
+
+            $object = [
+                'id' => $imgID,
+                'sku' => $sku,
+                'image' => $extension,
+                'priority' => $priority + 1,
+                'alt_text' => $response['files'][0]->name,
+                'status' => 1,
+            ];
+
+            ProductImage::firstOrCreate($object);
+
+            $productImages = ProductImage::prodImages($sku);
+
+            $response['product_images'] = $productImages;
+        }
+
+        return $response;
+    }
+
+    private function allowOptions($imgID, $sku)
+    {
+        $imagePath = '/product-images/';
+
+        $uploadDir = public_path() . $imagePath;
+        if (! file_exists($uploadDir))
+            mkdir($uploadDir, 0755, true);
+
+        $options = [];
+        $options['inline_file_types'] = '/\.(gif|jpe?g|png)$/i';
+        $options['accept_file_types'] = '/\.(gif|jpe?g|png)$/i';
+        $options['image_file_types'] = '/\.(gif|jpe?g|png)$/i';
+        $options['correct_image_extensions'] = true;
+        $options['print_response'] = false;
+        $options['upload_dir'] = $uploadDir .'/';
+        $options['upload_url'] = url($imagePath). "/";
+        $options['file_rename'] = $sku ."_". $imgID;
+
+        return $options;
+    }
+
+    public function generateImageID()
+    {
+        // TODO: need add transaction.
+        $sequence = Sequence::where('seq_name', '=', 'product_image')->first();
+        $sequence->value += 1;
+        $sequence->save();
+
+        return $sequence->value;
+    }
+
     public function handleUploadFile($fileName = '')
     {
         // echo $fileName;
@@ -107,7 +431,7 @@ class ProductService
         $object['merchant_sku'] = (string) $item['merchantsku'];
         $object['version_id'] = (string) $item['versionid'];
         $object['colour_id'] = (string) $item['colourid'];
-        $merchantProductMapping = MerchantProductMapping::firstOrCreate($object);
+        return $merchantProductMapping = MerchantProductMapping::firstOrCreate($object);
      }
 
     /***
