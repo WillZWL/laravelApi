@@ -57,4 +57,20 @@ class Product extends Model
     {
         return $this->hasMany('App\Models\ProductFeatures', 'esg_sku', 'sku');
     }
+
+    public function productImages()
+    {
+        return $this->hasMany('App\Models\ProductImage', 'sku', 'sku');
+    }
+
+    public function productContents()
+    {
+        return $this->hasMany('App\Models\ProductContent', 'prod_sku', 'sku');
+    }
+
+    public function productCustomClassifications()
+    {
+        return $this->hasMany('App\Models\ProductCustomClassification', 'sku', 'sku');
+    }
+
 }

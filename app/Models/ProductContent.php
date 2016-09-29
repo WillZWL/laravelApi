@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-class SupplierProd extends Model
+class ProductContent extends Model
 {
     public $connection = 'mysql_esg';
 
-    protected $table = 'supplier_prod';
-
-    protected $primaryKey = 'prod_sku';
+    protected $table = 'product_content';
 
     public $timestamps = false;
 
@@ -23,8 +22,4 @@ class SupplierProd extends Model
         return $this->belongsTo('App\Models\Product', 'sku', 'prod_sku');
     }
 
-    public function supplier()
-    {
-        return $this->belongsTo('App\Models\Supplier', 'supplier_id', 'id');
-    }
 }

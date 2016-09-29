@@ -10,7 +10,11 @@ class MerchantProductMapping extends Model
 
     protected $table = 'merchant_product_mapping';
 
+    protected $primaryKey = 'sku';
+
     public $timestamps = false;
+
+    public $incrementing = false;
 
     protected $guarded = ['create_at'];
 
