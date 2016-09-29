@@ -65,7 +65,7 @@ class NeweggOrderList extends NeweggOrderCore
             }
         } else {
 
-            $data = $result["data"];
+            $data = $result["data"]['ResponseBody'];
             if ($data["PageInfo"]["TotalCount"] && is_array($data["OrderInfoList"])) {
                 # start with page 1's orders
                 $orderInfo = $data["OrderInfoList"];

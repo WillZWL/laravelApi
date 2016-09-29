@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\User;
 use Illuminate\Http\Request;
 use App\Repository\PlatformMarketOrderRepository;
 
@@ -14,8 +15,16 @@ class PlatformMarketOrderService
         $this->orderRepository = $orderRepository;
     }
 
-    public function getOrdersByStore(Request $request)
+    public function getOrders(Request $request)
     {
-        return $this->orderRepository->getOrdersByStore($request);
+        $stores = User::find(\Authorizer::getResourceOwnerId())->stores()
+            ->pluck('store_id')->all();
+
+        return $this->orderRepository->getOrdersByStore($request, $stores);
+    }
+
+    public function getOrderDetails($id)
+    {
+        return $this->orderRepository->getOrderDetails($id);
     }
 }

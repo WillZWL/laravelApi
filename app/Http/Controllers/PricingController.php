@@ -251,7 +251,7 @@ class PricingController extends Controller
             ->firstOrFail();
 
         if ($merchantInfo->revenue_value) {
-            $esgCommission = $request->price * $merchantInfo->revenue_value / 100;
+            $esgCommission =  $merchantInfo->revenue_value;
         }
 
         return round($esgCommission, 2);
@@ -415,8 +415,13 @@ class PricingController extends Controller
             $quotationVersion->forget('acc_external_postage');
         }
 
+        $marketplace = $request->get('marketplace');
         $quotation = collect();
         foreach ($quotationVersion as $quotationType => $quotationVersionId) {
+            // Lazada only use EXP.
+            if (substr($marketplace, 2) === 'LAZADA' && $quotationType !== 'acc_courier_exp') {
+                continue;
+            }
             if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage')) {
                 $weight = $actualWeight;
             } else {

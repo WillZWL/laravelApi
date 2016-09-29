@@ -31,7 +31,6 @@ class NeweggCore
             
             $curlResponse = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
 
-
             if($curlResponse["status"]) {
                 $json = $curlResponse["json"];
                 $data = $this->convertJsonToArr($json);
