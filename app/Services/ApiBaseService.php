@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
+use App\Models\InvMovement;
 use Excel;
 
 class ApiBaseService extends PlatformMarketConstService
@@ -172,33 +173,62 @@ class ApiBaseService extends PlatformMarketConstService
         return $platformSkuOrderedList;
     }
 
-    public function checkWarehouseInventory($platformMarketOrder,$warehouse)
+    public function checkWarehouseInventory($platformMarketOrder,$orginWarehouse)
     {
-        $inventory = true;$warehouseInventory = null;
+        $updateAction = true; $warehouseInventory = null; $updateObject = null;
+        $newWarehouse = $orginWarehouse;
         foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
-            $remainInventroy = $warehouse[$orderItem->sell_sku]["inventory"] - $orderItem->quantity_ordered - $warehouse[$orderItem->sell_sku]["retrieve"];
+            $remainInventroy = $newWarehouse[$orderItem->sell_sku]["inventory"] - $orderItem->quantity_ordered;
             if($remainInventroy >= 0){
-                $warehouse[$orderItem->sell_sku]["retrieve"] += $orderItem->quantity_ordered ;
-                $warehouse[$orderItem->sell_sku]["update"] = 1;
+                $newWarehouse[$orderItem->sell_sku]["inventory"] = $remainInventroy;
+                if(isset($updateObject[$orderItem->sell_sku])){
+                    $updateObject[$orderItem->sell_sku]["qty"] += $orderItem->qty;
+                }else{
+                    $updateObject[$orderItem->sell_sku]["qty"] = $orderItem->qty;
+                    $updateObject[$orderItem->sell_sku]["sku"] = $newWarehouse[$orderItem->sell_sku]["sku"];
+                    $updateObject[$orderItem->sell_sku]["warehouse_id"] = $newWarehouse[$orderItem->sell_sku]["warehouse_id"];
+                }
             }else{
-                $inventory = false;
+                $updateAction = false;
             }
         }
-        $warehouseInventory["warehouse"] = $warehouse;
-        $warehouseInventory["inventory"] = $inventory;
-
+        $warehouseInventory["warehouse"] = $updateAction ? $newWarehouse : $orginWarehouse;
+        $warehouseInventory["updateObject"] = $updateObject;
         return $warehouseInventory;
     }
 
-    public function updateWarehouseInventory($warehouse)
+    public function updateWarehouseInventory($soNo,$updateObject)
     {
-        foreach($warehouse as $warehouseObject){
-           if($warehouseObject["update"] ==1){
-                $warehouse = Warehouse::where("warehouse_id",$warehouseObject["warehouse_id"])->where("sku",$warehouseObject["sku"])->first();
-                if($warehouse->isEmpty()){
-                    return $warehouse->update(array("retrieve"=>$warehouseObject["retrieve"]));
-                }
-           }  
+        foreach($updateObjects as $updateObject){
+            $object = array(
+                "ship_ref" => $soNo."-01",
+                "sku" => $updateObject["sku"],
+                "qty" => $updateObject["qty"],
+                "type" => "C",
+                "from_location" => $updateObject["warehouse_id"],
+                "reason" => "LAZADA READY TO SHIP",
+                "status" => "OT"
+            );
+            $invMovement = InvMovement::updateOrCreate(
+                [
+                    'ship_ref' => $soNo."-01",
+                    'sku' => $updateObject["sku"],
+                ],
+                $object
+            );
+        }
+    }
+
+    //when cancel the order at ready to ship page
+    public function deleteWarehouseInventory($soNo,$updateObject)
+    {
+        foreach($updateObjects as $updateObject){
+            $invMovement = InvMovement::where("ship_ref", $soNo."-01")
+                    ->where("sku", $updateObject["sku"])
+                    ->first();
+            if(!$invMovement->isEmpty()){
+                $invMovement->delete();
+            }
         }
     }
 

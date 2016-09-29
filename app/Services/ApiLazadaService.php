@@ -6,6 +6,7 @@ use App\Contracts\ApiPlatformInterface;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\PlatformMarketShippingAddress;
+use App\Models\Inventory;
 use App\Models\Schedule;
 use App\Models\So;
 use PDF;
@@ -111,23 +112,23 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     {   
         $returnData = array();$warehouseInventory = null;
         foreach($orderGroup as $order){ 
-            if(iseset($warehouseInventory["warehouse"])){
+            if(isset($warehouseInventory["warehouse"])){
                 $warehouse = $warehouseInventory["warehouse"]; 
             }
             $warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
-            if($warehouseInventory["inventory"]){
+            if($warehouseInventory["updateObject"]){
                 $orderItemIds = array();
                 foreach($order->platformMarketOrderItem as $orderItem){
                     $orderItemIds[] = $orderItem->order_item_id;
                 }
                 $shipmentProvider = "";
                 $returnData[$order->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                $orderIdList[] = $order->platform_order_id;
+                $orderIdList[] = $order->txn_id;
+                $this->updateOrderStatusReadyToShip($storeName,$orderIdList);
+                parent::updateWarehouseInventory($soNo,$warehouseInventory["updateObject"]);
             }
-            $this->updateOrderStatusReadyToShip($storeName,$orderIdList);
         }
-        parent::updateWarehouseInventory($warehouseInventory["warehouse"]);
-        return $returnData; 
+        return $returnData;
     }
 
     public function merchantOrderFufillmentGetDocument($orderGroups,$doucmentType)
@@ -163,16 +164,20 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             $storeName = $prefix."LAZADA".$countryCode;
             //$shipmentProviders = $this->getShipmentProviders($storeName);
             if(!$esgOrder->soAllocate->isEmpty()){
-                $warehouseId = $esgOrder->soAllocate->warehouse_id;
+                $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
                 $responseResult = "";
                 $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
                 if($orderItemIds){
-                    $ordersIdList[] = $esgOrder->platform_order_no; 
+                    $ordersIdList[] = $esgOrder->txn_id; 
                     $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode);
                     //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
                     $orderItemId = array($orderItemIds[0]);
                     foreach($doucmentTypeArr as $doucmentType ){
-                        $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
+                        if(isset($document[$doucmentType])){
+                            $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
+                        }else{
+                            $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                        }
                     }
                 }
             }
@@ -181,7 +186,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
         if($document)
         $returnData["document"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
-        
         return $returnData;
     }
 
@@ -191,10 +195,10 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         foreach($esgOrder->soItem as $soItem){
             if($warehouseId){
                 $inventory = Inventory::where("warehouse_id",$warehouseId)
-                    ->whereIn("prod_sku",$soItem->prod_sku)
+                    ->where("prod_sku",$soItem->prod_sku)
                     ->first();
-                $remain = $inventory - $soItem->qty;
-                if($remain <= 0){return false;}
+                $remain = $inventory->inventory - $soItem->qty;
+                if($remain <= 0){ return false;}
             }
             $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
             foreach($itemIds as $itemId){
@@ -219,26 +223,30 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     public function updateOrderStatusReadyToShip($storeName,$ordersIdList)
     {
         $orderList = $this->getMultipleOrderItems($storeName,$ordersIdList);
-        foreach($orderList as $order){
-            $orderObject = array(
-                'order_status' => "ReadyToShip",
-                'esg_order_status' => $this->getSoOrderStatus("ReadyToShip")
-                );
-            PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
-            So::where('platform_order_id',$order['OrderId'])->update(['status' => 5]);
-            foreach($order["OrderItems"]["OrderItem"] as $orderItem){
-                $object = array(
-                    'platform_order_id' => $orderItem["OrderId"],
-                    'order_item_id' => $orderItem["OrderItemId"],
-                    'shipment_provider' => $orderItem["ShipmentProvider"],
-                    'tracking_code' => $orderItem["TrackingCode"],
-                    'status' => $orderItem["Status"],
-                );
-                PlatformMarketOrder::where("platform_order_id",$orderItem['OrderId'])
-                                ->where('order_item_id',$orderItem['OrderItemId'])
-                                ->update($object);
+        if($orderList){
+            foreach($orderList as $order){
+                $orderObject = array(
+                    'order_status' => "ReadyToShip",
+                    'esg_order_status' => $this->getSoOrderStatus("ReadyToShip")
+                    );
+                PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
+                So::where('platform_order_id',$order['OrderId'])->update(['status' => 5]);
+                
+                foreach($order["OrderItems"] as $orderItem){
+                    $object = array(
+                        'platform_order_id' => $order["OrderId"],
+                        'order_item_id' => $orderItem["OrderItemId"],
+                        'shipment_provider' => $orderItem["ShipmentProvider"],
+                        'tracking_code' => $orderItem["TrackingCode"],
+                        'status' => $orderItem["Status"],
+                    );
+                    PlatformMarketOrderItem::where("platform_order_id",$order['OrderId'])
+                                    ->where('order_item_id',$orderItem['OrderItemId'])
+                                    ->update($object);
+                }
             }
         }
+        
     }
 
     public function exportTrackinNoCsvToDirectory($storeName,$orderList)
@@ -327,7 +335,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     {
         $this->lazadaMultipleOrderItems = new LazadaMultipleOrderItems($storeName);
         $this->lazadaMultipleOrderItems->setOrderIdList($orderIdList);
-        $orginOrderItemList=$this->lazadaMultipleOrderItems->fetchMultipleOrderItems();
+        $orginOrderItemList = $this->lazadaMultipleOrderItems->fetchMultipleOrderItems();
         $this->saveDataToFile(serialize($orginOrderItemList),"fetchMultipleOrderItems");
         return $orginOrderItemList;
     }
