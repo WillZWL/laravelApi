@@ -18,6 +18,7 @@ use App\Repository\NeweggMws\NeweggDocument;
 use App\Repository\NeweggMws\NeweggShipmentProviders;
 use App\Repository\NeweggMws\NeweggMultipleOrderItems;
 use App\Models\CourierInfo;
+use App\Models\So;
 // test feature 1
 
 class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
@@ -40,14 +41,27 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 
         if($orderInfoList){
             foreach($orderInfoList as $order){
-                if (isset($order['ShipToCountryCode'])) {
-                    $addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
-                }
-                $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
-                if(isset($order["ItemInfoList"]) && !empty($order["ItemInfoList"])){
-                    foreach($order["ItemInfoList"] as $orderItem){
-                        $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                //check if order has been imported before
+                $checkOrder = So::where('platform_order_id', '=', $order['OrderNumber'])->where('biz_type', '=', 'Newegg')->first();
+
+                if(!$checkOrder){
+                    if (isset($order['ShipToCountryCode'])) {
+                        $addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
                     }
+                    $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+                    if(isset($order["ItemInfoList"]) && !empty($order["ItemInfoList"])){
+                        foreach($order["ItemInfoList"] as $orderItem){
+                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                        }
+                    }                   
+                }else{
+                        $orderno = $order['OrderNumber'];
+                        $subject = "Duplicate Order Alert: MarketPlace: [{$storeName}] Order [{$orderno}]\r\n";
+                        $message = "Duplicated Order found for [{$storeName}] Order no [{$orderno}]. \r\n";
+                        $message .="Order will not be imported. Please check to ensure this order is the same as what we have\r\n";
+                        $message .= "Thanks\r\n";
+                        $this->sendAlertMailMessage($subject, $message);
+                        return false;
                 }
             }
             return true;
