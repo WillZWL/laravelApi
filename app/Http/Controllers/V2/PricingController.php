@@ -37,7 +37,7 @@ class PricingController extends Controller
     {
         $search = $request->input('search');
 
-        $marketplaceProducts = MarketplaceSkuMapping::select('product.sku', 'name', 'marketplace_sku', 'mp_control_id', 'asin', 'mp_category_id', 'mp_sub_category_id')
+        $marketplaceProducts = MarketplaceSkuMapping::select('product.sku', 'name', 'marketplace_sku', 'mp_control_id', 'marketplace_sku_mapping.asin', 'mp_category_id', 'mp_sub_category_id')
             ->join('atomesg.mp_control', 'mp_control_id', '=', 'control_id')
             ->join('atomesg.product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
             ->join('atomesg.sku_mapping', 'product.sku', '=', 'sku_mapping.sku')

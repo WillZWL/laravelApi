@@ -13,6 +13,7 @@ use App\Models\PlatformMarketOrderItem;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\UserStore;
 use App\Models\MarketStore;
+use App\Models\InvMovement;
 
 class ApiPlatformFactoryService
 {
@@ -201,7 +202,11 @@ class ApiPlatformFactoryService
                  foreach ($platformMarketOrderGroup as $platformMarketOrder) {
                     foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
                         $orderParam["orderItemId"] = $orderItem->order_item_id;
-                        $result[$orderItem->order_item_id] = $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderParam);
+                        //$result[$platformMarketOrder->id] = $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderParam);
+                        $result[$platformMarketOrder->id] = true;
+                    }
+                    if($result[$platformMarketOrder->id]){
+                        $this->setEsgOrderStatusToCanceled($platformMarketOrder);
                     }
                  }
             }
@@ -221,6 +226,42 @@ class ApiPlatformFactoryService
             $object["esg_order_status"] = 6;
             PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
             //remove warehoure retreive num;
+        }
+    }
+
+    public function setEsgOrderStatusToCanceled($platformMarketOrder)
+    {
+        $soList = So::where("txn_id",$platformMarketOrder->platform_order_id)->get();
+        if(!$soList->isEmpty()){
+            foreach ($soList as $so) {
+               $so->update(array("status" => 0 ));
+            }
+            $orderObject = array(
+                'order_status' => "Canceled",
+                'esg_order_status' => 0
+                );
+            PlatformMarketOrder::where("platform_order_id",$platformMarketOrder->platform_order_id)->update($orderObject);
+            foreach($platformMarketOrder->PlatformMarketOrderItem as $orderItem){
+                PlatformMarketOrderItem::where("platform_order_id",$platformMarketOrder->platform_order_id)
+                                ->where('order_item_id',$orderItem->order_item_id)
+                                ->update(array('status' => "Canceled"));
+            }
+            if($platformMarketOrder->esg_order_status == 5){
+                $this->deleteWarehouseInventory($platformMarketOrder);
+            }
+        }
+    }
+
+    //when cancel the order at ready to ship page
+    public function deleteWarehouseInventory($platformMarketOrder)
+    {
+        foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
+            $invMovement = InvMovement::where("ship_ref", $platformMarketOrder->so_no."-01")
+                    ->where("sku", $orderItem->seller_sku)
+                    ->first();
+           if($invMovement){
+                $invMovement->delete();
+            } 
         }
     }
 
@@ -406,10 +447,11 @@ class ApiPlatformFactoryService
         $marketplaceProducts = MarketplaceSkuMapping::join("inventory","inventory.prod_sku","=","marketplace_sku_mapping.sku")
                     ->where("marketplace_id","=",$marketplaceId)
                     ->where("country_id","=",$countryCode)
-                    ->whereIn("warehouse_id",$mattelWarehouse[$countryCode])
+                    ->where("warehouse_id",$mattelWarehouse[$countryCode])
                     ->whereIn("marketplace_sku", $sellSkuList)
                     ->select("sku","marketplace_sku","inventory.inventory","inventory.warehouse_id")
-                    ->get();
+                    ->get()
+                    ->toArray();
         foreach($marketplaceProducts as $marketplaceProduct){
             $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
         }

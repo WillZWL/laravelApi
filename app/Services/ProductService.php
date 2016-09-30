@@ -40,6 +40,8 @@ class ProductService
             $data['status'] = 1;
         }
 
+        $data['sku_type'] = 1;
+
         return $this->updateOrCreateProduct($data);
     }
 
@@ -73,6 +75,9 @@ class ProductService
             'brand_id',
             'clearance',
             'ean',
+            'asin',
+            'isbn',
+            'harmonized_code',
             'mpn',
             'upc',
             'discount',

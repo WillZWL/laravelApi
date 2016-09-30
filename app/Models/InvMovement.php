@@ -10,6 +10,7 @@ class InvMovement extends Model
 
     protected $table = 'inv_movement';
 
+    protected $primaryKey = 'trans_id';
     public $timestamps = false;
 
     public $incrementing = false;
