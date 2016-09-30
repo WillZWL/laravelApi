@@ -31,6 +31,7 @@ abstract class BaseValidateService
         $marketplaceId = strtoupper(substr($this->order->platform, 0, -2));
         // 1 check marketplace sku mapping
         $marketplaceSkuList = $this->order->platformMarketOrderItem->pluck('seller_sku')->toArray();
+        $marketplaceSkuList = array_unique($marketplaceSkuList);
         $marketplaceSkuMapping = MarketplaceSkuMapping::whereIn('marketplace_sku', $marketplaceSkuList)
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($this->countryCode)
