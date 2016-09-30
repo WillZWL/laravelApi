@@ -437,13 +437,12 @@ class ApiPlatformFactoryService
         $marketplaceId = strtoupper(substr($platform, 0, -2));
         $warehouseIdList = $this->getWarehouseIdByMarketplaceId($marketplaceId);
         if($warehouseIdList){
-            $sellSkuList = null;
+            $sellSkuList = null;$warehouse = null;
             foreach ($platformMarketOrderGroup as $platformMarketOrder) {
                 foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
                     $sellSkuList[] = $orderItem->seller_sku;
                 }
             }
-            $warehouse = null;
             $marketplaceProducts = MarketplaceSkuMapping::join("inventory","inventory.prod_sku","=","marketplace_sku_mapping.sku")
                         ->where("marketplace_id","=",$marketplaceId)
                         ->where("country_id","=",$countryCode)
@@ -452,14 +451,15 @@ class ApiPlatformFactoryService
                         ->select("sku","marketplace_sku","inventory.inventory","inventory.warehouse_id")
                         ->get()
                         ->toArray();
-            foreach($marketplaceProducts as $marketplaceProduct){
-                $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
+            if($marketplaceProducts){
+                foreach($marketplaceProducts as $marketplaceProduct){
+                    $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
+                }
             }
             return $warehouse;
         }else{
             return null;
         }
-        
     }
 
     private function getCurrentUserStoreName()
@@ -489,7 +489,6 @@ class ApiPlatformFactoryService
                 );
         }
         return  $warehouseIdList;
-    }
-        
+    }  
     
 }
