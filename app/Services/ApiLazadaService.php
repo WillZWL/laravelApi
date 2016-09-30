@@ -130,7 +130,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                         parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
                     }
                 }else{
-                    $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system."
+                    $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system.";
                 }
             }
         }
