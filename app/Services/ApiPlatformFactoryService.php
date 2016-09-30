@@ -140,10 +140,12 @@ class ApiPlatformFactoryService
     public function merchantOrderReadyToShip($platformMarketOrders)
     {   
         if(!$platformMarketOrders->isEmpty()) {
+            $returnData = array();
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
                 $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
+                $result = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
+                $returnData = array_merge($returnData,$result);
             }
             return $result = array("status" => "success","message" => $returnData); 
         }else{
