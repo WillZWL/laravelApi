@@ -144,8 +144,12 @@ class ApiPlatformFactoryService
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
                 $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                $result = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
-                $returnData = array_merge($returnData,$result);
+                if($warehouse){
+                    $response = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
+                    $returnData = array_merge($returnData,$response);
+                }else{
+                    $returnData["error"][$platform] = $platform." warehouse not find, please to check";
+                }
             }
             return $result = array("status" => "success","message" => $returnData); 
         }else{
@@ -429,35 +433,33 @@ class ApiPlatformFactoryService
 
     public function getWarehouseByPlatform($platform,$platformMarketOrderGroup)
     {
-        $mattelWarehouse = array(
-            "MY" => "MATTEL_DC_MY_KT",
-            "TH" => "MATTEL_DC_TH_WD",
-            "ID" => "MATTEL_DC_ID_EY",
-            "SG" => "MATTEL_DC_SG_EY",
-            "PH" => "MATTEL_DC_PH_RP",
-            "VN" => "MATTEL_DC_VN_PT"
-        );
-        $sellSkuList = null;
-        foreach ($platformMarketOrderGroup as $platformMarketOrder) {
-            foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
-                $sellSkuList[] = $orderItem->seller_sku;
-            }
-        }
-        $warehouse = null;
         $countryCode = strtoupper(substr($platform, -2));
         $marketplaceId = strtoupper(substr($platform, 0, -2));
-        $marketplaceProducts = MarketplaceSkuMapping::join("inventory","inventory.prod_sku","=","marketplace_sku_mapping.sku")
-                    ->where("marketplace_id","=",$marketplaceId)
-                    ->where("country_id","=",$countryCode)
-                    ->where("warehouse_id",$mattelWarehouse[$countryCode])
-                    ->whereIn("marketplace_sku", $sellSkuList)
-                    ->select("sku","marketplace_sku","inventory.inventory","inventory.warehouse_id")
-                    ->get()
-                    ->toArray();
-        foreach($marketplaceProducts as $marketplaceProduct){
-            $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
+        $warehouseIdList = $this->getWarehouseIdByMarketplaceId($marketplaceId);
+        if($warehouseIdList){
+            $sellSkuList = null;
+            foreach ($platformMarketOrderGroup as $platformMarketOrder) {
+                foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
+                    $sellSkuList[] = $orderItem->seller_sku;
+                }
+            }
+            $warehouse = null;
+            $marketplaceProducts = MarketplaceSkuMapping::join("inventory","inventory.prod_sku","=","marketplace_sku_mapping.sku")
+                        ->where("marketplace_id","=",$marketplaceId)
+                        ->where("country_id","=",$countryCode)
+                        ->where("inventory.warehouse_id",$warehouseIdList[$countryCode])
+                        ->whereIn("marketplace_sku", $sellSkuList)
+                        ->select("sku","marketplace_sku","inventory.inventory","inventory.warehouse_id")
+                        ->get()
+                        ->toArray();
+            foreach($marketplaceProducts as $marketplaceProduct){
+                $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
+            }
+            return $warehouse;
+        }else{
+            return null;
         }
-        return $warehouse;
+        
     }
 
     private function getCurrentUserStoreName()
@@ -471,5 +473,23 @@ class ApiPlatformFactoryService
         }
        return $storeNames;
     }
+
+    private function getWarehouseIdByMarketplaceId($marketplaceId)
+    {
+        $warehouseIdList = null;
+        switch ($marketplaceId) {
+            case 'MLLAZADA':
+                $warehouseIdList = array(
+                    "MY" => "MATTEL_DC_MY_KT",
+                    "TH" => "MATTEL_DC_TH_WD",
+                    "ID" => "MATTEL_DC_ID_EY",
+                    "SG" => "MATTEL_DC_SG_EY",
+                    "PH" => "MATTEL_DC_PH_RP",
+                    "VN" => "MATTEL_DC_VN_PT"
+                );
+        }
+        return  $warehouseIdList;
+    }
+        
     
 }
