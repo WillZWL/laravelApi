@@ -487,6 +487,10 @@ class ApiPlatformFactoryService
                     "PH" => "MATTEL_DC_PH_RP",
                     "VN" => "MATTEL_DC_VN_PT"
                 );
+            case 'BMLAZADA':
+                $warehouseIdList = array(
+                    "SG" => "ETRADE",
+                );
         }
         return  $warehouseIdList;
     }  
