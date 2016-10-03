@@ -169,22 +169,6 @@ class NeweggCore
 
         return array(0 => $arr);
     }
-    /**
-     * Init common params.
-     *
-     * @return array
-     */
-    protected function initRequestParams()
-    {
-        $authParams = array(
-          'Authorization' => $this->options["apiKey"],
-          'SecretKey' => $this->options["secretKey"],
-          'Content-Type' => 'application/xml',
-          'Accept' => 'application/json'
-        );
-
-        return $authParams;
-    }
 
      /**
      * Init common params.
