@@ -125,7 +125,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 if($shipmentProvider){
                     $returnData[$order->so_no] = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
                     $orderIdList[] = $order->platform_order_id;
-                    if(!$returnData[$order->so_no]){
+                    if($returnData[$order->so_no]){
                         $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
                         parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
                     }
@@ -161,7 +161,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     //run request to lazada api set order ready to ship one by one
     private function esgOrderApiReadyToShip($esgOrders,$pdfFilePath)
     {
-        $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
+        $doucmentTypeArr = ["invoice","shippingLabel"];
         $ordersIdList = null; $document = null; $returnData = null;
         foreach($esgOrders as $esgOrder)
         {   
@@ -193,6 +193,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             }
         }
         if($ordersIdList)
+        //$document["carrierManifest"] = $this->getDocument($storeName,$orderItemId,$doucmentType);
         $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
         if($document)
         $returnData["document"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
@@ -596,19 +597,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
 		return $status;
 	}
 
-    /*
-    public function getEsgShippingProvider($warehouseId,$shipmentProviders)
-    {
-        foreach ($shipmentProviders as $key => $shipmentProvider) {
-            if(strstr($shipmentProvider['name'], 'HK'); ){
-                return $shipmentProvider['name'];
-            }
-        }
-    }*/
-
     public function getMettelShipmentProvider($storeName)
     {
-        $shipmentProvier = array(
+        $shipmentProvider = array(
             "MY" => "AS-Poslaju-HK",      
             "SG" => "LGS-SG3-HK",                
             "TH" => "LGS-TH1",       
@@ -620,7 +611,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $countryCode = strtoupper(substr($storeName, -2));
         if(isset($shipmentProvider[$countryCode])){
            foreach ($lazadaShipments as $lazadaShipment) {
-               if($shipmentProvider[$countryCode] == $lazadaShipment["name"]){
+               if($shipmentProvider[$countryCode] == $lazadaShipment["Name"]){
                     return $shipmentProvider[$countryCode];
                }
            }
@@ -633,7 +624,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     {
         switch ($warehouseId){
             case 'ES_HK':
-                $shipmentProvier = array(
+                $shipmentProvider = array(
                     "MY" => "AS-Poslaju-HK",      
                     "SG" => "LGS-SG3-HK",                
                     "TH" => "LGS-TH3-HK",       
@@ -643,7 +634,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 break;
            case 'ES_DGME':
            case '4PX_DGPL':
-                $shipmentProvier = array(
+                $shipmentProvider = array(
                     "MY" => "AS-Poslaju",      
                     "SG" => "LGS-SG3",                
                     "TH" => "LGS-TH3",       
@@ -654,7 +645,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         }
         if($shipmentProvider && isset($shipmentProvider[$countryCode])){
            foreach ($lazadaShipments as $lazadaShipment) {
-               if($shipmentProvider[$countryCode] == $lazadaShipment["name"]){
+               if($shipmentProvider[$countryCode] == $lazadaShipment["Name"]){
                     return $shipmentProvider[$countryCode];
                }
            }
