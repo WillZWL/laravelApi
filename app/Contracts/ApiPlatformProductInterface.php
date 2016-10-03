@@ -16,6 +16,12 @@ interface ApiPlatformProductInterface
     **  this will return Marketplace product list
     ********************************************/
 
+    public function submitProductPrice($storeName);
+    /******************************************
+    **  function submitProductPrice
+    **  this will change Marketplace product price 
+    ********************************************/
+
     public function submitProductPriceAndInventory($storeName);
     /******************************************
     **  function submitProductPriceAndInventory
