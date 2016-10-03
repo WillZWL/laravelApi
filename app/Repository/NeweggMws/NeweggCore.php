@@ -41,8 +41,7 @@ class NeweggCore
         }
 
         if(!$error) {
-            $dataResponse = $data;
-            //$dataResponse = $this->prepare($data);
+            $dataResponse = $this->prepare($data, $resourceUrl);
         }
 
         $returnArr = ["data"=>$dataResponse, "requestInfo"=>$requestInfo, "error"=>$error];
@@ -140,16 +139,19 @@ class NeweggCore
      *
      * @return null|array
      */
-    // protected function prepare($data = array())
-    // {
-    //     dd('sdseee');
-    //     dd($data['Result']);
-    //     if (isset($data['ResponseBody'])) {
-    //         return $data['ResponseBody'];
-    //     } else {
-    //         return null;
-    //     }
-    // }
+    protected function prepare($data = array(), $resourceUrl)
+    {
+      //dd($data);
+        if($resourceUrl=="contentmgmt/item/international/inventory" || $resourceUrl=="contentmgmt/item/international/price")
+        {
+          return $data;
+        }
+        else if (isset($data['ResponseBody'])) {
+            return $data['ResponseBody'];
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Fix issue with single result in response.
@@ -198,6 +200,33 @@ class NeweggCore
         );
 
         return $authParams;
+    }
+
+    /**
+     * Init common params.
+     *
+     * @return array
+     */
+    protected function initRequestParams()
+    {
+        $requestParams = array(
+          'Authorization' => $this->options["apiKey"],
+          'SecretKey' => $this->options["secretKey"],
+          'Content-Type' => 'application/xml',
+          'Accept' => 'application/json'
+        );
+
+        return $requestParams;
+
+      /*  $now = new \DateTime();
+        $requestParams = array(
+          'UserID' => $this->options['userId'],
+          'Version' => '1.0',
+          'Format' => 'XML',
+          'Timestamp' => $now->format(\DateTime::ISO8601),
+        );
+
+        return $requestParams;*/
     }
 
     /**
