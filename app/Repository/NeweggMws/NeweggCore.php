@@ -123,6 +123,7 @@ class NeweggCore
      *
      * @return string
      */
+    //test demo git-flow
     public function errorCode()
     {
         if (isset($this->ErrorResponse) && is_array($this->ErrorResponse) && isset($this->ErrorResponse['ErrorCode'])) {
