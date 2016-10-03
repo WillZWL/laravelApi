@@ -124,7 +124,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
                 if($shipmentProvider){
                     $returnData[$order->so_no] = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
-                    $orderIdList[] = $order->txn_id;
+                    $orderIdList[] = $order->platform_order_id;
                     if(!$returnData[$order->so_no]){
                         $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
                         parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
@@ -230,9 +230,9 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         return $responseResult;
     }
 
-    public function updateOrderStatusReadyToShip($storeName,$ordersIdList)
+    public function updateOrderStatusReadyToShip($storeName,$orderIdList)
     {
-        $orderList = $this->getMultipleOrderItems($storeName,$ordersIdList);
+        $orderList = $this->getMultipleOrderItems($storeName,$orderIdList);
         if($orderList){
             foreach($orderList as $order){
                 $orderObject = array(
@@ -644,11 +644,11 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
            case 'ES_DGME':
            case '4PX_DGPL':
                 $shipmentProvier = array(
-                    "MY" => "AS-Poslaju-HK",      
-                    "SG" => "LGS-SG3-HK",                
-                    "TH" => "LGS-TH3-HK",       
-                    "ID" => "LGS-LEX-ID-HK",
-                    "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
+                    "MY" => "AS-Poslaju",      
+                    "SG" => "LGS-SG3",                
+                    "TH" => "LGS-TH3",       
+                    "ID" => "LGS-LEX-ID",
+                    "PH" => "AS-LBC-JZ Sellers-LZ"
                     );
                 break;
         }
