@@ -287,7 +287,8 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                         $subject = "FAIL: UpdateShipment to MarketPlace: [{$storeName}]! ESG Order [{$esgOrder->so_no}], Newegg Order [{$esgOrder->platform_order_id}]\r\n";
                         $message = "Update failure has occur for ESG Order [{$esgOrder->so_no}], [{$storeName}] Order [{$esgOrder->platform_order_id}]\r\n";
                         $message .="Please check and update manually to avoid order cancellation by [{$storeName}] \r\n";
-                        $message .= "Thanks\r\n";
+                        $message .= "Thanks\r\n\r\n";
+                        $message .= $response;
                         $this->sendAlertMailMessage($subject, $message);
                         return false;
                 }
@@ -393,7 +394,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 
      public function sendAlertMailMessage($subject,$message)
     {
-        $this->sendMailMessage('newegg@brandsconnect.net', $subject, $message);
+        $this->sendMailMessage('newegg@brandsconnect.net, jerry.lim@eservicesgroup.com', $subject, $message);
         return false;
     }
 
