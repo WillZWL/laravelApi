@@ -76,7 +76,12 @@ class MerchantApiController extends Controller
         $result = null;
         $trackingNo = $request->input("tracking_no");
         if($trackingNo){
-            $result = $this->apiPlatformFactoryService->setMerchantOrderToShipped($trackingNo);
+            $response = $this->apiPlatformFactoryService->setMerchantOrderToShipped($trackingNo);
+            if($response){
+                $result = array("status" => "success","message" => "order No ".$response." scan to shipped success");
+            }else{
+                $result = array("status" => "failed","message" => "Invalid Tracking No");
+            }
         }
         return \Response::json($result);
     }

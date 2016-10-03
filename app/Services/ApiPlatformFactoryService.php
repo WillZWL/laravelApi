@@ -226,12 +226,14 @@ class ApiPlatformFactoryService
         if(!$orderItems->isEmpty()){
             foreach ($orderItems as $orderItem) {
                 $orderItem->update(array("status"=>"Shipped"));
-                $platformOrderId = $orderItem->platform_order_id;
+                $platformOrderNo = $orderItem->platform_order_no;
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
-            //remove warehoure retreive num;
+            PlatformMarketOrder::where("platform_order_no",$platformOrderNo)->update($object);
+            return $platformOrderNo;
+        }else{
+            return false;
         }
     }
 
@@ -486,10 +488,6 @@ class ApiPlatformFactoryService
                     "SG" => "MATTEL_DC_SG_EY",
                     "PH" => "MATTEL_DC_PH_RP",
                     "VN" => "MATTEL_DC_VN_PT"
-                );
-            case 'BMLAZADA':
-                $warehouseIdList = array(
-                    "SG" => "ETRADE",
                 );
         }
         return  $warehouseIdList;
