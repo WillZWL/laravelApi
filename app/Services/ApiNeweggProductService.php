@@ -51,7 +51,9 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                     $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_PRICE);
                 }
             }
+            return true;
         }
+        return false;
     }
 
     public function submitProductPriceAndInventory($storeName)
