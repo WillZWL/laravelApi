@@ -307,8 +307,9 @@ class PlatformMarketOrderTransfer
         $newOrder->delivery_country_id = $order->platformMarketShippingAddress->country_code;
         $newOrder->delivery_state = CountryState::getStateId($order->platformMarketShippingAddress->country_code, $order->platformMarketShippingAddress->state_or_region);
         // if fulfillment by Platform market , marked as shipped (6), if fulfillment by ESG, marked as 3, no need credit check.
-        $newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
-         //need update status
+        //$newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
+        $newOrder->status = $this->getEsgOrderStatus($order);
+        //need update status
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->platformMarketShippingAddress->phone;
 
@@ -707,5 +708,20 @@ class PlatformMarketOrderTransfer
             $gourpOrderItems[$orderItem->seller_sku]->seller_sku = $mapping->sku;
         }
         return $gourpOrderItems;
+    }
+
+    private function getEsgOrderStatus($order)
+    {
+        $shippedFulfillment = array(
+            "amazon" => array('AFN'),
+            "newegg" => array('SBN')
+        );
+        $type = strtolower($order->biz_type);
+        if(isset($shippedFulfillment[$type]) && in_array($order->fulfillment_channel, $shippedFulfillment[$type])){
+            $status =6
+        }else{
+            $status = 3;
+        }
+        return $status;
     }
 }
