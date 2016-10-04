@@ -103,10 +103,10 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 ->get();
         if(!$esgOrders->isEmpty()) {
             $esgOrderGroups = $esgOrders->groupBy("platform_id");
-            foreach($esgOrderGroups as $platformId => $esgOrderGroup){
-                $returnData = $this->esgOrderApiReadyToShip($platformId,$esgOrderGroup,$pdfFilePath);
+            $returnData = $this->esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath);
+            if(isset($returnData["documentLabel"])){
+                $returnData["document"] = $this->getESGOrderDocumentLabel($returnData["documentLabel"],$pdfFilePath);
             }
-            $returnData["document"] = $this->getESGOrderDocumentLabel($returnData["documentLabel"],$pdfFilePath);
             return $result = array("status" => "success","message" => $returnData); 
         }else{
             return $result = array("status" => "failed","message" => "Invalid Order");
@@ -164,40 +164,43 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     }
 
     //run request to lazada api set order ready to ship one by one
-    private function esgOrderApiReadyToShip($platformId,$esgOrderGroup,$pdfFilePath)
-    {
-        $ordersIdList = null; $document = null; $returnData = null;
-        $prefix = strtoupper(substr($platformId,3,2));
-        $countryCode = strtoupper(substr($platformId, -2));
-        $storeName = $prefix."LAZADA".$countryCode;
-        $lazadaShipments = $this->getShipmentProviders($storeName);
-        $doucumentOrderItemIds = null;
-        foreach($esgOrderGroup as $esgOrder)
-        {   
-            if(!$esgOrder->soAllocate->isEmpty()){
-                $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-                $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
-                if($orderItemIds){
-                    $ordersIdList[] = $esgOrder->txn_id;
-                    $updateWarehouseObject[] = $esgOrder;
-                    $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
-                    if($shipmentProvider){
-                        //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                        $doucumentOrderItemIds[] = $orderItemIds[0];
-                    }else{
-                        $returnData[$esgOrder->so_no] = "Shipment Provider is not exit in lazada admin system.";
+    private function esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath)
+    {   
+        $returnData = null;
+        foreach($esgOrderGroups as $platformId => $esgOrderGroup)
+        {
+            $ordersIdList = null; $doucumentOrderItemIds = null;
+            $prefix = strtoupper(substr($platformId,3,2));
+            $countryCode = strtoupper(substr($platformId, -2));
+            $storeName = $prefix."LAZADA".$countryCode;
+            $lazadaShipments = $this->getShipmentProviders($storeName);
+            foreach($esgOrderGroup as $esgOrder)
+            {   
+                if(!$esgOrder->soAllocate->isEmpty()){
+                    $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+                    $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
+                    if($orderItemIds){
+                        $ordersIdList[] = $esgOrder->txn_id;
+                        $updateWarehouseObject[] = $esgOrder;
+                        $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
+                        if($shipmentProvider){
+                            //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                            $doucumentOrderItemIds[] = $orderItemIds[0];
+                        }else{
+                            $returnData[$esgOrder->so_no] = "Shipment Provider is not exit in lazada admin system.";
+                        }
                     }
                 }
             }
+            if($doucumentOrderItemIds){
+                $returnData["documentLabel"][$storeName] = $doucumentOrderItemIds;
+            }
+            if($ordersIdList){
+                //$this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
+                //$this->updateEsgWarehouseInventory($updateWarehouseObject);
+            }
         }
-        if($doucumentOrderItemIds){
-            $returnData["documentLabel"][$storeName] = $doucumentOrderItemIds;
-        }
-        if($ordersIdList){
-            $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
-            $this->updateEsgWarehouseInventory($updateWarehouseObject);
-        }
-        return $returnData;
+        return $returnData;   
     }
 
     private function getESGOrderDocumentLabel($documentLabels,$pdfFilePath)
@@ -250,7 +253,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                     ->where("prod_sku",$soItem->prod_sku)
                     ->first();
                 $remain = $inventory->inventory - $soItem->qty;
-                if($remain <= 0){ return false;}
+                if($remain < 0){ return false;}
             }
             $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
             foreach($itemIds as $itemId){
