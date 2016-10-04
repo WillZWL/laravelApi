@@ -213,7 +213,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                 if(isset($document[$doucmentType])){
                     $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
                 }else{
-                    $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                    $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType).$style;
                 }
             }
         }

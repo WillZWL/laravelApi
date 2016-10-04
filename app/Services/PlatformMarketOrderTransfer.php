@@ -718,7 +718,7 @@ class PlatformMarketOrderTransfer
         );
         $type = strtolower($order->biz_type);
         if(isset($shippedFulfillment[$type]) && in_array($order->fulfillment_channel, $shippedFulfillment[$type])){
-            $status =6
+            $status = 6;
         }else{
             $status = 3;
         }
