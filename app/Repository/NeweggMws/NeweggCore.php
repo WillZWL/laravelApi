@@ -41,7 +41,7 @@ class NeweggCore
         }
 
         if(!$error) {
-            $dataResponse = $this->prepare($data, $resourceUrl);
+            $dataResponse = $data;
         }
 
         $returnArr = ["data"=>$dataResponse, "requestInfo"=>$requestInfo, "error"=>$error];
@@ -140,19 +140,19 @@ class NeweggCore
      *
      * @return null|array
      */
-    protected function prepare($data = array(), $resourceUrl)
-    {
-      //dd($data);
-        if($resourceUrl=="contentmgmt/item/international/inventory" || $resourceUrl=="contentmgmt/item/international/price")
-        {
-          return $data;
-        }
-        else if (isset($data['ResponseBody'])) {
-            return $data['ResponseBody'];
-        } else {
-            return null;
-        }
-    }
+    // protected function prepare($data = array(), $resourceUrl)
+    // {
+    //   //dd($data);
+    //     if($resourceUrl=="contentmgmt/item/international/inventory" || $resourceUrl=="contentmgmt/item/international/price")
+    //     {
+    //       return $data;
+    //     }
+    //     else if (isset($data['ResponseBody'])) {
+    //         return $data['ResponseBody'];
+    //     } else {
+    //         return null;
+    //     }
+    // }
 
     /**
      * Fix issue with single result in response.
