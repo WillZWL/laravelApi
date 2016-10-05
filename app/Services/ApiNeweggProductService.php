@@ -85,7 +85,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                         $message.="Message: ". $error_message."\r\n\r\n";    
                     }
                 }
-                $message .= "\r\nThanks\r\n";
+                $message .= "\r\nThanks\r\n"; 
                 $this->sendAlertMailMessage($subject, $message);
             }
             return true;
