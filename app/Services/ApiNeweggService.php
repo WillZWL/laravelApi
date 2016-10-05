@@ -280,7 +280,8 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
             $response = $this->setStatusToShipped($storeName, $extorderno, $selleritem,$esgOrderShipment);
             if($response){
                 $ship_status = $response['data']['Result']['OrderStatus'];
-                if(!$response['error']){                   
+                if(!$response['error'])
+                {
                     if($ship_status == 'Shipped')
                     {
                             return true;
@@ -292,7 +293,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                             $message .= $response;
                             $this->sendAlertMailMessage($subject, $message);
                             return false;
-                    }
+                    }               
                 }
                 //return $response;
             }else{
