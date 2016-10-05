@@ -28,8 +28,11 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_PRICE);
         if(!$processStatusProduct->isEmpty())
         {
+            $failed_sku_list = array();
+                
             foreach ($processStatusProduct as $index => $pendingSku) 
             {
+                $requestXml = array();
                 $requestXml[] = '<ItemPriceInfo>';
                 $requestXml[] =     '<Type>1</Type>';
                 $requestXml[] =     '<Value>'.$pendingSku->marketplace_sku.'</Value>';
@@ -42,14 +45,44 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                 $requestXml[] =         '</Price>';
                 $requestXml[] =     '</PriceList>';
                 $requestXml[] = '</ItemPriceInfo>';
-                $requestXml = implode("\n", $requestXml);
                 $requestParams = $this->getRequestParams();
                 $this->neweggCore = new NeweggCore($storeName);
-                $result = $this->neweggCore->query("contentmgmt/item/international/price", $this->getResourceMethod(), $requestParams, $requestXml);
+                $result = $this->neweggCore->query("contentmgmt/item/international/price", $this->getResourceMethod(), $requestParams, implode("\n", $requestXml));
                 if($result)
                 {
-                    $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_PRICE);
+                    if($result["error"])
+                    {
+                        $error_string = $result["error"][2];
+                        $error_split = explode("\"",$error_string);
+
+                        $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $error_split[7];
+                    }
+                    else
+                    {
+                      $this->updatePendingProductProcessStatusBySku($pendingSku,self::PENDING_PRICE);
+                    }
                 }
+                else
+                {
+                    $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = "Failed to update this sku price";
+                }
+            }
+                
+            if($failed_sku_list)
+            {
+                $subject = "[NEWEGG] Price update failed!";
+                $message = "The following sku has error in updating their price to newegg marketplace. \r\n\r\n";
+                foreach ($failed_sku_list as $key => $failed_sku) 
+                {
+                    foreach ($failed_sku as $country_code => $error_message) 
+                    {
+                        $message.="Marketplace SKU: ".$key."\r\n";
+                        $message.="Country code: ".$country_code."\r\n";
+                        $message.="Message: ". $error_message."\r\n\r\n";    
+                    }
+                }
+                $message .= "\r\nThanks\r\n";
+                $this->sendAlertMailMessage($subject, $message);
             }
             return true;
         }
@@ -122,5 +155,11 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
         }
 
         return "";
+    }
+
+    public function sendAlertMailMessage($subject,$message)
+    {
+        $this->sendMailMessage('newegg@brandsconnect.net', 'serene.chung@eservicesgroup.com', $subject, $message);
+        return false;
     }
 }

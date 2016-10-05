@@ -58,6 +58,26 @@ class ApiBaseService extends PlatformMarketConstService
         }
     }
 
+    public function updatePendingProductProcessStatusBySku($pendingSku,$processStatus)
+    {
+        if ($processStatus == self::PENDING_PRICE) {
+            $pendingSku->process_status ^= self::PENDING_PRICE;
+            $pendingSku->process_status |= self::COMPLETE_PRICE;
+            $pendingSku->save();
+        }
+        if ($processStatus == self::PENDING_INVENTORY) {
+            $pendingSku->process_status ^= self::PENDING_INVENTORY;
+            $pendingSku->process_status |= self::COMPLETE_INVENTORY;
+            $pendingSku->save();
+        }
+        $pendingPriceAndInventory = self::PENDING_PRICE | self::PENDING_INVENTORY;
+        if ($processStatus == $pendingPriceAndInventory) {
+            $pendingSku->process_status ^= self::PENDING_PRICE ^ self::PENDING_INVENTORY;
+            $pendingSku->process_status |= self::COMPLETE_PRICE | self::COMPLETE_INVENTORY;
+            $pendingSku->save();
+        }
+    }
+
     public function removeApiFileSystem($expireDate)
     {
         $directoryList = array(
