@@ -206,20 +206,20 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     private function getESGOrderDocumentLabel($documentLabels,$pdfFilePath)
     {
         $document = array();
-        $style ='<style type="text/css">.page {overflow: hidden;page-break-after: always;}</style>';
+        $style ='<style type="text/css">.page {overflow: hidden;page-break-inside: avoid;}}</style>';
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
+                $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                if($doucmentType == "invoice"){
+                    $filePdf = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
+                }else{
+                    $filePdf = '<div class="page">'.$fileHtml.'</div>';
+                }
                 if(isset($document[$doucmentType])){
-                    $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
-                    if($doucmentType == "invoice"){
-                        $filePdf = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
-                    }else{
-                        $filePdf = '<div class="page">'.$fileHtml.'</div>';
-                    }
                     $document[$doucmentType] .= $filePdf;
                 }else{
-                    $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType).$style;
+                    $document[$doucmentType] = $filePdf.$style;
                 }
             }
         }
@@ -689,8 +689,8 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
                     "MY" => "AS-Poslaju",      
                     "SG" => "LGS-SG3",                
                     "TH" => "LGS-TH3",       
-                    "ID" => "LGS-LEX-ID",
-                    "PH" => "AS-LBC-JZ Sellers-LZ"
+                    "ID" => "LGS-Tiki-ID",
+                    "PH" => "LGS-PH1"
                     );
                 break;
         }
