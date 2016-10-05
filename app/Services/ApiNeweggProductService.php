@@ -26,7 +26,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
     public function submitProductPriceAndInventory($storeName)
     {
         $this->submitProductPrice($storeName);
-        $this->submitProductInventory($storeName);
+        //$this->submitProductInventory($storeName);
     }
 
     public function submitProductPrice($storeName)
