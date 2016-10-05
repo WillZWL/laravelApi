@@ -78,7 +78,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-                $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_PRICE);
+                $this->updatePendingProductProcessStatus($pendingSkuGroup,self::PENDING_PRICE);
                 $response = $feed->getResponse();
                 $platformProductFeed->feed_submission_id = $response['FeedSubmissionId'];
                 $platformProductFeed->submitted_date = $response['SubmittedDate'];
@@ -143,7 +143,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-                $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_INVENTORY);
+                $this->updatePendingProductProcessStatus($pendingSkuGroup,self::PENDING_INVENTORY);
                 $response = $feed->getResponse();
                 $platformProductFeed->feed_submission_id = $response['FeedSubmissionId'];
                 $platformProductFeed->submitted_date = $response['SubmittedDate'];
