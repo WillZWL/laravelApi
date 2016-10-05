@@ -105,11 +105,12 @@ class MarketplaceSkuMapping extends Model
         $marketplaceId = strtoupper(substr($storeName, 0, -2));
         $countryCode = strtoupper(substr($storeName, -2));
         return $pendingSkuGroup = $query->where('process_status', '&', $processStatus)
+            ->join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
             ->join('country', 'country.id', '=', 'marketplace_sku_mapping.country_id')
             ->where('listing_status', '=', 'Y')
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)
-            ->select('marketplace_sku_mapping.*', 'country.id_3_digit')
+            ->select('marketplace_sku_mapping.*', 'country.id_3_digit', 'product.name')
             ->get();
     }
 }

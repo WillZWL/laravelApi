@@ -29,6 +29,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
         if(!$processStatusProduct->isEmpty())
         {
             $failed_sku_list = array();
+            $failed_sku_name = array();
                 
             foreach ($processStatusProduct as $index => $pendingSku) 
             {
@@ -56,18 +57,20 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                         $error_split = explode("\"",$error_string);
 
                         $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $error_split[7];
+                        $failed_sku_name[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->name;
                     }
                     else
                     {
-                      $this->updatePendingProductProcessStatusBySku($pendingSku,self::PENDING_PRICE);
+                        $this->updatePendingProductProcessStatusBySku($pendingSku,self::PENDING_PRICE);
                     }
                 }
                 else
                 {
                     $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = "Failed to update this sku price";
+                    $failed_sku_name[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->name;
                 }
             }
-                
+        
             if($failed_sku_list)
             {
                 $subject = "[NEWEGG] Price update failed!";
@@ -77,6 +80,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                     foreach ($failed_sku as $country_code => $error_message) 
                     {
                         $message.="Marketplace SKU: ".$key."\r\n";
+                        $message.="Product Name: ".$failed_sku_name[$key][$country_code]."\r\n";
                         $message.="Country code: ".$country_code."\r\n";
                         $message.="Message: ". $error_message."\r\n\r\n";    
                     }
