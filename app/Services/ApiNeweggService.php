@@ -60,9 +60,8 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                         $message = "Duplicated Order found for [{$storeName}] Order no [{$orderno}]. \r\n";
                         $message .="Order will not be imported. Please check to ensure this order is the same as what we have\r\n";
                         $message .= "Thanks\r\n";
-                        $email = 'jerry.lim@eservicesgroup.com';
+                        $email = 'newegg@brandsconnect.net, jerry.lim@eservicesgroup.com';
                         $this->sendAlertMailMessage($email, $subject, $message);
-                        //return false;
                 }
             }
             return true;
