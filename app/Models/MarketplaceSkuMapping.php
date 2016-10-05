@@ -111,6 +111,6 @@ class MarketplaceSkuMapping extends Model
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)
             ->select('marketplace_sku_mapping.*', 'country.id_3_digit', 'product.name')
-            ->get();
+            ->get(); 
     }
 }
