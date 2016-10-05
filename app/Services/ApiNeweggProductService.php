@@ -26,6 +26,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
     public function submitProductPriceAndInventory($storeName)
     {
         $this->submitProductPrice($storeName);
+        $this->submitProductInventory($storeName);
     }
 
     public function submitProductPrice($storeName)
@@ -98,6 +99,93 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
         return false;
     }
 
+    public function submitProductInventory($storeName)
+    {
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_INVENTORY);
+        if(!$processStatusProduct->isEmpty())
+        {
+            $failed_sku_list = array();
+            $successful_sku_list = array();
+
+            foreach ($processStatusProduct as $index => $pendingSku) 
+            {
+                $requestXml = array();
+                $requestXml[] = '<ItemInventoryInfo>';
+                $requestXml[] =     '<Type>1</Type>';
+                $requestXml[] =     '<Value>'.$pendingSku->marketplace_sku.'</Value>';
+                $requestXml[] =     '<InventoryList>';
+                $requestXml[] =         '<Inventory>';
+                $requestXml[] =             '<WarehouseLocation>'.$pendingSku->id_3_digit.'</WarehouseLocation>';
+                $requestXml[] =             '<AvailableQuantity>'.$pendingSku->inventory.'</AvailableQuantity>';
+                $requestXml[] =         '</Inventory>';
+                $requestXml[] =     '</InventoryList>';
+                $requestXml[] = '</ItemInventoryInfo>';
+                $requestXml = implode("\n", $requestXml);
+                $requestParams = $this->getRequestParams();
+                $this->neweggCore = new NeweggCore($storeName);
+                $result = $this->neweggCore->query("contentmgmt/item/international/inventory", $this->getResourceMethod(), $requestParams, $requestXml);
+                if($result)
+                {
+                    if($result["error"])
+                    {
+                        $error_string = $result["error"][2];
+                        $error_split = explode("\"",$error_string);
+
+                        $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $error_split[7];
+                        $failed_sku_name[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->name; // SBF#10337 add product name                        
+                    }
+                    else
+                    {
+                        $this->updatePendingProductProcessStatusBySku($pendingSku,self::PENDING_INVENTORY);
+                        $successful_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->inventory;
+                    }
+                }
+                else
+                {
+                    $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = "Failed to update this sku inventory";
+                    $failed_sku_name[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->name;
+                }
+            }
+
+            if($failed_sku_list)
+            {
+                $subject = "[NEWEGG] Inventory update failed!";
+                $message = "The following sku has error in updating their inventory to newegg marketplace. \r\n\r\n";
+                foreach ($failed_sku_list as $key => $failed_sku) 
+                {
+                    foreach ($failed_sku as $warehouse_code => $error_message) 
+                    {
+                        $message.="Marketplace SKU: ".$key."\r\n";
+                        $message.="Product Name: ".$failed_sku_name[$key][$warehouse_code]."\r\n";
+                        $message.="Warehouse Location: ".$warehouse_code."\r\n";
+                        $message.="Message: ". $error_message."\r\n\r\n\n";    
+                    }
+                }
+                $message .= "\r\nThanks\r\n";
+                $this->sendInventoryAlertMailMessage($subject, $message, 0);
+            }
+
+            if ($successful_sku_list)
+            {
+                $subject = "[NEWEGG] Inventory update success!";
+                $message = "The following sku have succeeded in updating their inventory to newegg marketplace. \r\n\r\n";
+                foreach ($successful_sku_list as $key => $successful_sku) 
+                {
+                    foreach ($successful_sku as $warehouse_code => $quantity) 
+                    {
+                        $message.="Marketplace SKU: ".$key."\r\n";
+                        $message.="Updated inventory: ".$quantity."\r\n";
+                        $message.="Warehouse Location: ".$warehouse_code."\r\n\n";                    
+                    }
+                }
+                $message .= "\r\nThanks\r\n";                
+                $this->sendInventoryAlertMailMessage($subject, $message, 1);
+            }
+            return true;
+        }
+        return false;
+    }
+
     public function submitProductCreate($storeName)
     {
 
@@ -164,6 +252,17 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
     public function sendAlertMailMessage($subject,$message)
     {
         mail("newegg@brandsconnect.net, serene.chung@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservicesgroup.com');
+        return true;
+    }
+
+    public function sendInventoryAlertMailMessage($subject,$message,$status)
+    {
+        if ($status == 1) //success, send to myself
+            $recipient = "willy.dharman@eservicesgroup.com";
+        else //failed, also send to newegg
+            $recipient = "newegg@brandsconnect.net, willy.dharman@eservicesgroup.com";
+
+        mail($recipient, $subject, $message, $headers = 'From: admin@shop.eservicesgroup.com');
         return true;
     }
 }
