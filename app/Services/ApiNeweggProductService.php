@@ -159,7 +159,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function sendAlertMailMessage($subject,$message)
     {
-        $this->sendMailMessage('newegg@brandsconnect.net', 'serene.chung@eservicesgroup.com', $subject, $message);
+        $this->sendMailMessage('newegg@brandsconnect.net, serene.chung@eservicesgroup.com', $subject, $message);
         return false;
     }
 }
