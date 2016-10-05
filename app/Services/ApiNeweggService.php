@@ -279,7 +279,6 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         if ($esgOrderShipment) {
             $response = $this->setStatusToShipped($storeName, $extorderno, $selleritem,$esgOrderShipment);
             if($response){
-                dd($response);
                 $ship_status = $response['data']['Result']['OrderStatus'];
                 if(!$response['error'])
                 {
