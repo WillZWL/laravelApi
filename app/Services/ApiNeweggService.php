@@ -60,7 +60,8 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                         $message = "Duplicated Order found for [{$storeName}] Order no [{$orderno}]. \r\n";
                         $message .="Order will not be imported. Please check to ensure this order is the same as what we have\r\n";
                         $message .= "Thanks\r\n";
-                        $this->sendAlertMailMessage($subject, $message);
+                        $email = 'jerry.lim@eservicesgroup.com';
+                        $this->sendAlertMailMessage($email, $subject, $message);
                         return false;
                 }
             }
@@ -291,9 +292,19 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                             $message .="Please check and update manually to avoid order cancellation by [{$storeName}] \r\n";
                             $message .= "Thanks\r\n\r\n";
                             $message .= $response;
-                            $this->sendAlertMailMessage($subject, $message);
+                            $email = 'newegg@brandsconnect.net, jerry.lim@eservicesgroup.com';
+                            $this->sendAlertMailMessage($email, $subject, $message);
                             return false;
                     }               
+                }else{
+                       $subject = "FAIL: Response Error in UpdateShipment to MarketPlace: [{$storeName}]! ESG Order [{$esgOrder->so_no}], Newegg Order [{$esgOrder->platform_order_id}]\r\n";
+                       $message = "Update failure has occur for ESG Order [{$esgOrder->so_no}], [{$storeName}] Order [{$esgOrder->platform_order_id}]\r\n";
+                            $message .="Please check and update manually to avoid order cancellation by [{$storeName}] \r\n";
+                            $message .= "Thanks\r\n\r\n";
+                            $message .= $response;
+                            $email = 'jerry.lim@eservicesgroup.com';
+                            $this->sendAlertMailMessage($email, $subject, $message);
+                            return false;
                 }
                 //return $response;
             }else{
@@ -395,9 +406,9 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 */
     }
 
-     public function sendAlertMailMessage($subject,$message)
+     public function sendAlertMailMessage($email, $subject,$message)
     {
-        $this->sendMailMessage('newegg@brandsconnect.net, jerry.lim@eservicesgroup.com', $subject, $message);
+        $this->sendMailMessage($email, $subject, $message);
         return false;
     }
 
