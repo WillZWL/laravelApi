@@ -206,20 +206,20 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     private function getESGOrderDocumentLabel($documentLabels,$pdfFilePath)
     {
         $document = array();
-        $style ='<style type="text/css">.page {overflow: hidden;page-break-inside: avoid;}}</style>';
+        //$style ='<style type="text/css">.page {overflow: hidden;page-break-inside: avoid;}}</style>';
+        //
+        $pdfHrDom ='<hr style="page-break-after: always;border-top: 3px dashed;">';
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
                 $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
                 if($doucmentType == "invoice"){
-                    $filePdf = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
-                }else{
-                    $filePdf = '<div class="page">'.$fileHtml.'</div>';
+                    $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
                 }
                 if(isset($document[$doucmentType])){
-                    $document[$doucmentType] .= $filePdf;
+                    $document[$doucmentType] .= $pdfHrDom.$fileHtml;
                 }else{
-                    $document[$doucmentType] = $filePdf.$style;
+                    $document[$doucmentType] = $fileHtml;
                 }
             }
         }
