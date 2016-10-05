@@ -211,7 +211,13 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
                 if(isset($document[$doucmentType])){
-                    $document[$doucmentType] .= $this->getDocument($storeName,$orderItemId,$doucmentType);
+                    $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                    if($doucmentType == "invoice"){
+                        $filePdf = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
+                    }else{
+                        $filePdf = '<div class="page">'.$fileHtml.'</div>';
+                    }
+                    $document[$doucmentType] .= $filePdf;
                 }else{
                     $document[$doucmentType] = $this->getDocument($storeName,$orderItemId,$doucmentType).$style;
                 }
@@ -401,9 +407,6 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     public function getDocument($storeName,$orderItemIds,$documentType)
     {
         //$orderItemIds可以是不同的order中一个orderItemId
-        $patterns = array('/class="logo"/');
-        $replacementPage = array('class="page"');
-        $replacementContent = array('class="content"');
         $this->lazadaDocument = new LazadaDocument($storeName);
         $this->lazadaDocument->setDocumentType($documentType);
         $this->lazadaDocument->setOrderItemIds($orderItemIds);
@@ -412,9 +415,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             foreach($documents as $document){
                 if(isset($document["File"]) && $document["DocumentType"] == $documentType){
                     $fileHtml = base64_decode($document["File"]);
-                    $filePdf = preg_replace($patterns, $replacementPage, $fileHtml,1);
-                    $documentLabel = preg_replace($patterns, $replacementContent, $filePdf,1);
-                    return $documentLabel;
+                    return $fileHtml;
                 }
             }
         }
