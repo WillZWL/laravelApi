@@ -9,13 +9,15 @@ use App\Models\MpControl;
 //use lazada api package
 use App\Repository\LazadaMws\LazadaProductList;
 use App\Repository\LazadaMws\LazadaProductUpdate;
+use App\Repository\LazadaMws\LazadaFeedStatus;
+use Config;
 
 class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProductInterface
 {
     private $storeCurrency;
     public function __construct()
     {
-
+        $this->stores =  Config::get('lazada-mws.store');
     }
 
     public function getPlatformId()
@@ -60,12 +62,28 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
             $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
             $this->saveDataToFile(serialize($xmlData), 'pendingProductPriceOrInventory');
-            $result = $this->lazadaProductUpdate->submitXmlData($xmlData);
-            //print_r($result);
+            $requestId = $this->lazadaProductUpdate->submitXmlData($xmlData);
             $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
-            if($result){
+            if($requestId){
+                $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
+                $this->lazadaFeedStatus->setFeedId($requestId);
+                $result = $this->lazadaFeedStatus->fetchFeedStatus();
+                foreach ($result as $resultDetail){
+                    if ($resultDetail["FailedRecords"] > 0 ){
+                        $message = null;
+                        $alertEmail = $this->stores[$storeName]["userId"];
+                        $subject = $storeName." price and inventory update failed!";
+                        if($resultDetail["FailedRecords"] == 1){
+                             $message = $resultDetail["FeedErrors"]["Error"]["Message"];
+                        }else{
+                            foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
+                                $message .= $errorDetail["Message"]."\r\n";
+                            }
+                        }
+                        $this->sendMailMessage($alertEmail, $subject, $message );
+                    }
+                }
                 $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
-                return $result;
             }
         }
     }
