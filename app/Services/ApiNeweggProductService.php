@@ -57,7 +57,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                         $error_split = explode("\"",$error_string);
 
                         $failed_sku_list[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $error_split[7];
-                        $failed_sku_name[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->name;
+                        $failed_sku_name[$pendingSku->marketplace_sku][$pendingSku->id_3_digit] = $pendingSku->name; // SBF#10337 add product name
                     }
                     else
                     {
