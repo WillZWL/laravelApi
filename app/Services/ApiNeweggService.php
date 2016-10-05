@@ -62,7 +62,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
                         $message .= "Thanks\r\n";
                         $email = 'jerry.lim@eservicesgroup.com';
                         $this->sendAlertMailMessage($email, $subject, $message);
-                        return false;
+                        //return false;
                 }
             }
             return true;
