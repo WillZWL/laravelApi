@@ -281,17 +281,20 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
             if($response){
                 dd($response);
                 $ship_status = $response['data']['Result']['OrderStatus'];
-                if($ship_status == 'Shipped')
+                if(!$response['error'])
                 {
-                        return true;
-                } else {
-                        $subject = "FAIL: UpdateShipment to MarketPlace: [{$storeName}]! ESG Order [{$esgOrder->so_no}], Newegg Order [{$esgOrder->platform_order_id}]\r\n";
-                        $message = "Update failure has occur for ESG Order [{$esgOrder->so_no}], [{$storeName}] Order [{$esgOrder->platform_order_id}]\r\n";
-                        $message .="Please check and update manually to avoid order cancellation by [{$storeName}] \r\n";
-                        $message .= "Thanks\r\n\r\n";
-                        $message .= $response;
-                        $this->sendAlertMailMessage($subject, $message);
-                        return false;
+                    if($ship_status == 'Shipped')
+                    {
+                            return true;
+                    } else {
+                            $subject = "FAIL: UpdateShipment to MarketPlace: [{$storeName}]! ESG Order [{$esgOrder->so_no}], Newegg Order [{$esgOrder->platform_order_id}]\r\n";
+                            $message = "Update failure has occur for ESG Order [{$esgOrder->so_no}], [{$storeName}] Order [{$esgOrder->platform_order_id}]\r\n";
+                            $message .="Please check and update manually to avoid order cancellation by [{$storeName}] \r\n";
+                            $message .= "Thanks\r\n\r\n";
+                            $message .= $response;
+                            $this->sendAlertMailMessage($subject, $message);
+                            return false;
+                    }               
                 }
                 //return $response;
             }else{
