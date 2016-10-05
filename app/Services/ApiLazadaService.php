@@ -117,25 +117,27 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
     {   
         $returnData = array();$warehouseInventory = null;
         foreach($orderGroup as $order){
-            if(isset($warehouseInventory["warehouse"])){
-                $warehouse = $warehouseInventory["warehouse"]; 
-            }
-            $warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
-            if($warehouseInventory["updateObject"]){
-                $orderItemIds = array();
-                foreach($order->platformMarketOrderItem as $orderItem){
-                    $orderItemIds[] = $orderItem->order_item_id;
+            if($order->esg_order_status != 6){
+                if(isset($warehouseInventory["warehouse"])){
+                    $warehouse = $warehouseInventory["warehouse"]; 
                 }
-                $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
-                if($shipmentProvider){
-                    $returnData[$order->so_no] = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
-                    $orderIdList[] = $order->platform_order_id;
-                    if($returnData[$order->so_no]){
-                        $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
-                        parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                $warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
+                if($warehouseInventory["updateObject"]){
+                    $orderItemIds = array();
+                    foreach($order->platformMarketOrderItem as $orderItem){
+                        $orderItemIds[] = $orderItem->order_item_id;
                     }
-                }else{
-                    $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system.";
+                    $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
+                    if($shipmentProvider){
+                        $returnData[$order->so_no] = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
+                        $orderIdList[] = $order->platform_order_id;
+                        if($returnData[$order->so_no]){
+                            $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
+                            parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                        }
+                    }else{
+                        $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system.";
+                    }
                 }
             }
         }
@@ -176,7 +178,7 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             $lazadaShipments = $this->getShipmentProviders($storeName);
             foreach($esgOrderGroup as $esgOrder)
             {   
-                if(!$esgOrder->soAllocate->isEmpty()){
+                if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
                     $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
                     $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
                     if($orderItemIds){
