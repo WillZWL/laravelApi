@@ -415,6 +415,11 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
             foreach($documents as $document){
                 if(isset($document["File"]) && $document["DocumentType"] == $documentType){
                     $fileHtml = base64_decode($document["File"]);
+                    if($documentType == "carrierManifest"){
+                        $assetsUrl ='"'.asset('/')."assets";
+                        $newFileHtml = preg_replace(array('/\"\/assets/'), array($assetsUrl), $fileHtml);
+                        $fileHtml = $this->getManifestCss().$newFileHtml;
+                    }
                     return $fileHtml;
                 }
             }
@@ -731,6 +736,16 @@ class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
         $message .= "Thanks\r\n";
         $this->sendMailMessage('storemanager@brandsconnect.net,fiona@etradegroup.net', $subject, $message);
         return false;
+    }
+
+    private function getManifestCss()
+    {
+        $css = '<style type="text/css">img{max-width:960px;margin-bottom: 15px;}
+                table {width: 100%;border-collapse: collapse;margin: 15px 0;
+                }table th, table td {padding: 5px 10px;text-align: left;vertical-align: top;font-size: 16px;font-family: Arial, Helvetica, sans-serif;line-height: 30px;
+                }table th {font-weight: bold;border-top: 3px solid #CCCCCC;border-bottom: 3px solid #CCCCCC;}
+                table td {border-bottom: 2px solid #CCCCCC;}</style>';
+        return $css;
     }
 
 }
