@@ -23,6 +23,11 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
         return 'Newegg';
     }
 
+    public function submitProductPriceAndInventory($storeName)
+    {
+        $this->submitProductPrice($storeName);
+    }
+
     public function submitProductPrice($storeName)
     {
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_PRICE);
@@ -91,11 +96,6 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
             return true;
         }
         return false;
-    }
-
-    public function submitProductPriceAndInventory($storeName)
-    {
-
     }
 
     public function submitProductCreate($storeName)

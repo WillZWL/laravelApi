@@ -99,9 +99,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('platformMarket:product updatePriceInventory', array('--api' => 'all'))
             ->everyThirtyMinutes();
 
-        $schedule->command('platformMarket:product submitProductPrice', array('--api' => 'newegg'))
-            ->everyThirtyMinutes();
-
         $schedule->command('feed:price')
             ->everyThirtyMinutes();
 
