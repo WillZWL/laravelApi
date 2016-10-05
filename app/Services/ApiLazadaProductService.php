@@ -63,7 +63,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
             $this->saveDataToFile(serialize($xmlData), 'pendingProductPriceOrInventory');
             $requestId = $this->lazadaProductUpdate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
+            $this->saveDataToFile(serialize($requestId), 'submitProductPriceOrInventory');
             if($requestId){
                 $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
                 $this->lazadaFeedStatus->setFeedId($requestId);
