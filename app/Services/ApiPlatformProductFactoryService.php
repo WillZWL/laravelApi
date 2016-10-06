@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Contracts\ApiPlatformProductInterface;
+use App\Models\PlatformMarketProductFeed;
 
 class ApiPlatformProductFactoryService
 {
@@ -28,8 +29,17 @@ class ApiPlatformProductFactoryService
         return $this->apiPlatformProductInterface->warehouseInventoryReport();
     }
 
-    public function getEsgUnSuppressedReport(){
-
+    public function getEsgUnSuppressedReport()
+    {
         return $this->apiPlatformProductInterface->getEsgUnSuppressedReport();
+    }
+
+    public function getProductUpdateFeedBack($storeName)
+    {
+        $productUpdateFeeds = PlatformMarketProductFeed::ProductFeed($storeName,'_SUBMITTED_');
+        if(!$productUpdateFeeds->isEmpty()){
+            return $this->apiPlatformProductInterface->getProductUpdateFeedBack($storeName,$productUpdateFeeds);
+        }
+        
     }
 }

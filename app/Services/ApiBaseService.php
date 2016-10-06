@@ -78,6 +78,23 @@ class ApiBaseService extends PlatformMarketConstService
         }
     }
 
+    public function createOrUpdatePlatformMarketProductFeed($storeName,$feedSubmissionId)
+    {
+        $object = array(
+            "platform" => $storeName,
+            "feed_type" => '_UPDATE_PRODUCT_QTY_AND_INVENTORY_DATA_',
+            "feed_submission_id" => $feedSubmissionId,
+            "feed_processing_status" => '_SUBMITTED_',
+            );
+        $platformMarketProductFeed = PlatformMarketProductFeed::updateOrCreate(
+            [
+                'platform' => $storeName,
+                'feed_submission_id' => $feedSubmissionId,
+            ],
+            $object
+        );
+    }
+
     public function removeApiFileSystem($expireDate)
     {
         $directoryList = array(

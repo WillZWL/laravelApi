@@ -5,16 +5,20 @@ namespace App\Services;
 use App\Contracts\ApiPlatformProductInterface;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
+use Config;
 
 //use lazada api package
 use App\Repository\PriceMinisterMws\PriceMinisterProductList;
 use App\Repository\PriceMinisterMws\PriceMinisterProductUpdate;
+use App\Repository\PriceMinisterMws\PriceMinisterImportReport;
 
 class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatformProductInterface
 {
     private $storeCurrency;
+
     public function __construct()
     {
+        $this->stores =  Config::get('priceminister-mws.store');
     }
 
     public function getPlatformId()
@@ -26,7 +30,6 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
     {
         $this->priceMinisterProductList = new PriceMinisterProductList($storeName);
         $this->storeCurrency = $this->priceMinisterProductList->getStoreCurrency();
-
         return $orginProductList;
     }
 
@@ -48,6 +51,8 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
                 $messageDom .=   '<attribute>';
                 $messageDom .=      '<key>sellingPrice</key>';
                 $messageDom .=      '<value>'.$pendingSku->price.'</value>';
+                $messageDom .=   '</attribute>';
+                $messageDom .=   '<attribute>';
                 $messageDom .=      '<key>qty</key>';
                 $messageDom .=      '<value>'.$pendingSku->inventory.'</value>';
                 $messageDom .=   '</attribute>';
@@ -62,12 +67,49 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
             $xmlFile=\Storage::disk('xml')->getDriver()->getAdapter()->getPathPrefix().$filename.".xml";
             $this->priceMinisterProductUpdate = new PriceMinisterProductUpdate($storeName);
             $this->storeCurrency = $this->priceMinisterProductUpdate->getStoreCurrency();
-            $result = $this->priceMinisterProductUpdate->submitXmlFile($xmlFile);
-            $this->saveDataToFile(serialize($result), 'submitProductPriceOrInventory');
-            if($result){
-                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
-                return $result;
+            $responseXml = $this->priceMinisterProductUpdate->submitXmlFile($xmlFile);
+            $this->saveDataToFile(serialize($responseXml), 'submitProductPriceOrInventory');
+            if($responseXml){
+                $responseData = new \SimpleXMLElement($responseXml);
+                if($responseData->response->status == "OK"){
+                    $responseFileId = (string) $responseData->response->importid;
+                    $this->createOrUpdatePlatformMarketProductFeed($storeName,$responseFileId);
+                    $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
+                    return $responseFileId;
+                }
             }
+        }
+    }
+
+    public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
+    {
+        $this->priceMinisterImportReport = new PriceMinisterImportReport($storeName);
+        $message = null;
+        foreach ($productUpdateFeeds as $productUpdateFeed) {
+            $errorStatus = false;
+            $this->priceMinisterImportReport->setFileId($productUpdateFeed->feed_submission_id);
+            $reports = $this->priceMinisterImportReport->getImportReport();
+            $this->saveDataToFile(serialize($responseFileId), 'getProductUpdateFeedBack');
+            foreach ($reports as $report) {
+                if($report["errors"]){
+                    $errorStatus = true;
+                    $message .= "Seller Sku ".$report["sku"]." error message: \r\n";
+                    foreach ($report["errors"] as $error) {
+                        $message .= $error["error_text"]."\r\n";
+                    }
+                }
+            }
+            if($errorStatus){
+                $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
+            }else{
+                $productUpdateFeed->feed_processing_status = '_COMPLETE_';
+            }
+            $productUpdateFeed->save();
+        }
+        if($message){
+            $alertEmail = $this->stores[$storeName]["email"];
+            $subject = $storeName." price or inventory update failed!";
+            $this->sendMailMessage($alertEmail, $subject, $message);
         }
     }
 

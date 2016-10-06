@@ -33,8 +33,6 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
         $dateTime = date(\DateTime::ISO8601, strtotime('2016-07-31'));
         $this->lazadaProductList->setCreatedBefore($dateTime);
         $orginProductList = $this->lazadaProductList->fetchProductList();
-        print_r($orginProductList);
-        exit();
         $this->saveDataToFile(serialize($orginProductList), 'getProductList');
 
         return $orginProductList;
@@ -62,29 +60,47 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
             $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
             $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
             $this->saveDataToFile(serialize($xmlData), 'pendingProductPriceOrInventory');
-            $requestId = $this->lazadaProductUpdate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($requestId), 'submitProductPriceOrInventory');
-            if($requestId){
-                $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
-                $this->lazadaFeedStatus->setFeedId($requestId);
-                $result = $this->lazadaFeedStatus->fetchFeedStatus();
-                foreach ($result as $resultDetail){
-                    if ($resultDetail["FailedRecords"] > 0 ){
-                        $message = null;
-                        $alertEmail = $this->stores[$storeName]["userId"];
-                        $subject = $storeName." price and inventory update failed!";
-                        if($resultDetail["FailedRecords"] == 1){
-                             $message = $resultDetail["FeedErrors"]["Error"]["Message"];
-                        }else{
-                            foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
-                                $message .= $errorDetail["Message"]."\r\n";
-                            }
-                        }
-                        $this->sendMailMessage($alertEmail, $subject, $message );
-                    }
+            $responseXml = $this->lazadaProductUpdate->submitXmlData($xmlData);
+            $this->saveDataToFile(serialize($responseXml), 'submitProductPriceOrInventory');
+            if($responseXml){
+                $responseData = new \SimpleXMLElement($responseXml);
+                $requestId = (string) $responseData->Head->RequestId;
+                if($requestId){
+                    $this->createOrUpdatePlatformMarketProductFeed($storeName,$requestId);
+                    $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus); 
                 }
-                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
             }
+        }
+    } 
+
+    public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
+    {
+        $message = null;
+        $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
+        foreach ($productUpdateFeeds as $productUpdateFeed) {
+            $this->lazadaFeedStatus->setFeedId($productUpdateFeed->feed_submission_id);
+            $result = $this->lazadaFeedStatus->fetchFeedStatus();
+            $this->saveDataToFile(serialize($result), 'getProductUpdateFeedBack');
+            foreach ($result as $resultDetail){
+                if ($resultDetail["FailedRecords"] > 0 ){
+                    if($resultDetail["FailedRecords"] == 1){
+                         $message = $resultDetail["FeedErrors"]["Error"]["Message"];
+                    }else{
+                        foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
+                            $message .= $errorDetail["Message"]."\r\n";
+                        }
+                    }
+                    $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
+                }else{
+                    $productUpdateFeed->feed_processing_status = '_COMPLETE_';
+                }
+            }
+            $productUpdateFeed->save();
+        }
+        if($message){
+            $alertEmail = $this->stores[$storeName]["userId"];
+            $subject = $storeName." price and inventory update failed!";
+            $this->sendMailMessage($alertEmail, $subject, $message);
         }
     }
 
