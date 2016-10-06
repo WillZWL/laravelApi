@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
+use App\Models\PlatformMarketProductFeed;
 use App\Models\InvMovement;
 use Excel;
 
