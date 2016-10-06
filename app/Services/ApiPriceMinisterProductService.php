@@ -89,22 +89,24 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
             $errorStatus = false;
             $this->priceMinisterImportReport->setFileId($productUpdateFeed->feed_submission_id);
             $reports = $this->priceMinisterImportReport->getImportReport();
-            $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
-            foreach ($reports as $report) {
-                if($report["errors"]){
-                    $errorStatus = true;
-                    $message .= "Seller Sku ".$report["sku"]." error message: \r\n";
-                    foreach ($report["errors"] as $error) {
-                        $message .= $error["error_text"]."\r\n";
+            if($reports){
+                $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
+                foreach ($reports as $report) {
+                    if($report["errors"]){
+                        $errorStatus = true;
+                        $message .= "Seller Sku ".$report["sku"]." error message: \r\n";
+                        foreach ($report["errors"] as $error) {
+                            $message .= $error["error_text"]."\r\n";
+                        }
                     }
                 }
+                if($errorStatus){
+                    $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
+                }else{
+                    $productUpdateFeed->feed_processing_status = '_COMPLETE_';
+                }
+                $productUpdateFeed->save();
             }
-            if($errorStatus){
-                $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
-            }else{
-                $productUpdateFeed->feed_processing_status = '_COMPLETE_';
-            }
-            $productUpdateFeed->save();
         }
         if($message){
             $alertEmail = $this->stores[$storeName]["email"];
