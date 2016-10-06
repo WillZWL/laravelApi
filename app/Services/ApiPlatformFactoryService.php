@@ -91,7 +91,9 @@ class ApiPlatformFactoryService
             foreach ($esgOrderGroup as $esgOrder) {
                 $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
                 if ($esgOrderShipment) {
+                    //testing
                     $xmlData = $this->apiPlatformInterface->setOrderFufillmentXmlData($esgOrder, $esgOrderShipment);
+                    //$xmlData .= $this->apiPlatformInterface->setOrderFufillmentXmlData($esgOrder, $esgOrderShipment);
                 }
                 $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
             }

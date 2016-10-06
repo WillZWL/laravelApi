@@ -30,6 +30,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketRemoveFileSystem::class,
         Commands\PlatformMarketProductReport::class,
         Commands\PlatformMarketOrderReport::class,
+        Commands\PlatformMarketFeedResult::class,
     ];
 
     /**

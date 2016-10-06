@@ -28,7 +28,6 @@ class PriceMinisterCore extends CommonMws
         $data = $this->convert($xml);
         if (isset($data['error'])) {
             $this->ErrorResponse = $data['error'];
-
             return null;
         } else {
             if (isset($data['response'])) {
@@ -36,7 +35,6 @@ class PriceMinisterCore extends CommonMws
             } else {
                 $this->ErrorResponse['code'] = 'Unknow';
                 $this->ErrorResponse['message'][] = 'Unknow ErrorResponse From PriceMinister';
-
                 return null;
             }
         }

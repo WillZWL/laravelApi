@@ -14,9 +14,7 @@ class LazadaProductUpdate extends LazadaProductsCore
 
     public function submitXmlData($xmlData)
     {
-        $responXml = parent::curlPostDataToApi($this->_requestParams, $xmlData);
-        $responData = new \SimpleXMLElement($responXml);
-        return  (string) $responData->Head->RequestId;
+        return parent::curlPostDataToApi($this->_requestParams, $xmlData);
     }
 
     public function getRequestParams()

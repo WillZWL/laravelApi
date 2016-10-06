@@ -7,6 +7,7 @@ return [
             'name' => 'Brand Connect PriceMinister',
             'userId' => 'BrandConnect',
             'password' => '34ea992973ff43ada912664c856862ac',
+            'email' => 'priceministerfr@brandsconnect.net', 
             'currency'=>'EUR',
         ]
     ],
