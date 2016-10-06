@@ -16,6 +16,7 @@
   </head>
   <body class="nav-sm">
     <script src="/js/jquery.min.js" type="text/javascript"></script>
+    <script src="/js/js.cookie.js" type="text/javascript"></script>
     <script src="/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="/js/custom.js" type="text/javascript"></script>
     <script src="/js/fastclick.js" type="text/javascript"></script>
