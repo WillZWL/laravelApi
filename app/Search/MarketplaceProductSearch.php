@@ -19,14 +19,18 @@ class MarketplaceProductSearch
     {
         foreach ($request->all() as $filterName => $value) {
             if ($value !== '') {
-                $decorator = static::createFilterDecorator($filterName);
-
-                if (static::isValidDecorator($decorator)) {
-                    $query = $decorator::apply($query, $value);
+                if ($filterName != "warehouse_id") {
+                    $decorator = static::createFilterDecorator($filterName);
+                    if (static::isValidDecorator($decorator)) {
+                        if ($filterName == "inventory") {
+                            $value = ["inventory" => $value, "warehouseId" => $request->input("warehouse_id")];
+                        }
+                        $query = $decorator::apply($query, $value);
+                    }
                 }
             }
         }
-
+//var_dump($query->toSql());
         return static::getResults($query)->appends($request->input());
     }
 
