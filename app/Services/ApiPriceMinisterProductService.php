@@ -89,7 +89,7 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
             $errorStatus = false;
             $this->priceMinisterImportReport->setFileId($productUpdateFeed->feed_submission_id);
             $reports = $this->priceMinisterImportReport->getImportReport();
-            $this->saveDataToFile(serialize($responseFileId), 'getProductUpdateFeedBack');
+            $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
             foreach ($reports as $report) {
                 if($report["errors"]){
                     $errorStatus = true;
