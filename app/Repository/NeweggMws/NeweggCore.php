@@ -93,7 +93,7 @@ class NeweggCore
             $error[] = "NeweggCore.php ".__LINE__." client 400-level error. ";
             $error[] = "Request: {$request}";
             if($e->hasResponse()) {
-                $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
+                $error["response"] = $e->getResponse()->getBody()->getContents();
             } else {
                 $error[] = "message: {$e->getMessage()}. ";
             }

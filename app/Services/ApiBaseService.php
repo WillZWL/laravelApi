@@ -37,16 +37,20 @@ class ApiBaseService extends PlatformMarketConstService
     {
         if ($processStatus == self::PENDING_PRICE) {
             $processStatusProduct->transform(function ($pendingSku) {
-                $pendingSku->process_status ^= self::PENDING_PRICE;
-                $pendingSku->process_status |= self::COMPLETE_PRICE;
-                $pendingSku->save();
+                if($pendingSku){
+                   $pendingSku->process_status ^= self::PENDING_PRICE;
+                    $pendingSku->process_status |= self::COMPLETE_PRICE;
+                    $pendingSku->save(); 
+                }
             });
         }
         if ($processStatus == self::PENDING_INVENTORY) {
             $processStatusProduct->transform(function ($pendingSku) {
-                $pendingSku->process_status ^= self::PENDING_INVENTORY;
-                $pendingSku->process_status |= self::COMPLETE_INVENTORY;
-                $pendingSku->save();
+                if($pendingSku){
+                    $pendingSku->process_status ^= self::PENDING_INVENTORY;
+                    $pendingSku->process_status |= self::COMPLETE_INVENTORY;
+                    $pendingSku->save();
+                }
             });
         }
         $pendingPriceAndInventory = self::PENDING_PRICE | self::PENDING_INVENTORY;
@@ -54,11 +58,12 @@ class ApiBaseService extends PlatformMarketConstService
             $processStatusProduct->transform(function ($pendingSku) {
                 //if the process_status is 27,the value will be 29 after update,
                 // it will be repost next time
-                $pendingSku->process_status |= self::PENDING_PRICE | self::PENDING_INVENTORY;
-                //
-                $pendingSku->process_status ^= self::PENDING_PRICE ^ self::PENDING_INVENTORY;
-                $pendingSku->process_status |= self::COMPLETE_PRICE | self::COMPLETE_INVENTORY;
-                $pendingSku->save();
+                if($pendingSku){
+                    $pendingSku->process_status |= self::PENDING_PRICE | self::PENDING_INVENTORY;
+                    $pendingSku->process_status ^= self::PENDING_PRICE ^ self::PENDING_INVENTORY;
+                    $pendingSku->process_status |= self::COMPLETE_PRICE | self::COMPLETE_INVENTORY;
+                    $pendingSku->save();
+                }
             });
         }
     }
