@@ -161,7 +161,6 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
     {
         if(isset($result["error"]["response"])){
             $response = json_decode($result["error"]["response"]);
-            $message = "The following sku has error in updating their inventory to newegg marketplace. \r\n";
             foreach ($response as $errorMessage) {
                 $message .= "ESG SKU ".$object->sku." error: ".$errorMessage->Message."\r\n";
             }
