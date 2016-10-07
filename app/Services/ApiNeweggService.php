@@ -87,6 +87,13 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
         # Newegg's time is in PST
         $utcOrderDate = $this->convertFromPstToUtc($order['OrderDate'], "m/d/Y H:i:s", "Y-m-d H:i:s");
 
+         # Check if Ship by Newegg
+        $fulfillment_channel = '';
+        if($order['FulfillmentOption'] == 1)
+        {
+            $fulfillment_channel = 'SBN';
+        }
+
         $object = [
             'platform' => $storeName,
             'biz_type' => "Newegg",
@@ -96,6 +103,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
             'last_update_date' => '0000-00-00 00:00:00',
             'order_status' => studly_case("({$order['OrderStatus']}) {$order["OrderStatusDescription"]}"),
             'esg_order_status'=>$this->getSoOrderStatus($order['OrderStatus']),
+            'fulfillment_channel' => $fulfillment_channel,
             'buyer_email' => $order['CustomerEmailAddress'],
             'currency' => $this->neweggOrderList->getOrderCurrency(),
             'shipping_address_id' => $addressId
