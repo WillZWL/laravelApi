@@ -30,6 +30,8 @@ use App\Models\SoItemDetail;
 use App\Models\SoPaymentStatus;
 use App\Models\SpIncoterm;
 use App\Models\WeightCourier;
+use App\Models\Inventory;
+use App\Models\InvMovement;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -81,7 +83,7 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        mail('jimmy.gao@eservicesgroup.com, celine@eservicesgroup.com, handy.hon@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
+                        mail('jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
                             .$e->getLine());
                     }
                 }
@@ -153,6 +155,8 @@ class PlatformMarketOrderTransfer
         $this->saveSoExtend($so, $order);
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
+        # Ship by Marketplace deduction
+        $this->deductInventory($order, $_orderItem, $so->so_no);
 
         $this->setGroupOrderRecommendCourierAndCharge($so);
         return $so->so_no;
@@ -194,6 +198,9 @@ class PlatformMarketOrderTransfer
                 //重新赋值delivery_type_id;
                 $so->delivery_type_id = 'FBA';
                 $so->dispatch_date = $order->latest_ship_date;
+            } else if ($order->fulfillment_channel === 'SBN') {
+                $so->delivery_type_id = 'SBN';
+                $so->dispatch_date = $order->latest_ship_date;   
             } else if ($order->biz_type == "Lazada"){
                 $so->delivery_type_id = 'EXP';
             }else{
@@ -723,5 +730,45 @@ class PlatformMarketOrderTransfer
             $status = 3;
         }
         return $status;
+    }
+
+    private function deductInventory($order, Collection $orderitem, $so_no)
+    {
+        $channel = $order->fulfillment_channel;
+        $inventorytype= array(
+            "AFN" => 'ESG_AMZN_CA_FBA',
+            "SBN" => 'ESG_NEWEGG_US_SBN'
+        );
+        if(isset($inventorytype[$channel]) )
+        {
+                foreach ($orderitem as $item) 
+                {          
+                       // $invObj = Inventory::where("prod_sku",$item->seller_sku)->where("warehouse_id",$inventorytype[$channel])->first();
+                       // if($invObj)
+                       // {
+                       //      $adjusted_qty = intval($invObj->inventory) - intval($item->quantity_ordered);
+                       //      // $invObj->update(array("inventory" => $adjusted_qty ));
+                       //       Inventory::where("prod_sku",$item->seller_sku)->where("warehouse_id",$inventorytype[$channel])->update(array("inventory" => $adjusted_qty ));
+
+                       //       return true;
+                       // } 
+
+                            $object = array(
+                                "ship_ref" => $so_no,
+                                "sku" => $item->seller_sku,
+                                "qty" => $item->quantity_ordered,
+                                "type" => "C",
+                                "from_location" => $inventorytype[$channel],
+                                "reason" => "",
+                                "status" => "OT"
+                            );
+                            $invMovement = InvMovement::updateOrCreate($object);   
+
+                            return true;
+                          
+                }    
+        }
+
+        return false;     
     }
 }
