@@ -58,7 +58,7 @@ class TracerSkuController extends Controller
      */
     public function edit($id)
     {
-        $id = 2100;
+        //$id = 2100;
         $tracerSku = MarketplaceSkuMapping::find($id);
 
         $mpControls = MpControl::whereStatus(1)->get(['control_id', 'marketplace_id', 'country_id']);
