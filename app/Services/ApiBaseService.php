@@ -52,6 +52,10 @@ class ApiBaseService extends PlatformMarketConstService
         $pendingPriceAndInventory = self::PENDING_PRICE | self::PENDING_INVENTORY;
         if ($processStatus == $pendingPriceAndInventory) {
             $processStatusProduct->transform(function ($pendingSku) {
+                //if the process_status is 27,the value will be 29 after update,
+                // it will be repost next time
+                $pendingSku->process_status |= self::PENDING_PRICE | self::PENDING_INVENTORY;
+                //
                 $pendingSku->process_status ^= self::PENDING_PRICE ^ self::PENDING_INVENTORY;
                 $pendingSku->process_status |= self::COMPLETE_PRICE | self::COMPLETE_INVENTORY;
                 $pendingSku->save();
