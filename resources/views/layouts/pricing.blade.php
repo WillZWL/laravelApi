@@ -105,7 +105,7 @@
       data: {marketplaceSku: marketplaceSku, sellingPlatform: sellingPlatform, price: price},
       dataType: 'html'
     }).done(function (responseText) {
-      $self.closest('#accordion').html(responseText);
+      $self.closest('.panel').replaceWith(responseText);
       $self.closest('.panel').find('.collapse').collapse('show');
     }).fail(function () {
       alert("Can't get the new profit");
