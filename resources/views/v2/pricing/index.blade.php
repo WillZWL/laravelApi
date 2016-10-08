@@ -76,6 +76,10 @@
             <span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ESG_AMZN_US_FBA')->first()) ? $warehouse->inventory : 0 }}</span>
             <span class="warehouse text-danger">PX_AMZN_FBA_UK : </span>
             <span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'PX_AMZN_FBA_UK')->first()) ? $warehouse->inventory : 0 }}</span>
+            <span class="warehouse text-danger">PX_AMZN_FBA_US : </span>
+            <span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'PX_AMZN_FBA_US')->first()) ? $warehouse->inventory : 0 }}</span>
+            <span class="warehouse text-danger">ESG_NEWEGG_US_SBN : </span>
+            <span class="inventory">{{ ($warehouse = $inventoryCollection->where('warehouse_id', 'ESG_NEWEGG_US_SBN')->first()) ? $warehouse->inventory : 0 }}</span>
           </p>
         @endif
       </div>

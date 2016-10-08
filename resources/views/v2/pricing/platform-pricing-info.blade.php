@@ -1,3 +1,4 @@
+<?php $i = 0 ?>
 @foreach($data as $platform => $platformInfo)
   <div class="panel panel-default">
     <div class="panel-heading" role="tab" id="head_{{ $platform }}">
@@ -24,7 +25,7 @@
         @endif
       </h4>
     </div>
-    <div id="{{ $platform }}" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="head_{{ $platform }}">
+    <div id="{{ $platform }}" class="panel-collapse collapse {{ (++$i === 1) ? 'in' : '' }} " role="tabpanel" aria-labelledby="head_{{ $platform }}">
       <div class="panel-body">
         @if(count($platformInfo['deliveryOptions']) > 0)
           <table class="table table-bordered table-condensed" style="table-layout: fixed">
