@@ -65,7 +65,7 @@ class ApiWishProductService extends ApiWishAuthService implements ApiPlatformPro
     }
 
     public function submitProductCreate($storeName)
-    {   
+    {
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
         $wishClient = $this->initWishClient($storeName);
         foreach ($pendingSkuGroup as $index => $pendingSku) {
@@ -92,5 +92,10 @@ class ApiWishProductService extends ApiWishAuthService implements ApiPlatformPro
     public function submitProductUpdate($storeName)
     {
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
+    }
+
+    public function submitProductPriceAndInventory($storeName)
+    {
+        // instance abstract method
     }
 }

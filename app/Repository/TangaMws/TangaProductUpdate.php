@@ -2,7 +2,7 @@
 
 namespace App\Repository\TangaMws;
 
-class TangaProductUpdate extends TangaOrderCore
+class TangaProductUpdate extends TangaProductCore
 {
 
     public function __construct($store)
