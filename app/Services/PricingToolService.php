@@ -31,10 +31,6 @@ class PricingToolService
     private $marketplaceControl;
     private $adjustRate = 0.9725;
 
-    public function __construct()
-    {
-    }
-
     public function getPricingInfo(Request $request)
     {
         $this->product = Product::findOrFail($request->input('sku'));

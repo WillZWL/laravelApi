@@ -104,6 +104,7 @@ class PricingController extends Controller
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($countryCode)
             ->firstOrFail();
+
         $mpControl = MpControl::select(['link'])
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)
@@ -115,7 +116,6 @@ class PricingController extends Controller
             'sku' => $marketplaceMapping->product->sku,
             'selectedDeliveryType' => $marketplaceMapping->delivery_type,
         ]);
-
         $result[$request->input('sellingPlatform')]['deliveryOptions'] = $this->pricingToolService->getPricingInfo($request);
         $result[$request->input('sellingPlatform')]['listingStatus'] = $marketplaceMapping->listing_status;
         $result[$request->input('sellingPlatform')]['inventory'] = $marketplaceMapping->inventory;
@@ -123,10 +123,15 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['condition'] = $marketplaceMapping->condition;
         $result[$request->input('sellingPlatform')]['conditionNote'] = $marketplaceMapping->condition_note;
         $result[$request->input('sellingPlatform')]['fulfillmentLatency'] = $marketplaceMapping->fulfillment_latency;
+        $result[$request->input('sellingPlatform')]['asin'] = $marketplaceMapping->asin;
+        $result[$request->input('sellingPlatform')]['currency'] = $marketplaceMapping->currency;
+        $result[$request->input('sellingPlatform')]['price'] = $marketplaceMapping->price;
+        $result[$request->input('sellingPlatform')]['delivery_type'] = $marketplaceMapping->delivery_type;
+        $result[$request->input('sellingPlatform')]['margin'] = $marketplaceMapping->margin;
         $result[$request->input('sellingPlatform')]['weight'] = $marketplaceMapping->product->weight;
         $result[$request->input('sellingPlatform')]['vol_weight'] = $marketplaceMapping->product->vol_weight;
         $result[$request->input('sellingPlatform')]['link'] = $mpControl->link.$marketplaceMapping->asin;
 
-        return response()->view('pricing.platform-pricing-info', ['data' => $result]);
+        return response()->view('v2.pricing.platform-pricing-info', ['data' => $result]);
     }
 }
