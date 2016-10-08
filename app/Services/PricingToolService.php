@@ -345,8 +345,6 @@ class PricingToolService
             }
         });
 
-        // TODO: if $availableQuotation contains both built-in and external quotation, should choose the cheapest quotation.
-
         // convert HKD to target currency.
         $currencyRate = $this->exchangeRate->rate;
         $adjustRate = $this->adjustRate;
@@ -360,7 +358,7 @@ class PricingToolService
             switch ($quotationType) {
                 case 'acc_builtin_postage':
                 case 'acc_external_postage':
-                    $freightCost['STD'] = $cost;
+                    $freightCost['STD'] = (isset($freightCost['STD']) ? min([$freightCost['STD'], $cost]) : $cost);
                     break;
 
                 case 'acc_courier':
