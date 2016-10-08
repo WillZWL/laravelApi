@@ -21,6 +21,7 @@ use App\Models\Product;
 use App\Models\ProductComplementaryAcc;
 use App\Models\Quotation;
 use App\Models\SupplierProd;
+use App\Models\Warehouse;
 use App\Models\WeightCourier;
 use Illuminate\Http\Request;
 
@@ -169,6 +170,7 @@ class PricingController extends Controller
 
         $targetMargin = $this->getTargetMargin($request);
         $marketplaceCommission = $this->getMarketplaceCommission($request);
+        $warehouseCost = $this->getWarehouseCost($request);
         $marketplaceListingFee = $this->getMarketplaceListingFee($request);
         $marketplaceFixedFee = $this->getMarketplaceFixedFee($request);
         $paymentGatewayFee = $this->getPaymentGatewayFee($request);
@@ -194,6 +196,7 @@ class PricingController extends Controller
                 $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
                 $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
                 $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
+                $priceInfo[$deliveryType]['warehouseCost'] = $warehouseCost;
                 $priceInfo[$deliveryType]['freightCost'] = $freightCost[$deliveryType];
                 $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
                 $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
@@ -255,6 +258,30 @@ class PricingController extends Controller
         }
 
         return round($esgCommission, 2);
+    }
+
+    public function getWarehouseCost(Request $request)
+    {
+        $cost = 0;
+        $warehouseId = $this->product->default_ship_to_warehouse;
+        if (!$warehouseId) {
+            $warehouseId = $this->product->merchantProductMapping->merchant->default_ship_to_warehouse;
+        }
+
+        if ($warehouseId) {
+            $warehouse = Warehouse::find($warehouseId);
+            $currencyRate = ExchangeRate::whereFromCurrencyId($warehouse->currency_id)
+                ->whereToCurrencyId($this->marketplaceControl->currency_id)
+                ->first()->rate;
+
+            $cost = ( $warehouse->warehouseCost->book_in_fixed
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $this->product->weight
+                    + $warehouse->warehouseCost->pnp_fixed
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $this->product->weight )
+                    * $currencyRate * $this->adjustRate;
+        }
+
+        return round($cost, 2);
     }
 
     public function getDeclaredValue(Request $request)
@@ -454,14 +481,11 @@ class PricingController extends Controller
             }
         });
 
-        // TODO: if $availableQuotation contains both built-in and external quotation, should choose the cheapest quotation.
-
         // convert HKD to target currency.
         $currencyRate = $this->exchangeRate->rate;
         $adjustRate = $this->adjustRate;
         $quotationCost = $availableQuotation->map(function ($item) use ($currencyRate, $adjustRate) {
             $item->cost = round($item->cost * $currencyRate / $adjustRate, 2);
-
             return $item;
         })->pluck('cost', 'quotation_type')->toArray();
 
@@ -469,7 +493,7 @@ class PricingController extends Controller
             switch ($quotationType) {
                 case 'acc_builtin_postage':
                 case 'acc_external_postage':
-                    $freightCost['STD'] = $cost;
+                    $freightCost['STD'] = (isset($freightCost['STD']) ? min([$freightCost['STD'], $cost]) : $cost);
                     break;
 
                 case 'acc_courier':

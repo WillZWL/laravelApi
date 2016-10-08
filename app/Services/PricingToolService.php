@@ -19,6 +19,7 @@ use App\Models\Product;
 use App\Models\ProductComplementaryAcc;
 use App\Models\Quotation;
 use App\Models\SupplierProd;
+use App\Models\Warehouse;
 use App\Models\WeightCourier;
 use Illuminate\Http\Request;
 
@@ -61,6 +62,7 @@ class PricingToolService
         $paymentGatewayFee = $this->getPaymentGatewayFee($request);
         $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($request);
         $freightCost = $this->getQuotationCost($request);
+        $warehouseCost = $this->getWarehouseCost($request);
         $supplierCost = $this->getSupplierCost($request);
         $accessoryCost = $this->getAccessoryCost($request);
         $deliveryCharge = 0;
@@ -82,6 +84,7 @@ class PricingToolService
                 $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
                 $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
                 $priceInfo[$deliveryType]['freightCost'] = $freightCost[$deliveryType];
+                $priceInfo[$deliveryType]['warehouseCost'] = $warehouseCost;
                 $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
                 $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
                 $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
@@ -388,6 +391,30 @@ class PricingToolService
             ->firstOrFail();
 
         return round($supplierProd->pricehkd * $this->exchangeRate->rate / $this->adjustRate, 2);
+    }
+
+    public function getWarehouseCost(Request $request)
+    {
+        $cost = 0;
+        $warehouseId = $this->product->default_ship_to_warehouse;
+        if (!$warehouseId) {
+            $warehouseId = $this->product->merchantProductMapping->merchant->default_ship_to_warehouse;
+        }
+
+        if ($warehouseId) {
+            $warehouse = Warehouse::find($warehouseId);
+            $currencyRate = ExchangeRate::whereFromCurrencyId($warehouse->currency_id)
+                ->whereToCurrencyId($this->marketplaceControl->currency_id)
+                ->first()->rate;
+
+            $cost = ( $warehouse->warehouseCost->book_in_fixed
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $this->product->weight
+                    + $warehouse->warehouseCost->pnp_fixed
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $this->product->weight )
+                * $currencyRate * $this->adjustRate;
+        }
+
+        return round($cost, 2);
     }
 
     public function getAccessoryCost(Request $request)
