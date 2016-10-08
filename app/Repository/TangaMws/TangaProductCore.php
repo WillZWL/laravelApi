@@ -2,7 +2,7 @@
 
 namespace App\Repository\TangaMws;
 
-class TangaProductCore extends FnacCore
+class TangaProductCore extends TangaCore
 {
     public function __construct($store)
     {
