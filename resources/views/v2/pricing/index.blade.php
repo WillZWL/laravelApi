@@ -129,6 +129,7 @@
                   <col width="5%">
                   <col width="5%">
                   <col width="5%">
+                  <col width="5%">
                   <col width="8%">
                   <col width="5%">
                 </colgroup>
@@ -146,6 +147,7 @@
                   <th>PSP Fee</th>
                   <th>PSP Adm. Fee</th>
                   <th>Freight Cost</th>
+                  <th>Warehouse Cost</th>
                   <th>Supp. Cost</th>
                   <th>Acce. Cost</th>
                   <th>Total Cost</th>
@@ -175,6 +177,7 @@
                     <td>{{ $item['paymentGatewayFee'] }}</td>
                     <td>{{ $item['paymentGatewayAdminFee'] }}</td>
                     <td>{{ $item['freightCost'] }}</td>
+                    <td>{{ $item['warehouseCost'] }}</td>
                     <td>{{ $item['supplierCost'] }}</td>
                     <td>{{ $item['accessoryCost'] }}</td>
                     <td>{{ $item['totalCost'] }}</td>
