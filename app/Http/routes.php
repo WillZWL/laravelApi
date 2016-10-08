@@ -49,12 +49,12 @@ Route::group(['middleware' => 'auth.basic.once'], function () {
 
 Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic.once'], function () {
     Route::get('pricing/index', 'PricingController@index');
+    Route::get('pricing/simulate', 'PricingController@simulate');
     Route::get('pricing/info', 'PricingController@getPriceInfo');
     Route::post('listingSku/save', 'ListingSkuManagement@save');
 });
 
 Route::group(['middleware' => ['cors']], function () {
-    Route::get('pricing/simulate', 'PricingController@simulate');
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
     Route::get('listingSku/index', 'ListingSkuManagement@index');
     Route::resource('/marketplaceCategory', 'MarketplaceCategoryController');

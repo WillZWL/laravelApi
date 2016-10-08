@@ -101,12 +101,11 @@
     var $self = $(this);
     $.ajax({
       method: 'GET',
-      url: "{{ url('/pricing/simulate') }}",
+      url: "{{ url('/v2/pricing/simulate') }}",
       data: {marketplaceSku: marketplaceSku, sellingPlatform: sellingPlatform, price: price},
       dataType: 'html'
     }).done(function (responseText) {
-      console.log('debug');
-      $self.closest('.panel').html(responseText);
+      $self.closest('#accordion').html(responseText);
       $self.closest('.panel').find('.collapse').collapse('show');
     }).fail(function () {
       alert("Can't get the new profit");
@@ -115,32 +114,6 @@
 </script>
   <script type="text/javascript">
     $(function () {
-
-
-      // $('.marketplaceSku a[data-pjax]').on('pjax:clicked', function(e) {
-
-      //   alert('ffdsa');
-      //   $.ajax({
-      //     method: 'GET',
-      //     url: "{{ url('/v2/pricing/info') }}",
-      //     data:   {
-      //       marketplaceSku: e.target.href.split('#')[1],
-      //       marketplace: 'BCAMAZON'
-      //     },
-      //     dataType: 'html'
-      //   }).done(function (responseText) {
-      //     $('#sku-listing-info-wrap').html(responseText);
-      //   }).fail(function (jqXHR, textStatus) {
-      //     alert( "Request failed: " + textStatus );
-      //   });
-      // })
-
-//      $(document).pjax('.marketplaceSku a[data-pjax]', '#sku-listing-info-wrap');
-//      $('.marketplaceSku').click(function () {
-//        console.log('fasdf');
-//          $(this).pjax('a[data-pjax]', '#sku-listing-info-wrap');
-//      });
-
       $('.marketplaceSku').hover(function(){
           $(this).addClass('pointer');
       }, function () {
@@ -153,29 +126,6 @@
               container: '#sku-listing-info-wrap'
           });
       });
-
-      // $(document).on('click', '#sku-list a', function(e) {
-      //   e.preventDefault();
-      //   $.ajax({
-      //     method: 'GET',
-      //     url: "{{ url('/v2/pricing/info') }}",
-      //     data:   {
-      //       marketplaceSku: e.target.href.split('#')[1],
-      //       marketplace: 'BCAMAZON'
-      //     },
-      //     dataType: 'html'
-      //   }).done(function (responseText) {
-      //     $('#sku-listing-info-wrap').html(responseText);
-      //   }).fail(function (jqXHR, textStatus) {
-      //     alert( "Request failed: " + textStatus );
-      //   });
-      // });
-
-      // var selectSku = window.location.href.split('#')[1];
-
-      // if (selectSku) {
-      //   $('#'+selectSku).click();
-      // }
     });
   </script>
 </body>
