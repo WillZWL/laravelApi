@@ -16,6 +16,7 @@ use App\Models\MpListingFee;
 use App\Models\PaymentGateway;
 use App\Models\ProductComplementaryAcc;
 use App\Models\SupplierProd;
+use App\Models\Warehouse;
 use App\Repository\DeliveryQuotationRepository;
 
 class PricingService
@@ -74,6 +75,7 @@ class PricingService
 
         $availableDeliveryTypeWithCost = $this->deliveryQuotationRepository->getQuotationCost($marketplaceProduct);
 
+        $warehouseCost = $this->getWarehouseCost($marketplaceProduct);
         $supplierCost = $this->getSupplierCost($marketplaceProduct);
         $accessoryCost = $this->getAccessoryCost($marketplaceProduct);
         $pricingType = $this->getMerchantType($marketplaceProduct);
@@ -84,8 +86,9 @@ class PricingService
         $totalCostExcludeDeliveryCost = array_sum([
             $tax, $duty, $marketplaceCommission,
             $marketplaceListingFee, $marketplaceFixedFee, $paymentGatewayFee, $paymentGatewayAdminFee,
-            $supplierCost, $accessoryCost, $deliveryCharge,
+            $warehouseCost, $supplierCost, $accessoryCost, $deliveryCharge,
         ]);
+
 
         $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingType) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $totalCostExcludeDeliveryCost) {
             $shippingType->put('totalCost', $shippingType->get('deliveryCost') + $totalCostExcludeDeliveryCost);
@@ -292,5 +295,29 @@ class PricingService
         }
 
         return round($accessoryCost, 2);
+    }
+
+    public function getWarehouseCost($marketplaceProduct)
+    {
+        $cost = 0;
+        $warehouseId = $marketplaceProduct->product->default_ship_to_warehouse;
+        if (!$warehouseId) {
+            $warehouseId = $marketplaceProduct->product->merchantProductMapping->merchant->default_ship_to_warehouse;
+        }
+
+        if ($warehouseId) {
+            $warehouse = Warehouse::find($warehouseId);
+            $currencyRate = ExchangeRate::whereFromCurrencyId($warehouse->currency_id)
+                ->whereToCurrencyId($marketplaceProduct->mpControl->currency_id)
+                ->first()->rate;
+
+            $cost = ( $warehouse->warehouseCost->book_in_fixed
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $marketplaceProduct->product->weight
+                    + $warehouse->warehouseCost->pnp_fixed
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $marketplaceProduct->product->weight )
+                * $currencyRate * $this->adjustRate;
+        }
+
+        return round($cost, 2);
     }
 }
