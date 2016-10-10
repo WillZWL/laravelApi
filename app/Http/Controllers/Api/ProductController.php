@@ -130,6 +130,12 @@ class ProductController extends Controller
         return response()->json($result);
     }
 
+    public function productContentExtend(Requests\Product\ProductContentExtendRequest $request) {
+        $result = $this->productService->productContentExtend($request->all());
+
+        return response()->json($result);
+    }
+
     public function productCode(Requests\Product\ProductCodeRequest $request) {
         $result = $this->productService->productCode($request->all());
 

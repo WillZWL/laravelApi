@@ -10,6 +10,7 @@ use App\Models\SupplierProd;
 use App\Models\Sequence;
 use App\Models\MerchantProductMapping;
 use App\Models\ProductContent;
+use App\Models\ProductContentExtend;
 use App\Models\ProductImage;
 use App\Models\ProductCustomClassification;
 use App\Models\ExchangeRate;
@@ -96,6 +97,8 @@ class ProductService
             'battery',
             'sku_type',
             'status',
+            'condtions',
+            'default_ship_to_warehouse',
         ];
 
         $object = [];
@@ -185,17 +188,36 @@ class ProductService
     }
 
     public function productContent($data) {
-        $object = [
-            'prod_name' => $data['prod_name'],
+        $prodContent = [
+            'model_1',
+            'model_2',
+            'model_3',
+            'model_4',
+            'model_5',
+            'prod_name',
+            'keywords',
+            'contents',
+            'short_desc',
+            'detail_desc',
         ];
 
+        $object = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $prodContent)) {
+                $object[$key] = $value;
+            }
+        }
+
+        if (isset($data['keywords'])) {
+            $object['keywords_original'] = isset($data['keywords_original']) ? 1 : 0;
+        }
+
         if (isset($data['contents'])) {
-            $object['contents'] = $data['contents'];
             $object['contents_original'] = isset($data['contents_original']) ? 1 : 0;
         }
 
         if (isset($data['detail_desc'])) {
-            $object['detail_desc'] = $data['detail_desc'];
             $object['detail_desc_original'] = isset($data['detail_desc_original']) ? 1 : 0;
         }
 
@@ -205,6 +227,38 @@ class ProductService
             return ['success' => true, 'product_content' => $result, 'msg' => 'Save product content info success'];
         }
     }
+
+    public function productContentExtend($data) {
+        $prodContent = [
+            'requirement',
+            'specification',
+            'feature',
+        ];
+
+        $object = [];
+
+        foreach ($data as $key => $value) {
+            if (in_array($key, $prodContent)) {
+                $object[$key] = $value;
+            }
+        }
+
+        if (isset($data['feature'])) {
+            $object['feature_original'] = isset($data['feature_original']) ? 1 : 0;
+        }
+
+        if (isset($data['specification'])) {
+            $object['spec_original'] = isset($data['spec_original']) ? 1 : 0;
+        }
+
+        $result = ProductContentExtend::updateOrCreate(['prod_sku' => $data['sku'], 'lang_id' => $data['lang_id']], $object);
+
+        if ($result) {
+            return ['success' => true, 'product_content_extend' => $result, 'msg' => 'Save product content extend info success'];
+        }
+    }
+
+
 
     public function productFeatures($data)
     {

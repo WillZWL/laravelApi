@@ -28,6 +28,8 @@ class ProductTransformer extends TransformerAbstract
 
         $productContent = $product->productContents()->whereLangId($this->lang)->first();
 
+        $productContentExtend = $product->productContentExtends()->whereLangId($this->lang)->first();
+
         $productFeatures = $product->productFeatures;
 
         $prodCustomClass = ProductCustomClassification::whereSku($product->sku)->first();
@@ -42,7 +44,6 @@ class ProductTransformer extends TransformerAbstract
                 'name' => $product->name,
                 'declared_desc' => $product->declared_desc,
                 'hscode_cat_id' => $product->hscode_cat_id,
-                'hs_code' => $prodCustomClass ? $prodCustomClass->code : '',
                 'cat_id' => $product->cat_id,
                 'sub_cat_id' => $product->sub_cat_id,
                 'sub_sub_cat_id' => $product->sub_sub_cat_id,
@@ -70,7 +71,10 @@ class ProductTransformer extends TransformerAbstract
                 'battery' => $product->battery,
                 'sku_type' => $product->sku_type,
                 'status' => $product->status,
+                'condtions' => $product->condtions,
+                'default_ship_to_warehouse' => $product->default_ship_to_warehouse,
             ],
+            'hs_code' => $prodCustomClass ? $prodCustomClass->code : '',
             'merchant_sku_mapping' => [
                 'merchant_id' => $merchProdMap ? $merchProdMap->merchant_id : '',
                 'merchant_sku' => $merchProdMap ? $merchProdMap->merchant_sku : '',
@@ -87,13 +91,30 @@ class ProductTransformer extends TransformerAbstract
                 'supplier_status' => $supProd ? $supProd['supplier_status'] : ''
             ],
             'product_content' => [
+                'model_1' => $productContent ? $productContent->model_1 : '',
+                'model_2' => $productContent ? $productContent->model_2 : '',
+                'model_3' => $productContent ? $productContent->model_3 : '',
+                'model_4' => $productContent ? $productContent->model_4 : '',
+                'model_5' => $productContent ? $productContent->model_5 : '',
                 'prod_name' => $productContent ? $productContent->prod_name : '',
+                'keywords' => $productContent ? $productContent->keywords : '',
+                'keywords_original' => $productContent ? $productContent->keywords_original : '',
                 'lang_id' => $productContent ? $productContent->lang_id : $this->lang,
-                'short_desc' => $productContent ? $productContent->short_desc : '',
                 'contents' => $productContent ? $productContent->contents : '',
                 'contents_original' => $productContent ? $productContent->contents_original : '',
+                'short_desc' => $productContent ? $productContent->short_desc : '',
                 'detail_desc' => $productContent ? $productContent->detail_desc : '',
                 'detail_desc_original' => $productContent ? $productContent->detail_desc_original : '',
+                'specification' => $productContent ? $productContent->specification : '',
+                'spec_original' => $productContent ? $productContent->spec_original : '',
+                'requirement' => $productContent ? $productContent->requirement : '',
+            ],
+            'product_content_extend' => [
+                'feature' => $productContentExtend ? $productContentExtend->feature : '',
+                'feature_original' => $productContentExtend ? $productContentExtend->feature_original : '',
+                'specification' => $productContentExtend ? $productContentExtend->specification : '',
+                'spec_original' => $productContentExtend ? $productContentExtend->spec_original : '',
+                'requirement' => $productContentExtend ? $productContentExtend->requirement : '',
             ],
             'product_features' => $productFeatures,
         ];
