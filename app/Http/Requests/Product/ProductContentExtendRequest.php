@@ -4,7 +4,7 @@ namespace App\Http\Requests\Product;
 
 use App\Http\Requests\Request;
 
-class ProductContentRequest extends Request
+class ProductContentExtendRequest extends Request
 {
     /**
      * Determine if the user is authorized to make this request.
