@@ -81,7 +81,7 @@ class ApiFnacProductService implements ApiPlatformProductInterface
             }
         }
         if($message){
-            $alertEmail = $this->stores[$storeName]["email"];
+            $alertEmail = $this->stores[$storeName]["userId"];
             $subject = $storeName." price or inventory update failed!";
             $this->sendMailMessage($alertEmail, $subject, $message);
         }
