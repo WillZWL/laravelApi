@@ -12,19 +12,18 @@ use App\Models\Schedule;
 use App\Repository\TangaMws\TangaOrder;
 use App\Repository\TangaMws\TangaOrderList;
 
-class ApiTangaService extends ApiBaseService implements ApiPlatformInterface
+class ApiTangaService  implements ApiPlatformInterface
 {
-    public function __construct()
-    {
-    }
+    use ApiBaseOrderTraitService;
 
     public function getPlatformId()
     {
         return 'Tanga';
     }
 
-    public function retrieveOrder($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
+        $this->setSchedule($schedule);
         $orginOrderList = $this->getOrderList($storeName);
         if ($orginOrderList) {
             foreach ($orginOrderList as $order) {

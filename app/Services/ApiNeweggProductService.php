@@ -10,8 +10,10 @@ use Config;
 //use newegg api package
 use App\Repository\NeweggMws\NeweggProductUpdate;
 
-class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiNeweggProductService implements ApiPlatformProductInterface
 {
+    use ApiBaseProductTraitService;
+
     public function __construct()
     {
         $this->stores =  Config::get('newegg-mws.store');
@@ -30,7 +32,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function submitProductPrice($storeName)
     {
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_PRICE);
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_PRICE);
         if(!$processStatusProduct->isEmpty()){
             $this->neweggProductUpdate = new NeweggProductUpdate($storeName);
             $message = null;
@@ -40,7 +42,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                     if(isset($result["error"]["response"])){
                        $message .= $this->getAlertMailMessage($result,$object);
                     }
-                    $this->updatePendingProductProcessStatusBySku($object,self::PENDING_PRICE);
+                    $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_PRICE);
                 }
             }
             if($message){
@@ -54,7 +56,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function submitProductInventory($storeName)
     {
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_INVENTORY);
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_INVENTORY);
         if(!$processStatusProduct->isEmpty()){
             $this->neweggProductUpdate = new NeweggProductUpdate($storeName);
             $errorMessage = null; $successMessage = null; $notShippedBySellerMessage = null;
@@ -77,11 +79,11 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                                     $successMessage .= "Updated inventory: ".$object->inventory."\r\n\n";
                                 }
                             }
-                            $this->updatePendingProductProcessStatusBySku($object,self::PENDING_INVENTORY);
+                            $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_INVENTORY);
                         }
                     }
                     else{
-                        $this->updatePendingProductProcessStatusBySku($object,self::PENDING_INVENTORY);
+                        $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_INVENTORY);
                         $subject = $storeName." update inventory not proceed due to no data found!";
                         foreach ($responesData["data"]["InventoryAllocation"] as $inventoryList) {
                             $notShippedBySellerMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";    
@@ -129,7 +131,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function getProductInventory($storeName)
     {
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_INVENTORY);
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_INVENTORY);
         if(!$processStatusProduct->isEmpty()){
             $this->neweggProductUpdate = new NeweggProductUpdate($storeName);
             foreach ($processStatusProduct as $object) {

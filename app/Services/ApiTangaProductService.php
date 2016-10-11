@@ -10,26 +10,24 @@ use App\Models\MpControl;
 use App\Repository\TangaMws\TangaProductList;
 use App\Repository\TangaMws\TangaProductUpdate;
 
-class ApiTangaProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiTangaProductService implements ApiPlatformProductInterface
 {
-    public function __construct()
-    {
-
-    }
+    use ApiBaseProductTraitService;
 
     public function getPlatformId()
     {
         return 'Tanga';
     }
 
-    public function getProductList($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
+        $this->setSchedule($schedule);
 
     }
 
     public function submitProductPriceAndInventory($storeName)
     {
-        $processStatus = self::PENDING_PRICE | self::PENDING_INVENTORY;
+        $processStatus = PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
 
         if(!$processStatusProduct->isEmpty()){

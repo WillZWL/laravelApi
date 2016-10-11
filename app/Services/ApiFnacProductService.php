@@ -5,16 +5,18 @@ namespace App\Services;
 use App\Contracts\ApiPlatformProductInterface;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
+use Config;
 
 //use fnac api package
 use App\Repository\FnacMws\FnacProductList;
 use App\Repository\FnacMws\FnacProductUpdate;
 
-class ApiFnacProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiFnacProductService implements ApiPlatformProductInterface
 {
+    use ApiBaseProductTraitService;
     public function __construct()
     {
-
+        $this->stores =  Config::get('fnac-mws.store');
     }
 
     public function getPlatformId()
@@ -35,33 +37,53 @@ class ApiFnacProductService extends ApiBaseService implements ApiPlatformProduct
 
     public function submitProductPriceAndInventory($storeName)
     {
-        $processStatus = self::PENDING_PRICE | self::PENDING_INVENTORY;
-        $pendingProducts = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);          
+        $processStatus = PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
+        $pendingProducts = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);  
         if(!$pendingProducts->isEmpty()){
             $this->fnacProductUpdate = new FnacProductUpdate($storeName);
             $xmlData = $this->fnacProductUpdate->setRequestUpdateOfferXml($pendingProducts);
             $this->saveDataToFile(serialize($xmlData), 'pendingPriceAndInventory');
             $responseBatchData = $this->fnacProductUpdate->requestFnacUpdateOffer();
             $this->saveDataToFile(serialize($responseBatchData), 'responseBatchPriceAndInventory');
-            if ($responseBatchData['@attributes']['status'] == 'OK'
-                || $responseBatchData['@attributes']['status'] == 'ACTIVE'
-                || $responseBatchData['@attributes']['status'] == 'RUNNING'
-            ) {
-                if (
-                    $responseBatchData['@attributes']['status'] == 'ACTIVE'
-                    || $responseBatchData['@attributes']['status'] == 'RUNNING'
-                ) {
-                    sleep(60);
-                }
-
-                $batchId = $responseBatchData['batch_id'];
-                $responseData = $this->fnacProductUpdate->sendFnacBatchStatusRequest($batchId);
-                $this->saveDataToFile(serialize($responseData), 'responseResultProduct'.$updateAction);
-                if ($responseData['@attributes']['status'] == 'OK') {
-                    $this->updatePendingProductProcessStatus($pendingProducts,$processStatus);
-                    return $responseData;
-                }
+            if ($responseBatchData['@attributes']['status'] != 'FATAL') {
+                $this->createOrUpdatePlatformMarketProductFeed($storeName,$responseBatchData['batch_id']);
+                $this->updatePendingProductProcessStatus($pendingProducts,$processStatus);
             }
+        }
+    }
+
+    public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
+    {
+        $this->fnacProductUpdate = new FnacProductUpdate($storeName);
+        $message = null;
+        foreach ($productUpdateFeeds as $productUpdateFeed) {
+            $errorStatus = false;
+            $reports = $this->fnacProductUpdate->sendFnacBatchStatusRequest($productUpdateFeed->feed_submission_id);
+            $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
+            if($reports){
+                if(isset($reports['@attributes']) && $reports['@attributes']['status'] == 'ERROR'){
+                    $message .= "Seller Sku ".$reports["offer_seller_id"]." error message: ".$reports["error"]."\r\n";
+                    $errorStatus = true;
+                }else{
+                    foreach ($reports as $report){
+                       if($report['@attributes']['status'] == 'ERROR'){
+                            $message .= "Seller Sku ".$report["offer_seller_id"]." error message: ".$report["error"]."\r\n";
+                            $errorStatus = true;
+                       }
+                    }
+                }
+                if($errorStatus){
+                    $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
+                }else{
+                    $productUpdateFeed->feed_processing_status = '_COMPLETE_';
+                }
+                $productUpdateFeed->save();
+            }
+        }
+        if($message){
+            $alertEmail = $this->stores[$storeName]["email"];
+            $subject = $storeName." price or inventory update failed!";
+            $this->sendMailMessage($alertEmail, $subject, $message);
         }
     }
 

@@ -12,19 +12,17 @@ use Peron\AmazonMws\AmazonOrderList;
 use Peron\AmazonMws\AmazonOrderItemList;
 use Peron\AmazonMws\AmazonFeed;
 
-class ApiAmazonService extends ApiBaseService implements ApiPlatformInterface
+class ApiAmazonService implements ApiPlatformInterface
 {
-    public function __construct()
-    {
-    }
-
+    use ApiBaseOrderTraitService;
     public function getPlatformId()
     {
         return 'Amazon';
     }
 
-    public function retrieveOrder($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
+        $this->setSchedule($schedule);
         $orginOrderList = $this->getOrderList($storeName);
         if ($orginOrderList) {
             foreach ($orginOrderList as $orderData) {
@@ -40,7 +38,6 @@ class ApiAmazonService extends ApiBaseService implements ApiPlatformInterface
                     }
                 }
             }
-
             return true;
         }
     }

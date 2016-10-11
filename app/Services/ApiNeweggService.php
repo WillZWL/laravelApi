@@ -21,22 +21,20 @@ use App\Models\CourierInfo;
 use App\Models\So;
 // test feature 1
 
-class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
+class ApiNeweggService implements ApiPlatformInterface
 {
+    use ApiBaseOrderTraitService;
     private $storeCurrency;
-    function __construct()
-    {
-
-    }
 
     public function getPlatformId()
     {
         return "Newegg";
     }
 
-    public function retrieveOrder($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
-        $originOrderList=$this->getOrderList($storeName);
+        $this->setSchedule($schedule);
+        $originOrderList = $this->getOrderList($storeName);
         $orderInfoList = $originOrderList["OrderInfoList"];
 
         if($orderInfoList){

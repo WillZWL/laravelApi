@@ -12,22 +12,19 @@ use App\Repository\PriceMinisterMws\PriceMinisterOrder;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderList;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderTracking;
 
-class ApiPriceMinisterService extends ApiBaseService implements ApiPlatformInterface
+class ApiPriceMinisterService implements ApiPlatformInterface
 {
+    use ApiBaseOrderTraitService;
     private $storeCurrency;
-
-    public function __construct()
-    {
-    }
 
     public function getPlatformId()
     {
         return 'PriceMinister';
     }
 
-    public function retrieveOrder($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
-        // $originOrderList = $this->getOrderList($storeName, "2016-08-17-06-07.txt");
+        $this->setSchedule($schedule);
         $originOrderList = $this->getOrderList($storeName);
         if ($originOrderList) {
             foreach ($originOrderList as $order) {

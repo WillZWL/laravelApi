@@ -12,8 +12,9 @@ use App\Repository\PriceMinisterMws\PriceMinisterProductList;
 use App\Repository\PriceMinisterMws\PriceMinisterProductUpdate;
 use App\Repository\PriceMinisterMws\PriceMinisterImportReport;
 
-class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiPriceMinisterProductService implements ApiPlatformProductInterface
 {
+    use ApiBaseProductTraitService;
     private $storeCurrency;
 
     public function __construct()
@@ -35,7 +36,7 @@ class ApiPriceMinisterProductService extends ApiBaseService implements ApiPlatfo
 
     public function submitProductPriceAndInventory($storeName)
     {
-        $processStatus = self::PENDING_PRICE | self::PENDING_INVENTORY;
+        $processStatus = PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
         if(!$processStatusProduct->isEmpty()){
             $xmlData = '<?xml version="1.0" encoding="UTF-8"?>';

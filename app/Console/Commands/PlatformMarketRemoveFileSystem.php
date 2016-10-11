@@ -3,10 +3,11 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\ApiBaseService;
+use App\Services\ApiPlatformTraitService;
 
 class PlatformMarketRemoveFileSystem extends Command
 {
+    use ApiPlatformTraitService;
     /**
      * The name and signature of the console command.
      *
@@ -26,10 +27,9 @@ class PlatformMarketRemoveFileSystem extends Command
      *
      * @return void
      */
-    public function __construct(ApiBaseService $apiBaseService)
+    public function __construct()
     {
         parent::__construct();
-        $this->apiBaseService = $apiBaseService;
     }
 
     /**
@@ -40,6 +40,6 @@ class PlatformMarketRemoveFileSystem extends Command
     public function handle()
     {   
         //print_r(date("Y-m-d",strtotime("-30 days"))); exit();
-        $this->apiBaseService->removeApiFileSystem(date("Y-m-d",strtotime("-30 days")));
+        $this->removeApiFileSystem(date("Y-m-d",strtotime("-30 days")));
     }
 }

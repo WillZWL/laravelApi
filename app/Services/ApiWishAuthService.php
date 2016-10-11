@@ -7,7 +7,7 @@ use Wish\WishAuth;
 use Wish\WishClient;
 use Config;
 
-class ApiWishAuthService extends ApiBaseService
+class ApiWishAuthService 
 {
     protected $mwsName = 'wish-mws';
     protected $stores;

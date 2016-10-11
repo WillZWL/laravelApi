@@ -12,8 +12,9 @@ use App\Repository\LazadaMws\LazadaProductUpdate;
 use App\Repository\LazadaMws\LazadaFeedStatus;
 use Config;
 
-class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiLazadaProductService implements ApiPlatformProductInterface
 {
+    use ApiBaseProductTraitService;
     private $storeCurrency;
     public function __construct()
     {
@@ -40,7 +41,7 @@ class ApiLazadaProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function submitProductPriceAndInventory($storeName)
     {
-        $processStatus = self::PENDING_PRICE | self::PENDING_INVENTORY;
+        $processStatus = PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
         if(!$processStatusProduct->isEmpty()){
             $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
