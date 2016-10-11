@@ -24,7 +24,6 @@ class MarketplaceProductSearchRequest extends Request
     public function rules()
     {
         return [
-            'marketplace_id' => 'required',
         ];
     }
 }

@@ -15,9 +15,30 @@ class Inventory implements Filter
      */
     public static function apply(Builder $builder, $value)
     {
+        $value = array_filter($value, function ($subValue) {
+            return $subValue !== '';
+        });
+
+        if (empty($value)) {
+            return $builder;
+        }
+
         return $builder->whereHas('inventory', function ($q) use ($value) {
-            return $q->where('inventory.inventory', '<', $value["inventory"])
-                    ->where('inventory.warehouse_id', $value["warehouseId"]);
+            foreach ($value as $k => $v) {
+                switch ($k) {
+                    case 'warehouse_id':
+                        $q = $q->where('inventory.warehouse_id', $v);
+                        break;
+                    case 'from_inventory':
+                        $q = $q->where('inventory.inventory', '>=', $v);
+                        break;
+                    case 'end_inventory':
+                        $q = $q->where('inventory.inventory', '<=', $v);
+                        break;
+                }
+            }
+
+            return $q;
         });
     }
 }
