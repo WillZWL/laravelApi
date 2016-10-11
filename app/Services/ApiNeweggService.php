@@ -103,7 +103,6 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
             'last_update_date' => '0000-00-00 00:00:00',
             'order_status' => studly_case("({$order['OrderStatus']}) {$order["OrderStatusDescription"]}"),
             'esg_order_status'=>$this->getSoOrderStatus($order['OrderStatus']),
-            'fulfillment_channel' => $fulfillment_channel,
             'buyer_email' => $order['CustomerEmailAddress'],
             'currency' => $this->neweggOrderList->getOrderCurrency(),
             'shipping_address_id' => $addressId
@@ -126,7 +125,7 @@ class ApiNeweggService extends ApiBaseService  implements ApiPlatformInterface
 
         if(isset($order["FulfillmentOption"])) {
             # 0 = Ship by Seller, 1 = Ship by Newegg
-            $object["fulfillment_channel"] = $order["FulfillmentOption"];
+            $object["fulfillment_channel"] =  $fulfillment_channel;
         }
 
         if(isset($order["ShipService"])) {
