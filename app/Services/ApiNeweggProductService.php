@@ -57,24 +57,42 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_INVENTORY);
         if(!$processStatusProduct->isEmpty()){
             $this->neweggProductUpdate = new NeweggProductUpdate($storeName);
-            $errorMessage = null; $successMessage = null;
+            $errorMessage = null; $successMessage = null; $notShippedBySellerMessage = null;
             foreach ($processStatusProduct as $object){
                 $responesData = $this->neweggProductUpdate->getAvailabilityWarehose($object->marketplace_sku);
                 if($responesData["error"]){
                     $errorMessage .= $this->getAlertMailMessage($responesData,$object);
                 }else{
-                    $result = $this->neweggProductUpdate->updateInternationalInventory($object,$responesData["data"]["InventoryAllocation"]);
-                    if($result){
-                        if(isset($result["error"]["response"])){
-                            $errorMessage .= $this->getAlertMailMessage($result,$object);
-                        }else{
-                            foreach ($result["data"]["InventoryList"] as $inventoryList) {
-                                $successMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";                   
-                                $successMessage .= "Warehouse Location: ".$inventoryList['WarehouseLocation']."\r\n";
-                                $successMessage .= "Updated inventory: ".$object->inventory."\r\n\n";
+                    //Validate the response to find out if at least there is 1 item found shipped by seller, otherwise, no need to update inventory
+                    $validRequest = $this->validateInventoryData($responesData["data"]["InventoryAllocation"]);
+                    if ($validRequest){
+                        $result = $this->neweggProductUpdate->updateInternationalInventory($object,$responesData["data"]["InventoryAllocation"]);
+                        if($result){
+                            if(isset($result["error"]["response"])){
+                                $errorMessage .= $this->getAlertMailMessage($result,$object);
+                            }else{
+                                foreach ($result["data"]["InventoryList"] as $inventoryList) {
+                                    $successMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";                   
+                                    $successMessage .= "Warehouse Location: ".$inventoryList['WarehouseLocation']."\r\n";
+                                    $successMessage .= "Updated inventory: ".$object->inventory."\r\n\n";
+                                }
                             }
+                            $this->updatePendingProductProcessStatusBySku($object,self::PENDING_INVENTORY);
                         }
-                        $this->updatePendingProductProcessStatusBySku($object,self::PENDING_PRICE);
+                    }
+                    else{
+                        $this->updatePendingProductProcessStatusBySku($object,self::PENDING_INVENTORY);
+                        $subject = $storeName." update inventory not proceed due to no data found!";
+                        foreach ($responesData["data"]["InventoryAllocation"] as $inventoryList) {
+                            $notShippedBySellerMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";    
+                            if($inventoryList["FulfillmentOption"] == 0) 
+                                $shippedBy = "Seller\r\n";
+                            else 
+                                $shippedBy = "Newegg\r\n";
+                            $notShippedBySellerMessage .= "Shipped by ".$shippedBy;
+                            $notShippedBySellerMessage .= "Warehouse Location: ".$inventoryList['WarehouseLocation']."\r\n";
+                            $notShippedBySellerMessage .= "Updated inventory: ".$object->inventory."\r\n\n";
+                        }
                     }
                 }
             }
@@ -86,9 +104,27 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
                 $subject = $storeName." update inventory success!";
                 $this->sendInventoryAlertMailMessage($subject, $successMessage, 1);
             }
+            if($notShippedBySellerMessage){
+                $subject = $storeName." update inventory not proceed due to items found is not shipped by seller!";
+                $this->sendInventoryAlertMailMessage($subject, $notShippedBySellerMessage, 1);
+            }
             return true;
         }
         return false;
+    }
+
+    public function validateInventoryData($inventoryListData)
+    {
+        $isValid = false;
+        foreach ($inventoryListData as $value) 
+        {
+            if ($value["FulfillmentOption"] == 0)
+            {
+                $isValid = true;
+                break;
+            }
+        }
+        return $isValid;
     }
 
     public function getProductInventory($storeName)
