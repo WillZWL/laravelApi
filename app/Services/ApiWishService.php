@@ -3,15 +3,17 @@
 namespace App\Services;
 
 use App\Contracts\ApiPlatformInterface;
+use Config;
 
 //use Wish api SDK
 use Wish\Model\WishTracker;
 use Wish\Exception\OrderAlreadyFulfilledException;
 use Wish\Model\WishReason;
 
-
-class ApiWishService extends ApiWishAuthService  implements ApiPlatformInterface
-{
+class ApiWishService extends ApiBaseOrderService implements ApiPlatformInterface
+{   
+    use ApiBaseOrderTraitService;
+    
     public function __construct()
     {
         parent::__construct();
@@ -22,8 +24,9 @@ class ApiWishService extends ApiWishAuthService  implements ApiPlatformInterface
         return 'Wish';
     }
 
-    public function retrieveOrder($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
+        $this->setSchedule($schedule);
         $orginOrderList = $this->getOrderList($storeName);
         // Now no any order, Temporarily cannot take data, No clearly Wish order item fotmat, go on deal with Wish after wait a new order
         if ($orginOrderList) {
@@ -42,6 +45,7 @@ class ApiWishService extends ApiWishAuthService  implements ApiPlatformInterface
     public function getOrderList($storeName)
     {
         $wishClient = $this->initWishClient($storeName);
+
         $dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
         $originOrderList = $wishClient->getAllChangedOrdersSince($dateTime);
         /* $this->saveDataToFile(serialize($originOrderList), 'getOrderList');*/

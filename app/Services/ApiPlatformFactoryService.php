@@ -25,29 +25,8 @@ class ApiPlatformFactoryService
     }
 
     public function retrieveOrder($storeName, Schedule $schedule)
-    {
-        $this->apiPlatformInterface->setSchedule($schedule); //set base schedule
-        return $this->apiPlatformInterface->retrieveOrder($storeName);
-    }
-
-    public function getOrder($storeName)
-    {
-        $orderId = '62141';
-
-        return $order = $this->apiPlatformInterface->getOrder($storeName, $orderId);
-    }
-
-    public function getOrderList($storeName, Schedule $schedule)
-    {
-        $this->apiPlatformInterface->setSchedule($schedule); //set base schedule
-        return $this->apiPlatformInterface->getOrderList($storeName);
-    }
-
-    public function getOrderItemList($storeName)
-    {
-        $orderId = '4274384';
-
-        return $this->apiPlatformInterface->getOrderItemList($storeName, $orderId);
+    {   
+        return $this->apiPlatformInterface->retrieveOrder($storeName,$schedule);
     }
 
     public function submitOrderFufillment($apiName)

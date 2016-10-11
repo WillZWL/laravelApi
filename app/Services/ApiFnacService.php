@@ -15,20 +15,17 @@ use App\Repository\FnacMws\FnacOrderList;
 use App\Repository\FnacMws\FnacOrderItemList;
 use App\Repository\FnacMws\FnacOrderUpdate;
 
-class ApiFnacService extends ApiBaseService implements ApiPlatformInterface
+class ApiFnacService implements ApiPlatformInterface
 {
-    function __construct()
-    {
-
-    }
-
+    use ApiBaseOrderTraitService;
     public function getPlatformId()
     {
         return 'Fnac';
     }
 
-    public function retrieveOrder($storeName)
+    public function retrieveOrder($storeName,$schedule)
     {
+        $this->setSchedule($schedule);
         $processCount = 0;
         if ($orginOrderList = $this->getOrderList($storeName)) {
             foreach ($orginOrderList as $order) {

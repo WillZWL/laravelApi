@@ -23,22 +23,20 @@ use App\Repository\LazadaMws\LazadaDocument;
 use App\Repository\LazadaMws\LazadaShipmentProviders;
 use App\Repository\LazadaMws\LazadaMultipleOrderItems;
 
-class ApiLazadaService extends ApiBaseService  implements ApiPlatformInterface
+class ApiLazadaService implements ApiPlatformInterface
 {
+    use ApiBaseOrderTraitService; 
 	private $storeCurrency;
-	function __construct()
-	{
-
-	}
-
+    
 	public function getPlatformId()
 	{
 		return "Lazada";
 	}
 
-	public function retrieveOrder($storeName)
-	{
-		$originOrderList=$this->getOrderList($storeName);
+	public function retrieveOrder($storeName,$schedule)
+    {
+        $this->setSchedule($schedule);
+		$originOrderList = $this->getOrderList($storeName);
         if($originOrderList){
         	foreach($originOrderList as $order){
 				if (isset($order['AddressShipping'])) {

@@ -5,14 +5,16 @@ namespace App\Services;
 use App\Contracts\ApiPlatformProductInterface;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
+use Config;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaProductList;
 use App\Repository\LazadaMws\LazadaProductUpdate;
 
-class ApiWishProductService extends ApiWishAuthService implements ApiPlatformProductInterface
+class ApiWishProductService extends ApiWishAuthService  implements ApiPlatformProductInterface
 {
-
+    use ApiBaseProductTraitService;
+    
     public function __construct()
     {
         parent::__construct();
@@ -34,7 +36,7 @@ class ApiWishProductService extends ApiWishAuthService implements ApiPlatformPro
 
     public function submitProductPrice($storeName)
     {
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_PRICE);
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_PRICE);
         if(!$processStatusProduct->isEmpty()){
             $wishClient = $this->initWishClient($storeName);
             foreach ($processStatusProduct as $index => $pendingSku) {
@@ -43,7 +45,7 @@ class ApiWishProductService extends ApiWishAuthService implements ApiPlatformPro
                 $result = $wishClient->updateProductVariation($variant);
             }
             if($result){
-                $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_PRICE);
+                $this->updatePendingProductProcessStatus($processStatusProduct,PlatformMarketConstService::PENDING_PRICE);
                 return $result;
             }
         }
@@ -51,14 +53,14 @@ class ApiWishProductService extends ApiWishAuthService implements ApiPlatformPro
 
     public function submitProductInventory($storeName)
     {
-        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,self::PENDING_INVENTORY);
+        $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_INVENTORY);
         if(!$processStatusProduct->isEmpty()){
             $wishClient = $this->initWishClient($storeName);
             foreach ($processStatusProduct as $index => $pendingSku) {
                 $wishClient->updateInventoryBySKU($pendingSku->marketplace_sku,$pendingSku->inventory);
             }
             if($result){
-                $this->updatePendingProductProcessStatus($processStatusProduct,self::PENDING_INVENTORY);
+                $this->updatePendingProductProcessStatus($processStatusProduct,PlatformMarketConstService::PENDING_INVENTORY);
                 return $result;
             }
         }

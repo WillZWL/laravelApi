@@ -10,7 +10,7 @@ interface ApiPlatformInterface
     **  this will return Store Name
     ********************************************/
 
-    public function retrieveOrder($storeName);
+    public function retrieveOrder($storeName,$schedule);
     /******************************************
     **  function retrieveOrder
     **  this will return get order and order items

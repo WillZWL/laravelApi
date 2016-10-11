@@ -19,8 +19,9 @@ use Peron\AmazonMws\AmazonReport;
 use Peron\AmazonMws\AmazonReportAcknowledger;
 
 
-class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProductInterface
+class ApiAmazonProductService implements ApiPlatformProductInterface
 {
+    use ApiBaseProductTraitService;
     public function __construct()
     {
         $this->stores =  Config::get('amazon-mws.store');
@@ -44,7 +45,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function submitProductPrice($storeName)
     {
-        $pendingSkuGroup = MarketplaceSkuMapping::ProcessStatusProduct($storeName, self::PENDING_PRICE);
+        $pendingSkuGroup = MarketplaceSkuMapping::ProcessStatusProduct($storeName, PlatformMarketConstService::PENDING_PRICE);
         if($pendingSkuGroup){
             $xml = '<?xml version="1.0" encoding="UTF-8"?>';
             $xml .= '<AmazonEnvelope xsi:noNamespaceSchemaLocation="amzn-envelope.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">';
@@ -78,7 +79,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-                $this->updatePendingProductProcessStatus($pendingSkuGroup,self::PENDING_PRICE);
+                $this->updatePendingProductProcessStatus($pendingSkuGroup,PlatformMarketConstService::PENDING_PRICE);
                 $response = $feed->getResponse();
                 $platformProductFeed->feed_submission_id = $response['FeedSubmissionId'];
                 $platformProductFeed->submitted_date = $response['SubmittedDate'];
@@ -90,7 +91,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
 
     public function submitProductInventory($storeName)
     {
-        $pendingSkuGroup = MarketplaceSkuMapping::ProcessStatusProduct($storeName, self::PENDING_INVENTORY);
+        $pendingSkuGroup = MarketplaceSkuMapping::ProcessStatusProduct($storeName, PlatformMarketConstService::PENDING_INVENTORY);
         if($pendingSkuGroup){
             $xml = '<?xml version="1.0" encoding="UTF-8"?>';
             $xml .= '<AmazonEnvelope xsi:noNamespaceSchemaLocation="amzn-envelope.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">';
@@ -143,7 +144,7 @@ class ApiAmazonProductService extends ApiBaseService implements ApiPlatformProdu
             if ($feed->submitFeed() === false) {
                 $platformProductFeed->feed_processing_status = '_SUBMITTED_FAILED';
             } else {
-                $this->updatePendingProductProcessStatus($pendingSkuGroup,self::PENDING_INVENTORY);
+                $this->updatePendingProductProcessStatus($pendingSkuGroup,PlatformMarketConstService::PENDING_INVENTORY);
                 $response = $feed->getResponse();
                 $platformProductFeed->feed_submission_id = $response['FeedSubmissionId'];
                 $platformProductFeed->submitted_date = $response['SubmittedDate'];
