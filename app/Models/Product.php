@@ -68,6 +68,11 @@ class Product extends Model
         return $this->hasMany('App\Models\ProductContent', 'prod_sku', 'sku');
     }
 
+    public function productContentExtends()
+    {
+        return $this->hasMany('App\Models\ProductContentExtend', 'prod_sku', 'sku');
+    }
+
     public function productCustomClassifications()
     {
         return $this->hasMany('App\Models\ProductCustomClassification', 'sku', 'sku');

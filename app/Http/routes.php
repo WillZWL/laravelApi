@@ -43,7 +43,7 @@ Route::group(['prefix' => '/scout', 'middleware' => 'auth'], function () {
     })->where('vue_route', '[\/\w\.-]*');
 });
 
-Route::group(['middleware' => 'auth.basic.once'], function () {
+Route::group(['middleware' => 'auth'], function () {
     Route::resource('tracer', 'TracerSkuController');
 });
 
@@ -81,11 +81,13 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('colour', 'ColourController');
     $api->resource('version', 'VersionController');
     $api->resource('category', 'CategoryController');
-    $api->resource('hscode_category', 'HscodeCategoryController');
+    $api->resource('hscode-category', 'HscodeCategoryController');
+    $api->resource('warehouse/default-warehouse', 'WarehouseController@defaultWarehouse');
     $api->post('product/product-mapping', 'ProductController@productMapping');
     $api->post('product/supplier-product', 'ProductController@supplierProduct');
     $api->post('product/weight-dimension', 'ProductController@weightDimension');
     $api->post('product/product-content', 'ProductController@productContent');
+    $api->post('product/product-content-extend', 'ProductController@productContentExtend');
     $api->post('product/product-code', 'ProductController@productCode');
     $api->post('product/product-features', 'ProductController@productFeatures');
     $api->post('product/upload-image', 'ProductController@uploadProductImage');
