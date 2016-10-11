@@ -195,6 +195,7 @@ class ApiNeweggProductService extends ApiBaseService implements ApiPlatformProdu
 
     private function getAlertMailMessage($result,$object)
     {
+        $message = '';
         if(isset($result["error"]["response"])){
             $response = json_decode($result["error"]["response"]);
             foreach ($response as $errorMessage) {
