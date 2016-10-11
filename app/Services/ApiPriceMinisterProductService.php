@@ -97,7 +97,9 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
                         $errorStatus = true;
                         $message .= "Seller Sku ".$report["sku"]." error message: \r\n";
                         foreach ($report["errors"] as $error) {
-                            $message .= $error["error_text"]."\r\n";
+                           if(isset($error["error_text"])){
+                                $message .= $error["error_text"]."\r\n";
+                           }
                         }
                     }
                 }
