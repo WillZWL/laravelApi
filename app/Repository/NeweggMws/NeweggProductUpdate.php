@@ -61,10 +61,13 @@ class NeweggProductUpdate extends NeweggOrderCore
         $requestXml[] =     '<Value>'.$requestObject->marketplace_sku.'</Value>';
         $requestXml[] =     '<InventoryList>';
         foreach($warehouseInventory as $inventoryDetails){
-            $requestXml[] =         '<Inventory>';
-            $requestXml[] =             '<WarehouseLocation>'.$inventoryDetails["WarehouseLocation"].'</WarehouseLocation>';
-            $requestXml[] =             '<AvailableQuantity>'.$requestObject->inventory.'</AvailableQuantity>';
-            $requestXml[] =         '</Inventory>';
+            if ($inventoryDetails["FulfillmentOption"] == 0) //Only update item shipped by seller
+            {
+                $requestXml[] =         '<Inventory>';
+                $requestXml[] =             '<WarehouseLocation>'.$inventoryDetails["WarehouseLocation"].'</WarehouseLocation>';
+                $requestXml[] =             '<AvailableQuantity>'.$requestObject->inventory.'</AvailableQuantity>';
+                $requestXml[] =         '</Inventory>';
+            }
         }
         $requestXml[] =     '</InventoryList>';
         $requestXml[] = '</ItemInventoryInfo>';
