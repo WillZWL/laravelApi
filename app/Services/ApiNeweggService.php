@@ -9,14 +9,10 @@ use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
 
 // Newegg API
+use App\Repository\NeweggMws\NeweggOrderList;
 use App\Repository\NeweggMws\NeweggOrderItemList;
 use App\Repository\NeweggMws\NeweggOrderStatus;
 // below not yet set up
-use App\Repository\NeweggMws\NeweggOrder;
-use App\Repository\NeweggMws\NeweggOrderList;
-use App\Repository\NeweggMws\NeweggDocument;
-use App\Repository\NeweggMws\NeweggShipmentProviders;
-use App\Repository\NeweggMws\NeweggMultipleOrderItems;
 use App\Models\CourierInfo;
 use App\Models\So;
 // test feature 1
@@ -318,16 +314,6 @@ class ApiNeweggService implements ApiPlatformInterface
         }
     }
 
-    public function getShipmentProviders($storeName)
-    {
-# copied from lazada, not yet set up for Newegg
-        return false;
-        
-        $this->neweggShipmentProviders=new NeweggShipmentProviders($storeName);
-        $result = $this->neweggShipmentProviders->fetchShipmentProviders();
-        return $result;
-    }
-
     public function setStatusToShipped($storeName, $extorderno, $selleritem, $esgOrderShipment)
     {
         $shipmentProvider = CourierInfo::where('courier_id', '=', $esgOrderShipment->courier_id)->where('status', '=', '1')->first();
@@ -346,15 +332,6 @@ class ApiNeweggService implements ApiPlatformInterface
     {
         return  "Shipped";
     }
-
-    // public function setStatusToShipped($storeName,$orderId)
-    // {
-    //     $this->neweggOrderStatus = new NewwggOrderStatus($storeName);
-    //     $this->neweggOrderStatus->setOrderItemId($orderItemId);
-    //     $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
-    //     $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
-    //     return $orginOrderItemList;
-    // }
 
     private function checkResultData($result)
     {
@@ -393,22 +370,6 @@ class ApiNeweggService implements ApiPlatformInterface
         }
 
         return "";
-    }
-
-    public function getEsgShippingProvider($countryCode)
-    {
-/*
-# copied from Lazada, pending set up
-        $shipmentProvider = array(
-            "MY" => "AS-Poslaju-HK",      
-            "SG" => "LGS-SG3-HK",                
-            "TH" => "LGS-TH3-HK",       
-            "ID" => "LGS-LEX-ID-HK",
-            "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
-        );
-        if(isset($shipmentProvider[$countryCode]))
-        return $shipmentProvider[$countryCode];
-*/
     }
 
      public function sendAlertMailMessage($email, $subject,$message)

@@ -23,6 +23,13 @@ class NeweggOrderStatus extends NeweggOrderCore
         $this->setResourceMethod("PUT");
     }
 
+    public function getOrderStatus()
+    {
+        $resourceurl = $this->getResourceUrl().'/'.$this->getOrderNumber();
+        $result = parent::query($resourceurl, 'GET', $this->getRequestParams());
+        return  $result;
+    }
+
     public function setStatusToCanceled()
     {
         $this->_requestParams['Action'] = '1'; //Cancel Order';
