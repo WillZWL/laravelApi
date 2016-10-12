@@ -91,10 +91,11 @@ class ApiNeweggService implements ApiPlatformInterface
         {
             $fulfillment_channel = 'SBN';
         }
-
+        $platformStore = $this->getPlatformStore($storeName);
         $object = [
             'platform' => $storeName,
             'biz_type' => "Newegg",
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['OrderNumber'],
             'platform_order_no' => $order['OrderNumber'],
             'purchase_date' => $utcOrderDate,

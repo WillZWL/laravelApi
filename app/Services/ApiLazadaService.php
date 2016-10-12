@@ -27,7 +27,7 @@ class ApiLazadaService implements ApiPlatformInterface
 {
     use ApiBaseOrderTraitService; 
 	private $storeCurrency;
-    
+
 	public function getPlatformId()
 	{
 		return "Lazada";
@@ -478,9 +478,11 @@ class ApiLazadaService implements ApiPlatformInterface
 		}else{
 			$orderStatus=studly_case($order['Statuses']["Status"]);
 		}
+        $platformStore = $this->getPlatformStore($storeName);
 		$object = [
             'platform' => $storeName,
             'biz_type' => "Lazada",
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['OrderId'],
             'platform_order_no' => $order['OrderNumber'],
             'purchase_date' => $order['CreatedAt'],

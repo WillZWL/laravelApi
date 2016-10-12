@@ -79,9 +79,11 @@ class ApiTangaService  implements ApiPlatformInterface
             $totalAmount += $orderItem['cost'] * $orderItem['quantity'];
         }
 
+        $platformStore = $this->getPlatformStore($storeName);
         $object = [
             'platform' => $storeName,
             'biz_type' => "Tanga",
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['order_id'],
             'platform_order_no' => $order['order_id'],
             // 'purchase_date' => $order['CreatedAt'],
