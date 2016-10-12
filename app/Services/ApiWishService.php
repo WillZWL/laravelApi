@@ -87,9 +87,11 @@ class ApiWishService extends ApiBaseOrderService implements ApiPlatformInterface
     public function updateOrCreatePlatformMarketOrder($order, $addressId, $storeName)
     {
         // default 1st order item status as order status
+        $platformStore = $this->getPlatformStore($storeName);
         $object = [
             'platform' => $storeName,
             'biz_type' => $this->getPlatformId(),
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['order_id'],
             'platform_order_no' => $order['transaction_id'],
             'purchase_date' => $purchasedate,
