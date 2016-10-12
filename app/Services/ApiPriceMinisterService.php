@@ -171,9 +171,11 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         $h = (int) substr($order['purchasedate'], 11, 2);
         $i = (int) substr($order['purchasedate'], 14, 2);
         $purchasedate = date('Y-m-d H:i:s', mktime($h, $i, 0, $m, $d, $y));
+        $platformStore = $this->getPlatformStore($storeName);
         $object = [
             'platform' => $storeName,
             'biz_type' => $this->getPlatformId(),
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['purchaseid'],
             'platform_order_no' => $order['purchaseid'],
             'purchase_date' => $purchasedate,
