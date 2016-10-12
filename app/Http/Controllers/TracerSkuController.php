@@ -58,6 +58,10 @@ class TracerSkuController extends Controller
      */
     public function edit($id)
     {
+        if ($id != 2305) {
+            return redirect('/tracer/2305/edit');
+        }
+
         $id = 2305;
         $tracerSku = MarketplaceSkuMapping::find($id);
 
