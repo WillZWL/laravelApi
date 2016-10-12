@@ -21,6 +21,7 @@ class MarketplaceProductTransformer extends TransformerAbstract
             'selling_price' => $product->price,
             'profit' => $product->profit,
             'margin' => $product->margin,
+            'default_warehouse' => ($product->product->default_ship_to_warehouse) ?: $product->merchantProductMapping->merchant->default_ship_to_warehouse,
             'warehouse' => $product->inventory()->get(['warehouse_id', 'inventory'])->keyBy('warehouse_id')->toArray(),
             'selected_delivery_type' => $product->delivery_type,
             'available_delivery_type' => $product->available_delivery_type,

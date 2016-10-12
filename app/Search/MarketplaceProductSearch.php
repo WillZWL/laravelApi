@@ -17,20 +17,17 @@ class MarketplaceProductSearch
 
     private static function applyDecoratorsFromRequest(MarketplaceProductSearchRequest $request, Builder $query)
     {
-        foreach ($request->all() as $filterName => $value) {
-            if ($value !== '') {
-                if ($filterName != "warehouse_id") {
-                    $decorator = static::createFilterDecorator($filterName);
-                    if (static::isValidDecorator($decorator)) {
-                        if ($filterName == "inventory") {
-                            $value = ["inventory" => $value, "warehouseId" => $request->input("warehouse_id")];
-                        }
-                        $query = $decorator::apply($query, $value);
-                    }
-                }
+        $filters = array_filter($request->all(), function ($value) {
+            return $value !== '';
+        });
+
+        foreach ($filters as $filterName => $value) {
+            $decorator = static::createFilterDecorator($filterName);
+            if (static::isValidDecorator($decorator)) {
+                $query = $decorator::apply($query, $value);
             }
         }
-//var_dump($query->toSql());
+
         return static::getResults($query)->appends($request->input());
     }
 
