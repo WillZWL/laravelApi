@@ -5,7 +5,7 @@ return [
     'store' => [
         'BCFNACES' => [
             'name' => 'Brand Connect FNAC',
-            'userId' => '',
+            'userId' => 'fnaces@brandsconnect.net',
             'password' => '',
             'partnerId' => '8CB86115-9B7C-BBE0-3B2D-4B84934D4F5A',
             'shopId' => '331633EE-B9AE-ABDA-EE8E-C599C5DEA0E0',

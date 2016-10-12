@@ -84,7 +84,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
             $this->saveDataToFile(serialize($result), 'getProductUpdateFeedBack');
             foreach ($result as $resultDetail){
                 if ($resultDetail["FailedRecords"] > 0 ){
-                    if($resultDetail["FailedRecords"] == 1){
+                    if($resultDetail["TotalRecords"] == 1){
                          $message = $resultDetail["FeedErrors"]["Error"]["Message"];
                     }else{
                         foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {

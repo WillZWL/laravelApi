@@ -227,10 +227,11 @@ class ApiFnacService implements ApiPlatformInterface
         }
 
         $totalAmount = $itemCost;
-
+        $platformStore = $this->getPlatformStore($storeName);
         $object = [
             'platform' => $storeName,
             'biz_type' => "Fnac",
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['order_id'],
             'platform_order_no' => $order['order_id'],
             'purchase_date' => $order['created_at'],

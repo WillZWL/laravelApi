@@ -1,13 +1,26 @@
 <?php 
 
 namespace App\Services;
+
+use App\Models\Store;
 /**
 * 
 */
 trait ApiPlatformTraitService
 {
-   public function saveDataToFile($data, $fileName, $ext = 'txt')
-   {
+    public function getPlatformStore($platform)
+    {
+        $storeCode = strtoupper(substr($platform, 0,2));
+        $marketplace = strtoupper(substr($platform, 2, -2));
+        $country = strtoupper(substr($platform, -2));
+        return Store::where('store_code', $storeCode)
+                ->where('marketplace', $marketplace)
+                ->where('country', $country)
+                ->first();
+    }
+
+    public function saveDataToFile($data, $fileName, $ext = 'txt')
+    {
         $filePath = storage_path().'/app/ApiPlatform/'.$this->getPlatformId().'/'.$fileName.'/'.date('Y');
         if (!file_exists($filePath)) {
             mkdir($filePath, 0755, true);

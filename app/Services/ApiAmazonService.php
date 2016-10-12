@@ -121,9 +121,11 @@ class ApiAmazonService implements ApiPlatformInterface
     //update or insert data to database
     public function updateOrCreatePlatformMarketOrder($order, $addressId, $storeName)
     {
+        $platformStore = $this->getPlatformStore($storeName);
         $object = [
             'platform' => $storeName,
             'biz_type' => 'Amazon',
+            'store_id' => $platformStore->id,
             'platform_order_id' => $order['AmazonOrderId'],
             'purchase_date' => $order['PurchaseDate'],
             'last_update_date' => $order['LastUpdateDate'],
