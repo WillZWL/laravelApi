@@ -318,14 +318,24 @@ class ApiNeweggService implements ApiPlatformInterface
     {
         $shipmentProvider = CourierInfo::where('courier_id', '=', $esgOrderShipment->courier_id)->where('status', '=', '1')->first();
         $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemIds($selleritem);
-        $this->neweggOrderStatus->setShipService("Air");
         $this->neweggOrderStatus->setOrderNumber($extorderno);
-        $this->neweggOrderStatus->setTrackingNumber($esgOrderShipment->tracking_no);
-        $this->neweggOrderStatus->setShipCarrier($shipmentProvider->courier_name);
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
-        return $orginOrderItemList;
+        $orderStatus = $this->neweggOrderStatus->getOrderStatus();
+        if($orderStatus['data']['OrderStatusCode'] != "0" || $orderStatus['data']['OrderStatusCode'] != "1"){
+            $esgOrderStatus = $this->getSoOrderStatus($orderStatus['data']['OrderStatusCode']);
+            $platformMarketOrder = PlatformMarketOrder::where("platform",$storeName)
+                ->where('platform_order_id',$extorderno)
+                ->first();
+            $platformMarketOrder->update(array("esg_order_status" => $esgOrderStatus,"order_status" => $orderStatus));
+        }else{
+            $this->neweggOrderStatus->setOrderItemIds($selleritem);
+            $this->neweggOrderStatus->setShipService("Air");
+            $this->neweggOrderStatus->setTrackingNumber($esgOrderShipment->tracking_no);
+            $this->neweggOrderStatus->setShipCarrier($shipmentProvider->courier_name);
+            $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
+            $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
+            return $orginOrderItemList;
+        }
+        
     }
 
     public function getShipedOrderState()
