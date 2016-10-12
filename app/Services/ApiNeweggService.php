@@ -320,12 +320,12 @@ class ApiNeweggService implements ApiPlatformInterface
         $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
         $this->neweggOrderStatus->setOrderNumber($extorderno);
         $orderStatus = $this->neweggOrderStatus->getOrderStatus();
-        if($orderStatus['data']['OrderStatusCode'] != "0" || $orderStatus['data']['OrderStatusCode'] != "1"){
+        if($orderStatus['data']['OrderStatusCode'] != "0" && $orderStatus['data']['OrderStatusCode'] != "1"){
             $esgOrderStatus = $this->getSoOrderStatus($orderStatus['data']['OrderStatusCode']);
             $platformMarketOrder = PlatformMarketOrder::where("platform",$storeName)
                 ->where('platform_order_id',$extorderno)
                 ->first();
-            $platformMarketOrder->update(array("esg_order_status" => $esgOrderStatus,"order_status" => $orderStatus));
+            $platformMarketOrder->update(array("esg_order_status" => $esgOrderStatus,"order_status" => $orderStatus['data']['OrderStatusName']));
         }else{
             $this->neweggOrderStatus->setOrderItemIds($selleritem);
             $this->neweggOrderStatus->setShipService("Air");
