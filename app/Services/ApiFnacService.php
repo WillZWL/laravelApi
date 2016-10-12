@@ -196,9 +196,11 @@ class ApiFnacService implements ApiPlatformInterface
     {
         $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
         $result = "";
-        print_r($xmlData);exit();
         $responseDataList = $this->fnacOrderUpdate->updateTrackingNumber($xmlData);
-        print_r($responseDataList);
+        //test
+        $message = "Results: " . print_r( $responseDataList, true);
+        mail('jimmy.gao@eservicesgroup.com', $storeName.' submitOrderFufillment', $message);
+        //test end
         if ($responseDataList) {
             $this->saveDataToFile(serialize($responseDataList),"responseFnacOrderTracking");
             foreach ($responseDataList as $key => $responseData) {
