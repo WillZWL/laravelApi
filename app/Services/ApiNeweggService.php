@@ -54,7 +54,7 @@ class ApiNeweggService implements ApiPlatformInterface
                         $message = "Duplicated Order found for [{$storeName}] Order no [{$orderno}]. \r\n";
                         $message .="Order will not be imported. Please check to ensure this order is the same as what we have\r\n";
                         $message .= "Thanks\r\n";
-                        $email = 'newegg@brandsconnect.net, jerry.lim@eservicesgroup.com';
+                        $email = 'jerry.lim@eservicesgroup.com';
                         $this->sendAlertMailMessage($email, $subject, $message);
                 }
             }
@@ -119,8 +119,12 @@ class ApiNeweggService implements ApiPlatformInterface
         }
 
         if(isset($order["FulfillmentOption"])) {
-            # 0 = Ship by Seller, 1 = Ship by Newegg
-            $object["fulfillment_channel"] =  $fulfillment_channel;
+            # SBN = Ship by Newegg
+            $object["fulfillment_channel"] = $fulfillment_channel;
+            if($fulfillment_channel == 'SBN')
+            {
+               $object["esg_quotation_courier_id"] = '132'; //Set courier as SBN
+            }	
         }
 
         if(isset($order["ShipService"])) {
