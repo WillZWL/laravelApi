@@ -11,6 +11,7 @@
     <thead>
         <tr>
             <th>SKU</th>
+            <th>DC SKU</th>
             <th>Image</th>
             <th>Product</th>
             <th>Order Number</th>
@@ -22,6 +23,7 @@
         @foreach($order as $sku => $orderItem)
             <tr>
                 <td>{{ $sku }}</td>
+                <td>{{ $orderItem["dc_sku"] }}</td>
                 <td class="image-cell"><img src='{{ $orderItem['image'] }}'/></td>
                 <td>{{ $orderItem['product_name'] }}</td>
                 <td>{{ $orderNo }}</td>
