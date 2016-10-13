@@ -2,12 +2,29 @@
 
 namespace App\Services;
 
+use App\User;
+use App\Models\StoreWarehouse;
 use App\Models\MattelSkuMapping;
-
+use Illuminate\Http\Request;
 use Excel;
 
 class MattelSkuMappingService
 {
+    public function getMappings(Request $request)
+    {
+        \Log::info($request);
+        $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
+        $warehouses = StoreWarehouse::whereIn('store_id', $stores)->pluck('warehouse_id')->all();
+        $query = MattelSkuMapping::whereIn('warehouse_id', $warehouses);
+        if ($request->get('mattel_sku')) {
+            $query = $query->where('mattel_sku', '=', $request->get('mattel_sku'));
+        }
+        if ($request->get('dc_sku')) {
+            $query = $query->where('dc_sku', '=', $request->get('dc_sku'));
+        }
+        return $query->paginate(30);
+    }
+
     public function handleUploadFile($fileName = '')
     {
         if (file_exists($fileName)) {

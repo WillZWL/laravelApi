@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use Websafe\Blueimp\JqueryFileUploadHandler;
+use App\Transformers\MattelSkuMappingTransformer;
 use App\Services\MattelSkuMappingService;
 
 
@@ -14,9 +15,18 @@ class MattelSkuMappingController extends Controller
 {
     use Helpers;
 
-    public function index()
-    {
+    private $mappingService;
 
+    public function __construct(MattelSkuMappingService $mappingService)
+    {
+        $this->mappingService = $mappingService;
+    }
+
+    public function index(Request $request)
+    {
+        $mappings = $this->mappingService->getMappings($request);
+
+        return $this->response->paginator($mappings, new MattelSkuMappingTransformer());
     }
 
     public function upload(Requests\MattelSkuMappingUploadRequest $mattelSkuMappingUploadRequest)
@@ -32,8 +42,7 @@ class MattelSkuMappingController extends Controller
         $response = $upload_response->response;
         if ($response) {
             $upload_file_path = $options['upload_dir'].$response['files'][0]->name;
-            $mattelSkuMappingService = New MattelSkuMappingService();
-            $mattelSkuMappingService->handleUploadFile($upload_file_path);
+            $this->mappingService->handleUploadFile($upload_file_path);
         }
         return response()->json($response);
     }
