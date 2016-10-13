@@ -12,7 +12,6 @@ class MattelSkuMappingService
 {
     public function getMappings(Request $request)
     {
-        \Log::info($request);
         $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
         $warehouses = StoreWarehouse::whereIn('store_id', $stores)->pluck('warehouse_id')->all();
         $query = MattelSkuMapping::whereIn('warehouse_id', $warehouses);
