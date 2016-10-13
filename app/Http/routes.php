@@ -103,6 +103,10 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
     $api->post('product-upload', 'ProductUploadController@upload');
     $api->get('product-upload', 'ProductUploadController@index');
+    $api->get('mattel-sku-mapping-upload', 'MattelSkuMappingController@index');
+    $api->post('mattel-sku-mapping-upload', 'MattelSkuMappingController@upload');
+
+    $api->get('mattel-sku-mapping-upload/donwload-example-file/{file}', 'MattelSkuMappingController@donwloadExampleFile');
 
     $api->resource('orders', 'OrderController');
 });
