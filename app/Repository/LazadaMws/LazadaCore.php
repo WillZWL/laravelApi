@@ -33,17 +33,19 @@ class LazadaCore
         return $this->prepare($data);
     }
 
-    public function curlPostDataToApi($requestParams, $xmlData)
+    public function curlPostDataToApi($requestParams, $xmlData = null)
     {
-        $apiHeader = array(
-          'headers' => array(
+        $clientBody = null;
+        $requestOption["headers"] = array(
             'Content-Type' => 'text/xml; charset=UTF8',
-          ),
-        );
+          );
         $signRequestParams = $this->signature($requestParams);
         $queryString = http_build_query($signRequestParams, '', '&', PHP_QUERY_RFC3986);
-        $client = new \GuzzleHttp\Client($apiHeader);
-        $response = $client->request('POST', $this->urlbase.'?'.$queryString, ['body' => $xmlData]);
+        $client = new \GuzzleHttp\Client();
+        if($xmlData){
+            $requestOption['body'] = $xmlData;
+        }
+        $response = $client->request('POST', $this->urlbase.'?'.$queryString,$requestOption);
         $returnContent = $response->getBody()->getContents();
 
         return $returnContent;
@@ -159,6 +161,8 @@ class LazadaCore
         curl_setopt($ch, CURLOPT_URL, $this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
         $data = curl_exec($ch);
         $info = curl_getinfo($ch);
         curl_close($ch);

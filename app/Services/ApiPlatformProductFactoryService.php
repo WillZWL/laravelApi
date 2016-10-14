@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Contracts\ApiPlatformProductInterface;
 use App\Models\PlatformMarketProductFeed;
+use App\Models\MarketplaceSkuMapping;
 
 class ApiPlatformProductFactoryService
 {
@@ -17,6 +18,14 @@ class ApiPlatformProductFactoryService
     public function submitProductPriceAndInventory($storeName)
     {
         return $this->apiPlatformProductInterface->submitProductPriceAndInventory($storeName);
+    }
+
+    public function submitProductCreate($storeName)
+    {
+        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
+        if(!$pendingSkuGroup->isEmpty()){
+           return $this->apiPlatformProductInterface->submitProductCreate($storeName,$pendingSkuGroup);
+        }
     }
 
     public function submitProductUpdate($storeName)

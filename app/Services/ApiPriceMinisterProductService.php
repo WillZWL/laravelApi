@@ -11,6 +11,8 @@ use Config;
 use App\Repository\PriceMinisterMws\PriceMinisterProductList;
 use App\Repository\PriceMinisterMws\PriceMinisterProductUpdate;
 use App\Repository\PriceMinisterMws\PriceMinisterImportReport;
+use App\Repository\PriceMinisterMws\PriceMinisterProductModel;
+use App\Repository\PriceMinisterMws\PriceMinisterProductCreate;
 
 class ApiPriceMinisterProductService implements ApiPlatformProductInterface
 {
@@ -118,9 +120,24 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
         }
     }
 
-    public function submitProductCreate($storeName)
+    public function submitProductCreate($storeName,$pendingSkuGroup)
     {
-        
+        $this->priceMinisterProductCreate = new PriceMinisterProductCreate($storeName);
+        foreach ($pendingSkuGroup as $pendingSku) {
+            $xmlData = $this->priceMinisterProductCreate->getRequestXmlData($pendingSku);
+        }
+        $responseXml = $this->priceMinisterProductCreate->submitXmlFile($xmlData);
+        $this->saveDataToFile(serialize($responseXml), 'submitProductCreate');
+
+    }
+
+    public function getProductTemplate($storeName)
+    {
+        $this->priceMinisterProductModel = new PriceMinisterProductModel($storeName);
+        //$productTypes = $this->priceMinisterProductModel->getProductTypes();
+        $this->priceMinisterProductModel->setProductType("mobile_produit");
+        $productTemplate = $this->priceMinisterProductModel->fetchProductModel();
+        return $productTemplate;
     }
 
     public function submitProductUpdate()
