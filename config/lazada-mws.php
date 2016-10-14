@@ -98,7 +98,7 @@ return [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelph@eservicesgroup.com', 
             'apiToken' => 'bce3f59555c439d60f6b0ecdaf32c2f737e76142',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
             'currency'=>'PHP',
         ],
         /*'MDLAZADAID' => [
