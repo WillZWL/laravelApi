@@ -94,6 +94,8 @@ class OrderTransfer extends Command
      */
     public function validateAmazonOrder(AmazonOrder $order)
     {
+        $usCountries = ['US', 'CA', 'MX'];
+
         $countryCode = strtoupper(substr($order->platform, -2));
         //$countryCode = $order->amazonShippingAddress->country_code;
         $amazonAccount = strtoupper(substr($order->platform, 0, 2));
@@ -108,7 +110,11 @@ class OrderTransfer extends Command
 
             case 'PX':
                 $amazonAccountName = 'ProductXpress';
-                $alertEmail = 'amazoneu@productxpress.com';
+                if (in_array($countryCode, $usCountries)) {
+                    $alertEmail = 'amazonus@productxpress.com';
+                } else {
+                    $alertEmail = 'amazoneu@productxpress.com';
+                }
                 break;
 
             case 'CV':
@@ -454,7 +460,7 @@ class OrderTransfer extends Command
                 }else{
                     $selectedProfit = 0;
                     $selectedMargin = 0;
-                }   
+                }
             }else{
                 $selectedProfit = 0;
                 $selectedMargin = 0;
