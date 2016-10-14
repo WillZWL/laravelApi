@@ -25,7 +25,7 @@ class ApiPlatformFactoryService
     }
 
     public function retrieveOrder($storeName, Schedule $schedule)
-    {   
+    {
         return $this->apiPlatformInterface->retrieveOrder($storeName,$schedule);
     }
 
@@ -43,7 +43,7 @@ class ApiPlatformFactoryService
             }
         }
     }
-    //1 post one by one 
+    //1 post one by one
     public function submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList)
     {
         foreach ($esgOrders as $esgOrder) {
@@ -60,10 +60,10 @@ class ApiPlatformFactoryService
             }
         }
     }
-    
+
     //2 post all data once
     public function submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList)
-    {   
+    {
         $xmlData = null;
         $esgOrderGroups = $esgOrders->groupBy("platform_id");
         foreach ($esgOrderGroups as $esgOrderGroup) {
@@ -84,7 +84,7 @@ class ApiPlatformFactoryService
                     }
                 }
             }
-        }  
+        }
     }
 
     private function updateEsgMarketOrderStatus($esgOrder,$orderState)
@@ -103,7 +103,7 @@ class ApiPlatformFactoryService
     }
 
     public function merchantOrderAllocatedReadyToShip()
-    {   
+    {
         $storeNames = $this->getCurrentUserStoreName();
         if($storeNames){
             $platformMarketOrders = $this->allocatedPlatformMarketOrders($storeNames);
@@ -118,7 +118,7 @@ class ApiPlatformFactoryService
     }
 
     public function merchantOrderReadyToShip($platformMarketOrders)
-    {   
+    {
         if(!$platformMarketOrders->isEmpty()) {
             $returnData = array();
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
@@ -131,14 +131,14 @@ class ApiPlatformFactoryService
                     $returnData["error"][$platform] = $platform." warehouse not find, please to check";
                 }
             }
-            return $result = array("status" => "success","message" => $returnData); 
+            return $result = array("status" => "success","message" => $returnData);
         }else{
             return $result = array("status" => "failed","message" => "Invalid Order");
         }
     }
 
     public function merchantOrderFufillmentGetDocument($orderIds,$doucmentType)
-    {   
+    {
         $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
         if(!$platformMarketOrders->isEmpty()) {
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
@@ -156,6 +156,7 @@ class ApiPlatformFactoryService
         foreach ($platformMarketOrders as $platformMarketOrder) {
             $countryCode = strtoupper(substr($platformMarketOrder->platform, -2));
             $marketplaceId = strtoupper(substr($platformMarketOrder->platform, 0, -2));
+            $storeId = $platformMarketOrder->store_id;
             $orderItems = $platformMarketOrder->platformMarketOrderItem;
             $item = null;
             foreach ($orderItems as $orderItem) {
@@ -163,13 +164,18 @@ class ApiPlatformFactoryService
                     $item[$orderItem->seller_sku]["qty"] .= $orderItem->quantity_ordered;
                 }else{
                     $marketplaceProduct = MarketplaceSkuMapping::join("product","product.sku",'=',"marketplace_sku_mapping.sku")
+                                        ->Join("merchant_product_mapping", "product.sku", "=", "merchant_product_mapping.sku")
+                                        ->leftJoin("vanguard.mattel_sku_mapping", "merchant_product_mapping.merchant_sku", "=", "mattel_sku_mapping.mattel_sku")
+                                        ->leftJoin("vanguard.store_warehouse", "mattel_sku_mapping.warehouse_id", "=", "store_warehouse.warehouse_id")
                                         ->where("marketplace_sku","=",$orderItem->seller_sku)
                                         ->where("marketplace_id","=",$marketplaceId)
                                         ->where("country_id","=",$countryCode)
-                                        ->select("product.name","marketplace_sku_mapping.sku")
+                                        ->where("store_warehouse.store_id", "=", $storeId)
+                                        ->select("product.name","marketplace_sku_mapping.sku", "mattel_sku_mapping.dc_sku")
                                         ->first();
                     $item[$orderItem->seller_sku]["qty"] = $orderItem->quantity_ordered;
                     $item[$orderItem->seller_sku]["sku"] = $marketplaceProduct->sku;
+                    $item[$orderItem->seller_sku]['dc_sku'] = $marketplaceProduct->dc_sku;
                     $item[$orderItem->seller_sku]["image"] = "http://shop.eservicesgroup.com//images/product/".$marketplaceProduct->sku."_s.jpg";
                     $item[$orderItem->seller_sku]["product_name"] = $marketplaceProduct->name;
                 }
@@ -249,7 +255,7 @@ class ApiPlatformFactoryService
                     ->first();
            if($invMovement){
                 $invMovement->delete();
-            } 
+            }
         }
     }
 
@@ -471,6 +477,6 @@ class ApiPlatformFactoryService
                 );
         }
         return  $warehouseIdList;
-    }  
-    
+    }
+
 }
