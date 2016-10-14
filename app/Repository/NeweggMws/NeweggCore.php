@@ -75,7 +75,9 @@ class NeweggCore
         $requestInfo["request"] = $request = "{$this->urlbase}{$resourceUrl}?".$queryString;
         
         $requestOption["headers"] = $this->initAuthParams();
-        $requestOption["body"] = $requestBody;
+        if($requestBody){
+          $requestOption["body"] = $requestBody;
+        }
         $requestOption["http_errors"] = TRUE;
         $requestInfo["request"] = $requestOption;
 

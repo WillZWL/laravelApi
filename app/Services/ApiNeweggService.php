@@ -9,14 +9,10 @@ use App\Models\PlatformMarketShippingAddress;
 use App\Models\Schedule;
 
 // Newegg API
+use App\Repository\NeweggMws\NeweggOrderList;
 use App\Repository\NeweggMws\NeweggOrderItemList;
 use App\Repository\NeweggMws\NeweggOrderStatus;
 // below not yet set up
-use App\Repository\NeweggMws\NeweggOrder;
-use App\Repository\NeweggMws\NeweggOrderList;
-use App\Repository\NeweggMws\NeweggDocument;
-use App\Repository\NeweggMws\NeweggShipmentProviders;
-use App\Repository\NeweggMws\NeweggMultipleOrderItems;
 use App\Models\CourierInfo;
 use App\Models\So;
 // test feature 1
@@ -58,7 +54,7 @@ class ApiNeweggService implements ApiPlatformInterface
                         $message = "Duplicated Order found for [{$storeName}] Order no [{$orderno}]. \r\n";
                         $message .="Order will not be imported. Please check to ensure this order is the same as what we have\r\n";
                         $message .= "Thanks\r\n";
-                        $email = 'newegg@brandsconnect.net, jerry.lim@eservicesgroup.com';
+                        $email = 'jerry.lim@eservicesgroup.com';
                         $this->sendAlertMailMessage($email, $subject, $message);
                 }
             }
@@ -123,8 +119,12 @@ class ApiNeweggService implements ApiPlatformInterface
         }
 
         if(isset($order["FulfillmentOption"])) {
-            # 0 = Ship by Seller, 1 = Ship by Newegg
-            $object["fulfillment_channel"] =  $fulfillment_channel;
+            # SBN = Ship by Newegg
+            $object["fulfillment_channel"] = $fulfillment_channel;
+            if($fulfillment_channel == 'SBN')
+            {
+               $object["esg_quotation_courier_id"] = '132'; //Set courier as SBN
+            }	
         }
 
         if(isset($order["ShipService"])) {
@@ -318,43 +318,34 @@ class ApiNeweggService implements ApiPlatformInterface
         }
     }
 
-    public function getShipmentProviders($storeName)
-    {
-# copied from lazada, not yet set up for Newegg
-        return false;
-        
-        $this->neweggShipmentProviders=new NeweggShipmentProviders($storeName);
-        $result = $this->neweggShipmentProviders->fetchShipmentProviders();
-        return $result;
-    }
-
     public function setStatusToShipped($storeName, $extorderno, $selleritem, $esgOrderShipment)
     {
         $shipmentProvider = CourierInfo::where('courier_id', '=', $esgOrderShipment->courier_id)->where('status', '=', '1')->first();
         $this->neweggOrderStatus = new NeweggOrderStatus($storeName);
-        $this->neweggOrderStatus->setOrderItemIds($selleritem);
-        $this->neweggOrderStatus->setShipService("Air");
         $this->neweggOrderStatus->setOrderNumber($extorderno);
-        $this->neweggOrderStatus->setTrackingNumber($esgOrderShipment->tracking_no);
-        $this->neweggOrderStatus->setShipCarrier($shipmentProvider->courier_name);
-        $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
-        $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
-        return $orginOrderItemList;
+        $orderStatus = $this->neweggOrderStatus->getOrderStatus();
+        if($orderStatus['data']['OrderStatusCode'] != "0" && $orderStatus['data']['OrderStatusCode'] != "1"){
+            $esgOrderStatus = $this->getSoOrderStatus($orderStatus['data']['OrderStatusCode']);
+            $platformMarketOrder = PlatformMarketOrder::where("platform",$storeName)
+                ->where('platform_order_id',$extorderno)
+                ->first();
+            $platformMarketOrder->update(array("esg_order_status" => $esgOrderStatus,"order_status" => $orderStatus['data']['OrderStatusName']));
+        }else{
+            $this->neweggOrderStatus->setOrderItemIds($selleritem);
+            $this->neweggOrderStatus->setShipService("Air");
+            $this->neweggOrderStatus->setTrackingNumber($esgOrderShipment->tracking_no);
+            $this->neweggOrderStatus->setShipCarrier($shipmentProvider->courier_name);
+            $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
+            $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
+            return $orginOrderItemList;
+        }
+        
     }
 
     public function getShipedOrderState()
     {
         return  "Shipped";
     }
-
-    // public function setStatusToShipped($storeName,$orderId)
-    // {
-    //     $this->neweggOrderStatus = new NewwggOrderStatus($storeName);
-    //     $this->neweggOrderStatus->setOrderItemId($orderItemId);
-    //     $orginOrderItemList=$this->neweggOrderStatus->setStatusToShipped();
-    //     $this->saveDataToFile(serialize($orginOrderItemList),"setStatusToShipped");
-    //     return $orginOrderItemList;
-    // }
 
     private function checkResultData($result)
     {
@@ -393,22 +384,6 @@ class ApiNeweggService implements ApiPlatformInterface
         }
 
         return "";
-    }
-
-    public function getEsgShippingProvider($countryCode)
-    {
-/*
-# copied from Lazada, pending set up
-        $shipmentProvider = array(
-            "MY" => "AS-Poslaju-HK",      
-            "SG" => "LGS-SG3-HK",                
-            "TH" => "LGS-TH3-HK",       
-            "ID" => "LGS-LEX-ID-HK",
-            "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
-        );
-        if(isset($shipmentProvider[$countryCode]))
-        return $shipmentProvider[$countryCode];
-*/
     }
 
      public function sendAlertMailMessage($email, $subject,$message)

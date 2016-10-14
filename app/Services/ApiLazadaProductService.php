@@ -81,22 +81,24 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         foreach ($productUpdateFeeds as $productUpdateFeed) {
             $this->lazadaFeedStatus->setFeedId($productUpdateFeed->feed_submission_id);
             $result = $this->lazadaFeedStatus->fetchFeedStatus();
-            $this->saveDataToFile(serialize($result), 'getProductUpdateFeedBack');
-            foreach ($result as $resultDetail){
-                if ($resultDetail["FailedRecords"] > 0 ){
-                    if($resultDetail["TotalRecords"] == 1){
-                         $message = $resultDetail["FeedErrors"]["Error"]["Message"];
-                    }else{
-                        foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
-                            $message .= $errorDetail["Message"]."\r\n";
+            if($result){
+                $this->saveDataToFile(serialize($result), 'getProductUpdateFeedBack');
+                foreach ($result as $resultDetail){
+                    if ($resultDetail["FailedRecords"] > 0 ){
+                        if($resultDetail["TotalRecords"] == 1){
+                             $message = $resultDetail["FeedErrors"]["Error"]["Message"];
+                        }else{
+                            foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
+                                $message .= $errorDetail["Message"]."\r\n";
+                            }
                         }
+                        $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
+                    }else{
+                        $productUpdateFeed->feed_processing_status = '_COMPLETE_';
                     }
-                    $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
-                }else{
-                    $productUpdateFeed->feed_processing_status = '_COMPLETE_';
                 }
+                $productUpdateFeed->save();
             }
-            $productUpdateFeed->save();
         }
         if($message){
             $alertEmail = $this->stores[$storeName]["userId"];

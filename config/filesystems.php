@@ -77,6 +77,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('bulk-product-upload'),
         ],
+        'mattelSkuMappingUpload' => [
+            'driver' => 'local',
+            'root' => storage_path('mattel-sku-mapping-upload'),
+        ],
         'merchant' => [
             'driver' => 'local',
             'root' => storage_path('merchant'),

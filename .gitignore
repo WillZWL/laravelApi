@@ -21,3 +21,4 @@ Vagrantfile
 .vagrant/machines/default/virtualbox/synced_folders
 .vagrant/machines/default/virtualbox/id
 .vagrant/machines/default/virtualbox/index_uuid
+public/product-images
