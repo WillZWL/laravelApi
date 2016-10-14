@@ -6,6 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class MarketplaceSkuMapping extends Model
 {
+    const PENDING_PRICE = 2; //10
+    const COMPLETE_PRICE = 8; //1000
+    const PENDING_INVENTORY = 4;//100
+    const COMPLETE_INVENTORY = 16;//10000
+    const PENDING_PRODUCT = 32;//100000
+    const COMPLETE_PRODUCT = 64;//1000000
+
     public $connection = 'mysql_esg';
 
     protected $table = 'marketplace_sku_mapping';
@@ -94,7 +101,7 @@ class MarketplaceSkuMapping extends Model
                     })
                     ->join('brand', 'brand.id', '=', 'product.brand_id')
                     ->where('marketplace_sku_mapping.marketplace_id', '=', $marketplaceId)
-                    ->where('marketplace_sku_mapping.marketplace_id', '=', $countryCode)
+                    ->where('marketplace_sku_mapping.country_id', '=', $countryCode)
                     ->where('marketplace_sku_mapping.listing_status', '=', 'Y')
                     ->where('marketplace_sku_mapping.process_status', '&', self::PENDING_PRODUCT)  // bit 1, PRODUCT_UPDATED
                     ->get();

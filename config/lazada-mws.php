@@ -80,7 +80,42 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
             'currency'=>'MYR',
         ],
-        
+        /*'MDLAZADASG' => [
+            'name'=>'Mattel Distributor Lazada',
+            'userId' => 'mattelsg@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'currency'=>'SGD',
+        ],
+        'MDLAZADATH' => [
+            'name'=>'Mattel Distributor Lazada',
+            'userId' => 'mattelth@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
+            'currency'=>'THB',
+        ],*/
+        'MDLAZADAPH' => [
+            'name'=>'Mattel Distributor Lazada',
+            'userId' => 'mattelph@eservicesgroup.com', 
+            'apiToken' => 'bce3f59555c439d60f6b0ecdaf32c2f737e76142',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
+            'currency'=>'PHP',
+        ],
+        /*'MDLAZADAID' => [
+            'name'=>'Mattel Distributor Lazada',
+            'userId' => 'mattelid@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
+            'currency'=>'IDR',
+        ],
+        'MDLAZADAVN' => [
+            'name'=>'Mattel Distributor Lazada',
+            'userId' => 'mattelvn@eservicesgroup.com', 
+            'apiToken' => '',
+            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.vn/',
+            'currency'=>'VND',
+        ],
+        */
         'MLLAZADAMY' => [
             'name'=>'Mattel Lazada',
             'userId' => 'mattel@apresslink.com', 
@@ -121,7 +156,7 @@ return [
             'userId' => 'mattel@apresslink.com', 
             'apiToken' => '9915f134ae8fe3b445129c81a26f120c668a6a73',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.vn/',
-            'currency'=>'IDR',
+            'currency'=>'VND',
         ],
         
         'CFLAZADAMY' => [
