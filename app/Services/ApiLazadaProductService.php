@@ -10,6 +10,10 @@ use App\Models\MpControl;
 use App\Repository\LazadaMws\LazadaProductList;
 use App\Repository\LazadaMws\LazadaProductUpdate;
 use App\Repository\LazadaMws\LazadaFeedStatus;
+use App\Repository\LazadaMws\LazadaSearchSPUs;
+use App\Repository\LazadaMws\LazadaCategoryAttributes;
+use App\Repository\LazadaMws\LazadaCategoryTree;
+use App\Repository\LazadaMws\LazadaProductBrand;
 use Config;
 
 class ApiLazadaProductService implements ApiPlatformProductInterface
@@ -107,53 +111,61 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         }
     }
 
-    public function submitProductCreate($storeName)
+    public function submitProductCreate($storeName,$pendingSkuGroup)
     {   
-        $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
-        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-        $xmlData .= '<Request>';
-        foreach ($pendingSkuGroup as $index => $pendingSku) {
-            $messageDom = '<Product>';
-            $messageDom .= '<Status>'.$pendingSku->marketplace_sku.'</Status>';
-            $messageDom .= '<Name><![CDATA['.$pendingSku->prod_name.']]</Name>';
-            $messageDom .= '<Variation>'.$pendingSku->marketplace_sku.'</Variation>';
-            $messageDom .= '<PrimaryCategory>'.$pendingSku->marketplace_sku.'</PrimaryCategory>';
-            $messageDom .= '<Categories>'.$pendingSku->marketplace_sku.'</Categories>';
-            $messageDom .= '<Description><![CDATA['.$pendingSku->detail_desc.']]</Description>';
-            $messageDom .= '<Brand><![CDATA['.$pendingSku->brand_name.']]</Brand>';
-            $messageDom .= '<Price>'.$pendingSku->marketplace_sku.'</Price>';
-            $messageDom .= '<SalePrice>'.$pendingSku->marketplace_sku.'</SalePrice>';
-            $messageDom .= '<SaleStartDate>'.$pendingSku->marketplace_sku.'</SaleStartDate>';
-            $messageDom .= '<SaleEndDate>'.$pendingSku->marketplace_sku.'</SaleEndDate>';
-            $messageDom .= '<TaxClass>'.$pendingSku->marketplace_sku.'</TaxClass>';
-            $messageDom .= '<ShipmentType>'.$pendingSku->marketplace_sku.'</ShipmentType>';
-            $messageDom .= '<ProductId>'.$pendingSku->marketplace_sku.'</ProductId>';
-            $messageDom .= '<Condition>'.$pendingSku->condition.'</Condition>';
-            $messageDom .= '<ProductData>';
-            $messageDom .= '<Megapixels>'.$pendingSku->marketplace_sku.'</Megapixels>';
-            $messageDom .= '<OpticalZoom>'.$pendingSku->marketplace_sku.'</OpticalZoom>';
-            $messageDom .= '<SystemMemory>'.$pendingSku->marketplace_sku.'</SystemMemory>';
-            $messageDom .= '<NumberCpus>'.$pendingSku->marketplace_sku.'</NumberCpus>';
-            $messageDom .= '<Network>'.$pendingSku->marketplace_sku.'</Network>';
-            $messageDom .= '</ProductData>';
-            $messageDom .= '<Quantity>'.$pendingSku->marketplace_sku.'</Quantity>';
-            $messageDom .= '</Product>';
-            $xmlData .= $messageDom;
+        foreach ($pendingSkuGroup as $key => $product) {
+            $productTemplate = $this->getProductTemplate($storeName,$product);
+            $this->lazadaProductCreate = new LazadaProductCreate($storeName);
+            $responseData = $this->lazadaProductCreate->createProduct($product);
+            $this->saveDataToFile(serialize($responseData), 'CreateProduct');
         }
-        $xmlData .= '</Request>';
-        $this->lazadaProductCreate = new LazadaProductCreate($storeName);
-        $this->storeCurrency = $this->lazadaProductCreate->getStoreCurrency();
-        $result = $this->lazadaProductCreate->submitXmlData($xmlData);
-        $this->saveDataToFile(serialize($result), 'updateProduct');
-        //return $result;
-        
+    }
+
+    public function getProductTemplate($storeName,$product)
+    {
+        $productTemplate = null;
+        $this->lazadaSearchSPUs = new LazadaSearchSPUs($storeName);
+        $this->lazadaSearchSPUs->setSearch("Apple");
+        $spus = $this->lazadaSearchSPUs->searchSPUs();
+        if($spus){
+            foreach ($spus as $key => $spu) {
+                if($key == 2){
+                    $productTemplate = $spu;
+                    $productTemplate["categoryAttributes"] = $this->getCategoryAttributes($storeName,$spu["PrimaryCategory"]);
+                }
+            }
+        }else{
+            $this->lazadaCategoryTree = new LazadaCategoryTree($storeName);
+            $categoryTrees = $this->lazadaCategoryTree->fetchCategoryTree();
+            foreach ($categoryTrees as $key => $categoryTree) {
+                if($key == 2)
+                $productTemplate["categoryAttributes"] = $this->getCategoryAttributes($storeName,$categoryTree["categoryId"]);
+            }
+            $this->lazadaProductBrand = new LazadaProductBrand($storeName);
+            $brandList = $this->lazadaProductBrand->fetchBrandList();
+            $productTemplate["brand"] = $brandList[0];
+        }
+        return $productTemplate;
+    }
+
+    public function getCategoryAttributes($storeName,$categoryId)
+    {
+        $this->lazadaCategoryAttributes = new LazadaCategoryAttributes($storeName);
+        $this->lazadaCategoryAttributes->setPrimaryCategory($categoryId);
+        return $this->lazadaCategoryAttributes->fetchCategoryAttributes();
+    }
+    public function getQcStatus($storeName,$requestId)
+    {
+        $this->lazadaQcStatus = new LazadaQcStatus($storeName);
+        $this->lazadaQcStatus->setSkuSellerList($requestId);
+        $responseData = $this->lazadaQcStatus->fetchQcStatus();
+        $this->saveDataToFile(serialize($responseData), 'getQcStatus');
+        return $responseData;
     }
 
     public function submitProductUpdate($storeName)
     {
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
-        foreach ($pendingSkuGroup as $index => $pendingSku) {
-            
-        }
+        
     }
 }

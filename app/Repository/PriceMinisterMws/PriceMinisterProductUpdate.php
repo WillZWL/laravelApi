@@ -4,7 +4,6 @@ namespace App\Repository\PriceMinisterMws;
 
 class PriceMinisterProductUpdate extends PriceMinisterProductsCore
 {
-    private $version = '2016-03-16';
 
     public function __construct($store)
     {
