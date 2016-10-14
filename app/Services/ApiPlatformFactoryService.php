@@ -124,12 +124,12 @@ class ApiPlatformFactoryService
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
                 $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                if($warehouse){
+                //if($warehouse){
                     $response = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
                     $returnData = array_merge($returnData,$response);
-                }else{
+                /*}else{
                     $returnData["error"][$platform] = $platform." warehouse not find, please to check";
-                }
+                }*/
             }
             return $result = array("status" => "success","message" => $returnData);
         }else{
@@ -466,7 +466,7 @@ class ApiPlatformFactoryService
     {
         $warehouseIdList = null;
         switch ($marketplaceId) {
-            case 'MLLAZADA':
+            case 'MDLAZADA':
                 $warehouseIdList = array(
                     "MY" => "MATTEL_DC_MY_KT",
                     "TH" => "MATTEL_DC_TH_WD",
