@@ -46,6 +46,7 @@ class PlatformMarketOrder extends Model
         return $query->where('acknowledge', '=', '0')
             ->where('esg_order_status', '!=', PlatformMarketConstService::ORDER_STATUS_CANCEL)
             ->where('esg_order_status', '!=', PlatformMarketConstService::ORDER_STATUS_PENDING);
+            ->where('esg_order_status', '!=', PlatformMarketConstService::ORDER_STATUS_RETURENED);
     }
 
     /**
