@@ -649,6 +649,9 @@ class ApiLazadaService implements ApiPlatformInterface
 			case 'Failed':
 				$status=PlatformMarketConstService::ORDER_STATUS_FAIL;
 				break;
+            case 'Returned':
+                $status=PlatformMarketConstService::ORDER_STATUS_RETURENED;
+                break;
 			default:
 				return null;
 		}

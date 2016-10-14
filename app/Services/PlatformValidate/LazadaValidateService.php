@@ -40,7 +40,7 @@ class LazadaValidateService extends BaseValidateService
                 $platform['alertEmail'] = 'cambridgesoundworks@aheaddigital.net';
                 break;
             case 'ML':
-                $platform['accountName'] = 'MattelLazada';
+                $platform['accountName'] = 'Mattel Lazada';
                 $platform['alertEmail'] = 'mattel@apresslink.com';
                 break;
             case 'PX':
@@ -50,6 +50,10 @@ class LazadaValidateService extends BaseValidateService
             case 'BM':
                 $platform['accountName'] = 'Blue Microphones';
                 $platform['alertEmail'] = 'bluemic@chatandvision.com';
+                break;
+            case 'MD':
+                $platform['accountName'] = 'Mattel Distributor Lazada';
+                $platform['alertEmail'] = 'mattelph@eservicesgroup.com';
                 break;
         }
 

@@ -22,7 +22,7 @@ interface ApiPlatformProductInterface
     **  this will change Marketplace product price and inventory
     ********************************************/
 
-    public function submitProductCreate($storeName);
+    public function submitProductCreate($storeName,$productGroup);
     /******************************************
     **  function submitProductCreate
     **  this will create Marketplace Product

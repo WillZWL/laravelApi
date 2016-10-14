@@ -54,6 +54,8 @@ class PlatformMarketProductFeed extends BaseApiPlatformCommand
                     $this->getApiPlatformProductFactoryService($apiName)->submitProductPriceAndInventory($storeName);  
                 } else if($action == "getProductInventory"){
                     $this->getApiPlatformProductFactoryService($apiName)->getProductInventory($storeName);
+                }else if($action == "createProduct"){
+                    $this->getApiPlatformProductFactoryService($apiName)->submitProductCreate($storeName);
                 }
             }
         }
