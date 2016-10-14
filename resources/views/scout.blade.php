@@ -31,6 +31,7 @@
     <script src="/js/jquery.serialize-object.min.js" type="text/javascript"></script>
     <script src="/js/parsley.min.js" type="text/javascript"></script>
     <script src="/js/vue-resource.min.js" type="text/javascript"></script>
+    <script src="/js/sortable.js" type="text/javascript"></script>
   </body>
 </html>
 
