@@ -14,6 +14,8 @@ use App\Models\MarketplaceSkuMapping;
 use App\Models\UserStore;
 use App\Models\MarketStore;
 use App\Models\InvMovement;
+use App\Models\StoreWarehouse;
+use App\Models\MattelSkuMapping;
 
 class ApiPlatformFactoryService
 {
@@ -163,21 +165,22 @@ class ApiPlatformFactoryService
                 if(isset($item[$orderItem->seller_sku]["qty"])){
                     $item[$orderItem->seller_sku]["qty"] .= $orderItem->quantity_ordered;
                 }else{
-                    $marketplaceProduct = MarketplaceSkuMapping::join("product","product.sku",'=',"marketplace_sku_mapping.sku")
-                                        ->Join("merchant_product_mapping", "product.sku", "=", "merchant_product_mapping.sku")
-                                        ->leftJoin("vanguard.mattel_sku_mapping", "merchant_product_mapping.merchant_sku", "=", "mattel_sku_mapping.mattel_sku")
-                                        ->leftJoin("vanguard.store_warehouse", "mattel_sku_mapping.warehouse_id", "=", "store_warehouse.warehouse_id")
-                                        ->where("marketplace_sku","=",$orderItem->seller_sku)
+                    $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$orderItem->seller_sku)
                                         ->where("marketplace_id","=",$marketplaceId)
                                         ->where("country_id","=",$countryCode)
-                                        ->where("store_warehouse.store_id", "=", $storeId)
-                                        ->select("product.name","marketplace_sku_mapping.sku", "mattel_sku_mapping.dc_sku")
+                                        ->with('merchantProductMapping')
+                                        ->with('product')
+                                        ->first();
+
+                    $storeWarehouse = StoreWarehouse::where('store_id',$storeId)->first();
+                    $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
+                                        ->where('warehouse_id',$storeWarehouse->warehouse_id)
                                         ->first();
                     $item[$orderItem->seller_sku]["qty"] = $orderItem->quantity_ordered;
-                    $item[$orderItem->seller_sku]["sku"] = $marketplaceProduct->sku;
-                    $item[$orderItem->seller_sku]['dc_sku'] = $marketplaceProduct->dc_sku;
-                    $item[$orderItem->seller_sku]["image"] = "http://shop.eservicesgroup.com//images/product/".$marketplaceProduct->sku."_s.jpg";
-                    $item[$orderItem->seller_sku]["product_name"] = $marketplaceProduct->name;
+                    $item[$orderItem->seller_sku]["sku"] = $marketplaceSkuMapping->sku;
+                    $item[$orderItem->seller_sku]['dc_sku'] = $mattelSkuMapping->dc_sku;
+                    $item[$orderItem->seller_sku]["image"] = "http://shop.eservicesgroup.com//images/product/".$marketplaceSkuMapping->sku."_s.jpg";
+                    $item[$orderItem->seller_sku]["product_name"] = $marketplaceSkuMapping->product->name;
                 }
             }
             $result[$platformMarketOrder->platform_order_no] = $item;
