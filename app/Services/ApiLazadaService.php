@@ -156,6 +156,10 @@ class ApiLazadaService implements ApiPlatformInterface
             $doucmentFile .= $this->getDocument($storeName,$orderItemIds,$doucmentType);
         }
         if($doucmentFile){
+            if($doucmentType = "shippingLabel"){ 
+                $doucmentFile = preg_replace(array('/-445px/'), array('-435px'), $doucmentFile);
+                $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
+            }
             $file = $doucmentType.$fileDate.'.pdf';
             PDF::loadHTML($doucmentFile)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
