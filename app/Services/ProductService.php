@@ -486,7 +486,7 @@ class ProductService
     {
         $object = [];
         $object['sku'] = (string) $item['sku'];
-        $object['merchant_id'] = (string) $item['merchantid'];
+        $object['merchant_id'] = strtoupper($item['merchantid']);
         $object['merchant_sku'] = (string) $item['merchantsku'];
         $object['version_id'] = (string) $item['versionid'];
         $object['colour_id'] = (string) $item['colourid'];
