@@ -160,11 +160,12 @@ class ApiPlatformFactoryService
             $marketplaceId = strtoupper(substr($platformMarketOrder->platform, 0, -2));
             $storeId = $platformMarketOrder->store_id;
             $orderItems = $platformMarketOrder->platformMarketOrderItem;
-            $item = null;
+            $item = null;$sellerSkuList = null;
             foreach ($orderItems as $orderItem) {
                 if(isset($item[$orderItem->seller_sku]["qty"])){
                     $item[$orderItem->seller_sku]["qty"] .= $orderItem->quantity_ordered;
                 }else{
+                    $sellerSkuList[] = $orderItem->seller_sku;
                     $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$orderItem->seller_sku)
                                         ->where("marketplace_id","=",$marketplaceId)
                                         ->where("country_id","=",$countryCode)
@@ -182,6 +183,10 @@ class ApiPlatformFactoryService
                     $item[$orderItem->seller_sku]["image"] = "http://shop.eservicesgroup.com//images/product/".$marketplaceSkuMapping->sku."_s.jpg";
                     $item[$orderItem->seller_sku]["product_name"] = $marketplaceSkuMapping->product->name;
                 }
+            }
+            $productMainImages = $this->apiPlatformInterface->getProductMainImage($platformMarketOrder->platform,$sellerSkuList);
+            foreach ($productMainImages as $sellerSku => $mainImage) {
+                $item[$sellerSku]["image"] = $mainImage;
             }
             $result[$platformMarketOrder->platform_order_no] = $item;
         }
