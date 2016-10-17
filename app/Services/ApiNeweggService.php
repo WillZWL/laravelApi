@@ -121,10 +121,6 @@ class ApiNeweggService implements ApiPlatformInterface
         if(isset($order["FulfillmentOption"])) {
             # SBN = Ship by Newegg
             $object["fulfillment_channel"] = $fulfillment_channel;
-            if($fulfillment_channel == 'SBN')
-            {
-               $object["esg_quotation_courier_id"] = '132'; //Set courier as SBN
-            }	
         }
 
         if(isset($order["ShipService"])) {
