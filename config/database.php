@@ -62,7 +62,7 @@ return [
             'collation' => 'utf8_general_ci',
             'prefix'    => '',
             'strict'    => false,
-            'engine'    => null,
+            'engine'    => 'InnoDB',
         ],
 
         'mysql_esg' => [
@@ -75,7 +75,7 @@ return [
             'collation' => 'utf8_general_ci',
             'prefix'    => '',
             'strict'    => false,
-            'engine'    => null,
+            'engine'    => 'InnoDB',
         ],
 
         'pgsql' => [
