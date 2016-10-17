@@ -22,6 +22,7 @@ use App\Repository\LazadaMws\LazadaOrderStatus;
 use App\Repository\LazadaMws\LazadaDocument;
 use App\Repository\LazadaMws\LazadaShipmentProviders;
 use App\Repository\LazadaMws\LazadaMultipleOrderItems;
+use App\Repository\LazadaMws\LazadaProductList;
 
 class ApiLazadaService implements ApiPlatformInterface
 {
@@ -755,6 +756,18 @@ class ApiLazadaService implements ApiPlatformInterface
                 }table th {font-weight: bold;border-top: 3px solid #CCCCCC;border-bottom: 3px solid #CCCCCC;}
                 table td {border-bottom: 2px solid #CCCCCC;}</style>';
         return $css;
+    }
+
+    public function getProductMainImage($storeName,$sellerSkuList)
+    {
+        $productMainImage = null;
+        $this->lazadaProductList = new LazadaProductList($storeName);
+        $this->lazadaProductList->setSkuSellerList($sellerSkuList);
+        $productList = $this->lazadaProductList->fetchProductList();
+        foreach ($productList as $product) {
+           $productMainImage[$product["SellerSku"]] = $product["MainImage"];
+        }
+        return $productMainImage;
     }
 
 }
