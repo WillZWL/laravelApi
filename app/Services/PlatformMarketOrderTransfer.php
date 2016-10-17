@@ -199,6 +199,7 @@ class PlatformMarketOrderTransfer
                 $so->dispatch_date = $order->latest_ship_date;
             } else if ($order->fulfillment_channel === 'SBN') {
                 $so->delivery_type_id = 'SBN';
+                $so->esg_quotation_courier_id = '132';
                 $so->dispatch_date = $order->latest_ship_date;   
             } else if ($order->biz_type == "Lazada"){
                 $so->delivery_type_id = 'EXP';
