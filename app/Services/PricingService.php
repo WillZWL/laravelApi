@@ -311,11 +311,15 @@ class PricingService
                 ->whereToCurrencyId($marketplaceProduct->mpControl->currency_id)
                 ->first()->rate;
 
+            $weight = ($marketplaceProduct->product->weight > $marketplaceProduct->product->vol_weight)
+                        ? $marketplaceProduct->product->weight : $marketplaceProduct->product->vol_weight;
+            $weight = ceil($weight);
+
             $cost = ( $warehouse->warehouseCost->book_in_fixed
-                    + $warehouse->warehouseCost->additional_book_in_per_kg * $marketplaceProduct->product->weight
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $weight
                     + $warehouse->warehouseCost->pnp_fixed
-                    + $warehouse->warehouseCost->additional_pnp_per_kg * $marketplaceProduct->product->weight )
-                * $currencyRate * $this->adjustRate;
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $weight )
+                    * $currencyRate * $this->adjustRate;
         }
 
         return round($cost, 2);
