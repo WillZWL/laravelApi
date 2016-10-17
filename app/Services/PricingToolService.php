@@ -401,10 +401,15 @@ class PricingToolService
                 ->whereToCurrencyId($this->marketplaceControl->currency_id)
                 ->first()->rate;
 
+            $weight = ($this->product->weight > $this->product->vol_weight)
+                        ? $this->product->weight : $this->product->vol_weight;
+
+            $weight = ceil($weight);
+
             $cost = ( $warehouse->warehouseCost->book_in_fixed
-                    + $warehouse->warehouseCost->additional_book_in_per_kg * $this->product->weight
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $weight
                     + $warehouse->warehouseCost->pnp_fixed
-                    + $warehouse->warehouseCost->additional_pnp_per_kg * $this->product->weight )
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $weight )
                 * $currencyRate * $this->adjustRate;
         }
 
