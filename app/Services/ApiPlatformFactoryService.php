@@ -127,8 +127,7 @@ class ApiPlatformFactoryService
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
                 $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
                 //if($warehouse){
-                    $response = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
-                    $returnData = array_merge($returnData,$response);
+                    $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
                 /*}else{
                     $returnData["error"][$platform] = $platform." warehouse not find, please to check";
                 }*/
@@ -224,7 +223,9 @@ class ApiPlatformFactoryService
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
+
             PlatformMarketOrder::where("platform_order_no",$platformOrderNo)->update($object);
+            //So::where('platform_order_id',$platformOrderNo)->update(['status' => 6]);
             return $platformOrderNo;
         }else{
             return false;
