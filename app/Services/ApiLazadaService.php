@@ -128,11 +128,14 @@ class ApiLazadaService implements ApiPlatformInterface
                     }
                     $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
                     if($shipmentProvider){
-                        $returnData[$order->so_no] = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
-                        $orderIdList[] = $order->platform_order_id;
-                        if($returnData[$order->so_no]){
+                        $result = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
+                        if($result){
+                            $orderIdList[] = $order->platform_order_id;
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
                             //parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                            $returnData[$order->so_no] = " Set Ready To Ship Success\r\n";
+                        }else{
+                            $returnData[$order->so_no] = " Set Ready To Ship Failed\r\n";
                         }
                     }else{
                         $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system.";
@@ -189,8 +192,13 @@ class ApiLazadaService implements ApiPlatformInterface
                         $updateWarehouseObject[] = $esgOrder;
                         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
                         if($shipmentProvider){
-                            //$returnData[$esgOrder->so_no] = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                            $doucumentOrderItemIds[] = $orderItemIds[0];
+                            //$result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                            if($result){
+                                $returnData[$esgOrder->so_no] = " Set Ready To Ship Success\r\n";
+                                $doucumentOrderItemIds[] = $orderItemIds[0];
+                            }else{
+                                $returnData[$esgOrder->so_no] = " Set Ready To Ship Failed\r\n";
+                            }
                         }else{
                             $returnData[$esgOrder->so_no] = "Shipment Provider is not exit in lazada admin system.";
                         }
@@ -282,10 +290,10 @@ class ApiLazadaService implements ApiPlatformInterface
             $itemObject = array("orderItemIds" => $orderItemIds);
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
             if($marketplacePacked){
-                $responseResult= $this->setStatusToReadyToShip($storeName,$itemObject);
+                $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             }
         }
-        return $responseResult;
+        return (isset($responseResult["PurchaseOrderId"])) ? true : false;
     }
 
     public function updateOrderStatusReadyToShip($storeName,$orderIdList)
