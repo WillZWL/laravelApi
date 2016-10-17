@@ -44,14 +44,8 @@ class ProductUploadController extends Controller
 
     public function mkUploadDir($dir)
     {
-        if (!is_dir($dir.date('Y').'/')) {
-            mkdir($dir.date('Y').'/', 775, true);
-        }
-        if (!is_dir($dir.date('Y').'/'.date('m').'/')) {
-            mkdir($dir.date('Y').'/'.date('m').'/', 775, true);
-        }
         if (!is_dir($dir.date('Y').'/'.date('m').'/'.date('d').'/')) {
-            mkdir($dir.date('Y').'/'.date('m').'/'.date('d').'/', 775, true);
+            mkdir($dir.date('Y').'/'.date('m').'/'.date('d').'/', 0775, true);
         }
         return $dir.'/'.date('Y').'/'.date('m').'/'.date('d').'/';
     }
