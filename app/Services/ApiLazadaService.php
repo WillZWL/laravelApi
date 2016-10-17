@@ -119,8 +119,8 @@ class ApiLazadaService implements ApiPlatformInterface
                 if(isset($warehouseInventory["warehouse"])){
                     $warehouse = $warehouseInventory["warehouse"]; 
                 }
-                $warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
-                if($warehouseInventory["updateObject"]){
+                //$warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
+                //if($warehouseInventory["updateObject"]){
                     $orderItemIds = array();
                     foreach($order->platformMarketOrderItem as $orderItem){
                         $orderItemIds[] = $orderItem->order_item_id;
@@ -131,12 +131,12 @@ class ApiLazadaService implements ApiPlatformInterface
                         $orderIdList[] = $order->platform_order_id;
                         if($returnData[$order->so_no]){
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
-                            parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                            //parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
                         }
                     }else{
                         $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system.";
                     }
-                }
+               // }
             }
         }
         return $returnData;
@@ -156,6 +156,10 @@ class ApiLazadaService implements ApiPlatformInterface
             $doucmentFile .= $this->getDocument($storeName,$orderItemIds,$doucmentType);
         }
         if($doucmentFile){
+            if($doucmentType = "shippingLabel"){ 
+                $doucmentFile = preg_replace(array('/-445px/'), array('-435px'), $doucmentFile);
+                $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
+            }
             $file = $doucmentType.$fileDate.'.pdf';
             PDF::loadHTML($doucmentFile)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
@@ -661,11 +665,11 @@ class ApiLazadaService implements ApiPlatformInterface
     public function getMettelShipmentProvider($storeName)
     {
         $shipmentProvider = array(
-            "MY" => "AS-Poslaju-HK",      
+            "MY" => "SkyNet - DS",      
             "SG" => "LGS-SG3-HK",                
             "TH" => "LGS-TH1",       
             "ID" => "LGS-LEX-ID-HK",
-            "PH" => "AS-LBC-JZ-HK Sellers-LZ",
+            "PH" => "LEX",
             "VN" => "LEX"
             );
         $lazadaShipments = $this->getShipmentProviders($storeName);
