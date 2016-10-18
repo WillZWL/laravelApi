@@ -206,7 +206,6 @@ class ApiFnacService implements ApiPlatformInterface
             foreach ($responseDataList as $key => $responseData) {
                 if ($responseData['status'] == 'OK'
                     && $responseData['state'] == 'Shipped'
-                    && $responseData['order_id'] == $fnacOrderId
                 ){
                     $result[] = $responseData['order_id'];
                 }
