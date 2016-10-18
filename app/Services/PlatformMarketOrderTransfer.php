@@ -9,6 +9,7 @@ use App\Services\PlatformValidate\LazadaValidateService;
 use App\Services\PlatformValidate\PriceMinisterValidateService;
 use App\Services\PlatformValidate\FnacValidateService;
 use App\Services\PlatformValidate\NeweggValidateService;
+use App\Services\PlatformValidate\TangaValidateService;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
@@ -110,10 +111,10 @@ class PlatformMarketOrderTransfer
             case 'Newegg':
                 $validateService = new NeweggValidateService($order);
                 break;
-           /* case 'Tanga':
+           case 'Tanga':
                 $validateService =new TangaValidateService($order);
                 break;
-            case 'Qoo10':
+           /* case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
                 break;
             case 'Paytm':
@@ -200,7 +201,7 @@ class PlatformMarketOrderTransfer
             } else if ($order->fulfillment_channel === 'SBN') {
                 $so->delivery_type_id = 'SBN';
                 $so->esg_quotation_courier_id = '132';
-                $so->dispatch_date = $order->latest_ship_date;   
+                $so->dispatch_date = $order->latest_ship_date;
             } else if ($order->biz_type == "Lazada"){
                 $so->delivery_type_id = 'EXP';
             }else{
@@ -402,7 +403,7 @@ class PlatformMarketOrderTransfer
                 }else{
                     $selectedProfit = 0;
                     $selectedMargin = 0;
-                }   
+                }
             }else{
                 $selectedProfit = 0;
                 $selectedMargin = 0;

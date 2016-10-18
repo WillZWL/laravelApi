@@ -90,6 +90,26 @@ class MarketStoreSeeder extends Seeder
             ];
         }
 
+        // add tanga stores.
+        $tangaStores = Config::get('tanga-mws.store');
+        foreach ($tangaStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'name' => $store['name'],
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                    'vendorAppId' => $store['vendorAppId'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
         foreach ($convertedAmazonStores as $convertedAmazonStore) {
             DB::table('market_stores')->updateOrInsert(
                 [
