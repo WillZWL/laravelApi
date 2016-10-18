@@ -223,12 +223,13 @@ class ApiPlatformFactoryService
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
-            //So::where('platform_order_id',$platformOrderNo)->update(['status' => 6]);
-            return $platformOrderNo;
-        }else{
-            return false;
+            $platformMarketOrder = PlatformMarketOrder::where("platform_order_id",$platformOrderId);
+            if($platformMarketOrder->update($object)){
+                //So::where('platform_order_id',$platformOrderNo)->update(['status' => 6]);
+                return $platformMarketOrder->platform_order_no;
+            }
         }
+        return false;
     }
 
     public function setEsgOrderStatusToCanceled($platformMarketOrder)
