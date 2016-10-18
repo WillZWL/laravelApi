@@ -244,7 +244,7 @@ class ApiFnacService implements ApiPlatformInterface
             'currency' => $this->storeCurrency,
             'shipping_address_id' => $addressId,
             'total_amount' => $totalAmount,
-            'payment_method' => 'fnac_'. strtolower(substr($storeName, -2)),
+            'payment_method' => 'bc_fnac_'. strtolower(substr($storeName, -2)),
         ];
 
         if (isset($order['client_firstname'])) {

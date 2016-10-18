@@ -20,6 +20,8 @@ class TangaOrderList extends TangaOrderCore
 
     protected function getRequestParams()
     {
+        $endAt = date(\DateTime::ISO8601, strtotime(date("Y-m-d H:i:s")));
+        $this->setEndAt($endAt);
         if ($this->getStartAt()) {
             $requestParams['start_at'] = $this->getStartAt();
         }
