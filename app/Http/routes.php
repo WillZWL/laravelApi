@@ -112,6 +112,11 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('mattel-sku-mapping-list', 'MattelSkuMappingController@index');
     $api->get('mattel-sku-mapping-upload/donwload-example-file/{file}', 'MattelSkuMappingController@donwloadExampleFile');
 
+    $api->get('platform-market-inventory-upload', 'PlatformMarketInventoryController@upload');
+    $api->post('platform-market-inventory-upload', 'PlatformMarketInventoryController@upload');
+    $api->get('platform-market-inventory', 'PlatformMarketInventoryController@index');
+    $api->get('platform-market-inventory-upload/donwload-example-file/{file}', 'PlatformMarketInventoryController@donwloadExampleFile');
+
     $api->resource('orders', 'OrderController');
 });
 

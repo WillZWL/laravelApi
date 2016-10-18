@@ -306,7 +306,7 @@ class ApiLazadaService implements ApiPlatformInterface
                     'esg_order_status' => $this->getSoOrderStatus("ReadyToShip")
                     );
                 PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
-                So::where('platform_order_id',$order['OrderId'])->update(['status' => 5]);
+                So::where('platform_order_id',$order['OrderNumber'])->update(['status' => 5]);
                 
                 foreach($order["OrderItems"] as $orderItem){
                     $object = array(

@@ -5,21 +5,18 @@ namespace App\Services;
 use App\User;
 use App\Models\StoreWarehouse;
 use App\Models\MattelSkuMapping;
+use App\Models\PlatformMarketInventory;
 use Illuminate\Http\Request;
 use Excel;
 
-class MattelSkuMappingService
+class PlatformMarketInventoryService
 {
-    public function getMappings(Request $request)
+    public function getSkuInventorys(Request $request)
     {
         $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
-        $warehouses = StoreWarehouse::whereIn('store_id', $stores)->pluck('warehouse_id')->all();
-        $query = MattelSkuMapping::whereIn('warehouse_id', $warehouses);
+        $query = PlatformMarketInventory::with('MattelSkuMapping')->whereIn('store_id', $stores);
         if ($request->get('mattel_sku')) {
             $query = $query->where('mattel_sku', '=', $request->get('mattel_sku'));
-        }
-        if ($request->get('dc_sku')) {
-            $query = $query->where('dc_sku', '=', $request->get('dc_sku'));
         }
         return $query->paginate(30);
     }
@@ -34,28 +31,32 @@ class MattelSkuMappingService
                 foreach ($sheetItems as $item) {
                     \DB::beginTransaction();
                     try {
-                        $this->createMattelSkuMapping($item);
+                        $storeId = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->first();
+                        $item['store_id'] = $storeId;
+                        $this->createPlatformMarketInventory($item);
                         \DB::commit();
                     } catch (\Exception $e) {
                         \DB::rollBack();
-                        mail('will.zhang@eservicesgroup.com', 'Mattel SKu Mapping Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                        mail('will.zhang@eservicesgroup.com', 'Platform Market Inventory Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                     }
                 }
             });
         }
     }
 
-    public function createMattelSkuMapping($item = [])
+    public function createPlatformMarketInventory($item = [])
     {
         $object = [];
+        $object['store_id'] = $item['store_id'];
         $object['warehouse_id'] = $item['warehouse_id'];
         $object['mattel_sku'] = $item['mattel_sku'];
-        $object['dc_sku'] = $item['dc_sku'];
-        $mattelSkuMapping = MattelSkuMapping::firstOrCreate(
+        $object['inventory'] = $item['quantity'];
+        $object['threshold'] = $item['threshold'];
+        $platformMarketInventory = PlatformMarketInventory::updateOrCreate(
                 [
+                    'store_id' => $object['store_id'],
                     'warehouse_id' => $object['warehouse_id'],
                     'mattel_sku' => $object['mattel_sku'],
-                    'dc_sku' => $object['dc_sku'],
                 ],
                 $object
             );
