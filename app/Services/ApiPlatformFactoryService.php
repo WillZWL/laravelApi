@@ -219,12 +219,11 @@ class ApiPlatformFactoryService
         if(!$orderItems->isEmpty()){
             foreach ($orderItems as $orderItem) {
                 $orderItem->update(array("status"=>"Shipped"));
-                $platformOrderNo = $orderItem->platform_order_no;
+                $platformOrderId = $orderItem->platform_order_id;
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-
-            PlatformMarketOrder::where("platform_order_no",$platformOrderNo)->update($object);
+            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
             //So::where('platform_order_id',$platformOrderNo)->update(['status' => 6]);
             return $platformOrderNo;
         }else{
