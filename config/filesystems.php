@@ -81,6 +81,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('mattel-sku-mapping-upload'),
         ],
+        'platformMarketInventoryUpload' => [
+            'driver' => 'local',
+            'root' => storage_path('platform-market-inventory-upload'),
+        ],
         'merchant' => [
             'driver' => 'local',
             'root' => storage_path('merchant'),
