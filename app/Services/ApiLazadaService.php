@@ -707,7 +707,6 @@ class ApiLazadaService implements ApiPlatformInterface
                     );
                 break;
            case 'ES_DGME':
-           case '4PX_DGPL':
                 $shipmentProvider = array(
                     "MY" => "AS-Poslaju",      
                     "SG" => "LGS-SG3",                
