@@ -402,6 +402,7 @@ class ProductService
                 $sheetItems = $sheetItems->toArray();
                 array_filter($sheetItems);
                 foreach ($sheetItems as $item) {
+                    $product = '';
                     if (trim($item['esg_sku'])) {
                         $item['sku'] = $item['esg_sku'];
                         $product = Product::whereSku($item['sku'])->first();
@@ -514,7 +515,6 @@ class ProductService
         $object['contents'] = (string) trim($item['detail_description']);
         $object['model_1'] = (string) trim($item['model_1']);
         $object['detail_desc'] = (string) trim($item['detail_description']);
-        \Log::info($object);
         $productContent = ProductContent::updateOrCreate(['prod_sku' => $item['sku'], 'lang_id' => 'en'], $object);
      }
 
