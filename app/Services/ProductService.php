@@ -396,41 +396,51 @@ class ProductService
 
     public function handleUploadFile($fileName = '')
     {
-        // echo $fileName;
         if (file_exists($fileName)) {
-            $productData = [];
             Excel::selectSheetsByIndex(0)->load($fileName, function ($reader) {
                 $sheetItems = $reader->all();
                 $sheetItems = $sheetItems->toArray();
                 array_filter($sheetItems);
                 foreach ($sheetItems as $item) {
-                    $prodGrpCd = $this->generateProdGrpCd();
-                    $item['prod_grp_cd'] = $prodGrpCd;
-                    $item['sku'] = $item['prod_grp_cd'] .'-'. $item['versionid'] .'-'. $item['colourid'];
-                    \DB::beginTransaction();
-                    \DB::connection('mysql_esg')->beginTransaction();
-                    try {
-                        $this->createProduct($item);
-                        $this->createProductFeatures($item);
-                        $this->createSupplierProd($item);
-                        $this->createMerchantProductMapping($item);
-                        \DB::connection('mysql_esg')->commit();
-                        \DB::commit();
-                    } catch (\Exception $e) {
-                        \DB::connection('mysql_esg')->rollBack();
-                        \DB::rollBack();
-                        mail('will.zhang@eservicesgroup.com', 'Product Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                    $product = '';
+                    if (trim($item['esg_sku'])) {
+                        $item['sku'] = $item['esg_sku'];
+                        $product = Product::whereSku($item['sku'])->first();
+                    } else {
+                        $prodGrpCd = $this->generateProdGrpCd();
+                        $item['prod_grp_cd'] = $prodGrpCd;
+                        $item['sku'] = $item['prod_grp_cd'] .'-'. $item['versionid'] .'-'. $item['colourid'];
                     }
+                    if ($product or (empty(trim($item['esg_sku'])) && $item['sku'])) {
+                        \DB::beginTransaction();
+                        \DB::connection('mysql_esg')->beginTransaction();
+                        try {
+                            $this->createOrUpdateProduct($item);
+                            $this->createOrUpdateProductFeatures($item);
+                            $this->createOrUpdateSupplierProd($item);
+                            $this->createOrUpdateMerchantProductMapping($item);
+                            $this->createOrUpdateProductContent($item);
+                            \DB::connection('mysql_esg')->commit();
+                            \DB::commit();
+                        } catch (\Exception $e) {
+                            \DB::connection('mysql_esg')->rollBack();
+                            \DB::rollBack();
+                            mail('will.zhang@eservicesgroup.com', 'Product Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                        }
+                    }
+
                 }
             });
         }
     }
 
-    private function createProduct($item = [])
+    private function createOrUpdateProduct($item = [])
     {
         $object = [];
         $object['sku'] = (string) $item['sku'];
-        $object['prod_grp_cd'] = (int) $item['prod_grp_cd'];
+        if (isset($item['prod_grp_cd'])) {
+            $object['prod_grp_cd'] = (int) $item['prod_grp_cd'];
+        }
         $object['prod_grp_cd_name'] = (string) trim($item['productgrpname']);
         $object['colour_id'] = (string) trim($item['colourid']);
         $object['version_id'] = (string) trim($item['versionid']);
@@ -452,13 +462,14 @@ class ProductService
         $object['fragile'] = (int) $item['fragile'];
         $object['battery'] = (int) $item['battery'];
         $object['sku_type'] = (int) $item['sku_type'];
-        $product = Product::firstOrCreate($object);
+        $product = Product::updateOrCreate([ 'sku' => $object['sku'] ], $object);
     }
 
-    private function createProductFeatures($item = [])
+    private function createOrUpdateProductFeatures($item = [])
     {
         $object = [];
         $object['esg_sku'] = (string) $item['sku'];
+        ProductFeatures::where('esg_sku', '=', $object['esg_sku'])->delete();
         for ($i=1; $i <= 6; $i++) {
             $features_point = 'features_point_'.$i;
             if (trim($item[$features_point]) != '') {
@@ -468,11 +479,12 @@ class ProductService
         }
     }
 
-    private function createSupplierProd($item = [])
+    private function createOrUpdateSupplierProd($item = [])
     {
         $object = [];
         $object['prod_sku'] = (string) $item['sku'];
         $object['supplier_id'] = (int) $item['supplier_id'];
+        SupplierProd::where('prod_sku', '=', $object['prod_sku'])->where('supplier_id', '=', $object['supplier_id'])->delete();
         $object['qty_per_carton'] = (int) $item['qtypercarton'];
         $object['carton_per_pallet'] = (int) $item['cartonperpallet'];
         $object['currency_id'] = (string) $item['currency'];
@@ -482,7 +494,7 @@ class ProductService
         $supplierProd = SupplierProd::firstOrCreate($object);
     }
 
-    private function createMerchantProductMapping($item = [])
+    private function createOrUpdateMerchantProductMapping($item = [])
     {
         $object = [];
         $object['sku'] = (string) $item['sku'];
@@ -491,6 +503,19 @@ class ProductService
         $object['version_id'] = (string) $item['versionid'];
         $object['colour_id'] = (string) $item['colourid'];
         return $merchantProductMapping = MerchantProductMapping::firstOrCreate($object);
+     }
+
+     private function createOrUpdateProductContent($item = [])
+     {
+        $object = [];
+        $object['prod_sku'] = (string) $item['sku'];
+        $object['lang_id'] = 'en';
+        $object['prod_name'] = (string) trim($item['productname']);
+        $object['short_desc'] = (string) trim($item['detail_description']);
+        $object['contents'] = (string) trim($item['detail_description']);
+        $object['model_1'] = (string) trim($item['model_1']);
+        $object['detail_desc'] = (string) trim($item['detail_description']);
+        $productContent = ProductContent::updateOrCreate(['prod_sku' => $item['sku'], 'lang_id' => 'en'], $object);
      }
 
     /***

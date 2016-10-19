@@ -179,7 +179,8 @@ class LazadaCore
      */
     private function convert($xml)
     {
-        if ($xml != '') {
+       $xmlParser = xml_parser_create();   
+       if(xml_parse($xmlParser,$xml,true)){   
             $obj = simplexml_load_string($xml);
             $array = json_decode(json_encode($obj), true);
             if (is_array($array)) {
@@ -188,7 +189,6 @@ class LazadaCore
                 return $array;
             }
         }
-
         return null;
     }
 
