@@ -40,6 +40,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		$originOrderList = $this->getOrderList($storeName);
         if($originOrderList){
         	foreach($originOrderList as $order){
+                \DB::beginTransaction();
 				if (isset($order['AddressShipping'])) {
 					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
 				}
@@ -49,7 +50,11 @@ class ApiLazadaService implements ApiPlatformInterface
 					foreach($originOrderItemList as $orderItem){
 						$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
 					}
-				}
+                     \DB::commit();
+				}else{
+                    \DB::rollBack();
+                    return false;
+                }
 			}
 			return true;
         }
