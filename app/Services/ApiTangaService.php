@@ -11,6 +11,7 @@ use App\Models\Schedule;
 //use tanga api package
 use App\Repository\TangaMws\TangaOrder;
 use App\Repository\TangaMws\TangaOrderList;
+use App\Repository\TangaMws\TangaOrderUpdate;
 
 class ApiTangaService  implements ApiPlatformInterface
 {
@@ -68,6 +69,33 @@ class ApiTangaService  implements ApiPlatformInterface
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
+        $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+        $platform_order_id = $esgOrder->platform_order_id;
+        $tracking_no = $esgOrderShipment->tracking_no;
+
+        $this->tangaOrderUpdate = new TangaOrderUpdate($storeName);
+        $this->tangaOrderUpdate->setOrderId($platform_order_id);
+        $this->tangaOrderUpdate->setTrackingNumber($tracking_no);
+        $responseData = $this->tangaOrderUpdate->updateTrackingNumber();
+        if ( isset($responseData['status']) && $responseData['status'] == 'ok') {
+            return true;
+        }
+
+        if ( isset($responseData['error']) ) {
+            $email = 'brave.liu@eservicesgroup.com';
+            $subject = "Error, import tracking to tanga";
+            $msg = $responseData['error'] . "\r\n\r\nplatform_order_id: $platform_order_id, tracking_no: $tracking_no";
+            $this->sendMailMessage($email, $subject, $msg);
+
+            return false;
+        }
+
+        return false;
+    }
+
+    public function getShipedOrderState()
+    {
+        return  "Shipped";
     }
 
     //update or insert data to database
