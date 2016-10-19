@@ -396,9 +396,7 @@ class ProductService
 
     public function handleUploadFile($fileName = '')
     {
-        // echo $fileName;
         if (file_exists($fileName)) {
-            $productData = [];
             Excel::selectSheetsByIndex(0)->load($fileName, function ($reader) {
                 $sheetItems = $reader->all();
                 $sheetItems = $sheetItems->toArray();
@@ -406,26 +404,28 @@ class ProductService
                 foreach ($sheetItems as $item) {
                     if (trim($item['esg_sku'])) {
                         $item['sku'] = $item['esg_sku'];
+                        $product = Product::whereSku($item['sku'])->first();
                     } else {
                         $prodGrpCd = $this->generateProdGrpCd();
                         $item['prod_grp_cd'] = $prodGrpCd;
                         $item['sku'] = $item['prod_grp_cd'] .'-'. $item['versionid'] .'-'. $item['colourid'];
                     }
-                    \Log::info($item);
-                    \DB::beginTransaction();
-                    \DB::connection('mysql_esg')->beginTransaction();
-                    try {
-                        $this->createOrUpdateProduct($item);
-                        $this->createOrUpdateProductFeatures($item);
-                        $this->createOrUpdateSupplierProd($item);
-                        $this->createOrUpdateMerchantProductMapping($item);
-                        $this->createOrUpdateProductContent($item);
-                        \DB::connection('mysql_esg')->commit();
-                        \DB::commit();
-                    } catch (\Exception $e) {
-                        \DB::connection('mysql_esg')->rollBack();
-                        \DB::rollBack();
-                        mail('will.zhang@eservicesgroup.com', 'Product Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                    if ($product or (empty(trim($item['esg_sku'])) && $item['sku'])) {
+                        \DB::beginTransaction();
+                        \DB::connection('mysql_esg')->beginTransaction();
+                        try {
+                            $this->createOrUpdateProduct($item);
+                            $this->createOrUpdateProductFeatures($item);
+                            $this->createOrUpdateSupplierProd($item);
+                            $this->createOrUpdateMerchantProductMapping($item);
+                            $this->createOrUpdateProductContent($item);
+                            \DB::connection('mysql_esg')->commit();
+                            \DB::commit();
+                        } catch (\Exception $e) {
+                            \DB::connection('mysql_esg')->rollBack();
+                            \DB::rollBack();
+                            mail('will.zhang@eservicesgroup.com', 'Product Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                        }
                     }
 
                 }
