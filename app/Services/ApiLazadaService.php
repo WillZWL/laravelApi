@@ -138,6 +138,7 @@ class ApiLazadaService implements ApiPlatformInterface
                             $orderIdList[] = $order->platform_order_id;
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
                             //parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                            //parent::updatePlatformMarketInventory($order,$warehouseInventory["updateObject"]);
                             $returnData[$order->so_no] = " Set Ready To Ship Success\r\n";
                         }else{
                             $returnData[$order->so_no] = " Set Ready To Ship Failed\r\n";

@@ -25,6 +25,8 @@ class PlatformMarketOrderService
 
     public function getOrderDetails($id)
     {
-        return $this->orderRepository->getOrderDetails($id);
+        $platformOrder = $this->orderRepository->getOrderDetails($id);
+        $newPlatformOrder = $this->orderRepository->getMattelSkuMapping($platformOrder);
+        return $platformOrder;
     }
 }
