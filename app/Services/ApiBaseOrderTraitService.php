@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
 use App\Models\InvMovement;
+use App\Models\PlatformMarketInventory;
 /**
 *
 */ 
@@ -99,6 +100,26 @@ trait ApiBaseOrderTraitService
                 ],
                 $object
             );
+        }
+    }
+
+    public function updatePlatformMarketInventory($order,$updateObject)
+    {
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
+        $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$updateObject["sku"])
+                ->where("marketplace_id","=",$marketplaceId)
+                ->where("country_id","=",$countryCode)
+                ->with('merchantProductMapping')
+                ->first();
+        $platformMarketInventory = PlatformMarketInventory::where("store_id",$order->store_id)
+                ->where("warehouse_id",$updateObject["warehouse_id"])
+                ->where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
+                ->first();
+        if($platformMarketInventory){
+            $remainInventroy = $platformMarketInventory->inventory - $updateObject["qty"];
+            $platformMarketInventory->inventory = $remainInventroy;
+            $platformMarketInventory->save();
         }
     }
 

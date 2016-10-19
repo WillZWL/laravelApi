@@ -4,6 +4,10 @@ namespace App\Repository;
 
 use Illuminate\Http\Request;
 use App\Models\PlatformMarketOrder;
+use App\Models\Store;
+use App\Models\MarketplaceSkuMapping;
+use App\Models\StoreWarehouse;
+use App\Models\MattelSkuMapping;
 
 class PlatformMarketOrderRepository
 {
@@ -34,5 +38,24 @@ class PlatformMarketOrderRepository
         return PlatformMarketOrder::with('platformMarketOrderItem')
             ->with('platformMarketShippingAddress')
             ->where('id', $id)->get();
+    }
+
+    public function getMattelSkuMapping(PlatformMarketOrder $platformMarketOrder)
+    {
+        $gourpOrderItems = new Collection();
+        $store = Store::find($platformMarketOrder->store_id);
+        $storeWarehouse = StoreWarehouse::where('store_id',$platformMarketOrder->store_id)->first();
+        foreach ($platformMarketOrder->platformMarketOrderItem as $key => $OrderItems) {
+            $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$OrderItems->seller_sku)
+                        ->where("marketplace_id","=",$store->marketplace)
+                        ->where("country_id","=",$store->country)
+                        ->with('merchantProductMapping')
+                        ->first();
+            $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
+                     ->where('warehouse_id',$storeWarehouse->warehouse_id)
+                     ->first();
+
+        }
+        return $mattelSkuMapping;
     }
 }
