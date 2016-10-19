@@ -37,7 +37,7 @@ class PlatformMarketOrderRepository
     {
         return PlatformMarketOrder::with('platformMarketOrderItem')
             ->with('platformMarketShippingAddress')
-            ->find('id', $id)->get();
+            ->where('id', $id)->get();
     }
 
     public function getMattelDcSkuMappingOrderItems($platformMarketOrder)
@@ -54,9 +54,8 @@ class PlatformMarketOrderRepository
             $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
                      ->where('warehouse_id',$storeWarehouse->warehouse_id)
                      ->first();
+            $orderItem->platform_order_id = $platformMarketOrder->platform_order_no;
             $orderItem->seller_sku = $mattelSkuMapping->dc_sku;
-            $orderItems[]=$orderItem;
         }
-        return $orderItems;
     }
 }
