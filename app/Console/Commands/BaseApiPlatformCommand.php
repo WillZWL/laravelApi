@@ -11,7 +11,7 @@ use Config;
 
 abstract class BaseApiPlatformCommand extends Command
 {
-    public $platfromMakert = array('lazada','priceminister', 'newegg');
+    public $platfromMakert = array('lazada','priceminister', 'newegg', 'tanga');
     abstract public function runApiPlatformServiceFunction($stores, $apiName);
 
     public function __construct()
@@ -23,7 +23,7 @@ abstract class BaseApiPlatformCommand extends Command
     {
         return App::make('App\Services\ApiPlatformFactoryService', array('apiName' => $apiName));
     }
-    
+
     public function getApiPlatformProductFactoryService($apiName)
     {
         return App::make('App\Services\ApiPlatformProductFactoryService', array('apiName' => $apiName));
