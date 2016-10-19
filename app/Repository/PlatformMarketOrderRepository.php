@@ -37,25 +37,26 @@ class PlatformMarketOrderRepository
     {
         return PlatformMarketOrder::with('platformMarketOrderItem')
             ->with('platformMarketShippingAddress')
-            ->where('id', $id)->get();
+            ->find('id', $id)->get();
     }
 
-    public function getMattelSkuMapping(PlatformMarketOrder $platformMarketOrder)
+    public function getMattelDcSkuMappingOrderItems($platformMarketOrder)
     {
-        $gourpOrderItems = new Collection();
         $store = Store::find($platformMarketOrder->store_id);
+        $marketplaceId = $store->store_name.$store->marketplace;
         $storeWarehouse = StoreWarehouse::where('store_id',$platformMarketOrder->store_id)->first();
-        foreach ($platformMarketOrder->platformMarketOrderItem as $key => $OrderItems) {
-            $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$OrderItems->seller_sku)
-                        ->where("marketplace_id","=",$store->marketplace)
+        foreach ($platformMarketOrder->platformMarketOrderItem as $key => $orderItem) {
+            $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$orderItem->seller_sku)
+                        ->where("marketplace_id","=",$marketplaceId)
                         ->where("country_id","=",$store->country)
                         ->with('merchantProductMapping')
                         ->first();
             $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
                      ->where('warehouse_id',$storeWarehouse->warehouse_id)
                      ->first();
-
+            $orderItem->seller_sku = $mattelSkuMapping->dc_sku;
+            $orderItems[]=$orderItem;
         }
-        return $mattelSkuMapping;
+        return $orderItems;
     }
 }
