@@ -40,30 +40,24 @@ class ApiLazadaService implements ApiPlatformInterface
 		$originOrderList = $this->getOrderList($storeName);
         if($originOrderList){
         	foreach($originOrderList as $order){
-                \DB::beginTransaction();
-				if (isset($order['AddressShipping'])) {
-					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
-				}
-				$this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
-				$originOrderItemList=$this->getOrderItemList($storeName,$order["OrderId"]);
-				if($originOrderItemList){
-					foreach($originOrderItemList as $orderItem){
+                if(isset($order["OrderItems"])){
+    				if (isset($order['AddressShipping'])) {
+    					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
+    				}
+				    $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+					foreach($order["OrderItems"] as $orderItem){
 						$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
 					}
-                     \DB::commit();
-				}else{
-                    \DB::rollBack();
-                    return false;
-                }
+				}
 			}
-			return true;
+            return true;
         }
 	}
 
 	public function getOrder($storeName,$orderId)
 	{
-		$this->lazadaOrder=new LazadaOrder($storeName);
-		$this->storeCurrency=$this->lazadaOrder->getStoreCurrency();
+		$this->lazadaOrder = new LazadaOrder($storeName);
+		$this->storeCurrency = $this->lazadaOrder->getStoreCurrency();
 		$this->lazadaOrder->setOrderId($orderId);
 		$returnData = $this->lazadaOrder->fetchOrder();
 		return $returnData;
@@ -71,13 +65,26 @@ class ApiLazadaService implements ApiPlatformInterface
 
 	public function getOrderList($storeName)
 	{
+        $newOrderList = null;
 		$this->lazadaOrderList=new LazadaOrderList($storeName);
 		$this->storeCurrency=$this->lazadaOrderList->getStoreCurrency();
-		$dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
+		$dateTime = date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
 		$this->lazadaOrderList->setUpdatedAfter($dateTime);
-		$originOrderList=$this->lazadaOrderList->fetchOrderList();
-		$this->saveDataToFile(serialize($originOrderList),"getOrderList");
-        return $originOrderList;
+		$originOrderList = $this->lazadaOrderList->fetchOrderList();
+        $this->saveDataToFile(serialize($originOrderList),"getOrderList");
+        if($originOrderList){
+            foreach ($originOrderList as $order) {
+                $orderIdList[] = $order['OrderId'];
+                $newOrderList[$order['OrderId']] = $order;
+            }
+            $multipleOrderItems = $this->getMultipleOrderItems($storeName,$orderIdList);
+            if($multipleOrderItems){
+                foreach ($multipleOrderItems as $orderItems) {
+                $newOrderList[$orderItems["OrderId"]]["OrderItems"] = $orderItems["OrderItems"];
+                }
+                return $newOrderList;
+            } 
+        }
 	}
 
     public function getPendingOrderList($storeName)
