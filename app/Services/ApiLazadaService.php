@@ -40,6 +40,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		$originOrderList = $this->getOrderList($storeName);
         if($originOrderList){
         	foreach($originOrderList as $order){
+                \DB::beginTransaction();
 				if (isset($order['AddressShipping'])) {
 					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
 				}
@@ -49,7 +50,11 @@ class ApiLazadaService implements ApiPlatformInterface
 					foreach($originOrderItemList as $orderItem){
 						$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
 					}
-				}
+                     \DB::commit();
+				}else{
+                    \DB::rollBack();
+                    return false;
+                }
 			}
 			return true;
         }
@@ -133,6 +138,7 @@ class ApiLazadaService implements ApiPlatformInterface
                             $orderIdList[] = $order->platform_order_id;
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
                             //parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                            //parent::updatePlatformMarketInventory($order,$warehouseInventory["updateObject"]);
                             $returnData[$order->so_no] = " Set Ready To Ship Success\r\n";
                         }else{
                             $returnData[$order->so_no] = " Set Ready To Ship Failed\r\n";
@@ -707,7 +713,6 @@ class ApiLazadaService implements ApiPlatformInterface
                     );
                 break;
            case 'ES_DGME':
-           case '4PX_DGPL':
                 $shipmentProvider = array(
                     "MY" => "AS-Poslaju",      
                     "SG" => "LGS-SG3",                
