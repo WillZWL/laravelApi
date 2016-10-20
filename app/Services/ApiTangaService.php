@@ -83,7 +83,7 @@ class ApiTangaService  implements ApiPlatformInterface
         $responseData = $this->tangaOrderUpdate->updateTrackingNumber($requestData);
         $this->saveDataToFile(serialize($responseData),"responseTangaOrderTracking");
 
-        if ( isset($responseData['shipment']) && $responseData['shipment']->tracking_number == $tracking_no) {
+        if ( isset($responseData['shipment']) && $responseData['shipment']['tracking_number'] == $tracking_no) {
             return true;
         }
 
