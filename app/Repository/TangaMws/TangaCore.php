@@ -62,17 +62,20 @@ class TangaCore
         return $data;
     }
 
-    public function curlPostData($data)
+    public function curlPostData($requestData)
     {
+        $dataString = http_build_query($requestData, '', '&', PHP_QUERY_RFC3986);
+
         $header[] = 'Accept: application/json';
         $header[] = 'Content-Type: application/x-www-form-urlencoded';
+        $header[] = 'Content-Length: ' . strlen($dataString);
 
         $ch = curl_init();
 
         curl_setopt($ch, CURLOPT_POST, 1);
         curl_setopt($ch, CURLOPT_URL, $this->url . $this->tangaPath);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $dataString);
         curl_setopt($ch, CURLOPT_USERPWD, $this->userId .":". $this->password);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -86,19 +89,6 @@ class TangaCore
         }
 
         return false;
-
-        // $cmd = 'curl -X POST \
-        //         --header "Content-Type: application/x-www-form-urlencoded" \
-        //         --header "Accept: application/json" \
-        //         -u '. $this->userId .':'. $this->password .' \
-        //         -d "'. $data .'" \
-        //         "'. $this->url . $this->tangaPath .'"';
-        // print $cmd."\r\n";
-        // exec($cmd,$result);
-        // $data = $result[0];
-        // $response = (array) json_decode($data);
-
-        // return $response;
     }
 
     public function postDataToAPI($postData, $type = '')

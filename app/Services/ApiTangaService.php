@@ -73,11 +73,17 @@ class ApiTangaService  implements ApiPlatformInterface
         $platform_order_id = $esgOrder->platform_order_id;
         $tracking_no = $esgOrderShipment->tracking_no;
 
+
         $this->tangaOrderUpdate = new TangaOrderUpdate($storeName);
         $this->tangaOrderUpdate->setOrderId($platform_order_id);
         $this->tangaOrderUpdate->setTrackingNumber($tracking_no);
-        $responseData = $this->tangaOrderUpdate->updateTrackingNumber();
-        if ( isset($responseData['status']) && $responseData['status'] == 'ok') {
+        $requestData = $this->tangaOrderUpdate->getRequestTrackingData();
+        $this->saveDataToFile(serialize($requestData),"requestTangaOrderTracking");
+
+        $responseData = $this->tangaOrderUpdate->updateTrackingNumber($requestData);
+        $this->saveDataToFile(serialize($responseData),"responseTangaOrderTracking");
+
+        if ( isset($responseData['shipment']) && $responseData['shipment']->tracking_number == $tracking_no) {
             return true;
         }
 
