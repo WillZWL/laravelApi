@@ -73,14 +73,14 @@ return [
             'currency'=>'IDR',
         ],
 
-        'MDLAZADAMY' => [
+        /*'MDLAZADAMY' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelmy@eservicesgroup.com', 
             'apiToken' => '5d89e6945a21e101e57884095318a2d88207ee54',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
             'currency'=>'MYR',
         ],
-        /*'MDLAZADASG' => [
+        'MDLAZADASG' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelsg@eservicesgroup.com', 
             'apiToken' => '',
