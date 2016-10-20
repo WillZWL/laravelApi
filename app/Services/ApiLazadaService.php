@@ -45,8 +45,14 @@ class ApiLazadaService implements ApiPlatformInterface
     					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
     				}
 				    $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
-					foreach($order["OrderItems"] as $orderItem){
-						$this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+					foreach($order["OrderItems"] as $orderItems){
+						if(isset($orderItems["OrderItemId"])){
+                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItems);
+                        }else{
+                            foreach ($orderItems as $orderItem) {
+                                $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                            }
+                        }
 					}
 				}
 			}
