@@ -84,7 +84,8 @@ class TangaCore
         $info = curl_getinfo($ch);
         curl_close($ch);
         if ($data) {
-            $response = (array) json_decode($data);
+            $response = $this->convert($data);
+
             return $response;
         }
 
