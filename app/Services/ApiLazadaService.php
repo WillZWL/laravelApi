@@ -152,12 +152,12 @@ class ApiLazadaService implements ApiPlatformInterface
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
                             //parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
                             //parent::updatePlatformMarketInventory($order,$warehouseInventory["updateObject"]);
-                            $returnData[$order->so_no] = " Set Ready To Ship Success\r\n";
+                            $returnData[$order->platform_order_no] = " Set Ready To Ship Success\r\n";
                         }else{
-                            $returnData[$order->so_no] = " Set Ready To Ship Failed\r\n";
+                            $returnData[$order->platform_order_no] = " Set Ready To Ship Failed\r\n";
                         }
                     }else{
-                        $returnData[$order->so_no] = "Shipment Provider is not exit in lazada admin system.";
+                        $returnData[$order->platform_order_no] = "Shipment Provider is not exit in lazada admin system.";
                     }
                // }
             }
@@ -326,7 +326,6 @@ class ApiLazadaService implements ApiPlatformInterface
                     );
                 PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
                 So::where('platform_order_id',$order['OrderNumber'])->update(['status' => 5]);
-                
                 foreach($order["OrderItems"] as $orderItem){
                     $object = array(
                         'platform_order_id' => $order["OrderId"],
