@@ -25,6 +25,10 @@ class PlatformMarketOrderService
 
     public function getOrderDetails($id)
     {
-        return $this->orderRepository->getOrderDetails($id);
+        $platformOrders = $this->orderRepository->getOrderDetails($id);
+        foreach ($platformOrders as $key => $platformOrder) {
+            $this->orderRepository->getMattelDcSkuMappingOrderItems($platformOrder);
+        }
+        return $platformOrders;
     }
 }

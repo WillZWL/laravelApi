@@ -489,6 +489,7 @@ class ProductService
         $object['carton_per_pallet'] = (int) $item['cartonperpallet'];
         $object['currency_id'] = (string) $item['currency'];
         $object['cost'] = (float) $item['cost'];
+        $object['declared_value_currency_id'] = (string) $item['declaredvaluecurrency'];
         $object['declared_value'] = (float) $item['declaredvalue'];
         $object['order_default'] = 1;
         $supplierProd = SupplierProd::firstOrCreate($object);
