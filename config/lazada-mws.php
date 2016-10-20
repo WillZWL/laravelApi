@@ -86,14 +86,14 @@ return [
             'apiToken' => '',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
             'currency'=>'SGD',
-        ],
+        ],*/
         'MDLAZADATH' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelth@eservicesgroup.com', 
             'apiToken' => '',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
             'currency'=>'THB',
-        ],*/
+        ],
         'MDLAZADAPH' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelph@eservicesgroup.com', 
@@ -101,14 +101,14 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.ph/',
             'currency'=>'PHP',
         ],
-        /*'MDLAZADAID' => [
+       'MDLAZADAID' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelid@eservicesgroup.com', 
             'apiToken' => '',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
         ],
-        'MDLAZADAVN' => [
+         /*'MDLAZADAVN' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelvn@eservicesgroup.com', 
             'apiToken' => '',
