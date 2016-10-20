@@ -13,15 +13,17 @@ class TangaOrderUpdate extends TangaOrderCore
         $this->settangaPath();
     }
 
-    public function updateTrackingNumber()
+    public function updateTrackingNumber($requestData)
     {
 
-        return $this->curlPostData($this->getRequestData());
+        return $this->curlPostData($requestData);
     }
 
-    protected function getRequestData()
+    public function getRequestTrackingData()
     {
-        $requestData = "tracking_number=".$this->getTrackingNumber()."&order_id=".$this->getOrderId();
+        $requestData = [];
+        $requestData['package_id'] = $this->getOrderId();
+        $requestData['tracking_number'] = $this->getTrackingNumber();
 
         return $requestData;
     }

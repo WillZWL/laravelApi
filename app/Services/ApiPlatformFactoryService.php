@@ -41,12 +41,12 @@ class ApiPlatformFactoryService
             if(in_array($bizType, $orderFufillmentByGroup)){
                 $this->submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList);
             }else{
-                $this->submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList);
+                $this->submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList,$bizType);
             }
         }
     }
     //1 post one by one
-    public function submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList)
+    public function submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList,$bizType='')
     {
         foreach ($esgOrders as $esgOrder) {
             $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
@@ -54,7 +54,7 @@ class ApiPlatformFactoryService
                 $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
                 if ($response == true) {
                     $orderState = $this->apiPlatformInterface->getShipedOrderState();
-                    $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
+                    $this->updateEsgMarketOrderStatus($esgOrder,$orderState,$bizType);
                     if ($esgOrder->bizType == 'Amazon') {
                         $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
                     }
@@ -89,11 +89,11 @@ class ApiPlatformFactoryService
         }
     }
 
-    private function updateEsgMarketOrderStatus($esgOrder,$orderState)
+    private function updateEsgMarketOrderStatus($esgOrder,$orderState,$bizType='')
     {
         try {
             $this->markSplitOrderShipped($esgOrder);
-            $this->markPlatformMarketOrderShipped($esgOrder->platform_order_id,$orderState);
+            $this->markPlatformMarketOrderShipped($esgOrder->platform_order_id,$orderState,$bizType);
         } catch(Exception $e) {
             echo 'Message: ' .$e->getMessage();
         }
@@ -391,10 +391,16 @@ class ApiPlatformFactoryService
         return $esgStatus[$status];
     }
 
-    public function markPlatformMarketOrderShipped($orderId,$orderState,$esgOrderStatus='')
+    public function markPlatformMarketOrderShipped($orderId,$orderState,$bizType)
     {
-        $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
-                            ->firstOrFail();
+        if ($bizType == 'Tanga') {
+            $platformMarketOrder = PlatformMarketOrder::where('platform_order_no', '=', $orderId)
+                ->firstOrFail();
+        } else {
+            $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
+                ->firstOrFail();
+        }
+
         if ($platformMarketOrder) {
             $platformMarketOrder->order_status = $orderState;
             $platformMarketOrder->esg_order_status = 6;
