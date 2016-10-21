@@ -154,7 +154,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
         }
     }
 
-    public function submitProductCreate($storeName)
+    public function submitProductCreate($storeName,$productGroup)
     {
 
     }
