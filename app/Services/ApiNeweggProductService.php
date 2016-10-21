@@ -142,7 +142,7 @@ class ApiNeweggProductService implements ApiPlatformProductInterface
         }
     }
 
-    public function submitProductCreate($storeName)
+    public function submitProductCreate($storeName,$productGroup)
     {
 
     }
