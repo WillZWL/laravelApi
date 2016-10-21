@@ -51,11 +51,10 @@ class MattelSkuMappingService
         $object['warehouse_id'] = $item['warehouse_id'];
         $object['mattel_sku'] = $item['mattel_sku'];
         $object['dc_sku'] = $item['dc_sku'];
-        $mattelSkuMapping = MattelSkuMapping::firstOrCreate(
+        $mattelSkuMapping = MattelSkuMapping::updateOrCreate(
                 [
                     'warehouse_id' => $object['warehouse_id'],
                     'mattel_sku' => $object['mattel_sku'],
-                    'dc_sku' => $object['dc_sku'],
                 ],
                 $object
             );
