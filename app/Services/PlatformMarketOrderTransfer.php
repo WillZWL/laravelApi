@@ -396,6 +396,7 @@ class PlatformMarketOrderTransfer
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
             if(!$marginAndProfit->isEmpty()){
+                $profit = null;
                 if($marginAndProfit->get($item->mapping->delivery_type)){
                     $profit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
                 }
