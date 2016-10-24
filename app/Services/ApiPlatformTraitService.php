@@ -106,4 +106,24 @@ trait ApiPlatformTraitService
         }
     }
 
+    private function getPlatformSkuOrderedList($warehouseOrderGroup,$marketplaceSkuList)
+    {
+        $skuOrderedQtyList = null;$platformSkuOrderedList = null;
+        foreach($warehouseOrderGroup as $warehouseOrder){
+            if(isset($skuOrderedQtyList[$warehouseOrder->prod_sku])){
+                $skuOrderedQtyList[$warehouseOrder->prod_sku] +=$warehouseOrder->qty;
+            }else{
+                $skuOrderedQtyList[$warehouseOrder->prod_sku] =$warehouseOrder->qty;
+            }
+        }
+        foreach($marketplaceSkuList as $marketplaceSku){
+            if(isset($skuOrderedQtyList[$marketplaceSku["sku"]])){
+                $marketplaceSku["qty"] = $skuOrderedQtyList[$marketplaceSku["sku"]];
+            }
+            //can set only order show the product mapping info
+            $platformSkuOrderedList[$marketplaceSku["marketplace_sku"]] = $marketplaceSku;
+        }
+        return $platformSkuOrderedList;
+    }
+
 }
