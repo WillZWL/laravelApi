@@ -106,13 +106,13 @@ class PlatformMarketOrderTransfer
                 $validateService = new PriceministerValidateService($order);
                 break;
             case 'Fnac':
-                $validateService =new FnacValidateService($order);
+                $validateService = new FnacValidateService($order);
                 break;
             case 'Newegg':
                 $validateService = new NeweggValidateService($order);
                 break;
-           case 'Tanga':
-                $validateService =new TangaValidateService($order);
+            case 'Tanga':
+                $validateService = new TangaValidateService($order);
                 break;
            /* case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
@@ -198,13 +198,13 @@ class PlatformMarketOrderTransfer
                 //重新赋值delivery_type_id;
                 $so->delivery_type_id = 'FBA';
                 $so->dispatch_date = $order->latest_ship_date;
-            } else if ($order->fulfillment_channel === 'SBN') {
+            } elseif ($order->fulfillment_channel === 'SBN') {
                 $so->delivery_type_id = 'SBN';
                 $so->esg_quotation_courier_id = '132';
                 $so->dispatch_date = $order->latest_ship_date;
-            } else if ($order->biz_type == "Lazada"){
+            } elseif ($order->biz_type == "Lazada") {
                 $so->delivery_type_id = 'EXP';
-            }else{
+            } else {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
                     ->whereIn('delivery_type', ['EXP', 'EXPED', 'STD'])
@@ -395,19 +395,19 @@ class PlatformMarketOrderTransfer
             ]);
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if(!$marginAndProfit->isEmpty()){
+            if (!$marginAndProfit->isEmpty()) {
                 $profit = null;
-                if($marginAndProfit->get($item->mapping->delivery_type)){
-                    $profit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
+                if ($marginAndProfit->get($item->mapping->delivery_type)) {
+                    $profit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
                 }
-                if($profit){
-                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
-                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)->get('margin');
-                }else{
+                if ($profit) {
+                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
+                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)['margin'];
+                } else {
                     $selectedProfit = 0;
                     $selectedMargin = 0;
                 }
-            }else{
+            } else {
                 $selectedProfit = 0;
                 $selectedMargin = 0;
             }
@@ -728,12 +728,11 @@ class PlatformMarketOrderTransfer
             "newegg" => array('SBN')
         );
         $type = strtolower($order->biz_type);
-        if(isset($shippedFulfillment[$type]) && in_array($order->fulfillment_channel, $shippedFulfillment[$type])){
+        if (isset($shippedFulfillment[$type]) && in_array($order->fulfillment_channel, $shippedFulfillment[$type])) {
             $status = 6;
-        }else{
+        } else {
             $status = 3;
         }
         return $status;
     }
-
 }
