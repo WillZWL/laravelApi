@@ -311,19 +311,9 @@ class ApiLazadaService implements ApiPlatformInterface
             //Not allowed to change the preselected shipment provider
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             if($responseResult){
-                $result = true;
-                if(count($responseResult) > 1){
-                    foreach ($responseResult as $response) {
-                        if(!isset($response["PurchaseOrderId"]))
-                        $result = false;
-                    }
-                }else if(!isset($responseResult["PurchaseOrderId"])){
-                    $result = false;
-                }
-                return $result;
+                return true;
             }
         }
-        return false;
     }
 
     public function updateOrderStatusReadyToShip($storeName,$orderIdList)
