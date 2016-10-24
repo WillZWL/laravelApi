@@ -18,6 +18,6 @@ class SellingPlatform extends Model
 
     public function so()
     {
-        return $this->hasMany('App\Models\So', 'id', 'platform_id');
+        return $this->hasMany('App\Models\So', 'platform_id');
     }
 }
