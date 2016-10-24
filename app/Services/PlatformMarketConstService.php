@@ -30,14 +30,5 @@ abstract class PlatformMarketConstService
     const PENDING_PRODUCT = 32;//100000
     const COMPLETE_PRODUCT = 64;//1000000
 
-    public $platformAcronym = array(
-            'AZ' =>'AMAZON',
-            'LZ' =>'LAZADA',
-            'PM' => 'PRICEMINISTER',
-            'FN' => 'FNAC',
-            'QO' => 'QOO10',
-            'NE' => 'NEWEGG',
-            'TG' => 'TANGA',
-        );
 
 }
