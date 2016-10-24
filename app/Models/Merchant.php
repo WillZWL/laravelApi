@@ -27,4 +27,9 @@ class Merchant extends Model
     {
         return $this->hasMany('App\Models\MerchantQuotation', 'merchant_id', 'id');
     }
+
+    public function courierCostMarkup()
+    {
+        return $this->hasMany('App\Models\CourierCostMarkup');
+    }
 }

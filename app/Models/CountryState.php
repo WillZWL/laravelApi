@@ -43,6 +43,11 @@ class CountryState extends Model
 
     public function country()
     {
-        return $this->belongsTo('App\Models\Country', 'country_id', 'id');
+        return $this->belongsTo('App\Models\Country');
+    }
+
+    public function courierCost()
+    {
+        return $this->hasMany('App\Models\CourierCost');
     }
 }
