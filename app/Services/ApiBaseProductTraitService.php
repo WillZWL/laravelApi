@@ -11,6 +11,16 @@ use App\Models\WmsWarehouseMapping;
 trait ApiBaseProductTraitService  
 {
     use ApiPlatformTraitService;
+    public $platformAcronym = array(
+            'AZ' =>'AMAZON',
+            'LZ' =>'LAZADA',
+            'PM' => 'PRICEMINISTER',
+            'FN' => 'FNAC',
+            'QO' => 'QOO10',
+            'NE' => 'NEWEGG',
+            'TG' => 'TANGA',
+        );
+    
     public function updatePendingProductProcessStatus($processStatusProduct,$processStatus)
     {
         if ($processStatus == PlatformMarketConstService::PENDING_PRICE) {
