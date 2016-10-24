@@ -310,8 +310,20 @@ class ApiLazadaService implements ApiPlatformInterface
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
             //Not allowed to change the preselected shipment provider
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
+            if($responseResult){
+                $result = true;
+                if(count($responseResult) > 1){
+                    foreach ($responseResult as $response) {
+                        if(!isset($response["PurchaseOrderId"]))
+                        $result = false;
+                    }
+                }else if(!isset($responseResult["PurchaseOrderId"])){
+                    $result = false;
+                }
+                return $result;
+            }
         }
-        return (isset($responseResult["PurchaseOrderId"])) ? true : false;
+        return false;
     }
 
     public function updateOrderStatusReadyToShip($storeName,$orderIdList)
