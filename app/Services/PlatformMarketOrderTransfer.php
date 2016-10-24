@@ -492,7 +492,7 @@ class PlatformMarketOrderTransfer
         $acceleratorShipping = AcceleratorShipping::whereIn('merchant_id', [$merchantId, 'ALL'])
             ->whereIn('courier_type', $quotationTypes)
             ->where('country_id', $deliveryCountry)
-            ->orderBy('merchant')
+            ->orderBy('merchant_id')
             ->orderBy(\DB::raw('FIELD(warehouse, "HK", "DG", "4PXDG_PL")'))
             ->first();
 
