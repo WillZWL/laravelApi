@@ -18,6 +18,8 @@ use App\Models\ProductComplementaryAcc;
 use App\Models\SupplierProd;
 use App\Models\Warehouse;
 use App\Repository\DeliveryQuotationRepository;
+use App\Repository\AcceleratorShippingRepository;
+use App\Repository\MarketplaceProductRepository;
 
 class PricingService
 {
@@ -26,7 +28,6 @@ class PricingService
     private $exchangeRate;
     private $adjustRate = 0.9725;
     private $deliveryQuotationRepository;
-
 
     // TODO
     // 只处理 Pricing 相关的业务逻辑, 通过在 __construct() 中加入 repository 方式拆分逻辑
@@ -72,9 +73,7 @@ class PricingService
         $marketplaceFixedFee = $this->getMarketplaceFixedFee($marketplaceProduct);
         $paymentGatewayFee = $this->getPaymentGatewayFee($marketplaceProduct);
         $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($marketplaceProduct);
-
-        $availableDeliveryTypeWithCost = $this->deliveryQuotationRepository->getQuotationCost($marketplaceProduct);
-
+        $availableDeliveryTypeWithCost = $this->getShippingOptions($marketplaceProduct);
         $warehouseCost = $this->getWarehouseCost($marketplaceProduct);
         $supplierCost = $this->getSupplierCost($marketplaceProduct);
         $accessoryCost = $this->getAccessoryCost($marketplaceProduct);
@@ -90,15 +89,34 @@ class PricingService
         ]);
 
 
-        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingType) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $totalCostExcludeDeliveryCost) {
-            $shippingType->put('totalCost', $shippingType->get('deliveryCost') + $totalCostExcludeDeliveryCost);
-            $shippingType->put('profit', $totalCharged - $shippingType->get('totalCost'));
-            $shippingType->put('margin', round($shippingType->get('profit') / $sellingPrice * 100, 2));
+        $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->keyBy('deliveryType');
 
-            return $shippingType;
+        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $totalCostExcludeDeliveryCost) {
+            $options = [];
+            $option['deliveryCost'] = $shippingOption['cost'];
+            $option['totalCost'] = $totalCostExcludeDeliveryCost + $option['deliveryCost'];
+            $option['profit'] = $totalCharged - $option['totalCost'];
+            $option['margin'] = round($option['profit'] / $sellingPrice * 100, 2);
+            return $option;
         });
 
         return $availableShippingWithProfit;
+    }
+
+    public function getShippingOptions(MarketplaceSkuMapping $marketplaceProduct)
+    {
+        $this->shippingService = new ShippingService(new AcceleratorShippingRepository, new MarketplaceProductRepository);
+        $shippingOptions = $this->shippingService->shippingOptions($marketplaceProduct->id);
+
+        // convert HKD to target currency.
+        $currencyRate = $this->exchangeRate->rate;
+        $adjustRate = $this->adjustRate;
+        $shippingOptions->transform(function ($option) use ($currencyRate, $adjustRate) {
+            $option['cost'] = round($option['cost'] * $currencyRate / $adjustRate, 2);
+            return $option;
+        });
+
+        return $shippingOptions;
     }
 
     public function getMerchantType(MarketplaceSkuMapping $marketplaceProduct)
