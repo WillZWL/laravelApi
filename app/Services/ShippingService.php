@@ -42,6 +42,14 @@ class ShippingService
         $courierOptions = $this->shippingRepository->shippingOptions($merchant, $fromWarehouse, $deliveryCountry);
         $couriers = $courierOptions->pluck('courier_id', 'courier_type');
 
+        // Lazada only use EXP
+        $marketplace = substr($marketplaceProduct->mpControl->marketplace_id, 2);
+        if ($marketplace === 'LAZADA') {
+            $couriers = $couriers->filter(function ($item, $key) {
+                return ($key === 'acc_courier_exp');
+            });
+        }
+
         $battery = $marketplaceProduct->product->battery;
         $courierInfos = CourierInfo::findMany($couriers)->filter(function ($courierInfo) use ($battery) {
             if ($battery === 1) {
