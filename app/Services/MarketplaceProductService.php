@@ -21,15 +21,15 @@ class MarketplaceProductService
     public function search(MarketplaceProductSearchRequest $searchRequest)
     {
         $products = MarketplaceProductSearch::apply($searchRequest);
-
         $products->map(function ($product) {
             $profitRequest = new ProfitEstimateRequest();
             $profitRequest->merge([
                 'id' => $product->id,
                 'selling_price' => $product->price,
             ]);
-            $availableShppingWithProfit = $this->estimate($profitRequest);
-            $product->available_delivery_type = $availableShppingWithProfit;
+
+            $availableShippingWithProfit = $this->estimate($profitRequest);
+            $product->available_delivery_type = $availableShippingWithProfit;
             return $product;
         });
 

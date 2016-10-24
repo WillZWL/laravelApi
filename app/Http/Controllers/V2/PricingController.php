@@ -66,6 +66,7 @@ class PricingController extends Controller
         $result = [];
         foreach ($marketplaceSkuMapping as $mappingItem) {
             $request->merge([
+                'id' => $mappingItem->id,
                 'country' => $mappingItem->country_id,
                 'price' => $mappingItem->price,
                 'sku' => $mappingItem->sku,
@@ -111,6 +112,7 @@ class PricingController extends Controller
             ->firstOrFail();
 
         $request->merge([
+            'id' => $marketplaceMapping->id,
             'marketplace' => $marketplaceMapping->marketplace_id,
             'country' => $marketplaceMapping->country_id,
             'sku' => $marketplaceMapping->product->sku,
