@@ -118,6 +118,10 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('platform-market-inventory-upload/donwload-example-file/{file}', 'PlatformMarketInventoryController@donwloadExampleFile');
 
     $api->resource('orders', 'OrderController');
+
+    // quotation api (delivery charge)
+
+    $api->get('shipping-options/{id}', 'DeliveryController@getDeliveryOptionForSku');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['cors']], function ($api) {

@@ -4,22 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Country extends Model
+class AcceleratorShipping extends Model
 {
     public $connection = 'mysql_esg';
 
-    protected $table = 'country';
-
-    public $primaryKey = 'id';
+    protected $table = 'merchant_courier_master_shipping';
 
     public $timestamps = false;
 
     public $incrementing = false;
 
     protected $guarded = ['create_at'];
-
-    public function countryState()
-    {
-        return $this->hasMany('App\Models\CountryState');
-    }
 }

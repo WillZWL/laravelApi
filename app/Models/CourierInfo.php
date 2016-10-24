@@ -32,4 +32,14 @@ class CourierInfo extends Model
     {
         return $this->hasMany('App\Models\Quotation', 'courier_id', 'courier_id');
     }
+
+    public function deliveryTypeMapping()
+    {
+        return $this->hasOne('App\Models\DeliveryTypeMapping', 'courier_type', 'type');
+    }
+
+    public function courierCost()
+    {
+        return $this->hasMany('App\Models\CourierCost', 'courier_id');
+    }
 }
