@@ -75,10 +75,11 @@ class LazadaOrderStatus extends LazadaOrderCore
 
     protected function prepare($data = array())
     {
+        $message = "Results: " . print_r( $data, true);
+        mail('jimmy.gao@eservicesgroup.com', ' readytoship', $message);
         if (isset($data['Body']) && isset($data['Body']['OrderItems']) && isset($data['Body']['OrderItems']['OrderItem'])) {
             return $data['Body']['OrderItems']['OrderItem'];
         }
-
         return null;
     }
 
