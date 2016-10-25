@@ -311,7 +311,17 @@ class ApiLazadaService implements ApiPlatformInterface
             //Not allowed to change the preselected shipment provider
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             if($responseResult){
-                return true;
+                if(isset($responseResult["PurchaseOrderId"])){
+                    return true;
+                }else{
+                    $result = true;
+                    foreach ($responseResult as $response) {
+                       if(!isset($response["PurchaseOrderId"])){
+                            $result = false;
+                       }
+                    }
+                    return $result;
+                }
             }
         }
     }
@@ -422,8 +432,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
 		$this->lazadaOrderStatus->setDeliveryType("dropship");
 		$this->lazadaOrderStatus->setShippingProvider($shipmentProvider);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToPackedByMarketplace();
-		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToPackedByMarketplace");
+		$orginOrderItemList = $this->lazadaOrderStatus->setStatusToPackedByMarketplace();
         return $orginOrderItemList;
 	}
 
