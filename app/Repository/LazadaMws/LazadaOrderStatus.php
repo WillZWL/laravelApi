@@ -78,7 +78,6 @@ class LazadaOrderStatus extends LazadaOrderCore
         if (isset($data['Body']) && isset($data['Body']['OrderItems']) && isset($data['Body']['OrderItems']['OrderItem'])) {
             return $data['Body']['OrderItems']['OrderItem'];
         }
-
         return null;
     }
 

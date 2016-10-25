@@ -21,6 +21,8 @@ use App\Models\Quotation;
 use App\Models\SupplierProd;
 use App\Models\Warehouse;
 use App\Models\WeightCourier;
+use App\Repository\AcceleratorShippingRepository;
+use App\Repository\MarketplaceProductRepository;
 use Illuminate\Http\Request;
 
 class PricingToolService
@@ -57,7 +59,7 @@ class PricingToolService
         $marketplaceFixedFee = $this->getMarketplaceFixedFee($request);
         $paymentGatewayFee = $this->getPaymentGatewayFee($request);
         $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($request);
-        $freightCost = $this->getQuotationCost($request);
+        $shippingOptions = $this->getShippingOptions($request);
         $warehouseCost = $this->getWarehouseCost($request);
         $supplierCost = $this->getSupplierCost($request);
         $accessoryCost = $this->getAccessoryCost($request);
@@ -68,43 +70,43 @@ class PricingToolService
         $totalCharged = $request->input('price') + $deliveryCharge;
 
         $priceInfo = [];
-        $deliveryOptions = ['STD', 'EXPED', 'EXP', 'FBA', 'MCF'];
-        foreach ($deliveryOptions as $deliveryType) {
-            if (in_array($deliveryType, array_keys($freightCost))) {
-                $priceInfo[$deliveryType] = [];
-                $priceInfo[$deliveryType]['tax'] = $tax;
-                $priceInfo[$deliveryType]['duty'] = $duty;
-                $priceInfo[$deliveryType]['marketplaceCommission'] = $marketplaceCommission;
-                $priceInfo[$deliveryType]['marketplaceListingFee'] = $marketplaceListingFee;
-                $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
-                $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
-                $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
-                $priceInfo[$deliveryType]['freightCost'] = $freightCost[$deliveryType];
-                $priceInfo[$deliveryType]['warehouseCost'] = $warehouseCost;
-                $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
-                $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
-                $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
-                $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
-                $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
 
-                $priceInfo[$deliveryType]['price'] = $request->input('price');
-                $priceInfo[$deliveryType]['declaredValue'] = $declaredValue;
-                $priceInfo[$deliveryType]['totalCharged'] = $totalCharged;
-                $priceInfo[$deliveryType]['marketplaceSku'] = $request->input('marketplaceSku');
+        foreach ($shippingOptions as $shippingOption) {
+            $deliveryType = $shippingOption['deliveryType'];
 
-                if ($request->input('selectedDeliveryType') == $deliveryType) {
-                    $priceInfo[$deliveryType]['checked'] = 'checked';
-                } else {
-                    $priceInfo[$deliveryType]['checked'] = '';
-                }
+            $priceInfo[$deliveryType] = [];
+            $priceInfo[$deliveryType]['tax'] = $tax;
+            $priceInfo[$deliveryType]['duty'] = $duty;
+            $priceInfo[$deliveryType]['marketplaceCommission'] = $marketplaceCommission;
+            $priceInfo[$deliveryType]['marketplaceListingFee'] = $marketplaceListingFee;
+            $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
+            $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
+            $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
+            $priceInfo[$deliveryType]['freightCost'] = $shippingOption['cost'];
+            $priceInfo[$deliveryType]['warehouseCost'] = $warehouseCost;
+            $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
+            $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
+            $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
+            $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
+            $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
 
-                if ($request->input('price') > 0) {
-                    $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
-                    $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->input('price') * 100, 2);
-                } else {
-                    $priceInfo[$deliveryType]['profit'] = 'N/A';
-                    $priceInfo[$deliveryType]['margin'] = 'N/A';
-                }
+            $priceInfo[$deliveryType]['price'] = $request->input('price');
+            $priceInfo[$deliveryType]['declaredValue'] = $declaredValue;
+            $priceInfo[$deliveryType]['totalCharged'] = $totalCharged;
+            $priceInfo[$deliveryType]['marketplaceSku'] = $request->input('marketplaceSku');
+
+            if ($request->input('selectedDeliveryType') == $deliveryType) {
+                $priceInfo[$deliveryType]['checked'] = 'checked';
+            } else {
+                $priceInfo[$deliveryType]['checked'] = '';
+            }
+
+            if ($request->input('price') > 0) {
+                $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
+                $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->input('price') * 100, 2);
+            } else {
+                $priceInfo[$deliveryType]['profit'] = 'N/A';
+                $priceInfo[$deliveryType]['margin'] = 'N/A';
             }
         }
 
@@ -287,95 +289,20 @@ class PricingToolService
         return round($paymentGatewayAdminFee, 2);
     }
 
-    public function getQuotationCost(Request $request)
+    public function getShippingOptions(Request $request)
     {
-        $freightCost = [];
-        $quotation = new Quotation();
-        $quotationVersion = $quotation->getAcceleratorQuotationByProduct($this->product);
-
-        $actualWeight = WeightCourier::getWeightId($this->product->weight);
-        $volumeWeight = WeightCourier::getWeightId($this->product->vol_weight);
-        $battery = $this->product->battery;
-
-        if ($battery == 1) {
-            $quotationVersion->forget('acc_external_postage');
-        }
-
-        $marketplace = $request->get('marketplace');
-        $quotation = collect();
-        foreach ($quotationVersion as $quotationType => $quotationVersionId) {
-            // Lazada only use EXP.
-            if (substr($marketplace, 2) === 'LAZADA' && $quotationType !== 'acc_courier_exp') {
-                continue;
-            }
-
-            if (($quotationType == 'acc_builtin_postage') || ($quotationType == 'acc_external_postage')) {
-                $weight = $actualWeight;
-            } else {
-                $weight = max($actualWeight, $volumeWeight);
-            }
-
-            $quotationItem = Quotation::getQuotation($this->destination, $weight, $quotationVersionId);
-            if ($quotationItem) {
-                $quotation->push($quotationItem);
-            }
-        }
-
-        $availableQuotation = $quotation->filter(function ($quotationItem) use ($battery) {
-            switch ($battery) {
-                case '1':
-                    if ($quotationItem->courierInfo->allow_builtin_battery) {
-                        return true;
-                    }
-                    break;
-
-                case '2':
-                    if ($quotationItem->courierInfo->allow_external_battery) {
-                        return true;
-                    }
-                    break;
-
-                default:
-                    return true;
-                        break;
-            }
-        });
+        $this->shippingService = new ShippingService(new AcceleratorShippingRepository, new MarketplaceProductRepository);
+        $shippingOptions = $this->shippingService->shippingOptions($request->input('id'));
 
         // convert HKD to target currency.
         $currencyRate = $this->exchangeRate->rate;
         $adjustRate = $this->adjustRate;
-        $quotationCost = $availableQuotation->map(function ($item) use ($currencyRate, $adjustRate) {
-            $item->cost = round($item->cost * $currencyRate / $adjustRate, 2);
+        $shippingOptions->transform(function ($option) use ($currencyRate, $adjustRate) {
+            $option['cost'] = round($option['cost'] * $currencyRate / $adjustRate, 2);
+            return $option;
+        });
 
-            return $item;
-        })->pluck('cost', 'quotation_type')->toArray();
-
-        foreach ($quotationCost as $quotationType => $cost) {
-            switch ($quotationType) {
-                case 'acc_builtin_postage':
-                case 'acc_external_postage':
-                    $freightCost['STD'] = (isset($freightCost['STD']) ? min([$freightCost['STD'], $cost]) : $cost);
-                    break;
-
-                case 'acc_courier':
-                    $freightCost['EXPED'] = $cost;
-                    break;
-
-                case 'acc_courier_exp':
-                    $freightCost['EXP'] = $cost;
-                    break;
-
-                case 'acc_fba':
-                    $freightCost['FBA'] = $cost;
-                    break;
-
-                case 'acc_mcf':
-                    $freightCost['MCF'] = $cost;
-                    break;
-            }
-        }
-
-        return $freightCost;
+        return $shippingOptions;
     }
 
     public function getSupplierCost(Request $request)
@@ -404,12 +331,13 @@ class PricingToolService
             $weight = ($this->product->weight > $this->product->vol_weight)
                         ? $this->product->weight : $this->product->vol_weight;
 
-            $weight = ceil($weight);
+            // above 1kg, need to calculate addition weight.
+            $additionWeight = ceil($weight - 1);
 
             $cost = ( $warehouse->warehouseCost->book_in_fixed
-                    + $warehouse->warehouseCost->additional_book_in_per_kg * $weight
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight
                     + $warehouse->warehouseCost->pnp_fixed
-                    + $warehouse->warehouseCost->additional_pnp_per_kg * $weight )
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $additionWeight )
                 * $currencyRate * $this->adjustRate;
         }
 

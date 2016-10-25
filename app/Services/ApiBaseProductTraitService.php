@@ -3,13 +3,24 @@
 namespace App\Services;
 
 use App\Models\PlatformMarketProductFeed;
-
+use App\Models\MarketplaceSkuMapping;
+use App\Models\WmsWarehouseMapping;
 /**
 * 
 */
 trait ApiBaseProductTraitService  
 {
     use ApiPlatformTraitService;
+    public $platformAcronym = array(
+            'AZ' =>'AMAZON',
+            'LZ' =>'LAZADA',
+            'PM' => 'PRICEMINISTER',
+            'FN' => 'FNAC',
+            'QO' => 'QOO10',
+            'NE' => 'NEWEGG',
+            'TG' => 'TANGA',
+        );
+    
     public function updatePendingProductProcessStatus($processStatusProduct,$processStatus)
     {
         if ($processStatus == PlatformMarketConstService::PENDING_PRICE) {
@@ -81,5 +92,28 @@ trait ApiBaseProductTraitService
             ],
             $object
         );
+    }
+
+    public function getWmsWarehouseSkuOrderedList($warehouseOrderGroups)
+    {
+        $warehouseSkuOrderedList = array();
+        foreach($warehouseOrderGroups as $warehouseId => $warehouseOrderGroup){
+            $warehouseMapping = WmsWarehouseMapping::where("warehouse_id","=",$warehouseId)->first();
+            $platformPrefix = strtoupper(substr($warehouseMapping->platform_id, 3, 2));
+            $platformAcronym = strtoupper(substr($warehouseMapping->platform_id, 5, 2));
+            $countryCode = strtoupper(substr($warehouseMapping->platform_id, -2));
+            $marketplaceId = $platformPrefix.$this->platformAcronym[$platformAcronym];
+            $marketplaceSkuList = MarketplaceSkuMapping::join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
+                        ->join('brand', 'brand.id', '=', 'product.brand_id')
+                        ->join('sku_mapping', 'sku_mapping.sku', '=', 'product.sku')
+                        ->where("marketplace_id","=",$marketplaceId)
+                        ->where("country_id","=",$countryCode)
+                        ->select('marketplace_sku_mapping.sku','marketplace_sku_mapping.marketplace_sku','product.name as product_name','brand.brand_name','sku_mapping.ext_sku as master_sku')
+                        ->get()
+                        ->toArray();
+            $platformSkuOrderedList = $this->getPlatformSkuOrderedList($warehouseOrderGroup,$marketplaceSkuList);
+            $warehouseSkuOrderedList[$warehouseId] = $platformSkuOrderedList;
+        }
+        return $warehouseSkuOrderedList;
     }
 }

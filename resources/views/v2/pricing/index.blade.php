@@ -49,7 +49,7 @@
           <p>
             Supplier Name : <span class="text-danger"> {{ $selectedSku->supplierProduct->supplier->name }} </span> |
             Supply Status : <span class="text-danger"> {{ $lang[$selectedSku->supplierProduct->supplier_status] }}</span> |
-            Default WH : <span class="text-danger"> {{ $selectedSku->product->default_ship_to_warehouses or $selectedSku->product->merchantProductMapping->merchant->default_ship_to_warehouse }}</span> |
+            Default WH : <span class="text-danger"> {{ $selectedSku->product->default_ship_to_warehouse or $selectedSku->product->merchantProductMapping->merchant->default_ship_to_warehouse }}</span> |
             Surplus: <span class="text-danger"> {{ $selectedSku->product->surplus_quantity }} </span>
           </p>
           <p>

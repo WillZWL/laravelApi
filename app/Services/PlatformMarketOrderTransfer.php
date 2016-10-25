@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Http\Requests\ProfitEstimateRequest;
+use App\Models\AcceleratorShipping;
+use App\Models\DeliveryTypeMapping;
 use App\Repository\DeliveryQuotationRepository;
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
@@ -106,13 +108,13 @@ class PlatformMarketOrderTransfer
                 $validateService = new PriceministerValidateService($order);
                 break;
             case 'Fnac':
-                $validateService =new FnacValidateService($order);
+                $validateService = new FnacValidateService($order);
                 break;
             case 'Newegg':
                 $validateService = new NeweggValidateService($order);
                 break;
-           case 'Tanga':
-                $validateService =new TangaValidateService($order);
+            case 'Tanga':
+                $validateService = new TangaValidateService($order);
                 break;
            /* case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
@@ -198,13 +200,13 @@ class PlatformMarketOrderTransfer
                 //重新赋值delivery_type_id;
                 $so->delivery_type_id = 'FBA';
                 $so->dispatch_date = $order->latest_ship_date;
-            } else if ($order->fulfillment_channel === 'SBN') {
+            } elseif ($order->fulfillment_channel === 'SBN') {
                 $so->delivery_type_id = 'SBN';
                 $so->esg_quotation_courier_id = '132';
                 $so->dispatch_date = $order->latest_ship_date;
-            } else if ($order->biz_type == "Lazada"){
+            } elseif ($order->biz_type == "Lazada") {
                 $so->delivery_type_id = 'EXP';
-            }else{
+            } else {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
                     ->whereIn('delivery_type', ['EXP', 'EXPED', 'STD'])
@@ -395,16 +397,19 @@ class PlatformMarketOrderTransfer
             ]);
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if(!$marginAndProfit->isEmpty()){
-                $profit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
-                if($profit){
-                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)->get('profit');
-                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)->get('margin');
-                }else{
+            if (!$marginAndProfit->isEmpty()) {
+                $profit = null;
+                if ($marginAndProfit->get($item->mapping->delivery_type)) {
+                    $profit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
+                }
+                if ($profit) {
+                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
+                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)['margin'];
+                } else {
                     $selectedProfit = 0;
                     $selectedMargin = 0;
                 }
-            }else{
+            } else {
                 $selectedProfit = 0;
                 $selectedMargin = 0;
             }
@@ -476,81 +481,33 @@ class PlatformMarketOrderTransfer
 
     private function setSplitOrderRecommendCourierAndCharge(So $order)
     {
-        $merchantShortId = substr(last(explode('-', $order->platform_id)), 0, -2);
-        $availableQuotation = $this->getAvailableMerchantQuotation($merchantShortId);
+        $merchantId = $order->sellingPlatform->merchant_id;
+        $deliveryCountry = $order->delivery_country_id;
+        $deliveryType = $order->delivery_type_id;
+        $quotationTypes = DeliveryTypeMapping::where('delivery_type', $deliveryType)
+            ->where('merchant_type', 'ACCELERATOR')
+            ->get()
+            ->pluck('quotation_type');
 
-        if (!$availableQuotation->isEmpty()) {
-            switch ($order->delivery_type_id) {
-                case 'FBA':
-                    $quotationType = ['acc_fba'];
-                    break;
+        $acceleratorShipping = AcceleratorShipping::whereIn('merchant_id', [$merchantId, 'ALL'])
+            ->whereIn('courier_type', $quotationTypes)
+            ->where('country_id', $deliveryCountry)
+            ->orderBy('merchant_id')
+            ->orderBy(\DB::raw('FIELD(warehouse, "ES_HK", "ES_DGME", "4PXDG_PL")'))
+            ->first();
 
-                case 'STD':
-                    // see sbf 8255.
-                    if (!$order->hasExternalBattery() && $order->hasInternalBattery()) {
-                        $quotationType = ['acc_builtin_postage'];
-                    } else {
-                        $quotationType = ['acc_builtin_postage', 'acc_external_postage'];
-                    }
-                    break;
-
-                case 'EXPED':
-                    $quotationType = ['acc_courier'];
-                    break;
-
-                case 'EXP':
-                    $quotationType = ['acc_courier_exp'];
-                    break;
-
-                case 'MCF':
-                    $quotationType = ['acc_mcf'];
-                    break;
-
-                default:
-                    $quotationType = [];
-                    break;
-            }
-
-            $quotationVersionIds = $availableQuotation->whereIn('quotation_type', $quotationType)->pluck('id')->toArray();
-            if (empty($quotationVersionIds)) {
-                return false;
-            }
-            $weightId = WeightCourier::getWeightId($order->weight);
-            if ($weightId === null) {
-                // TODO
-                // overweight case.
-                $quotation = '';
-            } else {
-                if ($order->hasExternalBattery() || $order->hasInternalBattery()) {
-                    $sort = 'DESC';             // use more expensive quotation of STD.
-                } else {
-                    $sort = 'ASC';              // use cheaper quotation of STD.
-                }
-                $quotation = Quotation::whereIn('quotn_version_id', $quotationVersionIds)
-                    ->where('dest_country_id', '=', $order->delivery_country_id)
-                    ->where('dest_state_id', '=', $order->delivery_state)
-                    ->where('weight_id', '=', $weightId)
-                    ->orderBy('quotation', $sort)
-                    ->first();
-
-                if ($quotation) {
-                    if ($order->hasInternalBattery() && ($quotation->courierInfo->allow_builtin_battery != 1)) {
-                        $quotation = '';
-                    }
-                    if ($order->hasExternalBattery() && ($quotation->courierInfo->allow_external_battery != 1)) {
-                        $quotation = '';
-                    }
-                }
-            }
-            if (empty($quotation)) {
-                return false;
-            }
-            $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
-            $order->esg_quotation_courier_id = $quotation->courier_id;
-            $order->esg_delivery_cost = $quotation->cost * $currencyRate;
-            $order->esg_delivery_offer = $quotation->cost * $currencyRate * 1.0125; // 1.0125 is exchange rate mark up.
-            $order->save();
+        if (!$acceleratorShipping) {
+            // TODO
+            // send mail to info user courier missing
+            return false;
         }
+
+        $selectedCourierId = $acceleratorShipping->courier_id;
+        //TODO
+        // check battery compact
+
+        $order->esg_quotation_courier_id = $selectedCourierId;
+        $order->save();
     }
 
     private function setGroupOrderRecommendCourierAndCharge(So $order)
@@ -725,12 +682,11 @@ class PlatformMarketOrderTransfer
             "newegg" => array('SBN')
         );
         $type = strtolower($order->biz_type);
-        if(isset($shippedFulfillment[$type]) && in_array($order->fulfillment_channel, $shippedFulfillment[$type])){
+        if (isset($shippedFulfillment[$type]) && in_array($order->fulfillment_channel, $shippedFulfillment[$type])) {
             $status = 6;
-        }else{
+        } else {
             $status = 3;
         }
         return $status;
     }
-
 }

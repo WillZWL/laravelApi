@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SellingPlatform extends Model
+class FlexBatch extends Model
 {
     public $connection = 'mysql_esg';
 
-    protected $table = 'selling_platform';
+    protected $table = 'flex_batch';
+
+    public $primaryKey = 'id';
 
     public $timestamps = false;
 
@@ -16,8 +18,4 @@ class SellingPlatform extends Model
 
     protected $guarded = ['create_at'];
 
-    public function so()
-    {
-        return $this->hasMany('App\Models\So', 'platform_id');
-    }
 }
