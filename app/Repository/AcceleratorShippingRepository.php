@@ -15,6 +15,7 @@ class AcceleratorShippingRepository
         return AcceleratorShipping::where('warehouse', '=', $warehouse)
             ->where('country_id', '=', $deliveryCountry)
             ->where('merchant_id', '=', $merchantId)
+            ->where('status', 1)
             ->get();
     }
 }

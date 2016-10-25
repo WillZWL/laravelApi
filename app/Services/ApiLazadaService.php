@@ -310,8 +310,20 @@ class ApiLazadaService implements ApiPlatformInterface
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
             //Not allowed to change the preselected shipment provider
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
+            if($responseResult){
+                if(isset($responseResult["PurchaseOrderId"])){
+                    return true;
+                }else{
+                    $result = true;
+                    foreach ($responseResult as $response) {
+                       if(!isset($response["PurchaseOrderId"])){
+                            $result = false;
+                       }
+                    }
+                    return $result;
+                }
+            }
         }
-        return (isset($responseResult["PurchaseOrderId"])) ? true : false;
     }
 
     public function updateOrderStatusReadyToShip($storeName,$orderIdList)
@@ -420,8 +432,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		$this->lazadaOrderStatus->setOrderItemIds($orderItemIds);
 		$this->lazadaOrderStatus->setDeliveryType("dropship");
 		$this->lazadaOrderStatus->setShippingProvider($shipmentProvider);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToPackedByMarketplace();
-		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToPackedByMarketplace");
+		$orginOrderItemList = $this->lazadaOrderStatus->setStatusToPackedByMarketplace();
         return $orginOrderItemList;
 	}
 
@@ -620,8 +631,8 @@ class ApiLazadaService implements ApiPlatformInterface
         $object['city'] = $order['AddressShipping']['Address3'];
         $object['county'] = $order['AddressShipping']['Country'];
         $object['country_code'] = strtoupper(substr($storeName, -2));
-        $object['district'] = $order['AddressShipping']['Ward'];
-        $object['state_or_region'] = $order['AddressShipping']['Region'];
+        $object['district'] = '';
+        $object['state_or_region'] = '';
         $object['postal_code'] = $order['AddressShipping']['PostCode'];
         $object['phone'] = $order['AddressShipping']['Phone'];
 
@@ -632,8 +643,8 @@ class ApiLazadaService implements ApiPlatformInterface
         $object['bill_city'] = $order['AddressBilling']['Address3'];
         $object['bill_county'] = $order['AddressBilling']['Country'];
         $object['bill_country_code'] = strtoupper(substr($storeName, -2));
-        $object['bill_district'] = $order['AddressBilling']['Ward'];
-        $object['bill_state_or_region'] = $order['AddressBilling']['Region'];
+        $object['bill_district'] = '';
+        $object['bill_state_or_region'] = '';
         $object['bill_postal_code'] = $order['AddressBilling']['PostCode'];
         $object['bill_phone'] = $order['AddressBilling']['Phone'];
 

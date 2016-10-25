@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Country;
 use App\Models\CourierCost;
 use App\Models\CourierInfo;
 use App\Models\WeightCourier;
@@ -30,9 +31,25 @@ class ShippingService
              $fromWarehouse = $marketplaceProduct->merchant->default_ship_to_warehouse;
         }
         $deliveryCountry = $marketplaceProduct->mpControl->country_id;
+        $deliveryAddress = Country::find($deliveryCountry);
+        $deliveryState = $deliveryAddress->countryState()->where('is_default_state', '=', 1)->first();
+        if (empty($deliveryState)) {
+            $deliveryStateId = '';
+        } else {
+            $deliveryStateId = $deliveryState->state_id;
+        }
+
         $merchant = $marketplaceProduct->merchant->id;
         $courierOptions = $this->shippingRepository->shippingOptions($merchant, $fromWarehouse, $deliveryCountry);
         $couriers = $courierOptions->pluck('courier_id', 'courier_type');
+
+        // Lazada only use EXP
+        $marketplace = substr($marketplaceProduct->mpControl->marketplace_id, 2);
+        if ($marketplace === 'LAZADA') {
+            $couriers = $couriers->filter(function ($item, $key) {
+                return ($key === 'acc_courier_exp');
+            });
+        }
 
         $battery = $marketplaceProduct->product->battery;
         $courierInfos = CourierInfo::findMany($couriers)->filter(function ($courierInfo) use ($battery) {
@@ -50,9 +67,9 @@ class ShippingService
         $weight = ($weight > $volumeWeight) ? $weight : $volumeWeight;
         $weightId = WeightCourier::where('weight', '>=', $weight)->first()->id;
 
-        $courierCost = $courierInfos->map(function ($courierInfo) use ($deliveryCountry, $weightId) {
+        $courierCost = $courierInfos->map(function ($courierInfo) use ($deliveryCountry, $deliveryStateId, $weightId) {
             return $courierInfo->courierCost()->where('dest_country_id', $deliveryCountry)
-                                                ->where('dest_state_id', '')
+                                                ->where('dest_state_id', $deliveryStateId)
                                                 ->where('weight_id', $weightId)
                                                 ->where('courier_id', $courierInfo->courier_id)
                                                 ->first();
@@ -79,7 +96,10 @@ class ShippingService
             ];
         });
 
-        return $cost;
+        // use cheapest STD
+        $uniqueOptions = $cost->sortBy('cost')->unique('deliveryType');
+
+        return $uniqueOptions;
     }
 
 
