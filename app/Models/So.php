@@ -65,4 +65,9 @@ class So extends Model
     {
         return $this->belongsTo('App\Models\SellingPlatform', 'platform_id');
     }
+
+    public function flexSoFee()
+    {
+        return $this->hasMany('App\Models\FlexSoFee', 'so_no', 'so_no');
+    }
 }
