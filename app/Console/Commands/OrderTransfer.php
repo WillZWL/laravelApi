@@ -127,7 +127,7 @@ class OrderTransfer extends Command
 
             case '3D':
                 $amazonAccountName = '3Doodler';
-                $alertEmail = 'amazon_us@the3Doodler.com';
+                $alertEmail = 'brands@eservicesgroup.com';
                 break;
 
             default:
