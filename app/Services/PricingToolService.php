@@ -331,12 +331,13 @@ class PricingToolService
             $weight = ($this->product->weight > $this->product->vol_weight)
                         ? $this->product->weight : $this->product->vol_weight;
 
-            $weight = ceil($weight);
+            // above 1kg, need to calculate addition weight.
+            $additionWeight = ceil($weight - 1);
 
             $cost = ( $warehouse->warehouseCost->book_in_fixed
-                    + $warehouse->warehouseCost->additional_book_in_per_kg * $weight
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight
                     + $warehouse->warehouseCost->pnp_fixed
-                    + $warehouse->warehouseCost->additional_pnp_per_kg * $weight )
+                    + $warehouse->warehouseCost->additional_pnp_per_kg * $additionWeight )
                 * $currencyRate * $this->adjustRate;
         }
 
