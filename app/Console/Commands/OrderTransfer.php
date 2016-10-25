@@ -549,7 +549,7 @@ class OrderTransfer extends Command
             ->whereIn('courier_type', $quotationTypes)
             ->where('country_id', $deliveryCountry)
             ->orderBy('merchant_id')
-            ->orderBy(\DB::raw('FIELD(warehouse, "HK", "ES_DGME", "4PXDG_PL")'))
+            ->orderBy(\DB::raw('FIELD(warehouse, "ES_HK", "ES_DGME", "4PXDG_PL")'))
             ->first();
 
         if (!$acceleratorShipping) {
