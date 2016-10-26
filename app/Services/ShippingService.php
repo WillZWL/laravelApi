@@ -135,7 +135,7 @@ class ShippingService
                     $weight = $total_weight;
                 }
 
-                $weight = $actual_weight ? $actual_weight : $weight;
+                $weight = $actual_weight > 0 ? $actual_weight : $weight;
                 $weightId = WeightCourier::where('weight', '>=', $weight)->first()->id;
 
                 $courierCost = $courierInfo->courierCost()
@@ -143,6 +143,14 @@ class ShippingService
                                ->where('dest_country_id', $deliveryCountry)
                                ->where('dest_state_id', $delivertState)
                                ->first();
+                if (!$courierCost) {
+                    $courierCost = $courierInfo->courierCost()
+                               ->where('weight_id', $weightId)
+                               ->where('dest_country_id', $deliveryCountry)
+                               ->where('dest_state_id', '')
+                               ->first();
+                }
+
                 $currencyId = $courierCost->currency_id;
                 $deliveryCost = $courierCost->delivery_cost;
 
