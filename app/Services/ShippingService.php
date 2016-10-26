@@ -109,42 +109,53 @@ class ShippingService
         if ($order) {
             $weight = $order->weight;
             $actual_weight = $order->actual_weight;
-
-            $soAllocate = $order->soAllocate()->first();
-            $courierId = $soAllocate->soShipment()->first()->courier_id;
-
             $deliveryCountry = $order->delivery_country_id;
             $delivertState = $order->delivery_state;
 
-            $courierInfo = CourierInfo::find($courierId);
-            $surcharge = $courierInfo->surcharge;
+            $soAllocate = $order->soAllocate()->first();
 
-            if ($weight == 0 || $weight == '') {
-                $soItems = $order->soItem()->get();
-                $total_weight = 0;
-                foreach ($soItems as $soItem) {
-                    $weight_in_kg = $soItem->product()->first()->weight;
-                    $total_weight += $weight_in_kg * ($soItem->qty) * 1;
+            $courierId = '';
+            if ($soAllocate) {
+                $soShipment = $soAllocate->soShipment()->first();
+                if ($soShipment) {
+                    $courierId = $soShipment->courier_id;
                 }
-                $weight = $total_weight;
             }
+            if ($courierId) {
+                $courierInfo = CourierInfo::find($courierId);
+                $surcharge = $courierInfo->surcharge;
 
-            $weight = $actual_weight ? $actual_weight : $weight;
-            $weightId = WeightCourier::where('weight', '>=', $weight)->first()->id;
+                if ($weight == 0 || $weight == '') {
+                    $soItems = $order->soItem()->get();
+                    $total_weight = 0;
+                    foreach ($soItems as $soItem) {
+                        $weight_in_kg = $soItem->product()->first()->weight;
+                        $total_weight += $weight_in_kg * ($soItem->qty) * 1;
+                    }
+                    $weight = $total_weight;
+                }
 
-            $courierCost = $courierInfo->courierCost()
-                           ->where('weight_id', $weightId)
-                           ->where('dest_country_id', $deliveryCountry)
-                           ->where('dest_state_id', $delivertState)
-                           ->first();
-            $currencyId = $courierCost->currency_id;
-            $deliveryCost = $courierCost->delivery_cost;
+                $weight = $actual_weight ? $actual_weight : $weight;
+                $weightId = WeightCourier::where('weight', '>=', $weight)->first()->id;
 
-            return [
-                'currency_id' => $currencyId,
-                'delivery_cost' => $deliveryCost,
-                'surcharge' => $surcharge,
-            ];
+                $courierCost = $courierInfo->courierCost()
+                               ->where('weight_id', $weightId)
+                               ->where('dest_country_id', $deliveryCountry)
+                               ->where('dest_state_id', $delivertState)
+                               ->first();
+                $currencyId = $courierCost->currency_id;
+                $deliveryCost = $courierCost->delivery_cost;
+
+                return [
+                    'currency_id' => $currencyId,
+                    'delivery_cost' => $deliveryCost,
+                    'surcharge' => $surcharge,
+                ];
+            } else {
+                return [
+                    'error' => 'The Order Not Allocate Successfully Yet'
+                ];
+            }
         }
     }
 }
