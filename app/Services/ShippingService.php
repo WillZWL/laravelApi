@@ -6,6 +6,7 @@ use App\Models\Country;
 use App\Models\CourierCost;
 use App\Models\CourierInfo;
 use App\Models\WeightCourier;
+use App\Models\So;
 use App\Repository\AcceleratorShippingRepository;
 use App\Repository\MarketplaceProductRepository;
 
@@ -99,5 +100,62 @@ class ShippingService
         $uniqueOptions = $cost->sortBy('cost')->unique('deliveryType');
 
         return $uniqueOptions;
+    }
+
+
+    public function orderDeliveryCost($soNo)
+    {
+        $order = So::findOrFail($soNo);
+        if ($order) {
+            $weight = $order->weight;
+            $actual_weight = $order->actual_weight;
+            $deliveryCountry = $order->delivery_country_id;
+            $delivertState = $order->delivery_state;
+
+            $soAllocate = $order->soAllocate()->first();
+
+            $courierId = '';
+            if ($soAllocate) {
+                $soShipment = $soAllocate->soShipment()->first();
+                if ($soShipment) {
+                    $courierId = $soShipment->courier_id;
+                }
+            }
+            if ($courierId) {
+                $courierInfo = CourierInfo::find($courierId);
+                $surcharge = $courierInfo->surcharge;
+
+                if ($weight == 0 || $weight == '') {
+                    $soItems = $order->soItem()->get();
+                    $total_weight = 0;
+                    foreach ($soItems as $soItem) {
+                        $weight_in_kg = $soItem->product()->first()->weight;
+                        $total_weight += $weight_in_kg * ($soItem->qty) * 1;
+                    }
+                    $weight = $total_weight;
+                }
+
+                $weight = $actual_weight ? $actual_weight : $weight;
+                $weightId = WeightCourier::where('weight', '>=', $weight)->first()->id;
+
+                $courierCost = $courierInfo->courierCost()
+                               ->where('weight_id', $weightId)
+                               ->where('dest_country_id', $deliveryCountry)
+                               ->where('dest_state_id', $delivertState)
+                               ->first();
+                $currencyId = $courierCost->currency_id;
+                $deliveryCost = $courierCost->delivery_cost;
+
+                return [
+                    'currency_id' => $currencyId,
+                    'delivery_cost' => $deliveryCost,
+                    'surcharge' => $surcharge,
+                ];
+            } else {
+                return [
+                    'error' => 'The Order Not Allocate Successfully Yet'
+                ];
+            }
+        }
     }
 }
