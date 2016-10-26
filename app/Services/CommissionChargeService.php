@@ -14,9 +14,9 @@ class CommissionChargeService
                 'so_no' => "So no",
                 'gateway_id' => 'Gateway ID',
                 'currency' => 'Currency ID',
-                'amazon_commission' => 'Amazon commission',
+                'amazon_commission' => 'MarketPlace Commission Charge',
                 'psp_fee' => 'PSP Fee',
-                'diff' => 'Diff fee'
+                'diff' => 'Diff Fee'
         ];
 
         $feeList = FlexSoFee::AmazonCommission($postData);
