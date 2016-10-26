@@ -70,6 +70,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
     Route::get('lazada-api/donwload-label/{file}', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
     Route::get('product-upload/donwload-example-file/{file}', 'Api\ProductUploadController@donwloadExampleFile');
+    Route::get('order-delivery-cost/{soNo}', 'Api\DeliveryController@getOrderDeiveryCostBySoNo');
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
 });
 

@@ -18,4 +18,9 @@ class SoAllocate extends Model
     {
         return $this->belongsTo('App\Models\So', 'so_no', 'so_no');
     }
+
+    public function soShipment()
+    {
+        return $this->belongsTo('App\Models\SoShipment', 'sh_no', 'sh_no');
+    }
 }
