@@ -14,6 +14,7 @@ use App\Repository\LazadaMws\LazadaSearchSPUs;
 use App\Repository\LazadaMws\LazadaCategoryAttributes;
 use App\Repository\LazadaMws\LazadaCategoryTree;
 use App\Repository\LazadaMws\LazadaProductBrand;
+use App\Repository\LazadaMws\LazadaProductCreate;
 use Config;
 
 class ApiLazadaProductService implements ApiPlatformProductInterface
@@ -114,38 +115,49 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function submitProductCreate($storeName,$pendingSkuGroup)
     {   
         foreach ($pendingSkuGroup as $key => $product) {
-            $productTemplate = $this->getProductTemplate($storeName,$product);
+            $productAttributes = $this->mappingProductAttributes($storeName,$product);
             $this->lazadaProductCreate = new LazadaProductCreate($storeName);
             $responseData = $this->lazadaProductCreate->createProduct($product);
             $this->saveDataToFile(serialize($responseData), 'CreateProduct');
         }
     }
 
-    public function getProductTemplate($storeName,$product)
+    public function mappingProductAttributes($storeName,$product)
+    {
+        $spus = $this->getLazadaSPUs($storeName,$product);
+        print_r($spus);exit();
+        $prodcutAttributes = null;
+        if($spus){
+            foreach ($spus as $spu) {
+                $categoryAttributes = $this->getCategoryAttributes($storeName,$spu["PrimaryCategory"]);
+            }
+        }else{
+            if(!$prodcutAttributes){
+                $prodcutAttributes = $this->getAllProdcutAttributes($storeName);
+            }
+        }
+    }
+
+    public function getAllProdcutAttributes($storeName)
+    {
+        $prodcutAttributes = null;
+        $this->lazadaCategoryTree = new LazadaCategoryTree($storeName);
+        $categoryTrees = $this->lazadaCategoryTree->fetchCategoryTree();
+        foreach ($categoryTrees as $categoryTree) {
+            $prodcutAttributes["categoryAttributes"][$categoryTree["categoryId"]] = $this->getCategoryAttributes($storeName,$categoryTree["categoryId"]);
+        }
+        $this->lazadaProductBrand = new LazadaProductBrand($storeName);
+        $prodcutAttributes["brand"] = $this->lazadaProductBrand->fetchBrandList();
+        return $prodcutAttributes;
+    }
+
+    public function getLazadaSPUs($storeName,$product)
     {
         $productTemplate = null;
         $this->lazadaSearchSPUs = new LazadaSearchSPUs($storeName);
-        $this->lazadaSearchSPUs->setSearch("Apple");
-        $spus = $this->lazadaSearchSPUs->searchSPUs();
-        if($spus){
-            foreach ($spus as $key => $spu) {
-                if($key == 2){
-                    $productTemplate = $spu;
-                    $productTemplate["categoryAttributes"] = $this->getCategoryAttributes($storeName,$spu["PrimaryCategory"]);
-                }
-            }
-        }else{
-            $this->lazadaCategoryTree = new LazadaCategoryTree($storeName);
-            $categoryTrees = $this->lazadaCategoryTree->fetchCategoryTree();
-            foreach ($categoryTrees as $key => $categoryTree) {
-                if($key == 2)
-                $productTemplate["categoryAttributes"] = $this->getCategoryAttributes($storeName,$categoryTree["categoryId"]);
-            }
-            $this->lazadaProductBrand = new LazadaProductBrand($storeName);
-            $brandList = $this->lazadaProductBrand->fetchBrandList();
-            $productTemplate["brand"] = $brandList[0];
-        }
-        return $productTemplate;
+        $this->lazadaSearchSPUs->setSearch($product->brand_name);
+        //$this->lazadaSearchSPUs->setCategoryId($product->marketplaceMappingCategory->catId);
+        return $this->lazadaSearchSPUs->searchSPUs();
     }
 
     public function getCategoryAttributes($storeName,$categoryId)
@@ -154,6 +166,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         $this->lazadaCategoryAttributes->setPrimaryCategory($categoryId);
         return $this->lazadaCategoryAttributes->fetchCategoryAttributes();
     }
+
     public function getQcStatus($storeName,$requestId)
     {
         $this->lazadaQcStatus = new LazadaQcStatus($storeName);
