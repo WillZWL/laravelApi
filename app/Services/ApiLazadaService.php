@@ -138,7 +138,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 if(isset($warehouseInventory["warehouse"])){
                     $warehouse = $warehouseInventory["warehouse"]; 
                 }
-                //$warehouseInventory = parent::checkWarehouseInventory($order,$warehouse);
+                //$warehouseInventory = $this->checkWarehouseInventory($order,$warehouse);
                 //if($warehouseInventory["updateObject"]){
                     $orderItemIds = array();
                     foreach($order->platformMarketOrderItem as $orderItem){
@@ -150,8 +150,8 @@ class ApiLazadaService implements ApiPlatformInterface
                         if($result){
                             $orderIdList[] = $order->platform_order_id;
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
-                            //parent::updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
-                            //parent::updatePlatformMarketInventory($order,$warehouseInventory["updateObject"]);
+                            //$this->updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
+                            //$this->updatePlatformMarketInventory($order,$warehouseInventory["updateObject"]);
                             $returnData[$order->platform_order_no] = " Set Ready To Ship Success\r\n";
                         }else{
                             $returnData[$order->platform_order_no] = " Set Ready To Ship Failed\r\n";
@@ -207,14 +207,14 @@ class ApiLazadaService implements ApiPlatformInterface
                     $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
                     $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
                     if($orderItemIds){
-                        $ordersIdList[] = $esgOrder->txn_id;
                         $updateWarehouseObject[] = $esgOrder;
                         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
                         if($shipmentProvider){
-                            //$result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                            $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
                             if($result){
                                 $returnData[$esgOrder->so_no] = " Set Ready To Ship Success\r\n";
                                 $doucumentOrderItemIds[] = $orderItemIds[0];
+                                $ordersIdList[] = $esgOrder->txn_id;
                             }else{
                                 $returnData[$esgOrder->so_no] = " Set Ready To Ship Failed\r\n";
                             }
@@ -228,7 +228,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $returnData["documentLabel"][$storeName] = $doucumentOrderItemIds;
             }
             if($ordersIdList){
-                //$this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
+                $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
                 //$this->updateEsgWarehouseInventory($updateWarehouseObject);
             }
         }
