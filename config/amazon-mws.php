@@ -238,6 +238,7 @@ return [
             'secretKey' => 'pxBkJ3MBRKO7FYTd1KaLkp2PCOCLpFV/eqxxemmQ',
             'amazonServiceUrl' => 'https://mws.amazonservices.com/',
             'platform' =>'US',
+            'currency' => 'USD',
         ],
         '3DAMAZONCA' => [
             'merchantId' => 'A596P66U645JG',
