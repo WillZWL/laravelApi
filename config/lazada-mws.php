@@ -90,7 +90,7 @@ return [
         'MDLAZADATH' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelth@eservicesgroup.com', 
-            'apiToken' => '',
+            'apiToken' => '9924355a94c3681bbd3dfa3a695b5c77f2dca040',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.th/',
             'currency'=>'THB',
         ],
@@ -103,15 +103,15 @@ return [
         ],
        'MDLAZADAID' => [
             'name'=>'Mattel Distributor Lazada',
-            'userId' => 'mattelid@eservicesgroup.com', 
-            'apiToken' => '',
+            'userId' => 'Mattelid@eservicesgroup.com', 
+            'apiToken' => 'adb169090e17dc46bb09e99bff7f575886dd76db',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
         ],
          /*'MDLAZADAVN' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelvn@eservicesgroup.com', 
-            'apiToken' => '',
+            'apiToken' => '6560c4c98f0281ca707fd1ba43ee94a1b8d309ad',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.vn/',
             'currency'=>'VND',
         ],
