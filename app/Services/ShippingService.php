@@ -76,24 +76,25 @@ class ShippingService
         })->reject(function ($courierCost) {
             return empty($courierCost);
         });
-
+        $finalDeliveryCost = null;
         $merchant = $marketplaceProduct->merchant;
         $cost = $courierCost->map(function ($courierCostModel) use ($merchant) {
             $courierCostModel->load('courierInfo')->with('deliveryTypeMapping');
             $deliveryType = $courierCostModel->courierInfo->deliveryTypeMapping->delivery_type;
-            $courierCostMarkupInPercent = $merchant->courierCostMarkup()
+            $courierCostMarkup = $merchant->courierCostMarkup()
                     ->where('delivery_type_id', $deliveryType)
-                    ->first()
-                    ->quotation_percent / 100;
-            $surchargeInPercent = $courierCostModel->courierInfo->surcharge / 100;
-            $final_delivery_cost = $courierCostModel->delivery_cost * (1 + $surchargeInPercent) * (1 + $courierCostMarkupInPercent);
-
+                    ->first();
+            if($courierCostMarkup){
+               $courierCostMarkupInPercent = $courierCostMarkup->quotation_percent / 100;
+               $surchargeInPercent = $courierCostModel->courierInfo->surcharge / 100;
+               $finalDeliveryCost = $courierCostModel->delivery_cost * (1 + $surchargeInPercent) * (1 + $courierCostMarkupInPercent);
+            }
             return [
                 'courierId' => $courierCostModel->courierInfo->courier_id,
-                'cost' => $final_delivery_cost,
+                'cost' => $finalDeliveryCost,
                 'currency' => $courierCostModel->currency_id,
                 'deliveryType' => $deliveryType,
-            ];
+                ];
         });
 
         // use cheapest STD
