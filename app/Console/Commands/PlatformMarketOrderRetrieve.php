@@ -39,6 +39,7 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
      */
     public function handle()
     {
+        \Log::info('Retrieve orders at . '.\Carbon\Carbon::now());
         $this->runPlatformMarketConsoleFunction();
     }
 
