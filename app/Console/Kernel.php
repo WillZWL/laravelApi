@@ -57,7 +57,7 @@ class Kernel extends ConsoleKernel
             ->dailyAt('09:00');
 
         $schedule->command('platformMarket:orderRetrieve',array('--api' => 'hourlyAll'))
-            ->cron('* 50 23,00-10 * * *');
+            ->cron('50 23,00-10 * * * *');
 
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('23:50');
@@ -74,8 +74,7 @@ class Kernel extends ConsoleKernel
              ->dailyAt('08:50');
 
         $schedule->command('platformMarket:orderTransfer')
-            ->hourly()
-            ->between('23:30','09:30');
+            ->cron('00 00-10 * * * *');
 
         $schedule->command('feed:fulfillment')
             ->dailyAt('12:00');
