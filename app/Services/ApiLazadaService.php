@@ -669,29 +669,32 @@ class ApiLazadaService implements ApiPlatformInterface
 
 	public function getSoOrderStatus($platformOrderStatus)
 	{
+        if(strstr($platformOrderStatus,'||')){
+            return PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED;
+        }
 		switch ($platformOrderStatus) {
 			case 'Canceled':
-				$status=PlatformMarketConstService::ORDER_STATUS_CANCEL;
+				$status = PlatformMarketConstService::ORDER_STATUS_CANCEL;
 				break;
 			case 'Shipped':
-				$status=PlatformMarketConstService::ORDER_STATUS_SHIPPED;
+				$status = PlatformMarketConstService::ORDER_STATUS_SHIPPED;
 				break;
             case 'ReadyToShip':
-                $status=PlatformMarketConstService::ORDER_STATUS_READYTOSHIP;
+                $status = PlatformMarketConstService::ORDER_STATUS_READYTOSHIP;
                 break;
 			case 'Unshipped':
 			case 'Pending':
 			case 'Processing':
-				$status=PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
+				$status = PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
 				break;
 			case 'Delivered':
-				$status=PlatformMarketConstService::ORDER_STATUS_DELIVERED;
+				$status = PlatformMarketConstService::ORDER_STATUS_DELIVERED;
 				break;
 			case 'Failed':
-				$status=PlatformMarketConstService::ORDER_STATUS_FAIL;
+				$status = PlatformMarketConstService::ORDER_STATUS_FAIL;
 				break;
             case 'Returned':
-                $status=PlatformMarketConstService::ORDER_STATUS_RETURENED;
+                $status = PlatformMarketConstService::ORDER_STATUS_RETURENED;
                 break;
 			default:
 				return null;

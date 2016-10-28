@@ -43,10 +43,14 @@ class PlatformMarketOrder extends Model
      */
     public function scopeReadyOrder($query)
     {
+        $notInStatus = array(
+            PlatformMarketConstService::ORDER_STATUS_CANCEL,
+            PlatformMarketConstService::ORDER_STATUS_PENDING,
+            PlatformMarketConstService::ORDER_STATUS_RETURENED,
+            PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED
+        );
         return $query->where('acknowledge', '=', '0')
-            ->where('esg_order_status', '!=', PlatformMarketConstService::ORDER_STATUS_CANCEL)
-            ->where('esg_order_status', '!=', PlatformMarketConstService::ORDER_STATUS_PENDING)
-            ->where('esg_order_status', '!=', PlatformMarketConstService::ORDER_STATUS_RETURENED);
+            ->whereNotIn('esg_order_status',$notInStatus);
     }
 
     /**
