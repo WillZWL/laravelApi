@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\FlexSoFee;
 use App\Models\PaymentGateway;
 use App\Models\So;
+use App\Models\MarketplaceSkuMapping;
 
 class CommissionChargeService
 {
@@ -47,51 +48,38 @@ class CommissionChargeService
             if ($so) {
                 $pspFee[$so->so_no] = 0;
 
-                if ($so->biz_type == "AMAZON") {
-                    $platformMarketOrder = "amazonOrder";
-                    $platformMarketOrderItem = "amazonOrderItem";
-                    $platformMarketShippingAddress = "amazonShippingAddress";
-                } else {
-                    $platformMarketOrder = "platformMarketOrder";
-                    $platformMarketOrderItem = "platformMarketOrderItem";
-                    $platformMarketShippingAddress = "platformMarketShippingAddress";
+                $marketplaceId = $so->sellingPlatform->marketplace;
+                $countryId = $so->delivery_country_id;
+
+                $paymentGatewayRate = $adminFeePercent = $adminFeeAbs = 0;
+                if ($paymentGateway = $this->getPaymentGateway($marketplaceId, $countryId)) {
+                    $paymentGatewayRate = $paymentGateway->payment_gateway_rate ? $paymentGateway->payment_gateway_rate : 0;
+                    $adminFeePercent = $paymentGateway->admin_fee_percent ? $paymentGateway->admin_fee_percent : 0;
+                    $adminFeeAbs = $paymentGateway->admin_fee_abs ? $paymentGateway->admin_fee_abs : 0;
                 }
 
-                $marketOrder = $so->$platformMarketOrder;
-                if ( $marketOrder) {
-                    $marketOrderItems = $marketOrder->$platformMarketOrderItem->all();
-                    $marketShippingAddress = $marketOrder->$platformMarketShippingAddress;
-                    $countryId = $marketShippingAddress->country_code;
-                    $marketplaceId = strtoupper(substr($marketOrder->platform, 0, -2));
+                if ($soItems = $so->soItem()->whereSoNo($so->so_no)->whereHiddenToClient(0)->get()) {
+                    foreach ($soItems as $soItem) {
+                        if (!$soItem->ext_seller_sku) continue;
 
-                    $paymentGatewayRate = $adminFeePercent = $adminFeeAbs = 0;
-                    if ($paymentGateway = $this->getPaymentGateway($marketplaceId, $countryId)) {
-                        $paymentGatewayRate = $paymentGateway->payment_gateway_rate ? $paymentGateway->payment_gateway_rate : 0;
-                        $adminFeePercent = $paymentGateway->admin_fee_percent ? $paymentGateway->admin_fee_percent : 0;
-                        $adminFeeAbs = $paymentGateway->admin_fee_abs ? $paymentGateway->admin_fee_abs : 0;
-                    }
-
-                    foreach ($marketOrderItems as $marketOrderItem) {;
-                        $MarketplaceSkuMapping = $marketOrderItem->marketplaceSkuMapping->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
+                        $MarketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($soItem->ext_seller_sku)->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
                         if ($MarketplaceSkuMapping) {
-                            if ($soItem = $so->soItem()->whereProdSku($MarketplaceSkuMapping->sku)->whereHiddenToClient(0)->first()) {
-                                $qty = $soItem->qty;
-                                $unit_price = $soItem->unit_price;
-                                $prod_sku = $soItem->prod_sku;
+                            $qty = $soItem->qty;
+                            $unit_price = $soItem->unit_price;
+                            $prod_sku = $soItem->prod_sku;
 
-                                $paymentGatewayFee = ($unit_price * $paymentGatewayRate / 100) * $rate;
-                                $paymentGatewayAdminFee = ($adminFeeAbs + $unit_price * $adminFeePercent / 100) * $rate;
+                            $paymentGatewayFee = ($unit_price * $paymentGatewayRate / 100) * $rate;
+                            $paymentGatewayAdminFee = ($adminFeeAbs + $unit_price * $adminFeePercent / 100) * $rate;
 
-                                $marketplaceCommission = 0;
-                                $mpCatCommission = $MarketplaceSkuMapping->mpCategoryCommission;
-                                if ($mpCatCommission) {
-                                    $mpCommission = $mpCatCommission->mp_commission;
-                                    $maximum = $mpCatCommission->maximum;
-                                    $marketplaceCommission = (min($unit_price * $mpCommission / 100, $maximum)) * $rate;
-                                }
-
-                                $pspFee[$so->so_no] += round(($paymentGatewayFee + $paymentGatewayAdminFee + $marketplaceCommission) * $qty, 2);
+                            $marketplaceCommission = 0;
+                            $mpCatCommission = $MarketplaceSkuMapping->mpCategoryCommission;
+                            if ($mpCatCommission) {
+                                $mpCommission = $mpCatCommission->mp_commission;
+                                $maximum = $mpCatCommission->maximum;
+                                $marketplaceCommission = (min($unit_price * $mpCommission / 100, $maximum)) * $rate;
                             }
+
+                            $pspFee[$so->so_no] += round(($paymentGatewayFee + $paymentGatewayAdminFee + $marketplaceCommission) * $qty, 2);
                         }
                     }
                 }
