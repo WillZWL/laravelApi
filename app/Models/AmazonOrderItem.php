@@ -22,4 +22,10 @@ class AmazonOrderItem extends Model
     {
         return $this->belongsTo('App\Models\AmazonOrder');
     }
+
+    public function marketplaceSkuMapping()
+    {
+        return $this->hasOne('App\Models\MarketplaceSkuMapping', 'marketplace_sku', 'seller_sku');
+    }
+
 }

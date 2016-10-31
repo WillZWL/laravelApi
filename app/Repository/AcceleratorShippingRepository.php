@@ -26,22 +26,13 @@ class AcceleratorShippingRepository
     public function getShipToWarehouse($skuCollect)
     {
         $shipToWarehouse = Product::whereIn('product.sku', $skuCollect)
-            ->orderBy(\DB::raw('FIELD(product.default_ship_to_warehouse, "ES_HK", "ES_DGME", "4PXDG_PL")'))
-            ->first()
-            ->default_ship_to_warehouse;
-
-        if (! isset($shipToWarehouse)) {
-
-            $shipToWarehouse = Product::whereIn('product.sku', $skuCollect)
-            ->join('merchant_product_mapping', 'merchant_product_mapping.sku', '=', 'product.sku')
-            ->join('merchant', 'merchant.id', '=', 'merchant_product_mapping.merchant_id')
-            ->whereIn('merchant_product_mapping.sku', $skuCollect)
-            ->groupBy('merchant_id')
-            ->orderBy(\DB::raw('FIELD(merchant.default_ship_to_warehouse, "ES_HK", "ES_DGME", "4PXDG_PL")'))
-            ->select('merchant.default_ship_to_warehouse')
-            ->first()
-            ->default_ship_to_warehouse;
-        }
+        ->join('merchant_product_mapping', 'merchant_product_mapping.sku', '=', 'product.sku')
+        ->join('merchant', 'merchant.id', '=', 'merchant_product_mapping.merchant_id')
+        ->groupBy('merchant_id')
+        ->orderBy(\DB::raw('FIELD(IF(product.default_ship_to_warehouse, product.default_ship_to_warehouse, merchant.default_ship_to_warehouse), "ES_HK", "ES_DGME", "4PXDG_PL")'))
+        ->select(\DB::raw('IF(product.default_ship_to_warehouse, product.default_ship_to_warehouse, merchant.default_ship_to_warehouse) default_ship_to_warehouse'))
+        ->first()
+        ->default_ship_to_warehouse;
 
         return $shipToWarehouse;
     }

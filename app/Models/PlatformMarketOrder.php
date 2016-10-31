@@ -30,6 +30,11 @@ class PlatformMarketOrder extends Model
         return $this->hasMany('App\Models\PlatformMarketOrderItem', 'platform_order_id', 'platform_order_id');
     }
 
+    public function so()
+    {
+        return $this->belongsTo('App\Models\So');
+    }
+
     /***************************************************/
     /****                scope method               ****/
     /***************************************************/

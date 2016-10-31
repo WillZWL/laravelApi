@@ -22,6 +22,11 @@ class AmazonOrder extends Model
         return $this->hasMany('App\Models\AmazonOrderItem', 'amazon_order_id', 'amazon_order_id');
     }
 
+    public function so()
+    {
+        return $this->belongsTo('App\Models\So');
+    }
+
     /***************************************************/
     /****                scope method               ****/
     /***************************************************/
