@@ -540,7 +540,19 @@ class OrderTransfer extends Command
         $deliveryCountry = $order->delivery_country_id;
         $deliveryType = $order->delivery_type_id;
 
+        $skus = $order->soItem()->pluck('prod_sku');
+        $products = Product::findMany($skus);
+
+        $defaultWarehouses = $products->map(function ($product) {
+            if ($product->default_ship_to_warehouse) {
+                return $product->default_ship_to_warehouse;
+            } else {
+                return $product->merchantProductMapping->merchant->default_ship_to_warehouse;
+            }
+        })->unique('')->toArray();
+
         $quotationTypes = DeliveryTypeMapping::where('delivery_type', $deliveryType)
+            ->whereIn('warehouse', $defaultWarehouses)
             ->where('merchant_type', 'ACCELERATOR')
             ->get()
             ->pluck('quotation_type');
