@@ -46,12 +46,23 @@ class CommissionChargeService
             $so = So::whereSoNo($order->so_no)->first();
             if ($so) {
                 $pspFee[$so->so_no] = 0;
-                $platformMarketOrder = $so->PlatformMarketOrder;
-                if ( $platformMarketOrder) {
-                    $platformMarketOrderItems = $platformMarketOrder->platformMarketOrderItem->all();
-                    $platformMarketShippingAddress = $platformMarketOrder->platformMarketShippingAddress;
-                    $countryId = $platformMarketShippingAddress->country_code;
-                    $marketplaceId = strtoupper(substr($platformMarketOrder->platform, 0, -2));
+
+                if ($so->biz_type == "AMAZON") {
+                    $platformMarketOrder = "amazonOrder";
+                    $platformMarketOrderItem = "amazonOrderItem";
+                    $platformMarketShippingAddress = "amazonShippingAddress";
+                } else {
+                    $platformMarketOrder = "platformMarketOrder";
+                    $platformMarketOrderItem = "platformMarketOrderItem";
+                    $platformMarketShippingAddress = "platformMarketShippingAddress";
+                }
+
+                $marketOrder = $so->$platformMarketOrder;
+                if ( $marketOrder) {
+                    $marketOrderItems = $marketOrder->$platformMarketOrderItem->all();
+                    $marketShippingAddress = $marketOrder->$platformMarketShippingAddress;
+                    $countryId = $marketShippingAddress->country_code;
+                    $marketplaceId = strtoupper(substr($marketOrder->platform, 0, -2));
 
                     $paymentGatewayRate = $adminFeePercent = $adminFeeAbs = 0;
                     if ($paymentGateway = $this->getPaymentGateway($marketplaceId, $countryId)) {
@@ -60,8 +71,8 @@ class CommissionChargeService
                         $adminFeeAbs = $paymentGateway->admin_fee_abs ? $paymentGateway->admin_fee_abs : 0;
                     }
 
-                    foreach ($platformMarketOrderItems as $platformMarketOrderItem) {
-                        $MarketplaceSkuMapping = $platformMarketOrderItem->marketplaceSkuMapping->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
+                    foreach ($marketOrderItems as $marketOrderItem) {;
+                        $MarketplaceSkuMapping = $marketOrderItem->marketplaceSkuMapping->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
                         if ($MarketplaceSkuMapping) {
                             if ($soItem = $so->soItem()->whereProdSku($MarketplaceSkuMapping->sku)->whereHiddenToClient(0)->first()) {
                                 $qty = $soItem->qty;
