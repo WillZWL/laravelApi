@@ -70,4 +70,9 @@ class So extends Model
     {
         return $this->hasMany('App\Models\FlexSoFee', 'so_no', 'so_no');
     }
+
+    public function platformMarketOrder()
+    {
+        return $this->hasOne('App\Models\PlatformMarketOrder', 'platform_order_no', 'platform_order_id');
+    }
 }
