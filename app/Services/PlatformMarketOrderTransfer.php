@@ -358,6 +358,7 @@ class PlatformMarketOrderTransfer
             $newOrderItem->prod_sku = $item->seller_sku;
             $newOrderItem->prod_name = $item->title;
             $newOrderItem->ext_item_cd = $item->order_item_id;
+            $newOrderItem->ext_seller_sku = $item->ext_seller_sku;
             $newOrderItem->qty = $item->quantity_ordered;
             $newOrderItem->unit_price = $item->item_price / $item->quantity_ordered;
             $newOrderItem->amount = $item->item_price;
@@ -489,7 +490,19 @@ class PlatformMarketOrderTransfer
             ->get()
             ->pluck('quotation_type');
 
+        $skus = $order->soItem()->pluck('prod_sku');
+        $products = Product::findMany($skus);
+
+        $defaultWarehouses = $products->map(function ($product) {
+            if ($product->default_ship_to_warehouse) {
+                return $product->default_ship_to_warehouse;
+            } else {
+                return $product->merchantProductMapping->merchant->default_ship_to_warehouse;
+            }
+        })->unique('')->toArray();
+
         $acceleratorShipping = AcceleratorShipping::whereIn('merchant_id', [$merchantId, 'ALL'])
+            ->whereIn('warehouse', $defaultWarehouses)
             ->whereIn('courier_type', $quotationTypes)
             ->where('country_id', $deliveryCountry)
             ->orderBy('merchant_id')
@@ -671,6 +684,7 @@ class PlatformMarketOrderTransfer
                 ->firstOrFail();
             $gourpOrderItems[$orderItem->seller_sku]->mapping = $mapping;
             $gourpOrderItems[$orderItem->seller_sku]->seller_sku = $mapping->sku;
+            $gourpOrderItems[$orderItem->seller_sku]->ext_seller_sku = $mapping->marketplace_sku;
         }
         return $gourpOrderItems;
     }
