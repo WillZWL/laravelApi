@@ -103,6 +103,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('product/{sku}/{lang}', 'ProductController@show');
     $api->resource('product', 'ProductController');
     $api->get('marketplace-product/search', 'MarketplaceProductController@search');
+    $api->get('marketplace-product/export', 'MarketplaceProductController@export');
     $api->get('marketplace-product/estimate', 'MarketplaceProductController@estimate');
     $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
     $api->post('marketplace-product/add-update', 'MarketplaceProductController@addOrUpdate');
