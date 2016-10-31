@@ -37,7 +37,7 @@ class PlatformMarketReadyOrderTransfer extends Command
      */
     public function handle()
     {
-        //\Log::info('User failed to login . '.\Carbon\Carbon::now());
+        \Log::info('Transfer orders at . '.\Carbon\Carbon::now());
         $this->platformMarketOrderTransfer->transferReadyOrder();
     }
 }

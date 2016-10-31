@@ -11,7 +11,8 @@ use Config;
 
 abstract class BaseApiPlatformCommand extends Command
 {
-    public $platfromMakert = array('lazada','priceminister', 'newegg', 'tanga');
+    public $platfromMakert = array('priceminister', 'newegg', 'tanga');
+    public $hourlyPlatfromMakert = array('lazada', 'fnac');
     abstract public function runApiPlatformServiceFunction($stores, $apiName);
 
     public function __construct()
@@ -34,6 +35,10 @@ abstract class BaseApiPlatformCommand extends Command
         $apiOption = $this->option('api');
         if ($apiOption == 'all') {
             foreach ($this->platfromMakert as $apiName) {
+                $this->runApiPlatformServiceFunction($this->getStores($apiName), $apiName);
+            }
+        } else if($apiOption == 'hourlyAll') {
+            foreach ($this->hourlyPlatfromMakert as $apiName) {
                 $this->runApiPlatformServiceFunction($this->getStores($apiName), $apiName);
             }
         } else {
