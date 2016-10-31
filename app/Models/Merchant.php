@@ -32,4 +32,9 @@ class Merchant extends Model
     {
         return $this->hasMany('App\Models\CourierCostMarkup');
     }
+
+    public function sellingPlatform()
+    {
+        return $this->hasMany('App\Models\SellingPlatform', 'merchant_id', 'id');
+    }
 }

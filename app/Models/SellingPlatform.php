@@ -20,4 +20,9 @@ class SellingPlatform extends Model
     {
         return $this->hasMany('App\Models\So', 'platform_id');
     }
+
+    public function merchant()
+    {
+        return $this->belongsTo('App\Models\Merchant', 'merchant_id', 'id');
+    }
 }

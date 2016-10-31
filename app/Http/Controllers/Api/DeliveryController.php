@@ -32,4 +32,12 @@ class DeliveryController extends Controller
 
         return response()->json($orderDeliveryCost);
     }
+
+    public function getOrderDeliveryOptionsBySoNo($soNo)
+    {
+        $orderDeliveryOptions = $this->shippingService->orderDeliveryOptions($soNo);
+
+        return response()->json($orderDeliveryOptions);
+    }
+
 }
