@@ -79,6 +79,11 @@ class MarketplaceSkuMapping extends Model
         return $this->belongsTo('App\Models\PlatformMarketOrderItem');
     }
 
+    public function amazonOrderItem()
+    {
+        return $this->belongsTo('App\Models\AmazonOrderItem');
+    }
+
     public function scopePendingProductSkuGroups($query, $marketplaceId)
     {
         return $query->join('product', 'marketplace_sku_mapping.sku', '=', 'product.sku')

@@ -358,6 +358,7 @@ class PlatformMarketOrderTransfer
             $newOrderItem->prod_sku = $item->seller_sku;
             $newOrderItem->prod_name = $item->title;
             $newOrderItem->ext_item_cd = $item->order_item_id;
+            $newOrderItem->ext_seller_sku = $item->ext_seller_sku;
             $newOrderItem->qty = $item->quantity_ordered;
             $newOrderItem->unit_price = $item->item_price / $item->quantity_ordered;
             $newOrderItem->amount = $item->item_price;
@@ -683,6 +684,7 @@ class PlatformMarketOrderTransfer
                 ->firstOrFail();
             $gourpOrderItems[$orderItem->seller_sku]->mapping = $mapping;
             $gourpOrderItems[$orderItem->seller_sku]->seller_sku = $mapping->sku;
+            $gourpOrderItems[$orderItem->seller_sku]->ext_seller_sku = $mapping->marketplace_sku;
         }
         return $gourpOrderItems;
     }
