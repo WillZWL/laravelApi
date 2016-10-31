@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api;
 
 use App\Services\MarketplaceProductService;
+use App\Transformers\InventoryFeedTransfer;
 use App\Transformers\MarketplaceProductTransformer;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use Excel;
 
 class MarketplaceProductController extends Controller
 {
@@ -103,9 +105,16 @@ class MarketplaceProductController extends Controller
 
     public function search(Requests\MarketplaceProductSearchRequest $searchRequest)
     {
-        $products = $this->marketplaceProductService->search($searchRequest);
+        $products = $this->marketplaceProductService->searchWithProfit($searchRequest);
 
         return $this->response->paginator($products, new MarketplaceProductTransformer());
+    }
+
+    public function export(Requests\MarketplaceProductSearchRequest $searchRequest)
+    {
+        $excel = $this->marketplaceProductService->export($searchRequest);
+
+        return $excel->download('csv');
     }
 
     public function estimate(Requests\ProfitEstimateRequest $profitRequest)
