@@ -211,7 +211,8 @@ class ShippingService
                     'currency' => $toCurrency,
                     'rate' => $rate,
                     'deliveryType' => $deliveryType,
-                    'firstSurcharge' => $surchargeInPercent,
+                    'firstSurcharge' => $courierCostModel->courierInfo->surcharge,
+                    'firstSurchargeInPercent' => $surchargeInPercent,
                     'courierCostMarkupInPercent' => $courierCostMarkupInPercent,
                 ];
             })->reject(function ($costCollect) {
