@@ -31,28 +31,9 @@ class FlexSoFee extends Model
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeAmazonCommission($query, $data)
+    public function scopeAmazonCommission($query, $flexBatchId)
     {
-        if ($data['marketplace'] || $data['payment_gateway']) {
-
-            if (empty($data['payment_gateway'])) {
-                $onRel = 'like';
-                $onVal = $data['marketplace'] .'_%';
-            } else {
-                $onRel = '=';
-                $onVal = $data['payment_gateway'];
-            }
-
-            switch ($data['marketplace']) {
-                case 'amazon':
-                    $fsfStatus = 'A_COMM';
-                    break;
-
-                default:
-                    $fsfStatus = '';
-                    break;
-            }
-
+        if ($flexBatchId) {
             return $query->join('flex_batch', 'flex_batch.id', '=', 'flex_so_fee.flex_batch_id')
                 ->join('so', 'so.so_no', '=', 'flex_so_fee.so_no')
                 ->join('selling_platform AS sp', 'so.platform_id', '=', 'sp.id')
@@ -61,17 +42,20 @@ class FlexSoFee extends Model
                         ->on('er.to_currency_id', '=', 'flex_so_fee.currency_id');
                 })
 
-                ->where('flex_batch.status', '=', 'C')
-                ->where("flex_batch.gateway_id", $onRel, $onVal)
-                ->where('flex_so_fee.status', '=', $fsfStatus)
+                ->where('flex_batch.id', '=', $flexBatchId)
+                ->where('flex_so_fee.status', '=', 'A_COMM')
                 ->where('so.platform_split_order', '=', '1')
 
                 ->select(
+                    'flex_batch.id AS flex_batch_id',
                     'flex_batch.gateway_id',
                     'flex_so_fee.currency_id',
                     'flex_so_fee.amount AS commission',
+                    'flex_so_fee.status',
                     'sp.marketplace',
                     'so.so_no',
+                    'so.txn_id',
+                    'flex_so_fee.currency_id',
                     'so.amount',
                     'so.delivery_country_id',
                     'er.rate'
