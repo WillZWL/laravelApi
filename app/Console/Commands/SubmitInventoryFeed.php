@@ -101,7 +101,7 @@ class SubmitInventoryFeed extends Command
 
                     $xml .= $messageNode;
                 } catch (\Exception $e) {
-                    mail('handy.hon@eservciesgroup.com', 'SOS', 'Invenotry Feed Error');
+                    mail('handy.hon@eservicesgroup.com', 'SOS', 'Invenotry Feed Error');
                 }
             }
             $xml .= '</AmazonEnvelope>';
