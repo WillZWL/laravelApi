@@ -81,6 +81,13 @@ class CommissionChargeService
                         }
                     }
                 }
+                $adminPspFee = $adminPspFee != 0 ? $adminPspFee : "0";
+
+                $commission_amt_percent = round(($order->commission / $order->amount) * 100, 2);
+                $commission_amt_percent = $commission_amt_percent != 0 ? $commission_amt_percent : "0";
+
+                $psp_amt_percent = round(($adminPspFee / $order->amount) * 100, 2);
+                $psp_amt_percent = $psp_amt_percent != 0 ? $psp_amt_percent : "0";
 
                 $pspFeeData[] = [
                     $order->so_no,
@@ -89,8 +96,8 @@ class CommissionChargeService
                     $order->amount,
                     $order->commission,
                     $adminPspFee,
-                    round($order->commission / $order->amount, 2),
-                    round($adminPspFee / $order->amount, 2)
+                    $commission_amt_percent,
+                    $psp_amt_percent
                 ];
 
             }
