@@ -46,7 +46,7 @@ class MarketplaceProductSearch
         if ($request->input('per_page')) {
             return $query->paginate($request->input('per_page'))->appends($request->input());
         } else {
-            return $query->get();
+            return $query->paginate(30)->appends($request->input());
         }
     }
 }
