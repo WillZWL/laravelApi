@@ -6,47 +6,45 @@ use App\Models\FlexSoFee;
 use App\Models\PaymentGateway;
 use App\Models\So;
 use App\Models\MarketplaceSkuMapping;
+use Excel;
 
 class CommissionChargeService
 {
-    public function commissionChargeData($postData)
+    public function amazonCommissionChargeExport($flexBatchId)
     {
-        $data = [];
         $header[] = [
-                'so_no' => "So no",
-                'gateway_id' => 'Gateway ID',
-                'currency' => 'Currency ID',
-                'amazon_commission' => 'MarketPlace Commission Charge',
-                'psp_fee' => 'PSP Fee',
-                'diff' => 'Diff Fee'
+            'Order ID',
+            'Transaction ID',
+            'Currency ID',
+            'Order Amt',
+            'Gateway Report PSP Fee',
+            'Admin PSP Fee',
+            'Gateway Report PSP %',
+            'Admin PSP Fee %'
         ];
 
-        $orderList = FlexSoFee::AmazonCommission($postData);
+        $orderList = FlexSoFee::AmazonCommission($flexBatchId);
+        $pspFeeData = $this->calculatePspFee($orderList);
 
-        $pspFee = $this->calculatePspFee($orderList);
+        $newData = array_merge($header, $pspFeeData);
 
-        foreach ($orderList as $order) {
-            $data[] = [
-                'so_no' => $order->so_no,
-                'gateway_id' => $order->gateway_id,
-                'currency' => $order->currency_id,
-                'amazon_commission' => $order->commission,
-                'psp_fee' => $pspFee[$order->so_no],
-                'diff' => $order->commission + $pspFee[$order->so_no],
-            ];
-        }
+        $excel = Excel::create('product_inventory_feed', function ($excel) use ($newData) {
+            $excel->sheet('first', function ($sheet) use ($newData) {
+                $sheet->fromArray($newData);
+            });
+        });
 
-        return array_merge($header, $data);
+        return $excel;
     }
 
     public function calculatePspFee($orderList)
     {
-        $pspFee = [];
+        $pspFeeData = [];
         foreach ($orderList as $order) {
             $rate = $order->rate;
             $so = So::whereSoNo($order->so_no)->first();
             if ($so) {
-                $pspFee[$so->so_no] = 0;
+                $adminPspFee = 0;
 
                 $marketplaceId = $so->sellingPlatform->marketplace;
                 $countryId = $so->delivery_country_id;
@@ -59,9 +57,9 @@ class CommissionChargeService
                 }
 
                 if ($soItems = $so->soItem()->whereSoNo($so->so_no)->whereHiddenToClient(0)->get()) {
+
                     foreach ($soItems as $soItem) {
                         if (!$soItem->ext_seller_sku) continue;
-
                         $MarketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($soItem->ext_seller_sku)->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
                         if ($MarketplaceSkuMapping) {
                             $qty = $soItem->qty;
@@ -79,14 +77,26 @@ class CommissionChargeService
                                 $marketplaceCommission = (min($unit_price * $mpCommission / 100, $maximum)) * $rate;
                             }
 
-                            $pspFee[$so->so_no] += round(($paymentGatewayFee + $paymentGatewayAdminFee + $marketplaceCommission) * $qty, 2);
+                            $adminPspFee += round(($paymentGatewayFee + $paymentGatewayAdminFee + $marketplaceCommission) * $qty, 2);
                         }
                     }
                 }
+
+                $pspFeeData[] = [
+                    $order->so_no,
+                    $order->txn_id,
+                    $order->currency_id,
+                    $order->amount,
+                    $order->commission,
+                    $adminPspFee,
+                    round($order->commission / $order->amount, 2),
+                    round($adminPspFee / $order->amount, 2)
+                ];
+
             }
         }
 
-        return $pspFee;
+        return $pspFeeData;
     }
 
     public function getPaymentGateway($marketplace, $country_code)
