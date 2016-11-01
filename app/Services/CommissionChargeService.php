@@ -12,25 +12,12 @@ class CommissionChargeService
 {
     public function amazonCommissionChargeExport($flexBatchId)
     {
-        $header[] = [
-            'Order ID',
-            'Transaction ID',
-            'Currency ID',
-            'Order Amt',
-            'Gateway Report PSP Fee',
-            'Admin PSP Fee',
-            'Gateway Report PSP %',
-            'Admin PSP Fee %'
-        ];
-
         $orderList = FlexSoFee::AmazonCommission($flexBatchId);
         $pspFeeData = $this->calculatePspFee($orderList);
 
-        $newData = array_merge($header, $pspFeeData);
-
-        $excel = Excel::create('product_inventory_feed', function ($excel) use ($newData) {
-            $excel->sheet('first', function ($sheet) use ($newData) {
-                $sheet->fromArray($newData);
+        $excel = Excel::create('amazon-commission-charge-report', function ($excel) use ($pspFeeData) {
+            $excel->sheet('first', function ($sheet) use ($pspFeeData) {
+                $sheet->fromArray($pspFeeData);
             });
         });
 
@@ -90,14 +77,14 @@ class CommissionChargeService
                 $psp_amt_percent = $psp_amt_percent != 0 ? $psp_amt_percent : "0";
 
                 $pspFeeData[] = [
-                    $order->so_no,
-                    $order->txn_id,
-                    $order->currency_id,
-                    $order->amount,
-                    $order->commission,
-                    $adminPspFee,
-                    $commission_amt_percent,
-                    $psp_amt_percent
+                    'Order ID' => $order->so_no,
+                    'Transaction ID' => $order->txn_id,
+                    'Currency ID' => $order->currency_id,
+                    'Order Amt' => $order->amount,
+                    'Gateway Report PSP Fee' => $order->commission,
+                    'Admin PSP Fee' => $adminPspFee,
+                    'Gateway Report PSP %' => $commission_amt_percent,
+                    'Admin PSP Fee %' => $psp_amt_percent
                 ];
 
             }
