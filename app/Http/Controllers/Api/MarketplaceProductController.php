@@ -112,6 +112,7 @@ class MarketplaceProductController extends Controller
 
     public function export(Requests\MarketplaceProductSearchRequest $searchRequest)
     {
+        $searchRequest->merge(['per_page' => '']);
         $excel = $this->marketplaceProductService->export($searchRequest);
 
         return $excel->download('csv');
