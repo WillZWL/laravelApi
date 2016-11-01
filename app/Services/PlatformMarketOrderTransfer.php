@@ -159,7 +159,6 @@ class PlatformMarketOrderTransfer
         $this->saveSoExtend($so, $order);
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
-
         $this->setGroupOrderRecommendCourierAndCharge($so);
         return $so->so_no;
     }
@@ -683,8 +682,8 @@ class PlatformMarketOrderTransfer
                 ->where('country_id', '=', $countryCode)
                 ->firstOrFail();
             $gourpOrderItems[$orderItem->seller_sku]->mapping = $mapping;
-            $gourpOrderItems[$orderItem->seller_sku]->seller_sku = $mapping->sku;
             $gourpOrderItems[$orderItem->seller_sku]->ext_seller_sku = $mapping->marketplace_sku;
+            $gourpOrderItems[$orderItem->seller_sku]->seller_sku = $mapping->sku;
         }
         return $gourpOrderItems;
     }
