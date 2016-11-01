@@ -73,6 +73,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('order-delivery-cost/{soNo}', 'Api\DeliveryController@getOrderDeiveryCostBySoNo');
     Route::get('order-delivery-options/{soNo}', 'Api\DeliveryController@getOrderDeliveryOptionsBySoNo');
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
+    Route::get('amazon-commission-charge-report/{flexBatchId}', 'Api\CommissionChargeController@getAmazonCommissionChargeReport');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
@@ -89,7 +90,6 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('marketplace-content-field', 'MarketplaceContentFieldController');
     $api->post('marketplace-content-export/setting', 'MarketplaceContentExportController@setting');
     $api->resource('marketplace-content-export', 'MarketplaceContentExportController');
-    $api->get('commission-charge-report', 'CommissionChargeController@getCommissionChargeReport');
     $api->post('product/product-mapping', 'ProductController@productMapping');
     $api->post('product/supplier-product', 'ProductController@supplierProduct');
     $api->post('product/weight-dimension', 'ProductController@weightDimension');

@@ -27,26 +27,10 @@ class CommissionChargeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function getCommissionChargeReport(Requests\CommissionCharge\CommissionChargeReportRequest $request)
+    public function getAmazonCommissionChargeReport($flexBatchId)
     {
-        $data = $this->commssionChargeService->commissionChargeData($request->all());
+        $excel = $this->commssionChargeService->amazonCommissionChargeExport($flexBatchId);
 
-        $headers = [
-            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-            'Content-type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename=commission-charge-report.csv',
-            'Expires' => '0',
-            'Pragma' => 'public',
-        ];
-
-        $callback = function() use ($data) {
-            $FH = fopen('php://output', 'w');
-            foreach ($data as $row) {
-                fputcsv($FH, $row);
-            }
-            fclose($FH);
-        };
-
-        return response()->stream($callback, 200, $headers);
+        return $excel->download('csv');
     }
 }
