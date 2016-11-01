@@ -201,8 +201,12 @@ class ApiPlatformFactoryService
                  foreach ($platformMarketOrderGroup as $platformMarketOrder) {
                     foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
                         $orderParam["orderItemId"] = $orderItem->order_item_id;
-                        //$result[$platformMarketOrder->id] = $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderParam);
-                        $result[$platformMarketOrder->id] = true;
+                        $response = $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderParam);
+                        if($response["RequestId"]){
+                            $result[$platformMarketOrder->id] = true;
+                        }else{
+                            $result[$platformMarketOrder->id] = false;
+                        }
                     }
                     if($result[$platformMarketOrder->id]){
                         $this->setEsgOrderStatusToCanceled($platformMarketOrder);
