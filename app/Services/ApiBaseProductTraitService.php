@@ -105,7 +105,7 @@ trait ApiBaseProductTraitService
                     PlatformMarketInventory::where('id',$platformMarketFeedBatch->update_id)->update(['update_status' => "2"]);
                }else{
                     $marketplaceSkuMapping = MarketplaceSkuMapping::find($platformMarketFeedBatch->update_id);
-                    $this->updatePendingProductProcessStatus($marketplaceSkuMapping,$platformMarketFeedBatch->processStatus);
+                    $this->updatePendingProductProcessStatusBySku($marketplaceSkuMapping,$platformMarketFeedBatch->process_status);
                }
                $platformMarketFeedBatch->status = "C";
                $platformMarketFeedBatch->save();
