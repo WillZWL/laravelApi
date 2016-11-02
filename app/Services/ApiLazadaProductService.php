@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Contracts\ApiPlatformProductInterface;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
+use App\Models\PlatformMarketInventory;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaProductList;
@@ -63,17 +64,10 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                 $xmlData .= $messageDom;
             }
             $xmlData .= '</Request>';
-            $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
-            $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
-            $this->saveDataToFile(serialize($xmlData), 'pendingProductPriceOrInventory');
-            $responseXml = $this->lazadaProductUpdate->submitXmlData($xmlData);
-            $this->saveDataToFile(serialize($responseXml), 'submitProductPriceOrInventory');
-            if($responseXml){
-                $responseData = new \SimpleXMLElement($responseXml);
-                $requestId = (string) $responseData->Head->RequestId;
-                if($requestId){
-                    $this->createOrUpdatePlatformMarketProductFeed($storeName,$requestId);
-                    $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus); 
+            $feedId = $this->fetchLazadaProductUpdateFeed($storeName,$xmlData);
+            if($feedId){
+                foreach ($processStatusProduct as $pendingSku) {
+                   $this->createOrUpdatePlatformMarketFeedBatch("update_inventory_and_price",$feedId,$pendingSku->id,$pendingSku->marketplace_sku,$processStatus);
                 }
             }
         }
@@ -84,6 +78,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         $message = null;
         $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
         foreach ($productUpdateFeeds as $productUpdateFeed) {
+            $errorSku = array();
             $this->lazadaFeedStatus->setFeedId($productUpdateFeed->feed_submission_id);
             $result = $this->lazadaFeedStatus->fetchFeedStatus();
             if($result){
@@ -92,9 +87,11 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     if ($resultDetail["FailedRecords"] > 0 ){
                         if($resultDetail["FailedRecords"] == 1){
                              $message = $resultDetail["FeedErrors"]["Error"]["Message"];
+                             $errorSku[] = $resultDetail["FeedErrors"]["Error"]["SellerSku"];
                         }else{
                             foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
                                 $message .= $errorDetail["Message"]."\r\n";
+                                $errorSku[] = $resultDetail["FeedErrors"]["Error"]["SellerSku"];
                             }
                         }
                         $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
@@ -103,6 +100,9 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     }
                 }
                 $productUpdateFeed->save();
+            }
+            if($productUpdateFeed->platformMarketBatch){
+                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
             }
         }
         if($message){
@@ -181,4 +181,50 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
         
     }
+
+    public function updatePlatformMarketMattleInventory()
+    {
+        $inventorys = PlatformMarketInventory::where("update_status","1")->get();
+        if(!$inventorys->isEmpty()){
+            $inventoryGroups = $inventorys->groupBy("store_id");
+            foreach ($inventoryGroups as $storeId => $inventoryGroup) {
+                $store = Store::find($storeId);
+                $storeName = $store->store_code.$store->marketplace.$store->country;
+                if(!$inventoryGroup->isEmpty()){
+                    $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
+                    $xmlData .= '<Request>';
+                    foreach ($inventoryGroup as $platformMarketInventory) {
+                        $messageDom = '<Product>';
+                        $messageDom .= '<SellerSku>'.$platformMarketInventory->marketplace_sku.'</SellerSku>';
+                        $messageDom .= '<Quantity>'.$platformMarketInventory->inventory.'</Quantity>';
+                        $messageDom .= '</Product>';
+                        $xmlData .= $messageDom;
+                    }
+                    $xmlData .= '</Request>';
+                    $feedId = $this->fetchLazadaProductUpdateFeed($storeName,$xmlData);
+                    if($feedId){
+                        foreach ($inventoryGroup as $platformMarketInventory) {
+                           $this->createOrUpdatePlatformMarketFeedBatch("mattle_update_inventory",$feedId,$platformMarketInventory->id,$platformMarketInventory->marketplace_sku);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public function fetchLazadaProductUpdateFeed($storeName,$xmlData)
+    {
+        $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
+        $this->storeCurrency = $this->lazadaProductUpdate->getStoreCurrency();
+        $responseXml = $this->lazadaProductUpdate->submitXmlData($xmlData);
+        if($responseXml){
+            $responseData = new \SimpleXMLElement($responseXml);
+            $requestId = (string) $responseData->Head->RequestId;
+            if($requestId){
+                $platformMarketProductFeed = $this->createOrUpdatePlatformMarketProductFeed($storeName,$requestId);
+                return $platformMarketProductFeed->id;
+            }
+        }
+    }
+    
 }

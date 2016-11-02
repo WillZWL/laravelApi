@@ -80,13 +80,13 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
             'currency'=>'MYR',
         ],
-        /*'MDLAZADASG' => [
+        'MDLAZADASG' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelsg@eservicesgroup.com', 
             'apiToken' => '',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
             'currency'=>'SGD',
-        ],*/
+        ],
         'MDLAZADATH' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelth@eservicesgroup.com', 

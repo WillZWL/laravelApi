@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\PlatformMarketProductFeed;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
+use App\Models\PlatformMarketFeedBatch;
+use App\Models\PlatformMarketInventory;
 /**
 * 
 */
@@ -92,6 +94,36 @@ trait ApiBaseProductTraitService
             ],
             $object
         );
+        return $platformMarketProductFeed;
+    }
+
+    public function confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku = array())
+    {
+        foreach ($productUpdateFeed->platformMarketFeedBatch as $platformMarketFeedBatch) {
+            if(!in_array($platformMarketFeedBatch->marketplace_sku,$errorSku)){
+                if($platformMarketFeedBatch->fun_name == "mattle_update_inventory"){
+                    PlatformMarketInventory::where('id',$platformMarketFeedBatch->update_id)->update(['update_status' => "2"]);
+               }else{
+                    $marketplaceSkuMapping = MarketplaceSkuMapping::find($platformMarketFeedBatch->update_id);
+                    $this->updatePendingProductProcessStatus($marketplaceSkuMapping,$platformMarketFeedBatch->processStatus);
+               }
+               $platformMarketFeedBatch->status = "C";
+               $platformMarketFeedBatch->save();
+            }
+        }
+    }
+
+    public function createOrUpdatePlatformMarketFeedBatch($functionName,$feedId,$updateId,$marketplaceSku,$processStatus = null)
+    {
+        $object = array(
+            'fun_name' => $functionName,
+            "feed_id" => $feedId,
+            "update_id" => $updateId,
+            "marketplace_sku" => $marketplaceSku,
+            "process_status" => $processStatus,
+            "status" => "N"
+        );
+        PlatformMarketFeedBatch::updateOrCreate(['feed_id' => $feedId,'update_id' => $updateId,], $object);
     }
 
     public function getWmsWarehouseSkuOrderedList($warehouseOrderGroups)

@@ -217,6 +217,21 @@ class ApiPlatformFactoryService
         }
     }
 
+    public function getFailureReasons($orderIds)
+    {
+        $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
+        if(!$platformMarketOrders->isEmpty()) {
+            $platformMarketOrderGroups = $platformMarketOrders->groupBy("platform");
+            foreach($platformMarketOrderGroups as $storeName => $platformMarketOrderGroup){
+                 $response = $this->apiPlatformInterface->getFailureReasons($storeName);
+                 foreach ($platformMarketOrderGroup as $platformMarketOrder) {
+                      $result[$platformMarketOrder->id] = $response;
+                 }
+            }
+            return $result;
+        }
+    }
+
     public function setMerchantOrderToShipped($trackingNo)
     {
         $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();

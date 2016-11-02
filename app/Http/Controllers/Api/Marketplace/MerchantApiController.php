@@ -26,6 +26,13 @@ class MerchantApiController extends Controller
         //
     }
 
+    public function getFailureReasons(Request $request)
+    {
+        $orderIds = $request->input("id");
+        $result = $this->apiPlatformFactoryService->getFailureReasons($orderIds);
+        return \Response::json($result);
+    }
+
     public function orderFufillmentAction(Request $request)
     {
         $result = null;
@@ -36,7 +43,6 @@ class MerchantApiController extends Controller
         }else if($action == "allocate") {
             $result = $this->apiPlatformFactoryService->merchantOrderAllocatedReadyToShip();
         }else if($action == "cancelOrder"){
-            $orderParam["reason"] = $request->input("reason");
             $orderParam["reasonDetail"] = $request->input("reason_detail");
             $result = $this->apiPlatformFactoryService->setMerchantOrderCanceled($orderIds,$orderParam);
         }else if($action == "getDocument"){
