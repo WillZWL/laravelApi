@@ -47,7 +47,7 @@ class CommissionChargeService
 
                     foreach ($soItems as $soItem) {
                         if (!$soItem->ext_seller_sku) continue;
-                        $MarketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($soItem->ext_seller_sku)->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
+                        $MarketplaceSkuMapping = MarketplaceSkuMapping::whereMarketplaceSku($soItem->ext_seller_sku)->whereSku($soItem->prod_sku)->whereMarketplaceId($marketplaceId)->whereCountryId($countryId)->first();
                         if ($MarketplaceSkuMapping) {
                             $qty = $soItem->qty;
                             $unit_price = $soItem->unit_price;
