@@ -101,7 +101,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                 }
                 $productUpdateFeed->save();
             }
-            if($productUpdateFeed->platformMarketBatch){
+            if($productUpdateFeed->platformMarketFeedBatch){
                 $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
             }
         }
