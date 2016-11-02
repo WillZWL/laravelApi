@@ -81,7 +81,7 @@ class PriceMinisterProductCreate extends PriceMinisterProductsCore
             $messageDom .=      '</attribute>';
             $messageDom .=      '<attribute>';
             $messageDom .=          '<key>sellerReference</key>';
-            $messageDom .=          '<value><![CDATA['.$pendingSku->detail_desc.']]</value>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->sku.']]</value>';
             $messageDom .=      '</attribute>';
             $messageDom .= '</advert>';
             $messageDom .= '<media>';
