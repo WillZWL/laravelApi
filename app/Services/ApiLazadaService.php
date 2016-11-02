@@ -23,6 +23,7 @@ use App\Repository\LazadaMws\LazadaDocument;
 use App\Repository\LazadaMws\LazadaShipmentProviders;
 use App\Repository\LazadaMws\LazadaMultipleOrderItems;
 use App\Repository\LazadaMws\LazadaProductList;
+use App\Repository\LazadaMws\LazadaFailureReasons;
 
 class ApiLazadaService implements ApiPlatformInterface
 {
@@ -145,8 +146,8 @@ class ApiLazadaService implements ApiPlatformInterface
                         $orderItemIds[] = $orderItem->order_item_id;
                     }
                     $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
-                    if($shipmentProvider){
-                        $result = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider);
+                    if($shipmentProvider && $orderItemIds){
+                        $result = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider,$order->platform_order_id);
                         if($result){
                             $orderIdList[] = $order->platform_order_id;
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
@@ -210,7 +211,7 @@ class ApiLazadaService implements ApiPlatformInterface
                         $updateWarehouseObject[] = $esgOrder;
                         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
                         if($shipmentProvider){
-                            $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                            $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
                             if($result){
                                 $returnData[$esgOrder->so_no] = " Set Ready To Ship Success\r\n";
                                 $doucumentOrderItemIds[] = $orderItemIds[0];
@@ -302,13 +303,22 @@ class ApiLazadaService implements ApiPlatformInterface
         return $orderItemIds;
     }
 
-    private function setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider)
+    private function setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
     {
         $responseResult = null;
         if ($orderItemIds) {
             $itemObject = array("orderItemIds" => $orderItemIds);
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
+            /*$orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
             //Not allowed to change the preselected shipment provider
+            foreach ($orderList as $order) {
+                foreach ($order["OrderItems"] as $orderItem) {
+                    if($orderItem["TrackingCode"]){
+                       $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
+                       $itemObject["ShipmentProvider"] = $shipmentProvider;
+                    }
+                }
+            }*/
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             if($responseResult){
                 if(isset($responseResult["PurchaseOrderId"])){
@@ -426,6 +436,13 @@ class ApiLazadaService implements ApiPlatformInterface
 		return $this->checkResultData($result,$this->lazadaOrderStatus);
 	}
 
+    public function getFailureReasons($storeName)
+    {
+        $this->lazadaFailureReasons = new LazadaFailureReasons($storeName);
+        $result = $this->lazadaFailureReasons->fetchFailureReasons();
+        return $result;
+    }
+
 	public function setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider)
 	{
 		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
@@ -476,7 +493,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		$this->lazadaOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
         if(isset($itemObject["TrackingNumber"]))
 		$this->lazadaOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToReadyToShip();
+        $orginOrderItemList = $this->lazadaOrderStatus->setStatusToReadyToShip();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
         return $orginOrderItemList;
 	}

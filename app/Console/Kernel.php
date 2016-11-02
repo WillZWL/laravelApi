@@ -31,6 +31,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketProductReport::class,
         Commands\PlatformMarketOrderReport::class,
         Commands\PlatformMarketFeedResult::class,
+        Commands\PlatformMarketMattelProductFeed::class,
     ];
 
     /**

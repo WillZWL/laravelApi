@@ -130,6 +130,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['cors']], function ($api) {
     $api->post('merchant-api/order-fufillment', 'MerchantApiController@orderFufillmentAction');
+    $api->post('merchant-api/order-cancel-reason', 'MerchantApiController@getFailureReasons');
     $api->post('merchant-api/order-picking-list', 'MerchantApiController@getPickingList');
     $api->get('merchant-api/download-label/{file}', 'MerchantApiController@donwloadLabel');
     $api->post('merchant-api/scan-tracking-no', 'MerchantApiController@scanMerchantTrackingNo');
