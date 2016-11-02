@@ -14,6 +14,11 @@ class PlatformMarketProductFeed extends Model
     {
         return $productFeed = $query->where('feed_processing_status',$feedProcessingStatus)
             ->where('platform', $platform)
-            ->get(); 
+            ->get();
+    }
+
+    public function platformMarketFeedBatch()
+    {
+        return $this->hasMany('App\Models\PlatformMarketFeedBatch', 'id', 'feed_id');
     }
 }
