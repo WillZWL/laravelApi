@@ -26,10 +26,9 @@ class MerchantApiController extends Controller
         //
     }
 
-    public function getFailureReasons(Request $request)
+    public function getPlatformMarkplaceReasons(Request $request)
     {
-        $orderIds = $request->input("id");
-        $result = $this->apiPlatformFactoryService->getFailureReasons($orderIds);
+        $result = $this->apiPlatformFactoryService->getPlatformMarkplaceReasons();
         return \Response::json($result);
     }
 
