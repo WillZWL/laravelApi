@@ -220,7 +220,7 @@ class ApiPlatformFactoryService
     public function getPlatformMarkplaceReasons()
     {
         $storeIds = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
-        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->get();
+        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->select("store_id","type","reason_name")->get();
         $platformMarketReasonGroup = $platformMarketReasons->groupBy("store_id");
         return $platformMarketReasonGroup;
     }
