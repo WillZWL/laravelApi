@@ -146,7 +146,7 @@ class ApiLazadaService implements ApiPlatformInterface
                         $orderItemIds[] = $orderItem->order_item_id;
                     }
                     $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
-                    if($shipmentProvider){
+                    if($shipmentProvider && $orderItemIds){
                         $result = $this->setApiOrderReadyToShip($order->platform,$orderItemIds,$shipmentProvider,$order->platform_order_id);
                         if($result){
                             $orderIdList[] = $order->platform_order_id;
@@ -309,15 +309,16 @@ class ApiLazadaService implements ApiPlatformInterface
         if ($orderItemIds) {
             $itemObject = array("orderItemIds" => $orderItemIds);
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
-            $orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
+            /*$orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
             //Not allowed to change the preselected shipment provider
             foreach ($orderList as $order) {
                 foreach ($order["OrderItems"] as $orderItem) {
                     if($orderItem["TrackingCode"]){
                        $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
+                       $itemObject["ShipmentProvider"] = $shipmentProvider;
                     }
                 }
-            }
+            }*/
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             if($responseResult){
                 if(isset($responseResult["PurchaseOrderId"])){
@@ -492,7 +493,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		$this->lazadaOrderStatus->setShippingProvider($itemObject["ShipmentProvider"]);
         if(isset($itemObject["TrackingNumber"]))
 		$this->lazadaOrderStatus->setTrackingNumber($itemObject["TrackingNumber"]);
-		$orginOrderItemList=$this->lazadaOrderStatus->setStatusToReadyToShip();
+        $orginOrderItemList = $this->lazadaOrderStatus->setStatusToReadyToShip();
 		$this->saveDataToFile(serialize($orginOrderItemList),"setStatusToReadyToShip");
         return $orginOrderItemList;
 	}
