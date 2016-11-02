@@ -3,7 +3,6 @@
     <head>
         <title>Accelerator  Admincenter</title>
         <!-- HTML meta refresh URL redirection -->
-        <meta http-equiv="refresh" content="0; url= {{ url( 'scout' ) }}">
         <link href="https://fonts.googleapis.com/css?family=Lato:100" rel="stylesheet" type="text/css">
         <style>
             html, body {
@@ -39,7 +38,6 @@
         <div class="container">
             <div class="content">
                 <div class="title">
-                  The page has moved to : <a href="{{ url( 'scout' ) }}"><b>Accelerator</b></a>
                 </div>
             </div>
         </div>
