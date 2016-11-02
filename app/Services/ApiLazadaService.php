@@ -10,6 +10,7 @@ use App\Models\Inventory;
 use App\Models\Schedule;
 use App\Models\InvMovement;
 use App\Models\So;
+use App\Models\PlatformMarketReasons;
 use PDF;
 use Excel;
 use Zipper;
@@ -436,11 +437,29 @@ class ApiLazadaService implements ApiPlatformInterface
 		return $this->checkResultData($result,$this->lazadaOrderStatus);
 	}
 
-    public function getFailureReasons($storeName)
+    public function updateOrCreatePlatformMarketReasons($storeName)
     {
         $this->lazadaFailureReasons = new LazadaFailureReasons($storeName);
-        $result = $this->lazadaFailureReasons->fetchFailureReasons();
-        return $result;
+        $failureReasons = $this->lazadaFailureReasons->fetchFailureReasons();
+        $platformStore = $this->getPlatformStore($storeName);
+        if($failureReasons){
+            foreach ($failureReasons as $failureReason) {
+                if(isset($failureReason['Type']) && isset($failureReason['Name'])){
+                    $object = [
+                        'store_id' => $platformStore->id,
+                        'type' => $failureReason['Type'],
+                        'reason_name' => $failureReason['Name']
+                    ];
+                    $platformMarketReasons = PlatformMarketReasons::updateOrCreate(
+                        [
+                            'store_id' => $platformStore->id,
+                            'reason_name' => $failureReason['Name']
+                        ],
+                        $object
+                    );
+                }
+            }
+        }
     }
 
 	public function setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider)

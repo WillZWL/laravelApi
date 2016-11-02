@@ -11,11 +11,11 @@ use Carbon\Carbon;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\MarketplaceSkuMapping;
-use App\Models\UserStore;
-use App\Models\MarketStore;
+use App\Models\User;
 use App\Models\InvMovement;
 use App\Models\StoreWarehouse;
 use App\Models\MattelSkuMapping;
+use App\Models\PlatformMarketReasons;
 
 class ApiPlatformFactoryService
 {
@@ -217,19 +217,17 @@ class ApiPlatformFactoryService
         }
     }
 
-    public function getFailureReasons($orderIds)
+    public function getPlatformMarkplaceReasons()
     {
-        $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
-        if(!$platformMarketOrders->isEmpty()) {
-            $platformMarketOrderGroups = $platformMarketOrders->groupBy("platform");
-            foreach($platformMarketOrderGroups as $storeName => $platformMarketOrderGroup){
-                 $response = $this->apiPlatformInterface->getFailureReasons($storeName);
-                 foreach ($platformMarketOrderGroup as $platformMarketOrder) {
-                      $result[$platformMarketOrder->id] = $response;
-                 }
-            }
-            return $result;
-        }
+        $storeIds = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
+        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->get();
+        $platformMarketReasonGroup = $platformMarketReasons->groupBy("store_id");
+        return $platformMarketReasonGroup;
+    }
+
+    public function updateOrCreatePlatformMarketReasons($storeName)
+    {
+        $this->apiPlatformInterface->updateOrCreatePlatformMarketReasons($storeName);
     }
 
     public function setMerchantOrderToShipped($trackingNo)
@@ -487,11 +485,9 @@ class ApiPlatformFactoryService
     private function getCurrentUserStoreName()
     {
         $storeNames = null;
-        $userId = \Authorizer::getResourceOwnerId();
-        $marketStoreIds = UserStore::find("id",$userId)->plunk("market_store_id");
-        $marketStores = MarketStore::whereIn("id",$marketStoreIds)->get();
-        foreach($marketStores as $marketStore){
-            $storeNames[] = $marketStore->store_name;
+        $stores = User::find(\Authorizer::getResourceOwnerId())->stores();
+        foreach($stores as $store){
+            $storeNames[] = $store->store_code.$store->marketplace.$store->country;
         }
        return $storeNames;
     }
