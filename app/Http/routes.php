@@ -122,7 +122,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('shipping-options/{id}', 'DeliveryController@getDeliveryOptionForSku');
 });
 
-$api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['cors']], function ($api) {
+$api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['api.auth', 'cors']], function ($api) {
     $api->post('merchant-api/order-fufillment', 'MerchantApiController@orderFufillmentAction');
     $api->post('merchant-api/order-cancel-reason', 'MerchantApiController@getPlatformMarkplaceReasons');
     $api->post('merchant-api/order-picking-list', 'MerchantApiController@getPickingList');
