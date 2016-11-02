@@ -37,12 +37,6 @@ Route::group(['middleware' => 'auth'], function () {
     });
 });
 
-Route::group(['prefix' => '/scout', 'middleware' => 'auth'], function () {
-    Route::get('/{vue_route?}', function () {
-        return view('scout');
-    })->where('vue_route', '[\/\w\.-]*');
-});
-
 Route::group(['middleware' => 'auth'], function () {
     Route::resource('tracer', 'TracerSkuController');
 });
