@@ -310,16 +310,19 @@ class ApiLazadaService implements ApiPlatformInterface
         if ($orderItemIds) {
             $itemObject = array("orderItemIds" => $orderItemIds);
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
-            /*$orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
-            //Not allowed to change the preselected shipment provider
-            foreach ($orderList as $order) {
-                foreach ($order["OrderItems"] as $orderItem) {
-                    if($orderItem["TrackingCode"]){
-                       $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
-                       $itemObject["ShipmentProvider"] = $shipmentProvider;
+            $countryCode = strtoupper(substr($storeName, -2));
+            if($countryCode == "TH"){
+                $orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
+                //Not allowed to change the preselected shipment provider
+                foreach ($orderList as $order) {
+                    foreach ($order["OrderItems"] as $orderItem) {
+                        if($orderItem["TrackingCode"]){
+                           $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
+                           $itemObject["ShipmentProvider"] = $shipmentProvider;
+                        }
                     }
                 }
-            }*/
+            }
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             if($responseResult){
                 if(isset($responseResult["PurchaseOrderId"])){
