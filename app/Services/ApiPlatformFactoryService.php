@@ -221,8 +221,10 @@ class ApiPlatformFactoryService
     {
         $storeIds = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
         $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->select("store_id","type","reason_name")->get();
-        $platformMarketReasonGroup = $platformMarketReasons->groupBy("store_id");
-        return $platformMarketReasonGroup;
+        foreach ($platformMarketReasons as $platformMarketReason) {
+            $result[$platformMarketReason->store_id][$platformMarketReason->type][] = $platformMarketReason;
+        }
+        return $result;
     }
 
     public function updateOrCreatePlatformMarketReasons($storeName)
