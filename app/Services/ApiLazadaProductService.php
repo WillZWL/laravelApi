@@ -94,14 +94,8 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                                 $errorSku[] = $resultDetail["FeedErrors"]["Error"]["SellerSku"];
                             }
                         }
-                        $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
-                    }else{
-                        $productUpdateFeed->feed_processing_status = '_COMPLETE_';
                     }
                 }
-                $productUpdateFeed->save();
-            }
-            if($productUpdateFeed->platformMarketFeedBatch){
                 $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
             }
         }
