@@ -104,13 +104,15 @@ trait ApiBaseProductTraitService
                 if(!in_array($platformMarketFeedBatch->marketplace_sku,$errorSku)){
                     if($platformMarketFeedBatch->fun_name == "mattle_update_inventory"){
                         PlatformMarketInventory::where('id',$platformMarketFeedBatch->update_id)->update(['update_status' => "2"]);
-                   }else{
+                    }else{
                         $marketplaceSkuMapping = MarketplaceSkuMapping::find($platformMarketFeedBatch->update_id);
                         $this->updatePendingProductProcessStatusBySku($marketplaceSkuMapping,$platformMarketFeedBatch->process_status);
-                   }
-                   $platformMarketFeedBatch->status = "C";
-                   $platformMarketFeedBatch->save();
+                    }
+                    $platformMarketFeedBatch->status = "C";
+                }else{
+                    $platformMarketFeedBatch->status = "F";
                 }
+                $platformMarketFeedBatch->save();
             }
         }
         if($errorSku){
