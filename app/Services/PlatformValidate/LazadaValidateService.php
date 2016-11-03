@@ -55,6 +55,10 @@ class LazadaValidateService extends BaseValidateService
                 $platform['accountName'] = 'Mattel Distributor Lazada';
                 $platform['alertEmail'] = 'mattelph@eservicesgroup.com';
                 break;
+            case '3D':
+                $platform['accountName'] = '3Doodler Lazada';
+                $platform['alertEmail'] = '3doodler@buholoco.com';
+                break;
         }
 
         return  $platform;
