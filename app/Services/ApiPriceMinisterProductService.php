@@ -99,7 +99,7 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
             if($reports){
                 $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
                 foreach ($reports as $report) {
-                    if($report["errors"]){
+                    if(empty($report["errors"])){
                         $errorSku[] = $report["sku"];
                         $message .= "Seller Sku ".$report["sku"]." error message: \r\n";
                         foreach ($report["errors"] as $error) {
