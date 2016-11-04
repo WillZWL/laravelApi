@@ -15,4 +15,9 @@ class PlatformMarketInventory extends Model
     {
         return $this->hasOne('App\Models\MattelSkuMapping', 'mattel_sku', 'mattel_sku');
     }
+
+    public function merchantProductMapping()
+    {
+        return $this->hasOne('App\Models\MerchantProductMapping', 'merchant_sku','mattel_sku');
+    }
 }
