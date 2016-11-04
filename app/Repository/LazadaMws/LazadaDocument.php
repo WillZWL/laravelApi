@@ -35,8 +35,9 @@ class LazadaDocument extends LazadaOrderCore
     {
         if (isset($data['Body']) && isset($data['Body']['Documents']) && isset($data['Body']['Documents']['Document'])) {
             return parent::fix($data['Body']['Documents']['Document']);
+        }else if(isset($data['Body']) && isset($data['Body']['Document'])) {
+            return parent::fix($data['Body']['Document']);
         }
-
         return null;
     }
 

@@ -186,7 +186,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
             }
             $file = $doucmentType.$fileDate.'.pdf';
-            PDF::loadHTML($doucmentFile)->save($pdfFilePath.$file);
+            PDF::loadHTML($doucmentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
         }  
@@ -194,7 +194,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     //run request to lazada api set order ready to ship one by one
     private function esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath)
-    {   
+    {
         $returnData = null;
         foreach($esgOrderGroups as $platformId => $esgOrderGroup)
         {
@@ -231,7 +231,7 @@ class ApiLazadaService implements ApiPlatformInterface
             }
             if($ordersIdList){
                 $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
-                //$this->updateEsgWarehouseInventory($updateWarehouseObject);
+                $this->updateEsgWarehouseInventory($updateWarehouseObject);
             }
         }
         return $returnData;   
@@ -247,17 +247,22 @@ class ApiLazadaService implements ApiPlatformInterface
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
                 $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
-                if($doucmentType == "invoice"){
+                if($fileHtml){
+                    if($doucmentType == "invoice"){
                     $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
-                }
-                if(isset($document[$doucmentType])){
-                    $document[$doucmentType] .= $pdfHrDom.$fileHtml;
-                }else{
-                    $document[$doucmentType] = $fileHtml;
+                    }
+                    if(isset($document[$doucmentType])){
+                        $document[$doucmentType] .= $pdfHrDom.$fileHtml;
+                    }else{
+                        $document[$doucmentType] = $fileHtml;
+                    }
                 }
             }
         }
-        return $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+        if($document){
+           return $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+        }
+        return null;
     }
 
     private function updateEsgWarehouseInventory($updateWarehouseObject)
@@ -402,6 +407,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     private function getDocumentSaveToDirectory($document,$pdfFilePath)
     {
+        $documentPdf = array();
         $fileDate = date("h-i-s");
         if (!file_exists($pdfFilePath)) {
             mkdir($pdfFilePath, 0755, true);
@@ -416,7 +422,7 @@ class ApiLazadaService implements ApiPlatformInterface
         if($documentPdf) {
             $fileName ='readyToShipLabel'.date("H-i-s").'.zip';
             Zipper::make($pdfFilePath.$fileName)->add($documentPdf)->close();
-            $zipperFile = url("lazada-api/donwload-label/".$fileName);
+            $zipperFile = url("api/lazada-api/donwload-label/".$fileName);
             return $zipperFile;
         }
     }

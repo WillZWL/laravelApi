@@ -6,6 +6,7 @@ use App\Contracts\ApiPlatformProductInterface;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
 use App\Models\PlatformMarketInventory;
+use App\Models\Store;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaProductList;
@@ -178,7 +179,8 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
 
     public function updatePlatformMarketMattleInventory()
     {
-        $inventorys = PlatformMarketInventory::where("update_status","1")->get();
+        $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
+        $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->get();
         if(!$inventorys->isEmpty()){
             $inventoryGroups = $inventorys->groupBy("store_id");
             foreach ($inventoryGroups as $storeId => $inventoryGroup) {
@@ -198,7 +200,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     $feedId = $this->fetchLazadaProductUpdateFeed($storeName,$xmlData);
                     if($feedId){
                         foreach ($inventoryGroup as $platformMarketInventory) {
-                           $this->createOrUpdatePlatformMarketFeedBatch("mattle_update_inventory",$feedId,$platformMarketInventory->id,$platformMarketInventory->marketplace_sku);
+                           $this->createOrUpdatePlatformMarketFeedBatch("mattle_update_inventory",$feedId,$platformMarketInventory->id,$platformMarketInventory->marketplace_sku,$processStatus);
                         }
                     }
                 }
