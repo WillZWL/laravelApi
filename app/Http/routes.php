@@ -64,7 +64,6 @@ Route::group(['middleware' => ['cors']], function () {
     Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
-    Route::get('lazada-api/donwload-label/{file}', 'Api\Marketplace\LazadaApiController@donwloadLazadaLabelFile');
     Route::get('product-upload/donwload-example-file/{file}', 'Api\ProductUploadController@donwloadExampleFile');
     Route::get('order-delivery-cost/{soNo}', 'Api\DeliveryController@getOrderDeiveryCostBySoNo');
     Route::get('order-delivery-options/{soNo}', 'Api\DeliveryController@getOrderDeliveryOptionsBySoNo');
@@ -104,7 +103,6 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->post('marketplace-product/bulk-update', 'MarketplaceProductController@bulkUpdate');
     $api->post('marketplace-product/add-update', 'MarketplaceProductController@addOrUpdate');
     $api->resource('marketplace-product', 'MarketplaceProductController');
-    $api->resource('lazada-api/ready-to-ship', 'Marketplace\LazadaApiController@esgOrderReadyToShip');
     $api->post('product-upload', 'ProductUploadController@upload');
     $api->get('product-upload', 'ProductUploadController@index');
     $api->get('mattel-sku-mapping-upload', 'MattelSkuMappingController@upload');
@@ -129,10 +127,12 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'mid
     $api->post('merchant-api/order-cancel-reason', 'MerchantApiController@getPlatformMarkplaceReasons');
     $api->post('merchant-api/scan-tracking-no', 'MerchantApiController@scanMerchantTrackingNo');
     $api->post('merchant-api/order-picking-list', 'MerchantApiController@getPickingList');
+    $api->resource('lazada-api/ready-to-ship', 'LazadaApiController@esgOrderReadyToShip');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => [ 'cors']], function ($api) {
     $api->get('merchant-api/download-label/{file}', 'MerchantApiController@donwloadLabel');
+    $api->get('lazada-api/donwload-label/{file}','LazadaApiController@donwloadLabel');
 });
 
 Route::get('platform/test', 'InterfacePlatformOrder@index');
