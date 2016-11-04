@@ -77,6 +77,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
     {
         $message = null;
+        $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
         $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
         foreach ($productUpdateFeeds as $productUpdateFeed) {
             $errorSku = array();
@@ -97,7 +98,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                         }
                     }
                 }
-                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
+                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku,$processStatus);
             }
         }
         if($message){
