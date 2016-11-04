@@ -97,7 +97,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                         }
                     }
                 }
-                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku,$proge);
+                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
             }
         }
         if($message){
