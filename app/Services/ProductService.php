@@ -499,10 +499,10 @@ class ProductService
     {
         $object = [];
         $object['sku'] = (string) $item['sku'];
-        $object['merchant_id'] = strtoupper($item['merchantid']);
-        $object['merchant_sku'] = (string) $item['merchantsku'];
-        $object['version_id'] = (string) $item['versionid'];
-        $object['colour_id'] = (string) $item['colourid'];
+        $object['merchant_id'] = strtoupper(trim($item['merchantid']));
+        $object['merchant_sku'] = (string)trim($item['merchantsku']);
+        $object['version_id'] = (string)trim($item['versionid']);
+        $object['colour_id'] = (string)trim($item['colourid']);
         return $merchantProductMapping = MerchantProductMapping::firstOrCreate($object);
      }
 

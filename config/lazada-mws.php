@@ -108,14 +108,13 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
         ],
-         /*'MDLAZADAVN' => [
+        'MDLAZADAVN' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelvn@eservicesgroup.com', 
             'apiToken' => '6560c4c98f0281ca707fd1ba43ee94a1b8d309ad',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.vn/',
             'currency'=>'VND',
         ],
-        */
         'MLLAZADAMY' => [
             'name'=>'Mattel Lazada',
             'userId' => 'mattel@apresslink.com', 
