@@ -77,7 +77,6 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
     {
         $message = null;
-        $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
         $this->lazadaFeedStatus = new LazadaFeedStatus($storeName);
         foreach ($productUpdateFeeds as $productUpdateFeed) {
             $errorSku = array();
@@ -98,7 +97,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                         }
                     }
                 }
-                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku,$processStatus);
+                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku,$proge);
             }
         }
         if($message){
@@ -180,6 +179,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
 
     public function updatePlatformMarketMattleInventory()
     {
+        $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
         $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->get();
         if(!$inventorys->isEmpty()){
             $inventoryGroups = $inventorys->groupBy("store_id");
@@ -200,7 +200,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     $feedId = $this->fetchLazadaProductUpdateFeed($storeName,$xmlData);
                     if($feedId){
                         foreach ($inventoryGroup as $platformMarketInventory) {
-                           $this->createOrUpdatePlatformMarketFeedBatch("mattle_update_inventory",$feedId,$platformMarketInventory->id,$platformMarketInventory->marketplace_sku);
+                           $this->createOrUpdatePlatformMarketFeedBatch("mattle_update_inventory",$feedId,$platformMarketInventory->id,$platformMarketInventory->marketplace_sku,$processStatus);
                         }
                     }
                 }
