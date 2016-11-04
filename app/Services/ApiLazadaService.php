@@ -186,7 +186,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
             }
             $file = $doucmentType.$fileDate.'.pdf';
-            PDF::loadHTML($doucmentFile)->save($pdfFilePath.$file);
+            PDF::loadHTML($doucmentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
         }  
@@ -231,7 +231,7 @@ class ApiLazadaService implements ApiPlatformInterface
             }
             if($ordersIdList){
                 $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
-                //$this->updateEsgWarehouseInventory($updateWarehouseObject);
+                $this->updateEsgWarehouseInventory($updateWarehouseObject);
             }
         }
         return $returnData;   
