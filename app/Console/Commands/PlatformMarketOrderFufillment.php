@@ -30,7 +30,7 @@ class PlatformMarketOrderFufillment extends BaseApiPlatformCommand
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return mixed error
      */
     public function handle()
     {   
