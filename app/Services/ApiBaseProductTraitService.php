@@ -103,7 +103,7 @@ trait ApiBaseProductTraitService
             foreach ($productUpdateFeed->platformMarketFeedBatch as $platformMarketFeedBatch) {
                 if(!in_array($platformMarketFeedBatch->marketplace_sku,$errorSku)){
                     if($platformMarketFeedBatch->fun_name == "mattle_update_inventory"){
-                        PlatformMarketInventory::where('id',$platformMarketFeedBatch->update_id)->update(['update_status' => "2"]);
+                        PlatformMarketInventory::where('id',$platformMarketFeedBatch->update_id)->update(array('update_status' => "2"));
                     }else{
                         $marketplaceSkuMapping = MarketplaceSkuMapping::find($platformMarketFeedBatch->update_id);
                         $this->updatePendingProductProcessStatusBySku($marketplaceSkuMapping,$platformMarketFeedBatch->process_status);
