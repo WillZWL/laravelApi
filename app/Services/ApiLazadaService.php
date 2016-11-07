@@ -14,6 +14,7 @@ use App\Models\PlatformMarketReasons;
 use PDF;
 use Excel;
 use Zipper;
+use Config;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaOrder;
@@ -30,6 +31,11 @@ class ApiLazadaService implements ApiPlatformInterface
 {
     use ApiBaseOrderTraitService; 
 	private $storeCurrency;
+
+    public function __construct()
+    {
+        $this->stores =  Config::get('lazada-mws.store');
+    }
 
 	public function getPlatformId()
 	{
@@ -82,16 +88,28 @@ class ApiLazadaService implements ApiPlatformInterface
         $this->saveDataToFile(serialize($originOrderList),"getOrderList");
         if($originOrderList){
             foreach ($originOrderList as $order) {
-                $orderIdList[] = $order['OrderId'];
-                $newOrderList[$order['OrderId']] = $order;
-            }
-            $multipleOrderItems = $this->getMultipleOrderItems($storeName,$orderIdList);
-            if($multipleOrderItems){
-                foreach ($multipleOrderItems as $orderItems) {
-                $newOrderList[$orderItems["OrderId"]]["OrderItems"] = $orderItems["OrderItems"];
+                $duplicateOrderNo = null;$orderIdList = null;
+                $result = $this->checkDuplicateOrder($storeName,$order["OrderNumber"]);
+                if($result || !$result->isEmpty()){
+                    $duplicateOrderNo[] = $order['OrderNumber'];
+                }else{
+                    $orderIdList[] = $order['OrderId'];
+                    $newOrderList[$order['OrderId']] = $order;
                 }
-                return $newOrderList;
-            } 
+            }
+            if($duplicateOrderNo){
+                $alertEmail = $this->stores[$storeName]["userId"];
+                $this->sendDuplicateOrderMailMessage($storeName,$duplicateOrderNo,$alertEmail);
+            }
+            if($orderIdList){
+                $multipleOrderItems = $this->getMultipleOrderItems($storeName,$orderIdList);
+                if($multipleOrderItems){
+                    foreach ($multipleOrderItems as $orderItems) {
+                    $newOrderList[$orderItems["OrderId"]]["OrderItems"] = $orderItems["OrderItems"];
+                    }
+                    return $newOrderList;
+                }
+            }
         }
 	}
 
@@ -321,10 +339,12 @@ class ApiLazadaService implements ApiPlatformInterface
                 //Not allowed to change the preselected shipment provider
                 foreach ($orderList as $order) {
                     foreach ($order["OrderItems"] as $orderItem) {
-                        if($orderItem["TrackingCode"]){
-                           $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
-                           $itemObject["ShipmentProvider"] = $shipmentProvider;
+                        if(isset($orderItem["TrackingCode"])){
+                            $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
+                        }else{
+                            $itemObject["TrackingNumber"] = $orderItem["0"]["TrackingCode"];
                         }
+                        $itemObject["ShipmentProvider"] = $shipmentProvider;
                     }
                 }
             }
