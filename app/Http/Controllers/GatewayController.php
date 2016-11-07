@@ -103,14 +103,17 @@ class GatewayController extends Controller
         $transaction = $request->transaction;
 
         $transaction = array_map('trim', preg_split('/\r\n|\r|\n|,|;/', $transaction, -1, PREG_SPLIT_NO_EMPTY));
-        if(!$transaction){
+        if(!$transaction)
+        {
             return "<script>alert('transaction format error');history.back();</script>";
         }
-        $soList = So::where('platform_group_order', "1")
-                    ->where('status','<>',0)
+        $soList = So::join('selling_platform', 'selling_platform.id', '=', 'so.platform_id')
+                    ->where('so.platform_group_order', "1")
+                    ->where('selling_platform.type','ACCELERATOR')
+                    ->where('so.status','<>',0)
                     ->where(function ($query) use ($transaction) {
-                        $query->whereIn('txn_id', $transaction)
-                              ->orWhereIn('platform_order_id', $transaction);
+                        $query->whereIn('so.txn_id', $transaction)
+                              ->orWhereIn('so.platform_order_id', $transaction);
                     })->get();
                  
         if(count($soList) == 0)
