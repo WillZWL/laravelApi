@@ -100,4 +100,12 @@ class OrderController extends Controller
     {
         //
     }
+
+    public function exportOrdersToExcel(Request $request)
+    {
+        $excelFile = $this->orderService->exportOrdersToExcel($request);
+        if($excelFile){
+            return response()->download($excelFile);   
+        }
+    }
 }
