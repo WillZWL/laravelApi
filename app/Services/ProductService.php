@@ -430,7 +430,7 @@ class ProductService
                     }
 
                 }
-            });
+            }, 'UTF-8');
         }
     }
 
