@@ -69,7 +69,7 @@ class PlatformMarketOrderService
                     "Item Name" => $platformMarketOrderItem->title,
                     "Shipping Provider" => $platformMarketOrderItem->shipment_provider,
                     "Shipping Provider Type" => $shippingAddress->ship_service_level,
-                    "Tracking Code" =>=> $platformMarketOrderItem->tracking_code,
+                    "Tracking Code" => $platformMarketOrderItem->tracking_code,
                     "Promised shipping time" => $platformMarketOrderItem->latest_ship_date,
                     "Status" => $platformMarketOrderItem->status,
                     "reason" => $platformMarketOrderItem->reason
