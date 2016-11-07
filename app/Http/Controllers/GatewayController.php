@@ -82,7 +82,7 @@ class GatewayController extends Controller
                 $cellData[] = ["So Number","reason"];
                 $cellData = array_merge($cellData,$error);
                 Excel::create('feedback',function($excel) use ($cellData){
-                  $excel->sheet('score', function($sheet) use ($cellData){                
+                  $excel->sheet('feedback', function($sheet) use ($cellData){                
                       $sheet->rows($cellData);
                   });
                 })->export('csv');                
@@ -92,6 +92,48 @@ class GatewayController extends Controller
                 return "<script>alert('all success');history.back();</script>";
             }
         }
+    }
+
+    /**
+    *  get order no from upload marketplace transaction ID 
+    * @return csv file or js 
+    */
+    public function uploadTransaction(Request $request)
+    {
+        $transaction = $request->transaction;
+
+        $transaction = array_map('trim', preg_split('/\r\n|\r|\n|,|;/', $transaction, -1, PREG_SPLIT_NO_EMPTY));
+        if(!$transaction){
+            return "<script>alert('transaction format error');history.back();</script>";
+        }
+        $soList = So::where('platform_group_order', "1")
+                    ->where('status','<>',0)
+                    ->where(function ($query) use ($transaction) {
+                        $query->whereIn('txn_id', $transaction)
+                              ->orWhereIn('platform_order_id', $transaction);
+                    })->get();
+                 
+        if(count($soList) == 0)
+        {
+            return "<script>alert('so not found');history.back();</script>";
+        }
+        $cellData[] = ["Transaction ID","So Number"];
+        foreach($soList as $so)
+        {
+            if( in_array(trim($so->txn_id),$transaction))
+            {
+                $cellData[] = [$so->txn_id,$so->so_no];   
+            }
+            else if( in_array(trim($so->platform_order_id),$transaction) )
+            {
+                $cellData[] = [$so->platform_order_id,$so->so_no];
+            }
+        }
+        Excel::create('feedback',function($excel) use ($cellData){
+                  $excel->sheet('so', function($sheet) use ($cellData){                
+                      $sheet->rows($cellData);
+                  });
+                })->export('csv');  
     }
   
 }

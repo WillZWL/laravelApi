@@ -50,6 +50,7 @@ Route::group(['prefix' => 'v2', 'namespace' => 'V2', 'middleware' => 'auth.basic
 
 Route::group(['middleware' => ['cors']], function () {
     Route::post('gateway/upload-settlement', 'GatewayController@uploadSettlement');
+    Route::post('gateway/upload-transaction', 'GatewayController@uploadTransaction');
     
     Route::get('amazon/getASIN', 'AmazonProduct@getMatchProductForId');
     Route::get('listingSku/index', 'ListingSkuManagement@index');
