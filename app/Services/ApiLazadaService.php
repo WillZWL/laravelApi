@@ -89,7 +89,7 @@ class ApiLazadaService implements ApiPlatformInterface
         if($originOrderList){
             foreach ($originOrderList as $order) {
                 $duplicateOrderNo = null;$orderIdList = null;
-                $result = $this->checkDuplicateOrder($storeName,$order["OrderNumber"]);
+                $result = $this->checkDuplicateOrder($storeName,$order["OrderNumber"],$order['OrderId']);
                 if($result){
                     $duplicateOrderNo[] = $order['OrderNumber'];
                 }else{
