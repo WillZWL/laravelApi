@@ -84,7 +84,7 @@ trait ApiBaseOrderTraitService
     public function checkDuplicateOrder($storeName,$orderNo)
     {
         return PlatformMarketOrder::where("platform",$storeName)
-                        ->where("platform_order_no",$orderNo);
+                        ->where("platform_order_no",$orderNo)
                         ->first();
     }
 
