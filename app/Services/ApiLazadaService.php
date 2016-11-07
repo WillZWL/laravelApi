@@ -321,10 +321,12 @@ class ApiLazadaService implements ApiPlatformInterface
                 //Not allowed to change the preselected shipment provider
                 foreach ($orderList as $order) {
                     foreach ($order["OrderItems"] as $orderItem) {
-                        if($orderItem["TrackingCode"]){
-                           $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
-                           $itemObject["ShipmentProvider"] = $shipmentProvider;
+                        if(isset($orderItem["TrackingCode"])){
+                            $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
+                        }else{
+                            $itemObject["TrackingNumber"] = $orderItem["0"]["TrackingCode"];
                         }
+                        $itemObject["ShipmentProvider"] = $shipmentProvider;
                     }
                 }
             }
