@@ -454,6 +454,7 @@ class ProductService
         $object['ean'] = (string) $item['ean'];
         $object['mpn'] = (string) $item['mpn'];
         $object['upc'] = (string) $item['upc'];
+        $object['upc'] = str_replace("'", " ", $object['upc']);
         $object['vol_weight'] = (float) $item['volweight'];
         $object['weight'] = (float) $item['weight'];
         $object['length'] = (float) $item['length'];
