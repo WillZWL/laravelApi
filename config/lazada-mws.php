@@ -82,9 +82,9 @@ return [
         ],
         'MDLAZADASG' => [
             'name'=>'Mattel Distributor Lazada',
-            'userId' => 'mattelsg@eservicesgroup.com', 
-            'apiToken' => '',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'userId' => 'Mattelsg@eservicesgroup.com', 
+            'apiToken' => '780c4c540750997f53c0748451c6371f635cd0a6',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.sg',
             'currency'=>'SGD',
         ],
         'MDLAZADATH' => [
