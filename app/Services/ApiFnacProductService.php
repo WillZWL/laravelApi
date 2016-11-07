@@ -67,7 +67,7 @@ class ApiFnacProductService implements ApiPlatformProductInterface
             if($reports){
                 if(isset($reports['@attributes']) && $reports['@attributes']['status'] == 'ERROR'){
                     $message .= "Seller Sku ".$reports["offer_seller_id"]." error message: ".$reports["error"]."\r\n";
-                    $errorSku[] = $report["offer_seller_id"];
+                    $errorSku[] = $reports["offer_seller_id"];
                 }else{
                     foreach ($reports as $report){
                        if($report['@attributes']['status'] == 'ERROR'){
