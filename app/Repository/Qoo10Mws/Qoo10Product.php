@@ -16,11 +16,11 @@ class Qoo10Product extends Qoo10ProductCore
 
     protected function getRequestParams()
     {
-        if ($this->getSku()) {
-            $requestParams['ItemCode'] = $this->getSku();
+        if ($this->getItemCode()) {
+            $requestParams['ItemCode'] = $this->getItemCode();
         }
 
-        $requestParams['SellerCode'] = '';
+        $requestParams['SellerCode'] = $this->getSellerCode() ? $this->getSellerCode() : '';
 
         return $requestParams;
     }

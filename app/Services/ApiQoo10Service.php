@@ -88,10 +88,11 @@ class ApiQoo10Service  implements ApiPlatformInterface
             }
 
             if ($msgNote != "") {
+                $to = 'qoo10sg@brandsconnect.net, celine@eservicesgroup.net';
+                $header = "From: admin@eservicesgroup.com\r\n";
+                $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
                 $message = "Here orders import to ESG failed and skipped, Need first to do seller item code with QOO10 item code mapping, And Contact IT Support\r\n" . $msgNote;
-                $to = 'celine@eservicesgroup.net, brave.liu@eservicesgroup.com';
-
-                mail($to, "QOO10 Item Code with Seller Item Code Lack Mapping", $message);
+                mail($to, "QOO10 Item Code with Seller Item Code Lack Mapping", $message, $header);
 
                 return false;
             }

@@ -4,21 +4,32 @@ namespace App\Repository\Qoo10Mws;
 
 class Qoo10ProductCore extends Qoo10Core
 {
-    protected $sku;
+    protected $itemCode;
+    protected $sellerCode;
 
     public function __construct($store)
     {
         parent::__construct($store);
     }
 
-    public function getSku()
+    public function getItemCode()
     {
-        return $this->sku;
+        return $this->itemCode;
     }
 
-    public function setSku($value)
+    public function setItemCode($value)
     {
-        $this->sku = $value;
+        $this->itemCode = $value;
+    }
+
+    public function getSellerCode()
+    {
+        return $this->sellerCode;
+    }
+
+    public function setSellerCode($value)
+    {
+        $this->sellerCode = $value;
     }
 
 }
