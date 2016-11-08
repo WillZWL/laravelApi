@@ -268,12 +268,8 @@ class ApiFnacService implements ApiPlatformInterface
             'seller_sku' => $orderItem['offer_seller_id'],
             'order_item_id' => $orderItem['order_detail_id'],
             'title' => $orderItem['product_name'],
-            'quantity_ordered' => 1
+            'quantity_ordered' => $orderItem['quantity']
         ];
-
-        if (isset($orderItem['quantity'])) {
-            $object['quantity_shipped'] = $orderItem['quantity'];
-        }
 
         if (isset($orderItem['price'])) {
             $object['item_price'] = $orderItem['price'];

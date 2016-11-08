@@ -11,7 +11,7 @@ use Config;
 
 abstract class BaseApiPlatformCommand extends Command
 {
-    public $platfromMakert = array('priceminister', 'newegg', 'tanga');
+    public $platfromMakert = array('priceminister', 'newegg', 'tanga', 'qoo10');
     public $hourlyPlatfromMakert = array('lazada', 'fnac');
     abstract public function runApiPlatformServiceFunction($stores, $apiName);
 
@@ -57,6 +57,7 @@ abstract class BaseApiPlatformCommand extends Command
             'fnac' => Config::get('fnac-mws.store'),
             'wish' => Config::get('wish-mws.store'),
             'newegg' => Config::get('newegg-mws.store'),
+            'qoo10' => Config::get('qoo10-mws.store'),
         ];
         $stores = $config[$apiName] ?: null;
 

@@ -33,6 +33,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketFeedResult::class,
         Commands\PlatformMarketMattelProductFeed::class,
         Commands\PlatformMarketReasons::class,
+        Commands\PlatformMarketUpdateOrderItemSellerSku::class,
     ];
 
     /**
@@ -75,6 +76,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('platformMarket:updatePendingPayment',array('--api' => 'all'))
              ->dailyAt('08:50');
 
+        $schedule->command('platformMarket:updateSellerSku',array('--api' => 'all'))
+             ->dailyAt('23:50');
+        $schedule->command('platformMarket:updateSellerSku',array('--api' => 'all'))
+             ->dailyAt('01:50');
+        $schedule->command('platformMarket:updateSellerSku',array('--api' => 'all'))
+             ->dailyAt('08:50');
+
         $schedule->command('platformMarket:orderTransfer')
             ->cron('00 00-10 * * * *');
 
@@ -97,7 +105,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('platformMarket:product updatePriceInventory', array('--api' => 'all'))
             ->everyThirtyMinutes();
-        $schedule->command('Mattel:updateInventory'))->hourly();
+        $schedule->command('Mattel:updateInventory')->hourly();
         $schedule->command('platformMarket:feedBack', array('--api' => 'all'))->hourly();
 
         $schedule->command('feed:price')
@@ -110,6 +118,6 @@ class Kernel extends ConsoleKernel
             ->everyThirtyMinutes();
 
         $schedule->command('platformMarket:removeApiFileSystem')
-            ->monthlyOn(4, '15:00');    
+            ->monthlyOn(4, '15:00');
     }
 }
