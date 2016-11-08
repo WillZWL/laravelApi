@@ -29,9 +29,8 @@ class Qoo10Core
         $responseDataXml = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
         $response = $this->convert($responseDataXml);
 
-        if ($response['ResultCode'] == 0
-            && $response['ResultMsg'] == 'Success'
-        ) {
+        // Response ResultCode = 0 is Success
+        if ($response['ResultCode'] == 0) {
             return $response;
         }
 
@@ -41,14 +40,16 @@ class Qoo10Core
     public function qoo10ActionUrl($action)
     {
         $qoo10ActionUrl = [
-            'getSellerAuthKey' => '/GMKT.INC.Front.OpenApiService/Certification.api/CreateCertificationKey',
-            'getShippingInfo'  => '/GMKT.INC.Front.OpenApiService/ShippingBasicService.api/GetShippingInfo',
-            'getShippingAndClaimInfoByOrderNo'  => '/GMKT.INC.Front.OpenApiService/ShippingBasicService.api/GetShippingAndClaimInfoByOrderNo',
-            'getItemDetailInfo'  => '/GMKT.INC.Front.OpenApiService/GoodsBasicService.api/GetItemDetailInfo',
+            'getSellerAuthKey'                  => 'Certification.api/CreateCertificationKey',
+            'getShippingInfo'                   => 'ShippingBasicService.api/GetShippingInfo',
+            'getShippingAndClaimInfoByOrderNo'  => 'ShippingBasicService.api/GetShippingAndClaimInfoByOrderNo',
+            'getItemDetailInfo'                 => 'GoodsBasicService.api/GetItemDetailInfo',
+            'setGoodsPrice'                     => 'GoodsOrderService.api/SetGoodsPrice',
+            'setGoodsInventory'                 => 'GoodsOrderService.api/SetGoodsInventory',
         ];
 
         if (isset($qoo10ActionUrl[$action])) {
-            return $qoo10ActionUrl[$action];
+            return "/GMKT.INC.Front.OpenApiService/". $qoo10ActionUrl[$action];
         }
 
         return false;
