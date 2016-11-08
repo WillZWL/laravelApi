@@ -771,7 +771,7 @@ class ApiLazadaService implements ApiPlatformInterface
     {
         $shipmentProvider = array(
             "MY" => "SkyNet - DS",      
-            "SG" => "LGS-SG3-HK",                
+            "SG" => "TA-Q-BIN API",                
             "TH" => "Kerry",       
             "ID" => "LEX MP",
             "PH" => "LEX",
