@@ -36,13 +36,12 @@ class PlatformMarketOrderService
     public function exportOrdersToExcel(Request $request)
     {
         $newOrderList = $this->getOrders($request);
-        print_r($newOrderList);exit();
-        $path = \Storage::disk('merchant')->getDriver()->getAdapter()->getPathPrefix()."/excel";
+        $path = \Storage::disk('merchant')->getDriver()->getAdapter()->getPathPrefix()."excel/";
         $cellData[]=array(
             "Lazada SKU","Shipping Name","Shipping Address","Shipping Address2","Shipping Address3","Shipping Phone Number","Shipping City","Shipping Postcode","Shipping Country","Billing Name","Billing Address","Billing Address2","Billing Address3","Billing Phone Number","Billing City","Billing Postcode","Billing Country","Payment Method","Paid Price","Unit Price","Shipping Fee","Item Name","Shipping Provider","Shipping Provider Type","Tracking Code","Promised shipping time","Status","Reason",
         );
         foreach($newOrderList as $newOrder){
-            $shippingAddress = $newOrder->platformMarketShippingAddress();
+            $shippingAddress = $newOrder->platformMarketShippingAddress;
             foreach ($newOrder->platformMarketOrderItem as $platformMarketOrderItem) {
                 $cellData[]=array(
                     "Lazada SKU" => $platformMarketOrderItem->seller_sku,
@@ -76,7 +75,9 @@ class PlatformMarketOrderService
                 ); 
             }
         }
-        $excelFile = $this->generateMultipleSheetsExcel("newOrderList",$cellDataArr,$path);
-        return $excelFile["path"].$excelFile["fileNames"];
+        $cellDataArr[$request->get('status')] = $cellData;
+        $excelFileName = "ordersExport-".date("Y-m-d-h-i");
+        $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
+        return $excelFile["path"].$excelFile["file_name"];
     }
 }

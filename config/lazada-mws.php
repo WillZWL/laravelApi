@@ -6,7 +6,7 @@ return [
             'name'=>'Brands Connect Lazada',
             'userId' => 'lazadamy@brandsconnect.net', 
             'apiToken' => '8742efca4d071f92cf07e2c4ff53c4cd0d0725b7',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.com.my/',
             'currency'=>'MYR',
         ],
         'BCLAZADASG' => [
@@ -77,14 +77,14 @@ return [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelmy@eservicesgroup.com', 
             'apiToken' => '5d89e6945a21e101e57884095318a2d88207ee54',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.com.my/',
             'currency'=>'MYR',
         ],
         'MDLAZADASG' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'Mattelsg@eservicesgroup.com', 
             'apiToken' => '780c4c540750997f53c0748451c6371f635cd0a6',
-            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.sg',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.sg/',
             'currency'=>'SGD',
         ],
         'MDLAZADATH' => [

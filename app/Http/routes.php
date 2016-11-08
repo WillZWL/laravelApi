@@ -117,7 +117,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('platform-market-inventory-upload/donwload-example-file/{file}', 'PlatformMarketInventoryController@donwloadExampleFile');
 
     $api->resource('orders', 'OrderController');
-    $api->get('orders/export-excel', 'OrderController@exportOrdersToExcel');
+    $api->resource('export-orders', 'OrderController@exportOrdersToExcel');
 
     // quotation api (delivery charge)
 

@@ -393,7 +393,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
         $path = $attachment["path"];
 
         // Read the file content
-        $file = $path.$fileName;
+        $file = $path.'/'.$fileName;
         $fileSize = filesize($file);
         $handle = fopen($file, "r");
         $content = fread($handle, $fileSize);
