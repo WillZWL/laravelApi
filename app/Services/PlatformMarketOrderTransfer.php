@@ -88,7 +88,7 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        mail('jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
+                        mail('jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com, brave.liu@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
                             .$e->getLine());
                     }
                 }
