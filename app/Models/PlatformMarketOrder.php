@@ -54,6 +54,21 @@ class PlatformMarketOrder extends Model
             PlatformMarketConstService::ORDER_STATUS_RETURENED,
             PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED
         );
+
+        $platformOrderIds = self::join('platform_market_order_item AS item', 'item.platform_order_id', '=', 'platform_market_order.platform_order_id')
+            ->where('acknowledge', '=', '0')
+            ->where('item.seller_sku', '=', '')
+            ->whereNotIn('esg_order_status',$notInStatus)
+            ->groupBy('item.platform_order_id')
+            ->pluck('item.platform_order_id')
+            ->toArray();
+
+        if ($platformOrderIds) {
+            return $query->where('acknowledge', '=', '0')
+                ->whereNotIn('platform_order_id', $platformOrderIds)
+                ->whereNotIn('esg_order_status',$notInStatus);
+        }
+
         return $query->where('acknowledge', '=', '0')
             ->whereNotIn('esg_order_status',$notInStatus);
     }

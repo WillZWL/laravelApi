@@ -153,12 +153,8 @@ class ApiTangaService  implements ApiPlatformInterface
             'seller_sku' => $orderItem['sku_code'],
             'order_item_id' => $orderItem['line_item_id'],
             'title' => $orderItem['sku_name'],
-            'quantity_ordered' => 1
+            'quantity_ordered' => $orderItem['quantity']
         ];
-
-        if (isset($orderItem['quantity'])) {
-            $object['quantity_shipped'] = $orderItem['quantity'];
-        }
 
         if (isset($orderItem['cost'])) {
             $object['item_price'] = $orderItem['cost'];

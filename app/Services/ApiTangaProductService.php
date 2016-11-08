@@ -19,10 +19,9 @@ class ApiTangaProductService implements ApiPlatformProductInterface
         return 'Tanga';
     }
 
-    public function retrieveOrder($storeName,$schedule)
+    public function getProductList()
     {
-        $this->setSchedule($schedule);
-
+        //
     }
 
     public function submitProductPriceAndInventory($storeName)
@@ -53,7 +52,7 @@ class ApiTangaProductService implements ApiPlatformProductInterface
         }
     }
 
-    public function submitProductCreate($storeName)
+    public function submitProductCreate($storeName,$productGroup)
     {
 
     }

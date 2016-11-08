@@ -27,6 +27,7 @@ class ApiPlatformServiceProvider extends ServiceProvider
         'fnac' => 'ApiFnacService',
         'wish' => 'ApiWishService',
         'newegg' => 'ApiNeweggService',
+        'qoo10' => 'ApiQoo10Service',
     );
 
     public function register()
