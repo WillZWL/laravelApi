@@ -334,7 +334,7 @@ class ApiLazadaService implements ApiPlatformInterface
             $itemObject = array("orderItemIds" => $orderItemIds);
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
             $countryCode = strtoupper(substr($storeName, -2));
-            if($countryCode == "TH"){
+            if(in_array($countryCode, array("TH","SG"))){
                 $orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
                 //Not allowed to change the preselected shipment provider
                 foreach ($orderList as $order) {
