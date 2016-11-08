@@ -74,7 +74,7 @@ class ApiNeweggProductService implements ApiPlatformProductInterface
                                 $errorMessage .= $this->getAlertMailMessage($result,$object);
                             }else{
                                 foreach ($result["data"]["InventoryList"] as $inventoryList) {
-                                    $successMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";                   
+                                    $successMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";
                                     $successMessage .= "Warehouse Location: ".$inventoryList['WarehouseLocation']."\r\n";
                                     $successMessage .= "Updated inventory: ".$object->inventory."\r\n\n";
                                 }
@@ -86,10 +86,10 @@ class ApiNeweggProductService implements ApiPlatformProductInterface
                         $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_INVENTORY);
                         $subject = $storeName." update inventory not proceed due to no data found!";
                         foreach ($responesData["data"]["InventoryAllocation"] as $inventoryList) {
-                            $notShippedBySellerMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";    
-                            if($inventoryList["FulfillmentOption"] == 0) 
+                            $notShippedBySellerMessage .= "Marketplace SKU: ".$object->marketplace_sku."\r\n";
+                            if($inventoryList["FulfillmentOption"] == 0)
                                 $shippedBy = "Seller\r\n";
-                            else 
+                            else
                                 $shippedBy = "Newegg\r\n";
                             $notShippedBySellerMessage .= "Shipped by ".$shippedBy;
                             $notShippedBySellerMessage .= "Warehouse Location: ".$inventoryList['WarehouseLocation']."\r\n";
@@ -118,7 +118,7 @@ class ApiNeweggProductService implements ApiPlatformProductInterface
     public function validateInventoryData($inventoryListData)
     {
         $isValid = false;
-        foreach ($inventoryListData as $value) 
+        foreach ($inventoryListData as $value)
         {
             if ($value["FulfillmentOption"] == 0)
             {
