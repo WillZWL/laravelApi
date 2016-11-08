@@ -12,6 +12,7 @@ use App\Services\PlatformValidate\PriceMinisterValidateService;
 use App\Services\PlatformValidate\FnacValidateService;
 use App\Services\PlatformValidate\NeweggValidateService;
 use App\Services\PlatformValidate\TangaValidateService;
+use App\Services\PlatformValidate\Qoo10ValidateService;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
@@ -116,10 +117,10 @@ class PlatformMarketOrderTransfer
             case 'Tanga':
                 $validateService = new TangaValidateService($order);
                 break;
-           /* case 'Qoo10':
+            case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
                 break;
-            case 'Paytm':
+            /* case 'Paytm':
                 $validateService =new PaytmValidateService($order);
                 break;*/
         }
