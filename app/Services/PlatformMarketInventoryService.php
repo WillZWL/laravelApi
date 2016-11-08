@@ -64,4 +64,44 @@ class PlatformMarketInventoryService
                 $object
             );
     }
+
+    public function sendLowStockAlert()
+    {
+        $result = PlatformMarketInventory::with('marketplaceAlertEmail')
+                ->with('merchantProductMapping')
+                ->whereColumn('threshold', '>', 'inventory')
+                ->get();
+        $new_arr = [];
+        foreach ($result as $value) {
+            $new_arr[$value->store_id][] = $value;
+        }
+        foreach ($new_arr as $row) {
+            $merchant_id = $country_id = $email = $cc_email = $bcc_email = '';
+            $message = "This is to inform below Inventory listed has reached its SKU threshold settings\r\n\r\n";
+            $message .= "Product Name,  Mattel SKU, ESG SKU, Inventory, Threshold\r\n";
+            foreach ($row as $sRow) {
+                $email = $sRow->marketplaceAlertEmail->to_mail;
+                $cc_email = $sRow->marketplaceAlertEmail->cc_mail;
+                $bcc_email = $sRow->marketplaceAlertEmail->bcc_mail;
+
+                $merchant_id = $sRow->merchantProductMapping->merchant_id;
+                $country_id = substr($sRow->warehouse_id, -5, 2);
+
+                $message .= $sRow->merchantProductMapping->product->name.";    ".$sRow->mattel_sku.";  ".$sRow->merchantProductMapping->sku.";    ".$sRow->inventory.";   ".$sRow->threshold."\r\n\r\n";
+            }
+            $message .= "\r\nPlease arrange stock replenishment at your earliest convenience.\r\n\r\n";
+            $message .= "Thank you.";
+            $subject = $country_id.'_'.$merchant_id." Inventory Report";
+            $headers = "From: admin@shop.eservciesgroup.com"."\r\n";
+            if ($cc_email) {
+                $headers .= "CC:".$cc_email."\r\n";
+            }
+            if ($bcc_email) {
+                $headers .= "BCC:".$bcc_email."\r\n";
+            }
+            if ($email && $merchant_id && $country_id) {
+                mail($email, $subject, $message, $headers);
+            }
+        }
+    }
 }
