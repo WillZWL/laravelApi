@@ -67,7 +67,7 @@ class PlatformMarketInventoryService
 
     public function sendLowStockAlert()
     {
-        $result = PlatformMarketInventory::with('marketplaceAlertEmail')
+        $result = PlatformMarketInventory::with('marketplaceLowStockAlertEmail')
                 ->with('merchantProductMapping')
                 ->whereColumn('threshold', '>', 'inventory')
                 ->get();
@@ -79,16 +79,18 @@ class PlatformMarketInventoryService
             $merchant_id = $country_id = $email = $cc_email = $bcc_email = '';
             $message = "This is to inform below Inventory listed has reached its SKU threshold settings\r\n\r\n";
             $message .= "Product Name,  Mattel SKU, ESG SKU, Inventory, Threshold\r\n";
+
             foreach ($row as $sRow) {
-                $email = $sRow->marketplaceAlertEmail->to_mail;
-                $cc_email = $sRow->marketplaceAlertEmail->cc_mail;
-                $bcc_email = $sRow->marketplaceAlertEmail->bcc_mail;
+                $email = $sRow->marketplaceLowStockAlertEmail->to_mail;
+                $cc_email = $sRow->marketplaceLowStockAlertEmail->cc_mail;
+                $bcc_email = $sRow->marketplaceLowStockAlertEmail->bcc_mail;
 
                 $merchant_id = $sRow->merchantProductMapping->merchant_id;
                 $country_id = substr($sRow->warehouse_id, -5, 2);
 
                 $message .= $sRow->merchantProductMapping->product->name.";    ".$sRow->mattel_sku.";  ".$sRow->merchantProductMapping->sku.";    ".$sRow->inventory.";   ".$sRow->threshold."\r\n\r\n";
             }
+
             $message .= "\r\nPlease arrange stock replenishment at your earliest convenience.\r\n\r\n";
             $message .= "Thank you.";
             $subject = $country_id.'_'.$merchant_id." Inventory Report";

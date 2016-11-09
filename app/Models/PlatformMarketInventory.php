@@ -21,8 +21,10 @@ class PlatformMarketInventory extends Model
         return $this->hasOne('App\Models\MerchantProductMapping', 'merchant_sku','mattel_sku');
     }
 
-    public function marketplaceAlertEmail()
+    public function marketplaceLowStockAlertEmail()
     {
-        return $this->hasOne('App\Models\MarketplaceAlertEmail', 'store_id', 'store_id');
+        return $this->hasOne('App\Models\MarketplaceAlertEmail', 'store_id', 'store_id')
+                    ->where('type', '=', 'low_stock_alert')
+                    ->where('status', '=', 1);
     }
 }
