@@ -11,7 +11,7 @@ use App\Models\Schedule;
 //use qoo10 api package
 use App\Repository\Qoo10Mws\Qoo10Order;
 use App\Repository\Qoo10Mws\Qoo10OrderList;
-// use App\Repository\Qoo10Mws\Qoo10OrderUpdate;
+use App\Repository\Qoo10Mws\Qoo10OrderUpdate;
 
 class ApiQoo10Service  implements ApiPlatformInterface
 {
@@ -26,29 +26,33 @@ class ApiQoo10Service  implements ApiPlatformInterface
     {
         $this->setSchedule($schedule);
         $orginOrderList = $this->getOrderList($storeName);
-        $totalOrder = $orginOrderList['TotalOrder'];
-        if ($totalOrder) {
-            for ($i=1; $i <= $totalOrder; $i++) {
-                $order = $orginOrderList['Order'. $i];
-                if ($order) {
+        if ($orginOrderList) {
+            $totalOrder = $orginOrderList['TotalOrder'] ? $orginOrderList['TotalOrder'] : 0;
+            if ($totalOrder > 0) {
+                for ($i=1; $i <= $totalOrder; $i++) {
+                    $order = $orginOrderList['Order'. $i];
+                    if ($order) {
 
-                    if (isset($order['Addr1']) || isset($order['Addr2'])) {
-                        $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
-                    }
-
-                    if (isset($addressId)) {
-                        if ($this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName)) {
-                            $this->updateOrCreatePlatformMarketOrderItem($order);
+                        if (isset($order['Addr1']) || isset($order['Addr2'])) {
+                            $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
                         }
+
+                        if (isset($addressId)) {
+                            if ($this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName)) {
+                                $this->updateOrCreatePlatformMarketOrderItem($order);
+                            }
+                        }
+
                     }
-
                 }
-            }
 
-            $this->updateOrderItemSellerSku($storeName);
+                $this->updateOrderItemSellerSku($storeName);
+            }
 
             return true;
         }
+
+        return false;
     }
 
     public function updateOrderItemSellerSku($storeName)
@@ -66,15 +70,16 @@ class ApiQoo10Service  implements ApiPlatformInterface
 
             $msgNote = "";
             foreach ($waitOrderItemList as $waitOrderItem) {
-                // $orderInfo = $this->getOrder($waitOrderItem->platform_order_no, $storeName);
                 $itemCode = $waitOrderItem->marketplace_item_code;
                 $sellerCode = "";
-                if ($product = $this->apiQoo10ProductService->getProduct($itemCode, $storeName)) {
-                    if (isset($product['ResultObject'])
-                        && isset($product['ResultObject']['ItemDetailInfo'])
-                        && isset($product['ResultObject']['ItemDetailInfo']['SellerCode'])
+                if ($response = $this->apiQoo10ProductService->getProduct($itemCode, $storeName)) {
+                    if (isset($response['ResultCode'])
+                        && $response['ResultCode'] == 0
+                        && isset($response['ResultObject'])
+                        && isset($response['ResultObject']['ItemDetailInfo'])
+                        && isset($response['ResultObject']['ItemDetailInfo']['SellerCode'])
                     ) {
-                       $sellerCode = $product['ResultObject']['ItemDetailInfo']['SellerCode'];
+                       $sellerCode = $response['ResultObject']['ItemDetailInfo']['SellerCode'];
                     }
                 }
 
@@ -92,7 +97,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
                 $header = "From: admin@eservicesgroup.com\r\n";
                 $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
                 $message = "Here orders import to ESG failed and skipped, Need first to do seller item code with QOO10 item code mapping, And Contact IT Support\r\n" . $msgNote;
-                mail($to, "QOO10 Item Code with Seller Item Code Lack Mapping", $message, $header);
+                mail($to, "Alert, QOO10 Item Code with Seller Item Code Lack Mapping", $message, $header);
 
                 return false;
             }
@@ -102,7 +107,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
     public function getOrder($orderNo, $storeName)
     {
         $this->qoo10Order = new Qoo10Order($storeName);
-        $this->qoo10Order->setOrderId($orderNo);
+        $this->qoo10Order->setOrderNo($orderNo);
         $responseOrderData = $this->qoo10Order->fetchOrder();
         $this->saveDataToFile(serialize($responseOrderData), 'responseOrderData');
 
@@ -115,41 +120,53 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $this->storeCurrency = $this->qoo10OrderList->getStoreCurrency();
         $lastTime = date("Ymd", strtotime($this->getSchedule()->last_access_time));
         $this->qoo10OrderList->setStartDate($lastTime);
-        $responseOrderListData = $this->qoo10OrderList->fetchOrderList();
-        $this->saveDataToFile(serialize($responseOrderListData), 'responseOrderListData');
-        return $responseOrderListData;
+        $response = $this->qoo10OrderList->fetchOrderList();
+        $this->saveDataToFile(serialize($response), 'responseOrderListData');
+
+        if (isset($response['ResultCode'])
+            && $response['ResultCode'] == 0
+        ) {
+            return $response;
+        } else {
+            return false;
+        }
     }
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
-        // $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
-        // $platform_order_id = $esgOrder->platform_order_id;
-        // $tracking_no = $esgOrderShipment->tracking_no;
 
+        $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
+        $platformOrderNo = $esgOrder->platform_order_id;
+        $trackingNo = $esgOrderShipment->tracking_no;
+        $courierName = $esgOrderShipment->courierInfo->courier_name;
 
-        // $this->qoo10OrderUpdate = new Qoo10OrderUpdate($storeName);
-        // $this->qoo10OrderUpdate->setOrderId($platform_order_id);
-        // $this->qoo10OrderUpdate->setTrackingNumber($tracking_no);
-        // $requestData = $this->qoo10OrderUpdate->getRequestTrackingData();
-        // $this->saveDataToFile(serialize($requestData),"requestQoo10OrderTracking");
+        $this->qoo10OrderUpdate = new Qoo10OrderUpdate($storeName);
+        $this->qoo10OrderUpdate->setOrderNo($platformOrderNo);
+        $this->qoo10OrderUpdate->setShippingCorp($courierName);
+        $this->qoo10OrderUpdate->setTrackingNo($trackingNo);
 
-        // $responseData = $this->qoo10OrderUpdate->updateTrackingNumber($requestData);
-        // $this->saveDataToFile(serialize($responseData),"responseQoo10OrderTracking");
+        $response = $this->qoo10OrderUpdate->setSendingInfo();
 
-        // if ( isset($responseData['shipment']) && $responseData['shipment']['tracking_number'] == $tracking_no) {
-        //     return true;
-        // }
+        $updateShipmentData = [
+            'OrderNo' => $platformOrderNo,
+            'ShippingCorp' => $courierName ,
+            'TrackingNo' => $trackingNo,
+            'response' => $response,
+        ];
 
-        // if ( isset($responseData['error']) ) {
-        //     $email = 'brave.liu@eservicesgroup.com';
-        //     $subject = "Error, import tracking to qoo10";
-        //     $msg = $responseData['error'] . "\r\n\r\nplatform_order_id: $platform_order_id, tracking_no: $tracking_no";
-        //     $this->sendMailMessage($email, $subject, $msg);
+        $this->saveDataToFile(serialize($updateShipmentData),"responseUpdateShipmentTracking");
+        if (isset($response['ResultCode'])
+            && $response['ResultCode'] == 0
+        ) {
+            return true;
+        } else {
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $to = 'brave.liu@eservicesgroup.com';
+            $message = serialize($updateShipmentData);
+            mail($to, "Alert, Update shipment tracking to qoo10 failed", $message, $header);
 
-        //     return false;
-        // }
-
-        // return false;
+            return false;
+        }
     }
 
     public function getShipedOrderState()

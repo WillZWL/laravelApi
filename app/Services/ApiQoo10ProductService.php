@@ -28,10 +28,13 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
     {
         $this->qoo10Product = new Qoo10Product($storeName);
         $this->qoo10Product->setItemCode($itemCode);
-        $responseProductData = $this->qoo10Product->getProduct();
-        $this->saveDataToFile(serialize($responseProductData), 'responseProductData');
-
-        return $responseProductData;
+        $response = $this->qoo10Product->getProduct();
+        $this->saveDataToFile(serialize($response), 'responseProductData');
+        if (isset($response['ResultCode'])
+            && $response['ResultCode'] == 0
+        ) {
+            return $response;
+        }
     }
 
     public function submitProductPriceAndInventory($storeName)
@@ -64,8 +67,16 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
 
                     $this->saveDataToFile(serialize($updatePriceData), 'responseUpdatePrice');
 
-                    if ($response['ResultCode'] == 0) {
+                    if (isset($response['ResultCode'])
+                        && $response['ResultCode'] == 0
+                        && isset($response['ResultMsg'])
+                    ) {
                         $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_PRICE);
+                    } else {
+                        $header = "From: admin@eservicesgroup.com\r\n";
+                        $to = 'brave.liu@eservicesgroup.com';
+                        $message = serialize($updatePriceData);
+                        mail($to, "Alert, Update price to qoo10 failed", $message, $header);
                     }
                 }
             }
@@ -94,8 +105,16 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
 
                     $this->saveDataToFile(serialize($updateInventoryData), 'responseUpdateInventory');
 
-                    if ($response['ResultCode'] == 0) {
+                    if (isset($response['ResultCode'])
+                        && $response['ResultCode'] == 0
+                        && isset($response['ResultMsg'])
+                    ) {
                         $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_INVENTORY);
+                    } else {
+                        $header = "From: admin@eservicesgroup.com\r\n";
+                        $to = 'brave.liu@eservicesgroup.com';
+                        $message = serialize($updateInventoryData);
+                        mail($to, "Alert, Update inventory to qoo10 failed", $message, $header);
                     }
                 }
             }
