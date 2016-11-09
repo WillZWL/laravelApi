@@ -80,8 +80,28 @@ class PlatformMarketInventoryService
         }
         foreach ($new_arr as $row) {
             $merchant_id = $country_id = $email = $cc_email = $bcc_email = '';
-            $message = "This is to inform below Inventory listed has reached its SKU threshold settings\r\n\r\n";
-            $message .= "Product Name,  Mattel SKU, ESG SKU, Inventory, Threshold\r\n";
+            $message = "<html>
+                        <head>
+                        <style>
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td {border: 1px solid #ddd;text-align: left;padding: 8px;color:black}
+                        tr:nth-child(even){background-color: #f2f2f2}
+                        th {background-color: #F7F7F7;}
+                        </style>
+                        </head>
+                        <body>";
+            $message .= "<p>This is to inform below Inventory listed has reached its SKU threshold settings</p>";
+            $message .= "<table>
+                            <thead>
+                                <tr>
+                                    <th style='width:40%'>Product Name</th>
+                                    <th style='width:15%'>Mattel SKU</th>
+                                    <th style='width:15%'>ESG SKU</th>
+                                    <th style='width:15%'>Inventory</th>
+                                    <th style='width:15%'>Threshold</th>
+                                </tr>
+                            </thead>
+                            <tbody>";
 
             foreach ($row as $sRow) {
                 $email = $sRow->marketplaceLowStockAlertEmail->to_mail;
@@ -91,13 +111,25 @@ class PlatformMarketInventoryService
                 $merchant_id = $sRow->merchantProductMapping->merchant_id;
                 $country_id = substr($sRow->warehouse_id, -5, 2);
 
-                $message .= $sRow->merchantProductMapping->product->name.";    ".$sRow->mattel_sku.";  ".$sRow->merchantProductMapping->sku.";    ".$sRow->inventory.";   ".$sRow->threshold."\r\n\r\n";
+                $message .= "<tr>";
+                $message .=     "<td>".$sRow->merchantProductMapping->product->name."</td>";
+                $message .=     "<td>".$sRow->mattel_sku."</td>";
+                $message .=     "<td>".$sRow->merchantProductMapping->sku."</td>";
+                $message .=     "<td>".$sRow->inventory."</td>";
+                $message .=     "<td>".$sRow->threshold."</td>";
+                $message .= "</tr>";
             }
 
-            $message .= "\r\nPlease arrange stock replenishment at your earliest convenience.\r\n\r\n";
-            $message .= "Thank you.";
+            $message .= "</tbody></table>";
+            $message .= "<p>Please arrange stock replenishment at your earliest convenience.</p>";
+            $message .= "<p>Thank you.</p>";
+            $message .= "</body></html>";
+
             $subject = $country_id.'_'.$merchant_id." Inventory Report";
-            $headers = "From: admin@shop.eservciesgroup.com"."\r\n";
+
+            $headers = 'MIME-Version: 1.0' . "\r\n";
+            $headers .= 'Content-Type: text/html; charset=UTF-8' . "\r\n";
+            $headers .= "From: ESG Admin <admin@shop.eservciesgroup.com>"."\r\n";
             if ($cc_email) {
                 $headers .= "CC:".$cc_email."\r\n";
             }
