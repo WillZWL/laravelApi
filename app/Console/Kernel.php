@@ -78,11 +78,11 @@ class Kernel extends ConsoleKernel
              ->dailyAt('08:50');
 
         $schedule->command('platformMarket:updateSellerSku',array('--api' => 'all'))
-             ->dailyAt('23:50');
+             ->dailyAt('23:55');
         $schedule->command('platformMarket:updateSellerSku',array('--api' => 'all'))
-             ->dailyAt('01:50');
+             ->dailyAt('01:55');
         $schedule->command('platformMarket:updateSellerSku',array('--api' => 'all'))
-             ->dailyAt('08:50');
+             ->dailyAt('08:55');
 
         $schedule->command('platformMarket:orderTransfer')
             ->cron('00 00-10 * * * *');
