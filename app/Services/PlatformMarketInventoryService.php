@@ -8,9 +8,12 @@ use App\Models\MattelSkuMapping;
 use App\Models\PlatformMarketInventory;
 use Illuminate\Http\Request;
 use Excel;
+use App\Repository\PlatformMarketOrderRepository;
 
 class PlatformMarketInventoryService
 {
+    use ApiPlatformTraitService;
+
     public function getSkuInventorys(Request $request)
     {
         $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
@@ -105,5 +108,34 @@ class PlatformMarketInventoryService
                 mail($email, $subject, $message, $headers);
             }
         }
+    }
+
+    public function exportOrdersToExcel()
+    {
+        $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
+        $lists = PlatformMarketInventory::with('MattelSkuMapping')->whereIn('store_id', $stores)->get();
+        $path = \Storage::disk('platformMarketInventoryUpload')->getDriver()->getAdapter()->getPathPrefix()."excel/";
+
+        $cellData[] = [
+            "WAREHOUSE ID",
+            "Mattel SKU",
+            "DC SKU",
+            "Inventory",
+            "Threshold"
+        ];
+
+        foreach ($lists as $sku) {
+            $cellData[] = [
+                "WAREHOUSE ID" => $sku->warehouse_id,
+                "Mattel SKU" => $sku->mattel_sku,
+                "DC SKU" => $sku->dc_sku,
+                "Inventory" => $sku->inventory,
+                "Threshold" => $sku->threshold
+            ];
+        };
+        $cellDataArr['inventory'] = $cellData;
+        $excelFileName = "Inventory Report";
+        $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
+        return $excelFile["path"].$excelFile["file_name"];
     }
 }
