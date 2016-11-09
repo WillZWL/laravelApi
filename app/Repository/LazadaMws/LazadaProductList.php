@@ -65,7 +65,7 @@ class LazadaProductList extends LazadaProductsCore
 
     public function setSkuSellerList($value)
     {
-        $this->_requestParams['SkuSellerList'] = $value;
+        $this->_requestParams['SkuSellerList'] = json_encode($value);
     }
 
     public function setUpdatedAfter($value)

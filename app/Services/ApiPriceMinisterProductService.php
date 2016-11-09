@@ -122,19 +122,23 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
     public function submitProductCreate($storeName,$pendingSkuGroup)
     {
         $this->priceMinisterProductCreate = new PriceMinisterProductCreate($storeName);
-        foreach ($pendingSkuGroup as $pendingSku) {
-            $xmlData = $this->priceMinisterProductCreate->getRequestXmlData($pendingSku);
-        }
+        $productGroup = $this->mappingProductAttributes($storeName,$pendingSkuGroup);
+        $xmlData = $this->priceMinisterProductCreate->getRequestXmlData($productGroup);
         $responseXml = $this->priceMinisterProductCreate->submitXmlFile($xmlData);
         $this->saveDataToFile(serialize($responseXml), 'submitProductCreate');
-
     }
 
-    public function getProductTemplate($storeName)
+    public function getProductTypes($storeName)
     {
         $this->priceMinisterProductModel = new PriceMinisterProductModel($storeName);
-        //$productTypes = $this->priceMinisterProductModel->getProductTypes();
-        $this->priceMinisterProductModel->setProductType("mobile_produit");
+        $productTypes = $this->priceMinisterProductModel->getProductTypes();
+        return $productTypes;
+    }
+
+    public function getProductTemplate($storeName,$productTypes)
+    {
+        $this->priceMinisterProductModel = new PriceMinisterProductModel($storeName);
+        $this->priceMinisterProductModel->setProductType($productTypes);
         $productTemplate = $this->priceMinisterProductModel->fetchProductModel();
         return $productTemplate;
     }
