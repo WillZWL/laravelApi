@@ -171,7 +171,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
 
     public function getShipedOrderState()
     {
-        return  "Shipped";
+        return  "On delivery(4)";
     }
 
     //update or insert data to database
