@@ -95,7 +95,7 @@ class PricingService
 
             $bookInCost = $warehouseCostDetails['book_in_cost'];
             $pnpCost = $warehouseCostDetails['pnp_cost'];
-            if ($shippingOption === 'FBA' || $shippingOption === 'SBN') {
+            if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
                 $pnpCost = 0;
             }
             $option = [];
