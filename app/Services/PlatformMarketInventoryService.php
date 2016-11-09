@@ -8,9 +8,12 @@ use App\Models\MattelSkuMapping;
 use App\Models\PlatformMarketInventory;
 use Illuminate\Http\Request;
 use Excel;
+use App\Repository\PlatformMarketOrderRepository;
 
 class PlatformMarketInventoryService
 {
+    use ApiPlatformTraitService;
+
     public function getSkuInventorys(Request $request)
     {
         $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
@@ -63,5 +66,76 @@ class PlatformMarketInventoryService
                 ],
                 $object
             );
+    }
+
+    public function sendLowStockAlert()
+    {
+        $result = PlatformMarketInventory::with('marketplaceLowStockAlertEmail')
+                ->with('merchantProductMapping')
+                ->whereColumn('threshold', '>', 'inventory')
+                ->get();
+        $new_arr = [];
+        foreach ($result as $value) {
+            $new_arr[$value->store_id][] = $value;
+        }
+        foreach ($new_arr as $row) {
+            $merchant_id = $country_id = $email = $cc_email = $bcc_email = '';
+            $message = "This is to inform below Inventory listed has reached its SKU threshold settings\r\n\r\n";
+            $message .= "Product Name,  Mattel SKU, ESG SKU, Inventory, Threshold\r\n";
+
+            foreach ($row as $sRow) {
+                $email = $sRow->marketplaceLowStockAlertEmail->to_mail;
+                $cc_email = $sRow->marketplaceLowStockAlertEmail->cc_mail;
+                $bcc_email = $sRow->marketplaceLowStockAlertEmail->bcc_mail;
+
+                $merchant_id = $sRow->merchantProductMapping->merchant_id;
+                $country_id = substr($sRow->warehouse_id, -5, 2);
+
+                $message .= $sRow->merchantProductMapping->product->name.";    ".$sRow->mattel_sku.";  ".$sRow->merchantProductMapping->sku.";    ".$sRow->inventory.";   ".$sRow->threshold."\r\n\r\n";
+            }
+
+            $message .= "\r\nPlease arrange stock replenishment at your earliest convenience.\r\n\r\n";
+            $message .= "Thank you.";
+            $subject = $country_id.'_'.$merchant_id." Inventory Report";
+            $headers = "From: admin@shop.eservciesgroup.com"."\r\n";
+            if ($cc_email) {
+                $headers .= "CC:".$cc_email."\r\n";
+            }
+            if ($bcc_email) {
+                $headers .= "BCC:".$bcc_email."\r\n";
+            }
+            if ($email && $merchant_id && $country_id) {
+                mail($email, $subject, $message, $headers);
+            }
+        }
+    }
+
+    public function exportOrdersToExcel()
+    {
+        $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
+        $lists = PlatformMarketInventory::with('MattelSkuMapping')->whereIn('store_id', $stores)->get();
+        $path = \Storage::disk('platformMarketInventoryUpload')->getDriver()->getAdapter()->getPathPrefix()."excel/";
+
+        $cellData[] = [
+            "WAREHOUSE ID",
+            "Mattel SKU",
+            "DC SKU",
+            "Inventory",
+            "Threshold"
+        ];
+
+        foreach ($lists as $sku) {
+            $cellData[] = [
+                "WAREHOUSE ID" => $sku->warehouse_id,
+                "Mattel SKU" => $sku->mattel_sku,
+                "DC SKU" => $sku->dc_sku,
+                "Inventory" => $sku->inventory,
+                "Threshold" => $sku->threshold
+            ];
+        };
+        $cellDataArr['inventory'] = $cellData;
+        $excelFileName = "Inventory Report";
+        $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
+        return $excelFile["path"].$excelFile["file_name"];
     }
 }
