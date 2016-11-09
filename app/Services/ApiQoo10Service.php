@@ -67,7 +67,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
             $msgNote = "";
             foreach ($waitOrderItemList as $waitOrderItem) {
                 // $orderInfo = $this->getOrder($waitOrderItem->platform_order_no, $storeName);
-                $itemCode = $waitOrderItem->marketplace_sku;
+                $itemCode = $waitOrderItem->marketplace_item_code;
                 $sellerCode = "";
                 if ($product = $this->apiQoo10ProductService->getProduct($itemCode, $storeName)) {
                     if (isset($product['ResultObject'])
@@ -201,7 +201,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
             'platform_order_id' => $order['packNo'],
             'order_item_id' => $order['packNo'],
             'seller_sku' => $order['sellerItemCode'],
-            'marketplace_sku' => $order['itemCode'],
+            'marketplace_item_code' => $order['itemCode'],
             'title' => $order['itemTitle'],
             'quantity_ordered' => 1,
             'item_price' => $order['orderPrice'],
