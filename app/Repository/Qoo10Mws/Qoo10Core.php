@@ -26,8 +26,7 @@ class Qoo10Core
     {
         $resourceUrl = $this->qoo10ActionUrl($action);
 
-        $responseDataXml = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
-        $response = $this->convert($responseDataXml);
+        $response = $this->curl($resourceUrl, strtoupper($resourceMethod), $requestParams, $requestBody);
 
         // Response ResultCode = 0 is Success
         if ($response['ResultCode'] == 0) {
@@ -43,13 +42,14 @@ class Qoo10Core
             'getSellerAuthKey'                  => 'Certification.api/CreateCertificationKey',
             'getShippingInfo'                   => 'ShippingBasicService.api/GetShippingInfo',
             'getShippingAndClaimInfoByOrderNo'  => 'ShippingBasicService.api/GetShippingAndClaimInfoByOrderNo',
+            'setSendingInfo'                    => 'ShippingBasicService.api/SetSendingInfo',
             'getItemDetailInfo'                 => 'GoodsBasicService.api/GetItemDetailInfo',
             'setGoodsPrice'                     => 'GoodsOrderService.api/SetGoodsPrice',
             'setGoodsInventory'                 => 'GoodsOrderService.api/SetGoodsInventory',
         ];
 
         if (isset($qoo10ActionUrl[$action])) {
-            return "/GMKT.INC.Front.OpenApiService/". $qoo10ActionUrl[$action];
+            return "GMKT.INC.Front.OpenApiService/". $qoo10ActionUrl[$action];
         }
 
         return false;
@@ -66,7 +66,9 @@ class Qoo10Core
 
             $response = $this->query('getSellerAuthKey', "GET", $requestParams);
 
-            if (isset($response['ResultObject'])
+            if (isset($response['ResultCode'])
+                && $response['ResultCode'] == 0
+                && isset($response['ResultObject'])
             ) {
                 $this->sellerAuthKey = $response['ResultObject'];
             }
@@ -98,10 +100,12 @@ class Qoo10Core
         $response = $client->request($resourceMethod, $request, $requestOption);
         $responseDataXml = $response->getBody()->getContents();
 
-        $requestData['url'] = $request;
-        $requestData['body'] = $requestBody;
+        $response = $this->convert($responseDataXml);
 
-        return $responseDataXml;
+        $response['request'] = $request;
+        $response['requestBody'] = $requestBody;
+
+        return $response;
     }
 
     public function setStore($storeName)

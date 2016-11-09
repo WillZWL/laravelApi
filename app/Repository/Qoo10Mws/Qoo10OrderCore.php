@@ -4,7 +4,7 @@ namespace App\Repository\Qoo10Mws;
 
 class Qoo10OrderCore extends Qoo10Core
 {
-    protected $orderId;
+    protected $orderNo;
     protected $shippingStat;
     protected $startDate;
     protected $endDate;
@@ -14,14 +14,14 @@ class Qoo10OrderCore extends Qoo10Core
         parent::__construct($store);
     }
 
-    public function getOrderId()
+    public function getOrderNo()
     {
-        return $this->orderId;
+        return $this->orderNo;
     }
 
-    public function setOrderId($value)
+    public function setOrderNo($value)
     {
-        $this->orderId = $value;
+        $this->orderNo = $value;
     }
 
     public function getShippingStat($status)
