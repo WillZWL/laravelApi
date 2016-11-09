@@ -73,7 +73,7 @@ class PlatformMarketSkuMappingService
                                 'marketplace_id' => $this->marketplaceId,
                                 'country_id' => $this->countryCode,
                                 'lang_id' => 'en',
-                                'asin'=> isset($itemData['ASIN']) ? $itemData['ASIN']:'',
+                                'asin' => isset($itemData['asin']) ? $itemData['asin'] : '',
                                 'currency' =>  $currency,
                                 );
                                 $this->firstOrCreateMarketplaceSkuMapping($mappingData);
