@@ -194,7 +194,10 @@ class ApiLazadaService implements ApiPlatformInterface
         foreach($orderGroups as $storeName => $orderGroup){
             foreach($orderGroup as $order){
                 $orderItem = $order->platformMarketOrderItem->first();
-                $orderItemIds[] = $orderItem->order_item_id; 
+                $orderItemIds[] = $orderItem->order_item_id;
+                if($doucmentType == "invoice"){
+                    $mattelDcSkuList = $this->getMattleDcSkuByOrder($order);
+                }
             }
             $doucmentFile .= $this->getDocument($storeName,$orderItemIds,$doucmentType);
         }
@@ -203,11 +206,19 @@ class ApiLazadaService implements ApiPlatformInterface
                 $doucmentFile = preg_replace(array('/-445px/'), array('-435px'), $doucmentFile);
                 $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
             }
+            if($doucmentType == "invoice"){
+                $doucmentFile = preg_replace(array('/<th>Seller SKU<\/th>/'), array('<th>Seller SKU</th><th>DC SKU</th>'), $doucmentFile);
+                foreach ($mattelDcSkuList as $marketplaceSku => $mattelDcSku) {
+                   $pattern = array('/<td>'.$marketplaceSku.'<\/td>/');
+                   $replacement = array('<td>'.$marketplaceSku.'</td><td>'.$mattelDcSku.'</td>');
+                   $doucmentFile = preg_replace($pattern, $replacement, $doucmentFile);
+                }
+            }
             $file = $doucmentType.$fileDate.'.pdf';
             PDF::loadHTML($doucmentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
-        }  
+        }
     }
 
     //run request to lazada api set order ready to ship one by one
@@ -875,6 +886,26 @@ class ApiLazadaService implements ApiPlatformInterface
             }
         }
         return $productMainImage;
+    }
+
+    public function getMattleDcSkuByOrder($order)
+    {
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
+        $sellerSku = $order->platformMarketOrderItem->lists("seller_sku");
+        $storeWarehouse = StoreWarehouse::where('store_id',$order->store_id)->first();
+        $marketplaceSkuMapping = MarketplaceSkuMapping::whereIn("marketplace_sku",$sellerSku)
+                                ->where("marketplace_id","=",$marketplaceId)
+                                ->where("country_id","=",$countryCode)
+                                ->with('merchantProductMapping')
+                                ->get();
+        foreach ($marketplaceSkuMapping as $value) {
+            $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$value->merchantProductMapping->merchant_sku)
+                            ->where('warehouse_id',$storeWarehouse->warehouse_id)
+                            ->first();
+            $result[$value->marketplace_sku] = $mattelSkuMapping->dc_sku;
+        }
+        return $result;
     }
 
 }
