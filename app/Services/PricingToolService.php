@@ -108,7 +108,7 @@ class PricingToolService
             }
 
             if ($request->input('price') > 0) {
-                $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
+                $priceInfo[$deliveryType]['profit'] = round($priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'], 2);
                 $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->input('price') * 100, 2);
             } else {
                 $priceInfo[$deliveryType]['profit'] = 'N/A';
