@@ -94,11 +94,12 @@ class PlatformMarketInventoryService
             $message .= "<table>
                             <thead>
                                 <tr>
-                                    <th style='width:40%'>Product Name</th>
-                                    <th style='width:15%'>Mattel SKU</th>
-                                    <th style='width:15%'>ESG SKU</th>
-                                    <th style='width:15%'>Inventory</th>
-                                    <th style='width:15%'>Threshold</th>
+                                    <th style='width:50%'>Product Name</th>
+                                    <th style='width:10%'>Mattel SKU</th>
+                                    <th style='width:10%'>DC SKU</th>
+                                    <th style='width:10%'>ESG SKU</th>
+                                    <th style='width:10%'>Inventory</th>
+                                    <th style='width:10%'>Threshold</th>
                                 </tr>
                             </thead>
                             <tbody>";
@@ -114,6 +115,7 @@ class PlatformMarketInventoryService
                 $message .= "<tr>";
                 $message .=     "<td>".$sRow->merchantProductMapping->product->name."</td>";
                 $message .=     "<td>".$sRow->mattel_sku."</td>";
+                $message .=     "<td>".$sRow->dc_sku."</td>";
                 $message .=     "<td>".$sRow->merchantProductMapping->sku."</td>";
                 $message .=     "<td>".$sRow->inventory."</td>";
                 $message .=     "<td>".$sRow->threshold."</td>";
