@@ -16,8 +16,8 @@ class Qoo10Order extends Qoo10OrderCore
 
     protected function getRequestParams()
     {
-        if ($this->getOrderId()) {
-            $requestParams['OrderNo'] = $this->getOrderId();
+        if ($this->getOrderNo()) {
+            $requestParams['OrderNo'] = $this->getOrderNo();
         }
 
         return $requestParams;

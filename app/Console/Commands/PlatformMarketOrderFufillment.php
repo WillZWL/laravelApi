@@ -33,8 +33,8 @@ class PlatformMarketOrderFufillment extends BaseApiPlatformCommand
      * @return mixed error
      */
     public function handle()
-    {   
-        $this->platfromMakert = array("priceminister","newegg","fnac","tanga");
+    {
+        $this->platfromMakert = array("priceminister","newegg","fnac","tanga", "qoo10");
         $this->runPlatformMarketConsoleFunction();
     }
 
