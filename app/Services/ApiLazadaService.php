@@ -888,24 +888,4 @@ class ApiLazadaService implements ApiPlatformInterface
         return $productMainImage;
     }
 
-    public function getMattleDcSkuByOrder($order)
-    {
-        $countryCode = strtoupper(substr($order->platform, -2));
-        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
-        $sellerSku = $order->platformMarketOrderItem->lists("seller_sku");
-        $storeWarehouse = StoreWarehouse::where('store_id',$order->store_id)->first();
-        $marketplaceSkuMapping = MarketplaceSkuMapping::whereIn("marketplace_sku",$sellerSku)
-                                ->where("marketplace_id","=",$marketplaceId)
-                                ->where("country_id","=",$countryCode)
-                                ->with('merchantProductMapping')
-                                ->get();
-        foreach ($marketplaceSkuMapping as $value) {
-            $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$value->merchantProductMapping->merchant_sku)
-                            ->where('warehouse_id',$storeWarehouse->warehouse_id)
-                            ->first();
-            $result[$value->marketplace_sku] = $mattelSkuMapping->dc_sku;
-        }
-        return $result;
-    }
-
 }
