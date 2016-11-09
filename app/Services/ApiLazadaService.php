@@ -88,8 +88,8 @@ class ApiLazadaService implements ApiPlatformInterface
 		$originOrderList = $this->lazadaOrderList->fetchOrderList();
         $this->saveDataToFile(serialize($originOrderList),"getOrderList");
         if($originOrderList){
+            $duplicateOrderNo = null;$orderIdList = null;
             foreach ($originOrderList as $order) {
-                $duplicateOrderNo = null;$orderIdList = null;
                 $result = $this->checkDuplicateOrder($storeName,$order["OrderNumber"],$order['OrderId']);
                 if($result){
                     $duplicateOrderNo[] = $order['OrderNumber'];
