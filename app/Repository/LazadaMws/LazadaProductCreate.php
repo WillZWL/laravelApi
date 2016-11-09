@@ -42,8 +42,8 @@ class LazadaProductCreate extends LazadaProductsCore
         $xmlData .= '<Skus>';
         $xmlData .=      '<Sku>';
         $xmlData .=          '<SellerSku>'.$product->marketplace_sku.'</SellerSku>';
-        //$xmlData .=          '<color_family>'.$product.'</color_family>';
-        //$xmlData .=          '<size>'.$product.'</size>';
+        $xmlData .=          '<color_family>'.$product.'</color_family>';
+        $xmlData .=          '<size>'.$product.'</size>';
         $xmlData .=          '<quantity>'.$product->inventory.'</quantity>';
         $xmlData .=          '<price>'.$product->price.'</price>';
         $xmlData .=          '<package_length>'.$product->length.'</package_length>';

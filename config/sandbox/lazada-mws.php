@@ -3,10 +3,10 @@
 return [
     'store' => [
         'BCLAZADAMY' => [
-            'name'=>'NEW API Lazada',
+            'name'=>'Brands Connect Lazada',
             'userId' => 'lazadamy@brandsconnect.net', 
-            'apiToken' => 'CY9OXubE9v6G2LJpz7JumRdXXzrs13XLyLb07kj90QTz7SqAZlUtRtM1',
-            'lazadaServiceUrl' => 'https://asc-staging-api.sellercenter.lazada.com.my/',
+            'apiToken' => '8742efca4d071f92cf07e2c4ff53c4cd0d0725b7',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.com.my/',
             'currency'=>'MYR',
         ],
         'BCLAZADASG' => [
