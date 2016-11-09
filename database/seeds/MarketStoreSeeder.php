@@ -110,6 +110,26 @@ class MarketStoreSeeder extends Seeder
             ];
         }
 
+        // add qoo10 stores.
+        $qoo10Stores = Config::get('qoo10-mws.store');
+        foreach ($qoo10Stores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                    'key' => $store['key'],
+                    'sellerAuthKey' => $store['sellerAuthKey'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
         foreach ($convertedAmazonStores as $convertedAmazonStore) {
             DB::table('market_stores')->updateOrInsert(
                 [

@@ -6,6 +6,7 @@ use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
 use App\Models\InvMovement;
 use App\Models\PlatformMarketInventory;
+use App\Models\PlatformMarketOrder;
 /**
 *
 */ 
@@ -78,6 +79,25 @@ trait ApiBaseOrderTraitService
             $platformMarketInventory->inventory = $remainInventroy;
             $platformMarketInventory->save();
         }
+    }
+
+    public function checkDuplicateOrder($storeName,$orderNo,$orderId)
+    {
+        return PlatformMarketOrder::where("platform", $storeName)
+                        ->where("platform_order_no", $orderNo)
+                        ->where("platform_order_id", "!=", $orderId)
+                        ->first();
+    }
+
+    public function sendDuplicateOrderMailMessage($storeName,$duplicateOrderNos,$alertEmail)
+    {
+        $subject = "MarketPlace: [{$storeName}] Order Retrieve Duplicate error!\r\n";
+        $message = "These orders are duplicated. Please check it now!\r\n";
+        foreach($duplicateOrderNos as $orderNo){
+            $message .="(Platform Order No ".$orderNo.") is duplicated\r\n";
+        }
+        $message .= "Thanks\r\n";
+        $this->sendMailMessage($alertEmail, $subject, $message);
     }
 
     public function getSchedule()

@@ -26,6 +26,7 @@ class ApiPlatformProductServiceProvider extends ServiceProvider
                 'tanga' => 'ApiTangaProductService',
                 'wish' => 'ApiWishProductService',
                 'newegg' => 'ApiNeweggProductService',
+                'qoo10' => 'ApiQoo10ProductService',
             );
 
     public function register()

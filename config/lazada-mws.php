@@ -6,7 +6,7 @@ return [
             'name'=>'Brands Connect Lazada',
             'userId' => 'lazadamy@brandsconnect.net', 
             'apiToken' => '8742efca4d071f92cf07e2c4ff53c4cd0d0725b7',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.com.my/',
             'currency'=>'MYR',
         ],
         'BCLAZADASG' => [
@@ -77,14 +77,14 @@ return [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelmy@eservicesgroup.com', 
             'apiToken' => '5d89e6945a21e101e57884095318a2d88207ee54',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.com.my/',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.com.my/',
             'currency'=>'MYR',
         ],
         'MDLAZADASG' => [
             'name'=>'Mattel Distributor Lazada',
-            'userId' => 'mattelsg@eservicesgroup.com', 
-            'apiToken' => '',
-            'lazadaServiceUrl' => 'https://sellercenter-api.lazada.sg/',
+            'userId' => 'Mattelsg@eservicesgroup.com', 
+            'apiToken' => '780c4c540750997f53c0748451c6371f635cd0a6',
+            'lazadaServiceUrl' => 'https://api.sellercenter.lazada.sg/',
             'currency'=>'SGD',
         ],
         'MDLAZADATH' => [
@@ -108,14 +108,13 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
         ],
-         /*'MDLAZADAVN' => [
+        'MDLAZADAVN' => [
             'name'=>'Mattel Distributor Lazada',
             'userId' => 'mattelvn@eservicesgroup.com', 
             'apiToken' => '6560c4c98f0281ca707fd1ba43ee94a1b8d309ad',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.vn/',
             'currency'=>'VND',
         ],
-        */
         'MLLAZADAMY' => [
             'name'=>'Mattel Lazada',
             'userId' => 'mattel@apresslink.com', 
@@ -151,13 +150,13 @@ return [
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.co.id/',
             'currency'=>'IDR',
         ],
-        /*'MLLAZADAVN' => [
+        'MLLAZADAVN' => [
             'name'=>'Mattel Lazada',
             'userId' => 'mattel@apresslink.com', 
             'apiToken' => '9915f134ae8fe3b445129c81a26f120c668a6a73',
             'lazadaServiceUrl' => 'https://sellercenter-api.lazada.vn/',
             'currency'=>'VND',
-        ],*/
+        ],
         
         'CFLAZADAMY' => [
             'name'=>'China Finest Lazada',

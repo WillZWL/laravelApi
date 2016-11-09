@@ -101,7 +101,7 @@ trait ApiPlatformTraitService
             }
         })->store("xlsx",$path);
         if($excelFile){
-            $attachment = array("path"=>$this->getDateReportPath(),"file_name"=>$fileName.".xlsx");
+            $attachment = array("path" => $path,"file_name"=>$fileName.".xlsx");
             return $attachment;
         }
     }

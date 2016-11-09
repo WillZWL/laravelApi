@@ -104,6 +104,11 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
+    public function updateOrderItemSellerSku($storeName)
+    {
+        return $this->apiPlatformInterface->updateOrderItemSellerSku($storeName);
+    }
+
     public function merchantOrderAllocatedReadyToShip()
     {
         $storeNames = $this->getCurrentUserStoreName();
@@ -220,9 +225,11 @@ class ApiPlatformFactoryService
     public function getPlatformMarkplaceReasons()
     {
         $storeIds = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
-        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->get();
-        $platformMarketReasonGroup = $platformMarketReasons->groupBy("store_id");
-        return $platformMarketReasonGroup;
+        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->select("store_id","type","reason_name")->get();
+        foreach ($platformMarketReasons as $platformMarketReason) {
+            $result[$platformMarketReason->store_id][$platformMarketReason->type][] = $platformMarketReason;
+        }
+        return $result;
     }
 
     public function updateOrCreatePlatformMarketReasons($storeName)

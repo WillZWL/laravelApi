@@ -2,6 +2,13 @@
 
 return [
     'store' => [
+        'BCLAZADAMY' => [
+            'name'=>'NEW API Lazada',
+            'userId' => 'lazadamy@brandsconnect.net', 
+            'apiToken' => 'CY9OXubE9v6G2LJpz7JumRdXXzrs13XLyLb07kj90QTz7SqAZlUtRtM1',
+            'lazadaServiceUrl' => 'https://asc-staging-api.sellercenter.lazada.com.my/',
+            'currency'=>'MYR',
+        ],
         'BCLAZADASG' => [
             'name'=>'NEW API Lazada',
             'userId' => 'it@eservicesgroup.net', 

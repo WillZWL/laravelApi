@@ -76,8 +76,12 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
                 $responseData = new \SimpleXMLElement($responseXml);
                 if($responseData->response->status == "OK"){
                     $responseFileId = (string) $responseData->response->importid;
-                    $this->createOrUpdatePlatformMarketProductFeed($storeName,$responseFileId);
-                    $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
+                    $platformMarketProductFeed = $this->createOrUpdatePlatformMarketProductFeed($storeName,$responseFileId);
+                    if($platformMarketProductFeed->id){
+                        foreach ($processStatusProduct as $pendingSku) {
+                           $this->createOrUpdatePlatformMarketFeedBatch("update_inventory_and_price",$platformMarketProductFeed->id,$pendingSku->id,$pendingSku->marketplace_sku,$processStatus);
+                        }
+                    }
                     return $responseFileId;
                 }
             }
@@ -89,14 +93,14 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
         $this->priceMinisterImportReport = new PriceMinisterImportReport($storeName);
         $message = null;
         foreach ($productUpdateFeeds as $productUpdateFeed) {
-            $errorStatus = false;
+            $errorSku = array();
             $this->priceMinisterImportReport->setFileId($productUpdateFeed->feed_submission_id);
             $reports = $this->priceMinisterImportReport->getImportReport();
             if($reports){
                 $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
                 foreach ($reports as $report) {
-                    if($report["errors"]){
-                        $errorStatus = true;
+                    if(empty($report["errors"])){
+                        $errorSku[] = $report["sku"];
                         $message .= "Seller Sku ".$report["sku"]." error message: \r\n";
                         foreach ($report["errors"] as $error) {
                            if(isset($error["error_text"])){
@@ -105,12 +109,7 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
                         }
                     }
                 }
-                if($errorStatus){
-                    $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
-                }else{
-                    $productUpdateFeed->feed_processing_status = '_COMPLETE_';
-                }
-                $productUpdateFeed->save();
+                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
             }
         }
         if($message){

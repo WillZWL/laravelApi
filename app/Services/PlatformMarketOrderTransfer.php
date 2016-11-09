@@ -12,6 +12,7 @@ use App\Services\PlatformValidate\PriceMinisterValidateService;
 use App\Services\PlatformValidate\FnacValidateService;
 use App\Services\PlatformValidate\NeweggValidateService;
 use App\Services\PlatformValidate\TangaValidateService;
+use App\Services\PlatformValidate\Qoo10ValidateService;
 use App\Models\PlatformMarketOrder;
 use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
@@ -87,7 +88,7 @@ class PlatformMarketOrderTransfer
                     } catch (\Exception $e) {
                         \DB::connection('mysql_esg')->rollBack();
                         \DB::rollBack();
-                        mail('jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
+                        mail('jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com, brave.liu@eservicesgroup.com', $order->biz_type.' order import - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: "
                             .$e->getLine());
                     }
                 }
@@ -116,10 +117,10 @@ class PlatformMarketOrderTransfer
             case 'Tanga':
                 $validateService = new TangaValidateService($order);
                 break;
-           /* case 'Qoo10':
+            case 'Qoo10':
                 $validateService =new Qoo10ValidateService($order);
                 break;
-            case 'Paytm':
+            /* case 'Paytm':
                 $validateService =new PaytmValidateService($order);
                 break;*/
         }

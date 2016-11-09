@@ -46,8 +46,12 @@ class ApiFnacProductService implements ApiPlatformProductInterface
             $responseBatchData = $this->fnacProductUpdate->requestFnacUpdateOffer();
             $this->saveDataToFile(serialize($responseBatchData), 'responseBatchPriceAndInventory');
             if ($responseBatchData['@attributes']['status'] != 'FATAL') {
-                $this->createOrUpdatePlatformMarketProductFeed($storeName,$responseBatchData['batch_id']);
-                $this->updatePendingProductProcessStatus($pendingProducts,$processStatus);
+                $platformMarketProductFeed = $this->createOrUpdatePlatformMarketProductFeed($storeName,$responseBatchData['batch_id']);
+                if($platformMarketProductFeed->id){
+                    foreach ($pendingProducts as $pendingProduct) {
+                       $this->createOrUpdatePlatformMarketFeedBatch("update_inventory_and_price",$platformMarketProductFeed->id,$pendingProduct->id,$pendingProduct->marketplace_sku,$processStatus);
+                    }
+                }
             }
         }
     }
@@ -57,27 +61,22 @@ class ApiFnacProductService implements ApiPlatformProductInterface
         $this->fnacProductUpdate = new FnacProductUpdate($storeName);
         $message = null;
         foreach ($productUpdateFeeds as $productUpdateFeed) {
-            $errorStatus = false;
+            $errorSku = array();
             $reports = $this->fnacProductUpdate->sendFnacBatchStatusRequest($productUpdateFeed->feed_submission_id);
             $this->saveDataToFile(serialize($reports), 'getProductUpdateFeedBack');
             if($reports){
                 if(isset($reports['@attributes']) && $reports['@attributes']['status'] == 'ERROR'){
                     $message .= "Seller Sku ".$reports["offer_seller_id"]." error message: ".$reports["error"]."\r\n";
-                    $errorStatus = true;
+                    $errorSku[] = $reports["offer_seller_id"];
                 }else{
                     foreach ($reports as $report){
                        if($report['@attributes']['status'] == 'ERROR'){
                             $message .= "Seller Sku ".$report["offer_seller_id"]." error message: ".$report["error"]."\r\n";
-                            $errorStatus = true;
+                            $errorSku[] = $report["offer_seller_id"];
                        }
                     }
                 }
-                if($errorStatus){
-                    $productUpdateFeed->feed_processing_status = '_COMPLETE_WITH_ERROR_';
-                }else{
-                    $productUpdateFeed->feed_processing_status = '_COMPLETE_';
-                }
-                $productUpdateFeed->save();
+                $this->confirmPlatformMarketInventoryStatus($productUpdateFeed,$errorSku);
             }
         }
         if($message){

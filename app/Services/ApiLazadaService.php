@@ -14,6 +14,7 @@ use App\Models\PlatformMarketReasons;
 use PDF;
 use Excel;
 use Zipper;
+use Config;
 
 //use lazada api package
 use App\Repository\LazadaMws\LazadaOrder;
@@ -30,6 +31,11 @@ class ApiLazadaService implements ApiPlatformInterface
 {
     use ApiBaseOrderTraitService; 
 	private $storeCurrency;
+
+    public function __construct()
+    {
+        $this->stores =  Config::get('lazada-mws.store');
+    }
 
 	public function getPlatformId()
 	{
@@ -82,16 +88,28 @@ class ApiLazadaService implements ApiPlatformInterface
         $this->saveDataToFile(serialize($originOrderList),"getOrderList");
         if($originOrderList){
             foreach ($originOrderList as $order) {
-                $orderIdList[] = $order['OrderId'];
-                $newOrderList[$order['OrderId']] = $order;
-            }
-            $multipleOrderItems = $this->getMultipleOrderItems($storeName,$orderIdList);
-            if($multipleOrderItems){
-                foreach ($multipleOrderItems as $orderItems) {
-                $newOrderList[$orderItems["OrderId"]]["OrderItems"] = $orderItems["OrderItems"];
+                $duplicateOrderNo = null;$orderIdList = null;
+                $result = $this->checkDuplicateOrder($storeName,$order["OrderNumber"],$order['OrderId']);
+                if($result){
+                    $duplicateOrderNo[] = $order['OrderNumber'];
+                }else{
+                    $orderIdList[] = $order['OrderId'];
+                    $newOrderList[$order['OrderId']] = $order;
                 }
-                return $newOrderList;
-            } 
+            }
+            if($duplicateOrderNo){
+                $alertEmail = $this->stores[$storeName]["userId"];
+                $this->sendDuplicateOrderMailMessage($storeName,$duplicateOrderNo,$alertEmail);
+            }
+            if($orderIdList){
+                $multipleOrderItems = $this->getMultipleOrderItems($storeName,$orderIdList);
+                if($multipleOrderItems){
+                    foreach ($multipleOrderItems as $orderItems) {
+                    $newOrderList[$orderItems["OrderId"]]["OrderItems"] = $orderItems["OrderItems"];
+                    }
+                    return $newOrderList;
+                }
+            }
         }
 	}
 
@@ -186,7 +204,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
             }
             $file = $doucmentType.$fileDate.'.pdf';
-            PDF::loadHTML($doucmentFile)->save($pdfFilePath.$file);
+            PDF::loadHTML($doucmentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
         }  
@@ -194,7 +212,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     //run request to lazada api set order ready to ship one by one
     private function esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath)
-    {   
+    {
         $returnData = null;
         foreach($esgOrderGroups as $platformId => $esgOrderGroup)
         {
@@ -231,7 +249,7 @@ class ApiLazadaService implements ApiPlatformInterface
             }
             if($ordersIdList){
                 $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
-                //$this->updateEsgWarehouseInventory($updateWarehouseObject);
+                $this->updateEsgWarehouseInventory($updateWarehouseObject);
             }
         }
         return $returnData;   
@@ -247,17 +265,22 @@ class ApiLazadaService implements ApiPlatformInterface
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
                 $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
-                if($doucmentType == "invoice"){
+                if($fileHtml){
+                    if($doucmentType == "invoice"){
                     $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
-                }
-                if(isset($document[$doucmentType])){
-                    $document[$doucmentType] .= $pdfHrDom.$fileHtml;
-                }else{
-                    $document[$doucmentType] = $fileHtml;
+                    }
+                    if(isset($document[$doucmentType])){
+                        $document[$doucmentType] .= $pdfHrDom.$fileHtml;
+                    }else{
+                        $document[$doucmentType] = $fileHtml;
+                    }
                 }
             }
         }
-        return $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+        if($document){
+           return $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+        }
+        return null;
     }
 
     private function updateEsgWarehouseInventory($updateWarehouseObject)
@@ -310,16 +333,21 @@ class ApiLazadaService implements ApiPlatformInterface
         if ($orderItemIds) {
             $itemObject = array("orderItemIds" => $orderItemIds);
             $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
-            /*$orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
-            //Not allowed to change the preselected shipment provider
-            foreach ($orderList as $order) {
-                foreach ($order["OrderItems"] as $orderItem) {
-                    if($orderItem["TrackingCode"]){
-                       $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
-                       $itemObject["ShipmentProvider"] = $shipmentProvider;
+            $countryCode = strtoupper(substr($storeName, -2));
+            if(in_array($countryCode, array("TH","SG"))){
+                $orderList = $this->getMultipleOrderItems($storeName,[$orderId]);
+                //Not allowed to change the preselected shipment provider
+                foreach ($orderList as $order) {
+                    foreach ($order["OrderItems"] as $orderItem) {
+                        if(isset($orderItem["TrackingCode"])){
+                            $itemObject["TrackingNumber"] = $orderItem["TrackingCode"];
+                        }else{
+                            $itemObject["TrackingNumber"] = $orderItem["0"]["TrackingCode"];
+                        }
+                        $itemObject["ShipmentProvider"] = $shipmentProvider;
                     }
                 }
-            }*/
+            }
             $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
             if($responseResult){
                 if(isset($responseResult["PurchaseOrderId"])){
@@ -399,6 +427,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     private function getDocumentSaveToDirectory($document,$pdfFilePath)
     {
+        $documentPdf = array();
         $fileDate = date("h-i-s");
         if (!file_exists($pdfFilePath)) {
             mkdir($pdfFilePath, 0755, true);
@@ -413,7 +442,7 @@ class ApiLazadaService implements ApiPlatformInterface
         if($documentPdf) {
             $fileName ='readyToShipLabel'.date("H-i-s").'.zip';
             Zipper::make($pdfFilePath.$fileName)->add($documentPdf)->close();
-            $zipperFile = url("lazada-api/donwload-label/".$fileName);
+            $zipperFile = url("api/lazada-api/donwload-label/".$fileName);
             return $zipperFile;
         }
     }
@@ -742,7 +771,7 @@ class ApiLazadaService implements ApiPlatformInterface
     {
         $shipmentProvider = array(
             "MY" => "SkyNet - DS",      
-            "SG" => "LGS-SG3-HK",                
+            "SG" => "TA-Q-BIN API",                
             "TH" => "Kerry",       
             "ID" => "LEX MP",
             "PH" => "LEX",
