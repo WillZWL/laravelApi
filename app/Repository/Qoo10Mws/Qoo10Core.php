@@ -97,8 +97,45 @@ class Qoo10Core
         $requestOption["http_errors"] = TRUE;
 
         $client = new \GuzzleHttp\Client();
-        $response = $client->request($resourceMethod, $request, $requestOption);
-        $responseDataXml = $response->getBody()->getContents();
+        $error = [];
+        try {
+            $response = $client->request($resourceMethod, $request, $requestOption);
+            $responseDataXml = $response->getBody()->getContents();
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            $error[] = $e->getFile(). " ".__LINE__." networking error. ";
+            $error[] = "Request: {$request}";
+            $error[] = "message: {$e->getMessage()}. ";
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            # 400-level errors
+            $error[] = $e->getFile(). " ".__LINE__." client 400-level error. ";
+            $error[] = "Request: {$request}";
+            if($e->hasResponse()) {
+                $error["response"] = $e->getResponse()->getBody()->getContents();
+            } else {
+                $error[] = "message: {$e->getMessage()}. ";
+            }
+        } catch (\GuzzleHttp\Exception\ServerException $e) {
+
+            $error[] = $e->getFile(). " ".__LINE__." server 500-level error. ";
+            $error[] = "Request: {$request}";
+            if($e->hasResponse()) {
+                $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
+            } else {
+                $error[] = "message: {$e->getMessage()}. ";
+            }
+        } catch (\Exception  $e) {
+            $error[] = $e->getFile(). " ".__LINE__." other error. ";
+            $error[] = "Request: {$request}";
+            $error[] = "message: {$e->getMessage()}. ";
+        }
+
+        if ($error) {
+            $error['request'] = $request;
+            $error['requestBody'] = $requestBody;
+            $errorMessage = serialize($error);
+            mail('brave.liu@eservicesgroup.com', 'Calling Qoo10 API Failed', $errorMessage);
+
+        }
 
         $response = $this->convert($responseDataXml);
 
