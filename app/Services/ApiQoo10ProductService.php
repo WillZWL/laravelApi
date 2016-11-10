@@ -73,8 +73,9 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                     ) {
                         $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_PRICE);
                     } else {
+                        $to = 'qoo10sg@brandsconnect.net, celine@eservicesgroup.net';
                         $header = "From: admin@eservicesgroup.com\r\n";
-                        $to = 'brave.liu@eservicesgroup.com';
+                        $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
                         $message = serialize($updatePriceData);
                         mail($to, "Alert, Update price to qoo10 failed", $message, $header);
                     }
@@ -111,8 +112,9 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                     ) {
                         $this->updatePendingProductProcessStatusBySku($object,PlatformMarketConstService::PENDING_INVENTORY);
                     } else {
+                        $to = 'qoo10sg@brandsconnect.net, celine@eservicesgroup.net';
                         $header = "From: admin@eservicesgroup.com\r\n";
-                        $to = 'brave.liu@eservicesgroup.com';
+                        $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
                         $message = serialize($updateInventoryData);
                         mail($to, "Alert, Update inventory to qoo10 failed", $message, $header);
                     }

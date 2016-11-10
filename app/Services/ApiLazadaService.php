@@ -11,6 +11,7 @@ use App\Models\Schedule;
 use App\Models\InvMovement;
 use App\Models\So;
 use App\Models\PlatformMarketReasons;
+use App\Models\StoreWarehouse;
 use PDF;
 use Excel;
 use Zipper;
@@ -29,7 +30,7 @@ use App\Repository\LazadaMws\LazadaFailureReasons;
 
 class ApiLazadaService implements ApiPlatformInterface
 {
-    use ApiBaseOrderTraitService; 
+    use ApiBaseOrderTraitService;
 	private $storeCurrency;
 
     public function __construct()
@@ -87,8 +88,8 @@ class ApiLazadaService implements ApiPlatformInterface
 		$originOrderList = $this->lazadaOrderList->fetchOrderList();
         $this->saveDataToFile(serialize($originOrderList),"getOrderList");
         if($originOrderList){
+            $duplicateOrderNo = null;$orderIdList = null;
             foreach ($originOrderList as $order) {
-                $duplicateOrderNo = null;$orderIdList = null;
                 $result = $this->checkDuplicateOrder($storeName,$order["OrderNumber"],$order['OrderId']);
                 if($result){
                     $duplicateOrderNo[] = $order['OrderNumber'];
@@ -132,7 +133,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
     public function esgOrderReadyToShip($soNoList)
-    {  
+    {
         $pdfFilePath = "/var/data/shop.eservicesgroup.com/marketplace/".date("Y")."/".date("m")."/".date("d")."/lazada/label/";
         $result = "";$returnData = "";
         $esgOrders = So::whereIn('so_no', $soNoList)
@@ -144,19 +145,19 @@ class ApiLazadaService implements ApiPlatformInterface
             if(isset($returnData["documentLabel"])){
                 $returnData["document"] = $this->getESGOrderDocumentLabel($returnData["documentLabel"],$pdfFilePath);
             }
-            return $result = array("status" => "success","message" => $returnData); 
+            return $result = array("status" => "success","message" => $returnData);
         }else{
             return $result = array("status" => "failed","message" => "Invalid Order");
         }
     }
 
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
-    {   
+    {
         $returnData = array();$warehouseInventory = null;
         foreach($orderGroup as $order){
             if($order->esg_order_status != 6){
                 if(isset($warehouseInventory["warehouse"])){
-                    $warehouse = $warehouseInventory["warehouse"]; 
+                    $warehouse = $warehouseInventory["warehouse"];
                 }
                 //$warehouseInventory = $this->checkWarehouseInventory($order,$warehouse);
                 //if($warehouseInventory["updateObject"]){
@@ -194,20 +195,31 @@ class ApiLazadaService implements ApiPlatformInterface
         foreach($orderGroups as $storeName => $orderGroup){
             foreach($orderGroup as $order){
                 $orderItem = $order->platformMarketOrderItem->first();
-                $orderItemIds[] = $orderItem->order_item_id; 
+                $orderItemIds[] = $orderItem->order_item_id;
+                if($doucmentType == "invoice"){
+                    $mattelDcSkuList = $this->getMattleDcSkuByOrder($order);
+                }
             }
             $doucmentFile .= $this->getDocument($storeName,$orderItemIds,$doucmentType);
         }
         if($doucmentFile){
-            if($doucmentType == "shippingLabel"){ 
+            if($doucmentType == "shippingLabel"){
                 $doucmentFile = preg_replace(array('/-445px/'), array('-435px'), $doucmentFile);
                 $doucmentFile = "<style>body { padding-top: 10px;}</style>".$doucmentFile;
+            }
+            if($doucmentType == "invoice"){
+                $doucmentFile = preg_replace(array('/<th>Seller SKU<\/th>/'), array('<th>Seller SKU</th><th>DC SKU</th>'), $doucmentFile);
+                foreach ($mattelDcSkuList as $marketplaceSku => $mattelDcSku) {
+                   $pattern = array('/<td>'.$marketplaceSku.'<\/td>/');
+                   $replacement = array('<td>'.$marketplaceSku.'</td><td>'.$mattelDcSku.'</td>');
+                   $doucmentFile = preg_replace($pattern, $replacement, $doucmentFile);
+                }
             }
             $file = $doucmentType.$fileDate.'.pdf';
             PDF::loadHTML($doucmentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
-        }  
+        }
     }
 
     //run request to lazada api set order ready to ship one by one
@@ -222,7 +234,7 @@ class ApiLazadaService implements ApiPlatformInterface
             $storeName = $prefix."LAZADA".$countryCode;
             $lazadaShipments = $this->getShipmentProviders($storeName);
             foreach($esgOrderGroup as $esgOrder)
-            {   
+            {
                 if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
                     $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
                     $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
@@ -252,7 +264,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $this->updateEsgWarehouseInventory($updateWarehouseObject);
             }
         }
-        return $returnData;   
+        return $returnData;
     }
 
     private function getESGOrderDocumentLabel($documentLabels,$pdfFilePath)
@@ -431,7 +443,7 @@ class ApiLazadaService implements ApiPlatformInterface
         $fileDate = date("h-i-s");
         if (!file_exists($pdfFilePath)) {
             mkdir($pdfFilePath, 0755, true);
-        } 
+        }
         foreach($document as $documentType => $documentFile){
             if($documentFile){
                 $file = $pdfFilePath.$documentType.$fileDate.'.pdf';
@@ -533,7 +545,7 @@ class ApiLazadaService implements ApiPlatformInterface
     }
 
 	public function setStatusToReadyToShip($storeName,$itemObject)
-	{  
+	{
 		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
 		$this->lazadaOrderStatus->setOrderItemIds($itemObject["orderItemIds"]);
 		$this->lazadaOrderStatus->setDeliveryType("dropship");
@@ -770,9 +782,9 @@ class ApiLazadaService implements ApiPlatformInterface
     public function getMettelShipmentProvider($storeName)
     {
         $shipmentProvider = array(
-            "MY" => "SkyNet - DS",      
-            "SG" => "TA-Q-BIN API",                
-            "TH" => "Kerry",       
+            "MY" => "SkyNet - DS",
+            "SG" => "TA-Q-BIN API",
+            "TH" => "Kerry",
             "ID" => "LEX MP",
             "PH" => "LEX",
             "VN" => "LEX"
@@ -795,18 +807,18 @@ class ApiLazadaService implements ApiPlatformInterface
         switch ($warehouseId){
             case 'ES_HK':
                 $shipmentProvider = array(
-                    "MY" => "AS-Poslaju-HK",      
-                    "SG" => "LGS-SG3-HK",                
-                    "TH" => "LGS-TH3-HK",       
+                    "MY" => "AS-Poslaju-HK",
+                    "SG" => "LGS-SG3-HK",
+                    "TH" => "LGS-TH3-HK",
                     "ID" => "LGS-LEX-ID-HK",
                     "PH" => "AS-LBC-JZ-HK Sellers-LZ2"
                     );
                 break;
            case 'ES_DGME':
                 $shipmentProvider = array(
-                    "MY" => "AS-Poslaju",      
-                    "SG" => "LGS-SG3",                
-                    "TH" => "LGS-TH3",       
+                    "MY" => "AS-Poslaju",
+                    "SG" => "LGS-SG3",
+                    "TH" => "LGS-TH3",
                     "ID" => "LGS-Tiki-ID",
                     "PH" => "LGS-PH1"
                     );
@@ -868,7 +880,11 @@ class ApiLazadaService implements ApiPlatformInterface
         $this->lazadaProductList->setSkuSellerList($sellerSkuList);
         $productList = $this->lazadaProductList->fetchProductList();
         foreach ($productList as $product) {
-           $productMainImage[$product["SellerSku"]] = $product["MainImage"];
+            if(isset($product["SellerSku"])){
+                $productMainImage[$product["SellerSku"]] = $product["MainImage"];
+            }else if(isset($product["Skus"]['Sku']['SellerSku'])){
+                $productMainImage[$product["Skus"]['Sku']["SellerSku"]] = $product["Skus"]['Sku']["Images"]["Image"]['0'];
+            }
         }
         return $productMainImage;
     }

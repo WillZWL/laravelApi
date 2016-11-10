@@ -160,8 +160,9 @@ class ApiQoo10Service  implements ApiPlatformInterface
         ) {
             return true;
         } else {
+            $to = 'qoo10sg@brandsconnect.net, celine@eservicesgroup.net';
             $header = "From: admin@eservicesgroup.com\r\n";
-            $to = 'brave.liu@eservicesgroup.com';
+            $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
             $message = serialize($updateShipmentData);
             mail($to, "Alert, Update shipment tracking to qoo10 failed", $message, $header);
 
@@ -171,7 +172,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
 
     public function getShipedOrderState()
     {
-        return  "Shipped";
+        return  "On delivery(4)";
     }
 
     //update or insert data to database
