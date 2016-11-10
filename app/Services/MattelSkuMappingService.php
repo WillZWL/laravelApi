@@ -82,7 +82,7 @@ class MattelSkuMappingService
                 "DC SKU" => $sku->dc_sku
             ];
         };
-        $cellDataArr['inventory'] = $cellData;
+        $cellDataArr['mapping'] = $cellData;
         $excelFileName = "Mattel_SKU_Mapping_Report";
         $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
         return $excelFile["path"].$excelFile["file_name"];
