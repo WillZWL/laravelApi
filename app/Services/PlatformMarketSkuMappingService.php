@@ -159,7 +159,7 @@ class PlatformMarketSkuMappingService
        // MarketplaceSkuMapping::firstOrCreate($object);
         $marketplaceSkuMapping = MarketplaceSkuMapping::updateOrCreate(
             [
-                'marketplace_sku' => $mappingData['sku'],
+                'marketplace_sku' => $mappingData['marketplace_sku'],
                 'marketplace_id' => $mappingData['marketplace_id'],
                 'country_id' => $mappingData['country_id'],
             ],
