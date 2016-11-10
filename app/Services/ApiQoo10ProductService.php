@@ -43,12 +43,13 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
         $this->submitProductInventory($storeName);
     }
 
- public function submitProductPrice($storeName)
+    public function submitProductPrice($storeName)
     {
         $processStatusProduct = MarketplaceSkuMapping::where('marketplace_sku_mapping.asin', '!=', '')
             ->ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_PRICE);
         if(!$processStatusProduct->isEmpty()){
             $this->qoo10ProductUpdate = new Qoo10ProductUpdate($storeName);
+            $reqsponseAllData = [];
             foreach ($processStatusProduct as $object) {
                 if ($object->asin && $object->asin != 'X') {
                     $this->qoo10ProductUpdate->setItemCode($object->asin);
@@ -64,8 +65,7 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                         'ItemQty' => $object->inventory,
                         'response' => $response,
                     ];
-
-                    $this->saveDataToFile(serialize($updatePriceData), 'responseUpdatePrice');
+                    $reqsponseAllData[] = $updatePriceData;
 
                     if (isset($response['ResultCode'])
                         && $response['ResultCode'] == 0
@@ -81,6 +81,9 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                     }
                 }
             }
+            if ($reqsponseAllData) {
+                $this->saveDataToFile(serialize($reqsponseAllData), 'responseUpdatePrice');
+            }
         }
     }
 
@@ -90,6 +93,7 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
             ->ProcessStatusProduct($storeName,PlatformMarketConstService::PENDING_INVENTORY);
         if(!$processStatusProduct->isEmpty()){
             $this->qoo10ProductUpdate = new Qoo10ProductUpdate($storeName);
+            $reqsponseAllData = [];
             foreach ($processStatusProduct as $object) {
                 if ($object->asin && $object->asin != 'X') {
                     $this->qoo10ProductUpdate->setItemCode($object->asin);
@@ -103,8 +107,7 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                         'ItemQty' => $object->inventory,
                         'response' => $response,
                     ];
-
-                    $this->saveDataToFile(serialize($updateInventoryData), 'responseUpdateInventory');
+                    $reqsponseAllData[] = $updateInventoryData;
 
                     if (isset($response['ResultCode'])
                         && $response['ResultCode'] == 0
@@ -119,6 +122,10 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                         mail($to, "Alert, Update inventory to qoo10 failed", $message, $header);
                     }
                 }
+            }
+
+            if ($reqsponseAllData) {
+                $this->saveDataToFile(serialize($reqsponseAllData), 'responseUpdateInventory');
             }
         }
     }
