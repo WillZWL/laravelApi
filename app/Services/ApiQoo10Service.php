@@ -109,8 +109,11 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $this->qoo10Order = new Qoo10Order($storeName);
         $this->qoo10Order->setOrderNo($orderNo);
         $responseOrderData = $this->qoo10Order->fetchOrder();
-        $this->saveDataToFile(serialize($responseOrderData), 'responseOrderData');
-
+        try {
+            $this->saveDataToFile(serialize($responseOrderData), 'responseOrderData');
+        } catch (\Exception $e) {
+            mail('brave.liu@eservicesgroup.com', 'save responseOrderData Failed', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
         return $responseOrderData;
     }
 
@@ -121,8 +124,11 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $lastTime = date("Ymd", strtotime($this->getSchedule()->last_access_time));
         $this->qoo10OrderList->setStartDate($lastTime);
         $response = $this->qoo10OrderList->fetchOrderList();
-        $this->saveDataToFile(serialize($response), 'responseOrderListData');
-
+        try {
+            $this->saveDataToFile(serialize($response), 'responseOrderListData');
+        } catch (\Exception $e) {
+            mail('brave.liu@eservicesgroup.com', 'save responseOrderListData Failed', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
         if (isset($response['ResultCode'])
             && $response['ResultCode'] == 0
         ) {
@@ -153,8 +159,11 @@ class ApiQoo10Service  implements ApiPlatformInterface
             'TrackingNo' => $trackingNo,
             'response' => $response,
         ];
-
-        $this->saveDataToFile(serialize($updateShipmentData),"responseUpdateShipmentTracking");
+        try {
+            $this->saveDataToFile(serialize($updateShipmentData),"responseUpdateShipmentTracking");
+        } catch (\Exception $e) {
+            mail('brave.liu@eservicesgroup.com', 'save responseUpdateShipmentTracking Failed', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
         if (isset($response['ResultCode'])
             && $response['ResultCode'] == 0
         ) {

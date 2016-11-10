@@ -29,7 +29,12 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
         $this->qoo10Product = new Qoo10Product($storeName);
         $this->qoo10Product->setItemCode($itemCode);
         $response = $this->qoo10Product->getProduct();
-        $this->saveDataToFile(serialize($response), 'responseProductData');
+        try {
+            $this->saveDataToFile(serialize($response), 'responseProductData');
+        } catch (\Exception $e) {
+            mail('brave.liu@eservicesgroup.com', 'save responseProductData Failed', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
+
         if (isset($response['ResultCode'])
             && $response['ResultCode'] == 0
         ) {
@@ -82,7 +87,11 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
                 }
             }
             if ($reqsponseAllData) {
-                $this->saveDataToFile(serialize($reqsponseAllData), 'responseUpdatePrice');
+                try {
+                    $this->saveDataToFile(serialize($reqsponseAllData), 'responseUpdatePrice');
+                } catch (\Exception $e) {
+                    mail('brave.liu@eservicesgroup.com', 'save responseUpdatePrice Failed', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                }
             }
         }
     }
@@ -125,7 +134,11 @@ class ApiQoo10ProductService implements ApiPlatformProductInterface
             }
 
             if ($reqsponseAllData) {
-                $this->saveDataToFile(serialize($reqsponseAllData), 'responseUpdateInventory');
+                try {
+                    $this->saveDataToFile(serialize($reqsponseAllData), 'responseUpdateInventory');
+                } catch (\Exception $e) {
+                    mail('brave.liu@eservicesgroup.com', 'save responseUpdateInventory Failed', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                }
             }
         }
     }
