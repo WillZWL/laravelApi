@@ -179,7 +179,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                         $xmlData = $this->getNewApiMattleUpdateQuantityXmlData($inventoryGroup);
                         $result = $this->fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData);
                         $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
-                        $this->updatePlatformMarketProductStatus($inventoryGroups,$errorSku);
+                        $this->updatePlatformMarketProductStatus($inventoryGroup,$errorSku);
                     }else{
                         $xmlData = $this->getMattleUpdateQuantityXmlData($inventoryGroup);
                         $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
