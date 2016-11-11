@@ -201,8 +201,8 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         $responseXml = $this->lazadaUpdatePriceQuantity->submitXmlData($xmlData);
         if($responseXml){
             $responseData = new \SimpleXMLElement($responseXml);
-            if($responseData->Head->ErrorCode){
-                $errorDetail = $responseData->Body->Errors;
+            $errorDetail = $responseData->Body->Errors;
+            if(!empty($errorDetail)){
                 foreach ($errorDetail->ErrorDetail as $key => $error) {
                     $message .= "Marketplace Sku ".$error->SellerSku." error message ".$error->Message."\r\n";
                     $result["errorSku"][] = $error->SellerSku;
