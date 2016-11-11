@@ -41,9 +41,10 @@ class PlatformMarketProductManage extends Controller
             $destinationPath = storage_path().'/marketplace-sku-mapping';
             $fileName = $file->getFilename().'.'.$extension;
             $request->file('sku_file')->move($destinationPath, $fileName);
-            $stores = $this->getStores($platform);
-            $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
-            $result = $platformMarketSkuMappingService->initMarketplaceSkuMapping($fileName);
+
+            $platformMarketSkuMappingService = new PlatformMarketSkuMappingService();
+
+            $result = $platformMarketSkuMappingService->initMarketplaceSkuMapping($platform,$fileName);
             if(isset($result["error_sku"])){
                 foreach($result["error_sku"] as $errorSku){
                     $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";

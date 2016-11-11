@@ -6,6 +6,7 @@ use App\Models\MpControl;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\SellingPlatform;
 use App\Models\PlatformBizVar;
+use App\Models\Store;
 use Excel;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,51 @@ class PlatformMarketSkuMappingService
     public function __construct($stores = null)
     {
         $this->stores = $stores;
+    }
+
+    public function uploadMarketplaceSkuMapping($marketplace, $fileName = '')
+    {
+        $stores = Store::where('marketplace', '=', strtoupper($marketplace))->get();
+        $result = [];
+
+        Excel::load($filePath, function ($reader) {
+            $sheetItem = $reader->all();
+            $mappingData = null;
+            foreach ($sheetItem as $item) {
+                $itemData = $item->toArray();
+                foreach ($stores as $store) {
+                    $marketplaceId = $store->store_code.$store->marketplace;
+                    $countryCode = $store->country;
+                    $currency = $store->currency;
+                    if (($itemData['marketplace_id'] == $marketplaceId)
+                        && ($itemData['country_id']) == $countryCode) {
+
+                        $mpControl = MpControl::where('marketplace_id', $marketplaceId)
+                                        ->where('country_id', '=', $countryCode)
+                                        ->where('status', '=', '1')
+                                        ->first();
+                        if ($mpControl) {
+                            $mappingData = [];
+                            $mappingData['marketplace_sku'] = $itemData['marketplace_sku'];
+                            $mappingData['sku'] = $itemData['esg_sku'];
+                            $mappingData['mp_category_id'] = $itemData['mp_category_id'];
+                            $mappingData['mp_sub_category_id'] = $itemData['mp_sub_category_id'];
+                            $mappingData['delivery_type'] = $itemData['delivery_type'] ? $itemData['delivery_type'] : 'EXP';
+                            $mappingData['mp_control_id'] = $mpControl->control_id;
+                            $mappingData['marketplace_id'] = $marketplaceId;
+                            $mappingData['country_id'] = $countryCode;
+                            $mappingData['lang_id'] = 'en';
+                            $mappingData['asin'] = isset($itemData['asin']) ? $itemData['asin'] : '';
+                            $mappingData['currency'] = $currency;
+                            $this->firstOrCreateMarketplaceSkuMapping($mappingData);
+                        } else{
+                            $result["error_sku"][] = $itemData['esg_sku'];
+                        }
+                    }
+                }
+            }
+        });
+        return $result;
     }
 
     //1 init Marketplace SKU Mapping
