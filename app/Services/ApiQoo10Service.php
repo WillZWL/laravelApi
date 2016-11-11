@@ -230,7 +230,10 @@ class ApiQoo10Service  implements ApiPlatformInterface
                 $sellerItemCode = $order['optionCode'];
             }
         }
-
+        $orderPrice = $order['orderPrice'];
+        if ($order['discount'] > 0) {
+            $orderPrice = $order['discount'] + $order['total'];
+        }
         $object = [
             'platform_order_id' => $order['packNo'],
             'order_item_id' => $order['packNo'],
@@ -238,7 +241,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
             'marketplace_item_code' => $order['itemCode'],
             'title' => $order['itemTitle'],
             'quantity_ordered' => 1,
-            'item_price' => $order['orderPrice'],
+            'item_price' => $orderPrice,
             'quantity_ordered' => $order['orderQty'],
             'promotion_discount' => $order['discount'],
             'package_id' => $order['PackingNo']
