@@ -16,8 +16,8 @@ class Qoo10OrderList extends Qoo10OrderCore
 
     protected function getRequestParams()
     {
-        if ($this->getShippingStat('CheckOrder')) {
-            $requestParams['ShippingStat'] = $this->getShippingStat('CheckOrder');
+        if ($this->getShippingStat('RequestShipping')) {
+            $requestParams['ShippingStat'] = $this->getShippingStat('RequestShipping');
         }
 
         if ($this->getStartDate()) {
