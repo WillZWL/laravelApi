@@ -224,10 +224,17 @@ class ApiQoo10Service  implements ApiPlatformInterface
 
     public function updateOrCreatePlatformMarketOrderItem($order, $orderItem="")
     {
+        $sellerItemCode = $order['sellerItemCode'];
+        if (!is_array($order['optionCode'])) {
+            if (isset($order['optionCode'])) {
+                $sellerItemCode = $order['optionCode'];
+            }
+        }
+
         $object = [
             'platform_order_id' => $order['packNo'],
             'order_item_id' => $order['packNo'],
-            'seller_sku' => $order['sellerItemCode'],
+            'seller_sku' => trim($sellerItemCode),
             'marketplace_item_code' => $order['itemCode'],
             'title' => $order['itemTitle'],
             'quantity_ordered' => 1,
