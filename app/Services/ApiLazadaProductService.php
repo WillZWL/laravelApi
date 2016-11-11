@@ -167,7 +167,8 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function updatePlatformMarketMattleInventory()
     {
         $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
-        $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->get();
+        //the lazada maximum of SellerSku
+        $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->limit(20)->get();
         if(!$inventorys->isEmpty()){
             $inventoryGroups = $inventorys->groupBy("store_id");
             foreach ($inventoryGroups as $storeId => $inventoryGroup) {
@@ -311,7 +312,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function updatePlatformMarketProductStatus($pendingProducts,$errorSku = array(),$processStatus = null)
     {
         foreach ($pendingProducts as $pendingProduct) {
-            if(empty($error) || !in_array($pendingProduct->marketplace_sku,$errorSku)){
+            if(empty($errorSku) || !in_array($pendingProduct->marketplace_sku,$errorSku)){
                 if($processStatus){
                     $this->updatePendingProductProcessStatusBySku($pendingProduct,$processStatus);
                 }else{
