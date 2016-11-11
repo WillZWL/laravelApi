@@ -282,9 +282,6 @@ class ApiQoo10Service  implements ApiPlatformInterface
                 break;
 
             case 'On request(2)':
-                $status = PlatformMarketConstService::ORDER_STATUS_PAID;
-                break;
-
             case 'Seller confirm(3)':
                 $status = PlatformMarketConstService::ORDER_STATUS_UNSHIPPED;
                 break;
