@@ -4,8 +4,8 @@ namespace App\Repository\Qoo10Mws;
 
 class Qoo10ProductCore extends Qoo10Core
 {
-    protected $itemCode;
-    protected $sellerCode;
+    protected $itemCode = '';
+    protected $sellerCode = '';
 
     public function __construct($store)
     {

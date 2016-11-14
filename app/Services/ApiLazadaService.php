@@ -379,15 +379,25 @@ class ApiLazadaService implements ApiPlatformInterface
                 PlatformMarketOrder::where("platform_order_id",$order['OrderId'])->update($orderObject);
                 So::where('platform_order_id',$order['OrderNumber'])->update(['status' => 5]);
                 foreach($order["OrderItems"] as $orderItem){
-                    $object = array(
-                        'platform_order_id' => $order["OrderId"],
-                        'order_item_id' => $orderItem["OrderItemId"],
-                        'shipment_provider' => $orderItem["ShipmentProvider"],
-                        'tracking_code' => $orderItem["TrackingCode"],
-                        'status' => $orderItem["Status"],
-                    );
+                    if(isset($orderItem["OrderItemId"])){
+                        $orderItemIds[] = $orderItem["OrderItemId"];
+                        $object = array(
+                            'shipment_provider' => $orderItem["ShipmentProvider"],
+                            'tracking_code' => $orderItem["TrackingCode"],
+                            'status' => $orderItem["Status"]
+                        );
+                    }else{
+                        foreach ($orderItem as $item) {
+                            $orderItemIds[] = $item["OrderItemId"];
+                            $object = array(
+                                'shipment_provider' => $item["ShipmentProvider"],
+                                'tracking_code' => $item["TrackingCode"],
+                                'status' => $item["Status"]
+                            );
+                        }
+                    }
                     PlatformMarketOrderItem::where("platform_order_id",$order['OrderId'])
-                                    ->where('order_item_id',$orderItem['OrderItemId'])
+                                    ->whereIn('order_item_id',$orderItemIds)
                                     ->update($object);
                 }
             }
