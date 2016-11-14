@@ -268,7 +268,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
             $xmlData .= '<Request>';
             $xmlData .=     '<Product>';
             $xmlData .=         '<Skus>';
-            $xmlData . = $messageXml;
+            $xmlData .= $messageXml;
             $xmlData .=         '</Skus>';
             $xmlData .=     '</Product>';
             $xmlData .= '</Request>';
@@ -314,7 +314,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
             $xmlData .= '<Request>';
             $xmlData .=     '<Product>';
             $xmlData .=         '<Skus>';
-            $xmlData . = $messageXml;
+            $xmlData .= $messageXml;
             $xmlData .=         '</Skus>';
             $xmlData .=     '</Product>';
             $xmlData .= '</Request>';
