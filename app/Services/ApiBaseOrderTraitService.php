@@ -7,6 +7,9 @@ use App\Models\WmsWarehouseMapping;
 use App\Models\InvMovement;
 use App\Models\PlatformMarketInventory;
 use App\Models\PlatformMarketOrder;
+use App\Models\StoreWarehouse;
+use App\Models\MattelSkuMapping;
+
 /**
 *
 */ 
@@ -81,10 +84,11 @@ trait ApiBaseOrderTraitService
         }
     }
 
-    public function checkDuplicateOrder($storeName,$orderNo)
+    public function checkDuplicateOrder($storeName,$orderNo,$orderId)
     {
-        return PlatformMarketOrder::where("platform",$storeName)
-                        ->where("platform_order_no",$orderNo)
+        return PlatformMarketOrder::where("platform", $storeName)
+                        ->where("platform_order_no", $orderNo)
+                        ->where("platform_order_id", "!=", $orderId)
                         ->first();
     }
 
@@ -97,6 +101,26 @@ trait ApiBaseOrderTraitService
         }
         $message .= "Thanks\r\n";
         $this->sendMailMessage($alertEmail, $subject, $message);
+    }
+
+    public function getMattleDcSkuByOrder($order)
+    {
+        $countryCode = strtoupper(substr($order->platform, -2));
+        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
+        $sellerSku = $order->platformMarketOrderItem->lists("seller_sku");
+        $storeWarehouse = StoreWarehouse::where('store_id',$order->store_id)->first();
+        $marketplaceSkuMapping = MarketplaceSkuMapping::whereIn("marketplace_sku",$sellerSku)
+                                ->where("marketplace_id","=",$marketplaceId)
+                                ->where("country_id","=",$countryCode)
+                                ->with('merchantProductMapping')
+                                ->get();
+        foreach ($marketplaceSkuMapping as $value) {
+            $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$value->merchantProductMapping->merchant_sku)
+                            ->where('warehouse_id',$storeWarehouse->warehouse_id)
+                            ->first();
+            $result[$value->marketplace_sku] = $mattelSkuMapping->dc_sku;
+        }
+        return $result;
     }
 
     public function getSchedule()

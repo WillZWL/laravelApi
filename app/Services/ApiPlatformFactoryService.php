@@ -104,6 +104,11 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->updatePendingPaymentStatus($storeName);
     }
 
+    public function updateOrderItemSellerSku($storeName)
+    {
+        return $this->apiPlatformInterface->updateOrderItemSellerSku($storeName);
+    }
+
     public function merchantOrderAllocatedReadyToShip()
     {
         $storeNames = $this->getCurrentUserStoreName();

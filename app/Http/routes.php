@@ -66,6 +66,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('platform-market/product', 'PlatformMarketProductManage@getProductList');
     Route::get('platform-market/update-product-price', 'PlatformMarketProductManage@submitProductPrice');
     Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
+    Route::get('marketplace-sku-mapping-download/{marketplace_id}', 'PlatformMarketProductManage@download');
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
     Route::get('product-upload/donwload-example-file/{file}', 'Api\ProductUploadController@donwloadExampleFile');
@@ -114,12 +115,17 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('mattel-sku-mapping-list', 'MattelSkuMappingController@index');
     $api->get('mattel-sku-mapping-upload/donwload-example-file/{file}', 'MattelSkuMappingController@donwloadExampleFile');
 
+    $api->get('download-mattel-sku-mapping', 'MattelSkuMappingController@downloadReport');
+
     $api->get('platform-market-inventory-upload', 'PlatformMarketInventoryController@upload');
     $api->post('platform-market-inventory-upload', 'PlatformMarketInventoryController@upload');
     $api->get('platform-market-inventory', 'PlatformMarketInventoryController@index');
     $api->get('platform-market-inventory-upload/donwload-example-file/{file}', 'PlatformMarketInventoryController@donwloadExampleFile');
 
+    $api->get('download-inventory-report', 'PlatformMarketInventoryController@downloadReport');
+
     $api->resource('orders', 'OrderController');
+    $api->resource('export-orders', 'OrderController@exportOrdersToExcel');
 
     // quotation api (delivery charge)
 

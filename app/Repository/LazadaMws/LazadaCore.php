@@ -26,7 +26,8 @@ class LazadaCore
 
         if (isset($data['Head']) && isset($data['Head']['ErrorCode'])) {
             $this->ErrorResponse = $data['Head'];
-
+            $message = $this->storeName." ErrorCode ".$data['Head']['ErrorCode']." message ".$data["Head"]["ErrorMessage"];
+            mail("jimmy.gao@eservicesgroup.com", "lazada error message", $message, $headers = 'From: admin@shop.eservciesgroup.com');
             return null;
         }
 

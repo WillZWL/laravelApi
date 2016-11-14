@@ -8,9 +8,12 @@ use App\Models\SellingPlatform;
 use App\Models\PlatformBizVar;
 use Excel;
 use Illuminate\Http\Request;
+use App\Repository\PlatformMarketOrderRepository;
 
 class PlatformMarketSkuMappingService
 {
+    use ApiPlatformTraitService;
+
     private $platformGroup = array(
             'amazon' => 'AZ',
             'lazada' => 'LZ',
@@ -24,69 +27,51 @@ class PlatformMarketSkuMappingService
         $this->stores = $stores;
     }
 
-    //1 init Marketplace SKU Mapping
-    public function initMarketplaceSkuMapping($fileName = '')
+    public function uploadMarketplaceSkuMapping($fileName = '')
     {
-        if ($fileName) {
-            $filePath = 'storage/marketplace-sku-mapping/'.$fileName;
-        } else {
-            $filePath = 'storage/marketplace-sku-mapping/skus20160804.xlsx';
-        }
-        $result = "";
-        Excel::load($filePath, function ($reader) {
+        $result = [];
+        $filePath = 'storage/marketplace-sku-mapping/'.$fileName;
+        Excel::selectSheetsByIndex(0)->load($filePath, function ($reader) {
             $sheetItem = $reader->all();
             $mappingData = null;
             foreach ($sheetItem as $item) {
                 $itemData = $item->toArray();
-                foreach ($this->stores as $storeName => $store) {
-                    $this->marketplaceId = strtoupper(substr($storeName, 0, -2));
-                    $this->countryCode = strtoupper(substr($storeName, -2));
-                    $this->platformAccount = strtoupper(substr($storeName, 0, 2));
-                    $this->store = $store;
-                    if (empty($itemData['marketplace_id']) || $itemData['marketplace_id'] == $this->marketplaceId) {
-                        $this->mpControl = MpControl::where('marketplace_id', $this->marketplaceId)
-                                        ->where('country_id', '=', $this->countryCode)
+                foreach ($this->stores as $store) {
+                    $marketplaceId = $store->store_code.$store->marketplace;
+                    $countryCode = $store->country;
+                    $currency = $store->currency;
+                    if (($itemData['marketplace_id'] == $marketplaceId)
+                        && ($itemData['country_id']) == $countryCode) {
+                        $mpControl = MpControl::where('marketplace_id', $marketplaceId)
+                                        ->where('country_id', '=', $countryCode)
                                         ->where('status', '=', '1')
                                         ->first();
-                        $insertActive = false;
-                        if ($this->mpControl) {
-                            if ($itemData['country_id']) {
-                                if ($itemData['country_id'] == $this->countryCode) {
-                                    $insertActive = true;
-                                }
-                            } else {
-                                $insertActive = true;
-                            }
-                            if ($insertActive) {
-                                if(isset($this->store['currency'])){
-                                    $currency = $this->store['currency'];
-                                }else if(isset($this->store['orderCurrency'])){
-                                    $currency = $this->store['orderCurrency'];
-                                }
-                                $mappingData = array(
-                                'marketplace_sku' => $itemData['marketplace_sku'],
-                                'sku' => $itemData['esg_sku'],
-                                'mp_category_id' => $itemData['mp_category_id'],
-                                'mp_sub_category_id' => $itemData['mp_sub_category_id'],
-                                'delivery_type' => $itemData['delivery_type'] ? $itemData['delivery_type'] : 'EXP',
-                                'mp_control_id' => $this->mpControl->control_id,
-                                'marketplace_id' => $this->marketplaceId,
-                                'country_id' => $this->countryCode,
-                                'lang_id' => 'en',
-                                'asin'=> isset($itemData['ASIN']) ? $itemData['ASIN']:'',
-                                'currency' =>  $currency,
-                                );
-                                $this->firstOrCreateMarketplaceSkuMapping($mappingData);
-                            }
-                        }else{
+                        if ($mpControl) {
+                            $mappingData = [];
+                            $mappingData['marketplace_sku'] = $itemData['marketplace_sku'];
+                            $mappingData['sku'] = $itemData['esg_sku'];
+                            $mappingData['mp_category_id'] = $itemData['mp_category_id'];
+                            $mappingData['mp_sub_category_id'] = $itemData['mp_sub_category_id'];
+                            $mappingData['delivery_type'] = $itemData['delivery_type'] ? $itemData['delivery_type'] : 'EXP';
+                            $mappingData['mp_control_id'] = $mpControl->control_id;
+                            $mappingData['marketplace_id'] = $marketplaceId;
+                            $mappingData['country_id'] = $countryCode;
+                            $mappingData['lang_id'] = 'en';
+                            $mappingData['asin'] = isset($itemData['asin']) ? $itemData['asin'] : '';
+                            $mappingData['currency'] = $currency;
+                            $this->createOrUpdateMarketplaceSkuMapping($mappingData);
+                        } else{
                             $result["error_sku"][] = $itemData['esg_sku'];
                         }
+                    } else {
+                       $result["error_sku"][] = $itemData['esg_sku'];
                     }
                 }
             }
         });
         return $result;
     }
+
     //2 init Marketplace SKU Mapping
     public function updateOrCreateSellingPlatform($storeName, $store)
     {
@@ -139,7 +124,7 @@ class PlatformMarketSkuMappingService
         return $platformBizVar;
     }
     //4 init Marketplace SKU Mapping
-    public function firstOrCreateMarketplaceSkuMapping($mappingData)
+    public function createOrUpdateMarketplaceSkuMapping($mappingData)
     {
         $object = array();
         $object['marketplace_sku'] = $mappingData['marketplace_sku'];
@@ -159,7 +144,7 @@ class PlatformMarketSkuMappingService
        // MarketplaceSkuMapping::firstOrCreate($object);
         $marketplaceSkuMapping = MarketplaceSkuMapping::updateOrCreate(
             [
-                'marketplace_sku' => $mappingData['sku'],
+                'marketplace_sku' => $mappingData['marketplace_sku'],
                 'marketplace_id' => $mappingData['marketplace_id'],
                 'country_id' => $mappingData['country_id'],
             ],
@@ -210,5 +195,43 @@ class PlatformMarketSkuMappingService
                 $sheet->rows($cellData);
             });
         })->export('csv');
+    }
+
+    public function exportMarketplaceSkuMapping($marketplace_id)
+    {
+        $lists = MarketplaceSkuMapping::where('marketplace_id', $marketplace_id)->get();
+        $path = \Storage::disk('skuMapping')->getDriver()->getAdapter()->getPathPrefix()."excel/";
+
+        $cellData[] = [
+            'marketplace_sku',
+            'esg_sku',
+            'marketplace_id',
+            'country_id',
+            'mp_category_id',
+            'mp_sub_category_id',
+            'delivery_type',
+            'asin',
+            'lang_id',
+            'currency'
+        ];
+        foreach ($lists as $value) {
+            $cellData[] = [
+                'marketplace_sku' => $value->marketplace_sku,
+                'esg_sku' => $value->sku,
+                'marketplace_id' => $value->marketplace_id,
+                'country_id' => $value->country_id,
+                'mp_category_id' => $value->mp_category_id,
+                'mp_sub_category_id' =>$value->mp_sub_category_id,
+                'delivery_type' => $value->delivery_type,
+                'asin' => $value->asin,
+                'lang_id' => $value->lang_id,
+                'currency' => $value->currency
+            ];
+        };
+
+        $cellDataArr['mapping'] = $cellData;
+        $excelFileName = $marketplace_id."_Marketplace_Sku_Mapping";
+        $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
+        return $excelFile["path"].$excelFile["file_name"];
     }
 }

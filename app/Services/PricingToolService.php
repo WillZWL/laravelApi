@@ -60,7 +60,7 @@ class PricingToolService
         $paymentGatewayFee = $this->getPaymentGatewayFee($request);
         $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($request);
         $shippingOptions = $this->getShippingOptions($request);
-        $warehouseCost = $this->getWarehouseCost($request);
+        $warehouseCostDetails = $this->getWarehouseCost($request);
         $supplierCost = $this->getSupplierCost($request);
         $accessoryCost = $this->getAccessoryCost($request);
         $deliveryCharge = 0;
@@ -72,6 +72,12 @@ class PricingToolService
         $priceInfo = [];
 
         foreach ($shippingOptions as $shippingOption) {
+            $bookInCost = $warehouseCostDetails['book_in_cost'];
+            $pnpCost = $warehouseCostDetails['pnp_cost'];
+
+            if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
+                $pnpCost = 0;
+            }
             $deliveryType = $shippingOption['deliveryType'];
 
             $priceInfo[$deliveryType] = [];
@@ -83,7 +89,7 @@ class PricingToolService
             $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
             $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
             $priceInfo[$deliveryType]['freightCost'] = $shippingOption['cost'];
-            $priceInfo[$deliveryType]['warehouseCost'] = $warehouseCost;
+            $priceInfo[$deliveryType]['warehouseCost'] = $bookInCost + $pnpCost;
             $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
             $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
             $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
@@ -102,7 +108,7 @@ class PricingToolService
             }
 
             if ($request->input('price') > 0) {
-                $priceInfo[$deliveryType]['profit'] = $priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'];
+                $priceInfo[$deliveryType]['profit'] = round($priceInfo[$deliveryType]['totalCharged'] - $priceInfo[$deliveryType]['totalCost'], 2);
                 $priceInfo[$deliveryType]['margin'] = round($priceInfo[$deliveryType]['profit'] / $request->input('price') * 100, 2);
             } else {
                 $priceInfo[$deliveryType]['profit'] = 'N/A';
@@ -316,7 +322,8 @@ class PricingToolService
 
     public function getWarehouseCost(Request $request)
     {
-        $cost = 0;
+        $warehouseCost = ['book_in_cost' => 0, 'pnp_cost' => 0];
+
         $warehouseId = $this->product->default_ship_to_warehouse;
         if (!$warehouseId) {
             $warehouseId = $this->product->merchantProductMapping->merchant->default_ship_to_warehouse;
@@ -329,19 +336,21 @@ class PricingToolService
                 ->first()->rate;
 
             $weight = ($this->product->weight > $this->product->vol_weight)
-                        ? $this->product->weight : $this->product->vol_weight;
+                ? $this->product->weight : $this->product->vol_weight;
 
             // above 1kg, need to calculate addition weight.
             $additionWeight = ceil($weight - 1);
 
-            $cost = ( $warehouse->warehouseCost->book_in_fixed
-                    + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight
-                    + $warehouse->warehouseCost->pnp_fixed
+            $warehouseCost['book_in_cost'] = round(( $warehouse->warehouseCost->book_in_fixed
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight)
+                * $currencyRate / $this->adjustRate, 2);
+
+            $warehouseCost['pnp_cost'] = round(($warehouse->warehouseCost->pnp_fixed
                     + $warehouse->warehouseCost->additional_pnp_per_kg * $additionWeight )
-                * $currencyRate * $this->adjustRate;
+                * $currencyRate / $this->adjustRate, 2);
         }
 
-        return round($cost, 2);
+        return $warehouseCost;
     }
 
     public function getAccessoryCost(Request $request)

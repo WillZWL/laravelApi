@@ -7,9 +7,12 @@ use App\Models\StoreWarehouse;
 use App\Models\MattelSkuMapping;
 use Illuminate\Http\Request;
 use Excel;
+use App\Repository\PlatformMarketOrderRepository;
 
 class MattelSkuMappingService
 {
+    use ApiPlatformTraitService;
+
     public function getMappings(Request $request)
     {
         $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
@@ -58,5 +61,30 @@ class MattelSkuMappingService
                 ],
                 $object
             );
+    }
+
+    public function exportOrdersToExcel()
+    {
+        $stores = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
+        $warehouses = StoreWarehouse::whereIn('store_id', $stores)->pluck('warehouse_id')->all();
+        $lists = MattelSkuMapping::whereIn('warehouse_id', $warehouses)->get();
+        $path = \Storage::disk('mattelSkuMappingUpload')->getDriver()->getAdapter()->getPathPrefix()."excel/";
+
+        $cellData[] = [
+            "WAREHOUSE ID",
+            "Mattel SKU",
+            "DC SKU"
+        ];
+        foreach ($lists as $sku) {
+            $cellData[] = [
+                "WAREHOUSE ID" => $sku->warehouse_id,
+                "Mattel SKU" => $sku->mattel_sku,
+                "DC SKU" => $sku->dc_sku
+            ];
+        };
+        $cellDataArr['mapping'] = $cellData;
+        $excelFileName = "Mattel_SKU_Mapping_Report";
+        $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
+        return $excelFile["path"].$excelFile["file_name"];
     }
 }

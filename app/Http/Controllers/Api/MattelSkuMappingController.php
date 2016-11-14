@@ -64,4 +64,12 @@ class MattelSkuMappingController extends Controller
         return response($file, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 
+    public function downloadReport()
+    {
+        $excelFile = $this->mappingService->exportOrdersToExcel();
+        if($excelFile){
+            return response()->download($excelFile);
+        }
+    }
+
 }

@@ -74,7 +74,7 @@ class PricingService
         $paymentGatewayFee = $this->getPaymentGatewayFee($marketplaceProduct);
         $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($marketplaceProduct);
         $availableDeliveryTypeWithCost = $this->getShippingOptions($marketplaceProduct);
-        $warehouseCost = $this->getWarehouseCost($marketplaceProduct);
+        $warehouseCostDetails = $this->getWarehouseCost($marketplaceProduct);
         $supplierCost = $this->getSupplierCost($marketplaceProduct);
         $accessoryCost = $this->getAccessoryCost($marketplaceProduct);
         $pricingType = $this->getMerchantType($marketplaceProduct);
@@ -85,17 +85,23 @@ class PricingService
         $totalCostExcludeDeliveryCost = array_sum([
             $tax, $duty, $marketplaceCommission,
             $marketplaceListingFee, $marketplaceFixedFee, $paymentGatewayFee, $paymentGatewayAdminFee,
-            $warehouseCost, $supplierCost, $accessoryCost, $deliveryCharge,
+            $supplierCost, $accessoryCost, $deliveryCharge,
         ]);
-
 
         $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->keyBy('deliveryType');
 
-        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $totalCostExcludeDeliveryCost) {
-            $options = [];
+        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $warehouseCostDetails,
+            $totalCostExcludeDeliveryCost) {
+
+            $bookInCost = $warehouseCostDetails['book_in_cost'];
+            $pnpCost = $warehouseCostDetails['pnp_cost'];
+            if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
+                $pnpCost = 0;
+            }
+            $option = [];
             $option['deliveryCost'] = $shippingOption['cost'];
-            $option['totalCost'] = $totalCostExcludeDeliveryCost + $option['deliveryCost'];
-            $option['profit'] = $totalCharged - $option['totalCost'];
+            $option['totalCost'] = $totalCostExcludeDeliveryCost + $bookInCost + $pnpCost + $option['deliveryCost'];
+            $option['profit'] = round($totalCharged - $option['totalCost'], 2);
             $option['margin'] = round($option['profit'] / $sellingPrice * 100, 2);
             return $option;
         });
@@ -317,7 +323,8 @@ class PricingService
 
     public function getWarehouseCost($marketplaceProduct)
     {
-        $cost = 0;
+        $warehouseCost = ['book_in_cost' => 0, 'pnp_cost' => 0];
+
         $warehouseId = $marketplaceProduct->product->default_ship_to_warehouse;
         if (!$warehouseId) {
             $warehouseId = $marketplaceProduct->product->merchantProductMapping->merchant->default_ship_to_warehouse;
@@ -335,13 +342,15 @@ class PricingService
             // above 1kg, need to calculate addition weight.
             $additionWeight = ceil($weight - 1);
 
-            $cost = ( $warehouse->warehouseCost->book_in_fixed
-                    + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight
-                    + $warehouse->warehouseCost->pnp_fixed
+            $warehouseCost['book_in_cost'] = round(( $warehouse->warehouseCost->book_in_fixed
+                    + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight)
+                * $currencyRate / $this->adjustRate, 2);
+
+            $warehouseCost['pnp_cost'] = round(($warehouse->warehouseCost->pnp_fixed
                     + $warehouse->warehouseCost->additional_pnp_per_kg * $additionWeight )
-                    * $currencyRate * $this->adjustRate;
+                * $currencyRate / $this->adjustRate, 2);
         }
 
-        return round($cost, 2);
+        return $warehouseCost;
     }
 }

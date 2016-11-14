@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\ApiPlatformProductFactoryService;
 use App\Services\PlatformMarketSkuMappingService;
 use App\Models\MpControl;
+use App\Models\Store;
 use Config;
 
 class PlatformMarketProductManage extends Controller
@@ -41,24 +42,28 @@ class PlatformMarketProductManage extends Controller
             $destinationPath = storage_path().'/marketplace-sku-mapping';
             $fileName = $file->getFilename().'.'.$extension;
             $request->file('sku_file')->move($destinationPath, $fileName);
-            $stores = $this->getStores($platform);
-            $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
-            $result = $platformMarketSkuMappingService->initMarketplaceSkuMapping($fileName);
-            if(isset($result["error_sku"])){
-                foreach($result["error_sku"] as $errorSku){
-                    $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";
+            $stores = Store::where('marketplace', '=', strtoupper($platform))->get();
+            if ($stores) {
+                $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
+                $result = $platformMarketSkuMappingService->uploadMarketplaceSkuMapping($fileName);
+                if(isset($result["error_sku"])){
+                    foreach($result["error_sku"] as $errorSku){
+                        $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";
+                    }
+                }else{
+                    $message = "Upload Marketplace SKU Mapping Success!";
                 }
-            }else{
-                $message = "Upload Marketplace SKU Mapping Success!";
+            } else {
+                $message = "This Marketplace is not Allow, Please Check With IT";
             }
         }
-        return \Redirect::back()->with('message',$message);
+        return response($message, 200)->header('Content-Type', 'application/vnd.ms-excel')->header('Content-Disposition', 'filename="Upload_Result.csv"');
+        // return \Redirect::back()->with('message',$message);
     }
 
     public function getMarketplacdeSkuMappingFile($filename)
     {
         $file = \Storage::disk('skuMapping')->get($filename);
-
         return response($file, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 
@@ -83,5 +88,14 @@ class PlatformMarketProductManage extends Controller
         }
 
         return response()->view('platform-manager.export-mapping');
+    }
+
+    public function download($marketplace_id)
+    {
+        $platformMarketSkuMappingService = new PlatformMarketSkuMappingService();
+        $excelFile = $platformMarketSkuMappingService->exportMarketplaceSkuMapping($marketplace_id);
+        if($excelFile){
+            return response()->download($excelFile);
+        }
     }
 }
