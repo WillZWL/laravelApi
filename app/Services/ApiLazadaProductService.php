@@ -59,7 +59,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
                     $this->updatePlatformMarketProductStatus($processStatusProduct,$errorSku,$processStatus);
                 }
-                
+
             }else{
                 $xmlData = $this->getUpdatePriceQuantityXmlData($processStatusProduct);
                 $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
@@ -70,7 +70,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                 }
             }
         }
-    } 
+    }
 
     public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
     {
@@ -106,7 +106,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     }
 
     public function submitProductCreate($storeName,$pendingSkuGroup)
-    {   
+    {
         foreach ($pendingSkuGroup as $key => $product) {
             $productAttributes = $this->mappingProductAttributes($storeName,$product);
             $this->lazadaProductCreate = new LazadaProductCreate($storeName);
@@ -171,7 +171,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function submitProductUpdate($storeName)
     {
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
-        
+
     }
 
     public function updatePlatformMarketMattleInventory()
@@ -192,7 +192,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                             $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
                             $this->updatePlatformMarketProductStatus($inventoryGroup,$errorSku);
                         }
-                       
+
                     }else{
                         $xmlData = $this->getMattleUpdateQuantityXmlData($inventoryGroup);
                         $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
@@ -209,7 +209,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
 
     public function fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData)
     {
-        $message = null; $errorDetail = array(); 
+        $message = null; $errorDetail = array();
         $this->lazadaUpdatePriceQuantity = new LazadaUpdatePriceQuantity($storeName);
         $responseXml = $this->lazadaUpdatePriceQuantity->submitXmlData($xmlData);
         if($responseXml){
@@ -268,7 +268,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
             $xmlData .= '<Request>';
             $xmlData .=     '<Product>';
             $xmlData .=         '<Skus>';
-            $messageXmlArr . = $messageDom;
+            $messageXmlArr .= $messageDom;
             $xmlData .=         '</Skus>';
             $xmlData .=     '</Product>';
             $xmlData .= '</Request>';
@@ -314,7 +314,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
             $xmlData .= '<Request>';
             $xmlData .=     '<Product>';
             $xmlData .=         '<Skus>';
-            $messageXmlArr . = $messageDom;
+            $messageXmlArr .= $messageDom;
             $xmlData .=         '</Skus>';
             $xmlData .=     '</Product>';
             $xmlData .= '</Request>';
