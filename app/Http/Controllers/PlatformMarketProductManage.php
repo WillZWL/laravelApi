@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Services\ApiPlatformProductFactoryService;
 use App\Services\PlatformMarketSkuMappingService;
 use App\Models\MpControl;
+use App\Models\Store;
 use Config;
 
 class PlatformMarketProductManage extends Controller
@@ -41,9 +42,9 @@ class PlatformMarketProductManage extends Controller
             $destinationPath = storage_path().'/marketplace-sku-mapping';
             $fileName = $file->getFilename().'.'.$extension;
             $request->file('sku_file')->move($destinationPath, $fileName);
-            $stores = $this->getStores($platform);
+            $stores = Store::where('marketplace', '=', strtoupper($platform))->get();
             $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
-            $result = $platformMarketSkuMappingService->initMarketplaceSkuMapping($fileName);
+            $result = $platformMarketSkuMappingService->uploadMarketplaceSkuMapping($fileName);
             if(isset($result["error_sku"])){
                 foreach($result["error_sku"] as $errorSku){
                     $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";
