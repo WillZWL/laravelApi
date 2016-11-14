@@ -204,27 +204,27 @@ class PlatformMarketSkuMappingService
 
         $cellData[] = [
             'marketplace_sku',
-            'sku',
+            'esg_sku',
             'marketplace_id',
             'country_id',
-            'lang_id',
-            'asin',
             'mp_category_id',
             'mp_sub_category_id',
             'delivery_type',
+            'asin',
+            'lang_id',
             'currency'
         ];
         foreach ($lists as $value) {
             $cellData[] = [
                 'marketplace_sku' => $value->marketplace_sku,
-                'sku' => $value->sku,
+                'esg_sku' => $value->sku,
                 'marketplace_id' => $value->marketplace_id,
                 'country_id' => $value->country_id,
-                'lang_id' => $value->lang_id,
-                'asin' => $value->asin,
                 'mp_category_id' => $value->mp_category_id,
                 'mp_sub_category_id' =>$value->mp_sub_category_id,
                 'delivery_type' => $value->delivery_type,
+                'asin' => $value->asin,
+                'lang_id' => $value->lang_id,
                 'currency' => $value->currency
             ];
         };
