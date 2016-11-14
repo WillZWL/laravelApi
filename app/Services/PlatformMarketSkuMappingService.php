@@ -6,7 +6,6 @@ use App\Models\MpControl;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\SellingPlatform;
 use App\Models\PlatformBizVar;
-use App\Models\Store;
 use Excel;
 use Illuminate\Http\Request;
 
@@ -25,23 +24,21 @@ class PlatformMarketSkuMappingService
         $this->stores = $stores;
     }
 
-    public function uploadMarketplaceSkuMapping($marketplace, $fileName = '')
+    public function uploadMarketplaceSkuMapping($fileName = '')
     {
-        $stores = Store::where('marketplace', '=', strtoupper($marketplace))->get();
         $result = [];
-
-        Excel::load($filePath, function ($reader) {
+        $filePath = 'storage/marketplace-sku-mapping/'.$fileName;
+        Excel::selectSheetsByIndex(0)->load($filePath, function ($reader) {
             $sheetItem = $reader->all();
             $mappingData = null;
             foreach ($sheetItem as $item) {
                 $itemData = $item->toArray();
-                foreach ($stores as $store) {
+                foreach ($this->stores as $store) {
                     $marketplaceId = $store->store_code.$store->marketplace;
                     $countryCode = $store->country;
                     $currency = $store->currency;
                     if (($itemData['marketplace_id'] == $marketplaceId)
                         && ($itemData['country_id']) == $countryCode) {
-
                         $mpControl = MpControl::where('marketplace_id', $marketplaceId)
                                         ->where('country_id', '=', $countryCode)
                                         ->where('status', '=', '1')
