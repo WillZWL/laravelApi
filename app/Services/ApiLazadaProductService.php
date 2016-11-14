@@ -87,7 +87,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                         }else{
                             foreach ($resultDetail["FeedErrors"]["Error"] as  $errorDetail) {
                                 $message .= $errorDetail["Message"]."\r\n";
-                                $errorSku[] = $resultDetail["FeedErrors"]["Error"]["SellerSku"];
+                                $errorSku[] = $errorDetail["SellerSku"];
                             }
                         }
                     }
