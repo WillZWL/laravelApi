@@ -57,7 +57,7 @@ class PlatformMarketProductManage extends Controller
                 $message = "This Marketplace is not Allow, Please Check With IT";
             }
         }
-        return response($message, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->header('Content-Disposition', 'attachment; filename="Upload_Result.csv"');
+        return response($message, 200)->header('Content-Type', 'application/vnd.ms-excel')->header('Content-Disposition', 'filename="Upload_Result.csv"');
         // return \Redirect::back()->with('message',$message);
     }
 
@@ -88,5 +88,14 @@ class PlatformMarketProductManage extends Controller
         }
 
         return response()->view('platform-manager.export-mapping');
+    }
+
+    public function download($marketplace_id)
+    {
+        $platformMarketSkuMappingService = new PlatformMarketSkuMappingService();
+        $excelFile = $platformMarketSkuMappingService->exportMarketplaceSkuMapping($marketplace_id);
+        if($excelFile){
+            return response()->download($excelFile);
+        }
     }
 }

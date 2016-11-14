@@ -63,6 +63,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('platform-market/product', 'PlatformMarketProductManage@getProductList');
     Route::get('platform-market/update-product-price', 'PlatformMarketProductManage@submitProductPrice');
     Route::resource('platform-market/upload-mapping', 'PlatformMarketProductManage@uploadMarketplacdeSkuMapping');
+    Route::get('marketplace-sku-mapping-download/{marketplace_id}', 'PlatformMarketProductManage@download');
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
     Route::get('product-upload/donwload-example-file/{file}', 'Api\ProductUploadController@donwloadExampleFile');
