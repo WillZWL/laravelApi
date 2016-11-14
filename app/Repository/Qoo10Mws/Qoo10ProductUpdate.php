@@ -4,9 +4,9 @@ namespace App\Repository\Qoo10Mws;
 
 class Qoo10ProductUpdate extends Qoo10ProductCore
 {
-    private $itemPrice;
-    private $itemQty;
-    private $expireDate;
+    private $itemPrice = '';
+    private $itemQty = '';
+    private $expireDate = '';
 
     public function __construct($store)
     {
@@ -29,17 +29,17 @@ class Qoo10ProductUpdate extends Qoo10ProductCore
             $requestParams['ItemCode'] = $this->getItemCode();
         }
 
-        $requestParams['SellerCode'] = $this->getSellerCode() ? $this->getSellerCode() : '';
+        $requestParams['SellerCode'] = $this->getSellerCode();
 
-        if ($this->getItemPrice()) {
+        if ($this->getItemPrice() != '') {
             $requestParams['ItemPrice'] = $this->getItemPrice();
         }
 
-        if ($this->getItemQty()) {
+        if ($this->getItemQty() != '') {
             $requestParams['ItemQty'] = $this->getItemQty();
         }
 
-        $requestParams['ExpireDate'] = $this->getExpireDate() ? $this->getExpireDate() : '';
+        $requestParams['ExpireDate'] = $this->getExpireDate();
 
         return $requestParams;
     }
