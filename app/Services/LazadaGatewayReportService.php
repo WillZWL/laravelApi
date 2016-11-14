@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-//use SplEnum;
+use App\Models\So;
 
 class LazadaGatewayReportService extends PaymentGatewayReportService 
 {
@@ -25,6 +25,7 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
         {
             return true;
         }
+        return false;
     }
     /***********************************
     *   If Refund, return 'R'
@@ -36,7 +37,14 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
         return false;
     }
     public function isSoFeeRecord($cell)
-    {
+    {        
+        if($cell->transaction_type == "Commission")
+        {
+            return "L_COMM";
+        }else if($cell->transaction_type == "Shipping Fee (Item Level)")
+        {
+            return "L_SF";
+        }
         return false;
     }
     public function isRollingReserveRecord($cell)
@@ -45,6 +53,10 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
     }
     public function isGatewayFeeRecord($cell)
     {
+        if($cell->transaction_type == "Payment Fee")
+        {
+            return "PMF";
+        }
         return false;
     }
     public function isRiaIncludeSoFee()
@@ -61,29 +73,32 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
     *   If Payment Sent return 'PS'
     *   return False otherwises
     ***********************************/
-    protected function insertInterfaceFlexRia($batch_id, $status, $cell)
+    protected function insertInterfaceFlexRia($batchId, $status, $cell)
+    {
+        $this->_data_reform($cell);
+        $this->createInterfaceFlexRia($batchId, $status, $cell,FALSE);
+    }
+    protected function insertInterfaceFlexSoFee($batchId, $status, $cell)
+    {
+        $this->_data_reform($cell);
+        $this->createInterfaceFlexSoFee($batchId, $status, $cell);
+    }
+    protected function insertInterfaceFlexRefund($batchId, $status, $cell)
     {
 
     }
-    protected function insertInterfaceFlexSoFee($batch_id, $status, $cell)
+    protected function insertInterfaceFlexRollingReserve($batchId, $status, $cell)
     {
 
     }
-    protected function insertInterfaceFlexRefund($batch_id, $status, $cell)
+    protected function insertInterfaceFlexGatewayFee($batchId, $status, $cell)
     {
-
+        $this->_data_reform($cell);
+        return $this->createInterfaceFlexGatewayFee($batchId, $status, $cell);
     }
-    protected function insertInterfaceFlexRollingReserve($batch_id, $status, $cell)
+    protected function afterInsertAllInterface($batchId)
     {
-
-    }
-    protected function insertInterfaceFlexGatewayFee($batch_id, $status, $cell)
-    {
-
-    }
-    protected function afterInsertAllInterface($batch_id)
-    {
-
+        return true;
     }
 
     /************************************
@@ -91,16 +106,41 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
     *   1. create the interface_flex_refund
     *   2. create the interface_flex_so_fee
     *************************************/
-    function insertSoFeeFromRefundRecord($batch_id, $status, $cell)
+    function insertSoFeeFromRefundRecord($batchId, $status, $cell)
     {
 
     }
-    function insertSoFeeFromRiaRecord($batch_id, $status, $cell)
+    function insertSoFeeFromRiaRecord($batchId, $status, $cell)
     {
 
     }
-    function insertSoFeeFromRollingReserveRecord($batch_id, $status, $cell)
+    function insertSoFeeFromRollingReserveRecord($batchId, $status, $cell)
     {
 
+    }
+
+    private function _data_reform($cell)
+    {
+        $settlementDate = date("Y-m-d", strtotime("+2 day",strtotime(explode(" - ", $cell->statement)[1])));
+
+        $so = So::where("platform_order_id",$cell->order_no)->where("platform_group_order","1")->select('so_no','currency_id')->first();
+        
+        if($so)
+        {
+            So::where("so_no",$so->so_no)->update(["settlement_date"=>$settlementDate]);
+            $cell->so_no = $so->so_no;
+            $cell->currency_id = $so->currency_id;
+        }
+        $cell->txn_time = date("Y-m-d",strtotime($cell->transaction_date));
+        $cell->txn_id = $cell->order_no;  
+    }
+
+    public function validTxnId($interfaceRia)
+    {
+        if(So::where("so_no",$interfaceRia["so_no"])->first())
+        {
+            return true;
+        }
+        return false;
     }
 }

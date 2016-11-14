@@ -24,9 +24,8 @@ class GatewayController extends Controller
 
     public function downloadGatewayReport(Request $request)
     {
-
-        var_dump($request->name);
-        echo "downloadGatewayReport";die;
+        $flexService = new FlexService();
+        $response = $flexService->generateFeedbackReport($request);
     }
 
     /**
@@ -37,8 +36,11 @@ class GatewayController extends Controller
      */
     public function uploadGatewayReport(Request $request)
     {
+        echo 1;
         $pmgw = $request->pmgw;
-
+        $email = $request->email;
+        if(!$pmgw){ return false;}
+        
         $fileFrom = Config::find("flex_ftp_location")->value."pmgw/".$pmgw."/";
         $fileTo = Config::find("flex_pmgw_report_loaction")->value.$pmgw."/";
         $result = ["status"=>false,"msg"=>""];
@@ -55,7 +57,7 @@ class GatewayController extends Controller
                         $newName = pathinfo(trim($oldName), PATHINFO_FILENAME)."_".date("YmdHis").".".pathinfo(trim($oldName), PATHINFO_EXTENSION);
                       
                         if (copy($fileFrom.$oldName, $fileTo.$newName)) {
-                            list($batchResult, $batchIdList[]) =$flexService->processReport($pmgw, $newName);
+                            list($batchResult, $batchIdList[]) =$flexService->processReport($pmgw, $newName,$email);
 
                             if($batchResult == FALSE &&  $result['status'] == TRUE) {
                                  $result['status'] = FALSE;
@@ -66,6 +68,8 @@ class GatewayController extends Controller
                         }
                     }
                 }
+                if($result['status'] == TRUE)
+                    $result['batchIdList'] = $batchIdList;
             }
             else
             {
@@ -86,6 +90,14 @@ class GatewayController extends Controller
             $result['msg'] = "invalid ftp file path";
         }
 
+        if ($pmgw != 'paypal_pp' && $result['status']) {
+
+            if (strpos($pmgw,'amazon') !== false) //amazon report
+            {
+                $request->batchIdList = $result['batchIdList'];
+                $this->downloadGatewayReport($request);
+            }
+        }
         var_dump($result);
     }
 
