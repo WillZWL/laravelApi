@@ -25,20 +25,14 @@ class Qoo10ProductUpdate extends Qoo10ProductCore
 
     protected function getRequestParams()
     {
-        if ($this->getItemCode()) {
-            $requestParams['ItemCode'] = $this->getItemCode();
-        }
-
+        $requestParams['ItemCode'] = $this->getItemCode();
         $requestParams['SellerCode'] = $this->getSellerCode();
-
-        if ($this->getItemPrice() != '') {
+        if ($this->getItemPrice() >= 0) {
             $requestParams['ItemPrice'] = $this->getItemPrice();
         }
-
-        if ($this->getItemQty() != '') {
+        if ($this->getItemQty() >= 0) {
             $requestParams['ItemQty'] = $this->getItemQty();
         }
-
         $requestParams['ExpireDate'] = $this->getExpireDate();
 
         return $requestParams;
