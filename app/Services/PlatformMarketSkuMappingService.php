@@ -8,9 +8,12 @@ use App\Models\SellingPlatform;
 use App\Models\PlatformBizVar;
 use Excel;
 use Illuminate\Http\Request;
+use App\Repository\PlatformMarketOrderRepository;
 
 class PlatformMarketSkuMappingService
 {
+    use ApiPlatformTraitService;
+
     private $platformGroup = array(
             'amazon' => 'AZ',
             'lazada' => 'LZ',
@@ -192,5 +195,43 @@ class PlatformMarketSkuMappingService
                 $sheet->rows($cellData);
             });
         })->export('csv');
+    }
+
+    public function exportMarketplaceSkuMapping($marketplace_id)
+    {
+        $lists = MarketplaceSkuMapping::where('marketplace_id', $marketplace_id)->get();
+        $path = \Storage::disk('skuMapping')->getDriver()->getAdapter()->getPathPrefix()."excel/";
+
+        $cellData[] = [
+            'marketplace_sku',
+            'sku',
+            'marketplace_id',
+            'country_id',
+            'lang_id',
+            'asin',
+            'mp_category_id',
+            'mp_sub_category_id',
+            'delivery_type',
+            'currency'
+        ];
+        foreach ($lists as $value) {
+            $cellData[] = [
+                'marketplace_sku' => $value->marketplace_sku,
+                'sku' => $value->sku,
+                'marketplace_id' => $value->marketplace_id,
+                'country_id' => $value->country_id,
+                'lang_id' => $value->lang_id,
+                'asin' => $value->asin,
+                'mp_category_id' => $value->mp_category_id,
+                'mp_sub_category_id' =>$value->mp_sub_category_id,
+                'delivery_type' => $value->delivery_type,
+                'currency' => $value->currency
+            ];
+        };
+
+        $cellDataArr['mapping'] = $cellData;
+        $excelFileName = $marketplace_id."_Marketplace_Sku_Mapping";
+        $excelFile = $this->generateMultipleSheetsExcel($excelFileName,$cellDataArr,$path);
+        return $excelFile["path"].$excelFile["file_name"];
     }
 }
