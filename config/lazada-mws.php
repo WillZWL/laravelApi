@@ -16,6 +16,7 @@ return [
             'apiToken' => '6ff07b03f6176e63c673e3d6e45e6122e7c96800',
             'lazadaServiceUrl' => 'https://api.sellercenter.lazada.sg/',
             'currency'=>'SGD',
+            'new_api'=> true,
         ],
         'BCLAZADATH' => [
             'name'=>'Brands Connect Lazada',
@@ -23,6 +24,7 @@ return [
             'apiToken' => '5186db6640a60a4bf7b18bdae3e304da112c45e8',
             'lazadaServiceUrl' => 'https://api.sellercenter.lazada.co.th/',
             'currency'=>'THB',
+            'new_api'=> true,
         ],
         'BCLAZADAPH' => [
             'name'=>'Brands Connect Lazada',
@@ -30,6 +32,7 @@ return [
             'apiToken' => 'e3ba45edd9b21f2ea0f7b11a0399fb8c88ae570e',
             'lazadaServiceUrl' => 'https://api.sellercenter.lazada.com.ph/',
             'currency'=>'PHP',
+            'new_api'=> true,
         ],
         'BCLAZADAID' => [
             'name'=>'Brands Connect Lazada',
@@ -37,6 +40,7 @@ return [
             'apiToken' => '9d1fe86c46aa853a57bcfc84d2df2f19b335f5db',
             'lazadaServiceUrl' => 'https://api.sellercenter.lazada.co.id/',
             'currency'=>'IDR',
+            'new_api'=> true,
         ],
         'CSLAZADAMY' => [
             'name'=>'Cambridge Soundworks Lazada',
