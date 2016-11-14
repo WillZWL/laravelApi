@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\So;
+use App\Models\Config;
+use App\Services\FlexService;
 use Validator;
 use Excel;
 use Redirect;
@@ -20,10 +22,104 @@ class GatewayController extends Controller
        
     }
 
+    public function downloadGatewayReport(Request $request)
+    {
+        $flexService = new FlexService();
+        $response = $flexService->generateFeedbackReport($request);
+    }
+
     /**
-    * Upload Settlement Date with Order No
-    * @return csv file or js 
-    */
+     * process gateway upload file
+     *
+     * @param  
+     * @return \Illuminate\Http\Response
+     */
+    public function uploadGatewayReport(Request $request)
+    {
+        $pmgw = $request->pmgw;
+        $email = $request->email;
+        if(!$pmgw){ return false;}
+        
+        $fileFrom = Config::find("flex_ftp_location")->value."pmgw/".$pmgw."/";
+        $fileTo = Config::find("flex_pmgw_report_loaction")->value.$pmgw."/";
+        $result = ["status"=>false,"msg"=>""];
+        if (is_dir($fileFrom)) {
+            $fileArr = $this->getFileList($fileFrom);
+            $result['status'] = TRUE;
+            if(count($fileArr) > 0)
+            {
+                $flexService = new FlexService();
+                foreach ($fileArr AS $key=>$oldName) {
+                    $batchResult = TRUE;
+                    if(!in_array($oldName, array(".", ".."))) {
+                        
+                        $newName = pathinfo(trim($oldName), PATHINFO_FILENAME)."_".date("YmdHis").".".pathinfo(trim($oldName), PATHINFO_EXTENSION);
+                      
+                        if (copy($fileFrom.$oldName, $fileTo.$newName)) {
+                            list($batchResult, $batchIdList[]) =$flexService->processReport($pmgw, $newName,$email);
+
+                            if($batchResult == FALSE &&  $result['status'] == TRUE) {
+                                 $result['status'] = FALSE;
+                            }
+                        } else {
+                            $result['status'] = FALSE;
+                            $result['msg'].="failed to copy $oldName.\n";
+                        }
+                    }
+                }
+                if($result['status'] == TRUE)
+                    $result['batchIdList'] = $batchIdList;
+            }
+            else
+            {
+                $result['status'] = FALSE;
+                $result['msg'].="no files in $fileFrom\n";
+            }
+        }
+        else
+        {
+            //create dir
+            mkdir($fileFrom, 775, true);
+            if(!is_dir($fileTo))
+            { 
+                mkdir($fileTo, 775, true); 
+                mkdir($fileTo."/complete", 775, true);
+            }
+            $result['status'] = false;
+            $result['msg'] = "invalid ftp file path";
+        }
+
+        if ($pmgw != 'paypal_pp' && $result['status']) {
+
+            if (strpos($pmgw,'amazon') !== false) //amazon report
+            {
+                $request->batchIdList = $result['batchIdList'];
+                $this->downloadGatewayReport($request);
+            }
+        }
+
+        if($result['status'] == FALSE)
+        {
+             return "<script>alert('".$result['msg']."');history.back();</script>";
+        }
+    }
+
+
+    public function getFileList($fileFrom)
+    {
+        $fileArr = scandir($fileFrom);
+
+        $fileList = array();
+        foreach($fileArr AS $key=>$oldName)
+        {
+            if(!in_array($oldName, array(".", "..")))
+            {
+                $fileList[] = $oldName;
+            }
+        }
+        return $fileList;
+    }
+
     public function uploadSettlement(Request $request)
     {
         $file = $request->csv;
@@ -93,6 +189,7 @@ class GatewayController extends Controller
             }
         }
     }
+
 
     /**
     *  get order no from upload marketplace transaction ID 
