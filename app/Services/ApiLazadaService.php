@@ -163,7 +163,9 @@ class ApiLazadaService implements ApiPlatformInterface
                 //if($warehouseInventory["updateObject"]){
                     $orderItemIds = array();
                     foreach($order->platformMarketOrderItem as $orderItem){
-                        $orderItemIds[] = $orderItem->order_item_id;
+                        if($orderItem->status === "Pending"){
+                            $orderItemIds[] = $orderItem->order_item_id;
+                        }
                     }
                     $shipmentProvider = $this->getMettelShipmentProvider($order->platform);
                     if($shipmentProvider && $orderItemIds){
