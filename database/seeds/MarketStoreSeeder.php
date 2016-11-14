@@ -34,6 +34,117 @@ class MarketStoreSeeder extends Seeder
             ];
         }
 
+        // add allegro stores
+        $allegroStores = Config::get('allegro-mws.store');
+        foreach ($allegroStores as $platformId => $store) {
+            $convertedAllegroStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        //add linio stores
+        $linioStores = Config::get('linio-mws.store');
+        foreach ($linioStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        // add mercadolibre stores
+        $mercadolibreStores = Config::get('mercadolibre-mws.store');
+        foreach ($mercadolibreStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        // add new egg stores
+        $neweggStores = Config::get('newegg-mws.store');
+        foreach ($neweggStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['storeCurrency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        // add wish stores
+        $wishStores = Config::get('wish-mws.store');
+        foreach ($wishStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'email' => $store['email'],
+                    'password' => $store['password'],
+                    'client_id' => $store['client_id'],
+                    'client_secret' => $store['client_secret'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+        // add ebay stores
+        $ebayStores = Config::get('ebay-mws.store');
+        foreach ($ebayStores as $platformId => $store) {
+            $convertedAmazonStores[] = [
+                'store_name' => substr($platformId, 0, 2),
+                'store_code' => substr($platformId, 0, 2),
+                'marketplace' => substr($platformId, 2, -2),
+                'country' => substr($platformId, -2),
+                'currency' => $store['currency'],
+                'credentials' => json_encode([
+                    'userId' => $store['userId'],
+                    'password' => $store['password'],
+                ]),
+                'created_at' => \Carbon\Carbon::now(),
+                'updated_at' => \Carbon\Carbon::now(),
+            ];
+        }
+
+
         // add lazada stores.
         $lazadaStores = Config::get('lazada-mws.store');
         foreach ($lazadaStores as $platformId => $store) {
@@ -131,7 +242,7 @@ class MarketStoreSeeder extends Seeder
         }
 
         foreach ($convertedAmazonStores as $convertedAmazonStore) {
-            DB::table('market_stores')->updateOrInsert(
+            DB::table('stores')->updateOrInsert(
                 [
                     'store_code' => $convertedAmazonStore['store_code'],
                     'marketplace' => $convertedAmazonStore['marketplace'],
