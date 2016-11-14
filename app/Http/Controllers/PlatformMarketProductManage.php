@@ -43,23 +43,27 @@ class PlatformMarketProductManage extends Controller
             $fileName = $file->getFilename().'.'.$extension;
             $request->file('sku_file')->move($destinationPath, $fileName);
             $stores = Store::where('marketplace', '=', strtoupper($platform))->get();
-            $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
-            $result = $platformMarketSkuMappingService->uploadMarketplaceSkuMapping($fileName);
-            if(isset($result["error_sku"])){
-                foreach($result["error_sku"] as $errorSku){
-                    $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";
+            if ($stores) {
+                $platformMarketSkuMappingService = new PlatformMarketSkuMappingService($stores);
+                $result = $platformMarketSkuMappingService->uploadMarketplaceSkuMapping($fileName);
+                if(isset($result["error_sku"])){
+                    foreach($result["error_sku"] as $errorSku){
+                        $message .= "SKU:" .$errorSku." Upload Error,Please Check Your File/r/n";
+                    }
+                }else{
+                    $message = "Upload Marketplace SKU Mapping Success!";
                 }
-            }else{
-                $message = "Upload Marketplace SKU Mapping Success!";
+            } else {
+                $message = "This Marketplace is not Allow, Please Check With IT";
             }
         }
-        return \Redirect::back()->with('message',$message);
+        return response($message, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')->header('Content-Disposition', 'attachment; filename="Upload_Result.csv"');
+        // return \Redirect::back()->with('message',$message);
     }
 
     public function getMarketplacdeSkuMappingFile($filename)
     {
         $file = \Storage::disk('skuMapping')->get($filename);
-
         return response($file, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     }
 

@@ -60,6 +60,8 @@ class PlatformMarketSkuMappingService
                         } else{
                             $result["error_sku"][] = $itemData['esg_sku'];
                         }
+                    } else {
+                       $result["error_sku"][] = $itemData['esg_sku'];
                     }
                 }
             }
