@@ -53,10 +53,13 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
         if(!$processStatusProduct->isEmpty()){
             if(isset($this->stores[$storeName]["new_api"])){
-                $xmlData = $this->getNewApiUpdatePriceQuantityXmlData($processStatusProduct);
-                $result = $this->fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData);
-                $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
-                $this->updatePlatformMarketProductStatus($processStatusProduct,$errorSku,$processStatus);
+                $xmlDataArr = $this->getNewApiUpdatePriceQuantityXmlData($processStatusProduct,20);
+                foreach ($xmlDataArr as $xmlData) {
+                    $result = $this->fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData);
+                    $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
+                    $this->updatePlatformMarketProductStatus($processStatusProduct,$errorSku,$processStatus);
+                }
+                
             }else{
                 $xmlData = $this->getUpdatePriceQuantityXmlData($processStatusProduct);
                 $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
@@ -114,6 +117,13 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
 
     public function mappingProductAttributes($storeName,$product)
     {
+        /*$storeId = "";
+        $attributeTypes = PlatformMarketAttributeType::where("store_id",$storeId)
+                    ->with("PlatformMarketAttributeOptions")
+                    ->get();
+        foreach ($attributeTypes as $attributeType) {
+            # code...
+        }*/
         $productObject = null;
         return $productObject;
     }
@@ -168,7 +178,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     {
         $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
         //the lazada maximum of SellerSku
-        $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->limit(20)->get();
+        $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->get();
         if(!$inventorys->isEmpty()){
             $inventoryGroups = $inventorys->groupBy("store_id");
             foreach ($inventoryGroups as $storeId => $inventoryGroup) {
@@ -176,10 +186,13 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                 $storeName = $store->store_code.$store->marketplace.$store->country;
                 if(!$inventoryGroup->isEmpty()){
                     if(isset($this->stores[$storeName]["new_api"])){
-                        $xmlData = $this->getNewApiMattleUpdateQuantityXmlData($inventoryGroup);
-                        $result = $this->fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData);
-                        $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
-                        $this->updatePlatformMarketProductStatus($inventoryGroup,$errorSku);
+                        $xmlDataArr = $this->getNewApiMattleUpdateQuantityXmlData($inventoryGroup,20);
+                        foreach ($xmlDataArr as $xmlData) {
+                            $result = $this->fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData);
+                            $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
+                            $this->updatePlatformMarketProductStatus($inventoryGroup,$errorSku);
+                        }
+                       
                     }else{
                         $xmlData = $this->getMattleUpdateQuantityXmlData($inventoryGroup);
                         $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
@@ -233,27 +246,35 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         }
     }
 
-    private function getNewApiUpdatePriceQuantityXmlData($processStatusProduct)
+    private function getNewApiUpdatePriceQuantityXmlData($processStatusProduct,$limitMaxNumber)
     {
-        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-        $xmlData .= '<Request>';
-        $xmlData .=     '<Product>';
-        $xmlData .=         '<Skus>';
-        foreach ($processStatusProduct as $pendingSku) {
-            $messageDom = '<Sku>';
-            $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-            $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-            $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
-            $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
-            $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
-            $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
-            $messageDom .= '</Sku>';
-            $xmlData .= $messageDom;
+         $index = 1;
+         foreach ($processStatusProduct as $pendingSku) {
+           if($index%$limitMaxNumber == 0) {
+                $messageDom = '<Sku>';
+                $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
+                $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
+                $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
+                $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
+                $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
+                $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
+                $messageDom .= '</Sku>';
+                $messageXmlArr[] = $messageDom;
+           }
+            $index ++ ;
         }
-        $xmlData .=         '</Skus>';
-        $xmlData .=     '</Product>';
-        $xmlData .= '</Request>';
-        return $xmlData;
+        foreach ($messageXmlArr as $messageXml) {
+            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xmlData .= '<Request>';
+            $xmlData .=     '<Product>';
+            $xmlData .=         '<Skus>';
+            $messageXmlArr . = $messageDom;
+            $xmlData .=         '</Skus>';
+            $xmlData .=     '</Product>';
+            $xmlData .= '</Request>';
+            $returnXmlData []= $xmlData;
+        }
+        return $returnXmlData;
     }
 
     private function getUpdatePriceQuantityXmlData($processStatusProduct)
@@ -275,23 +296,31 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         return $xmlData;
     }
 
-    private function getNewApiMattleUpdateQuantityXmlData($inventoryGroup)
+    private function getNewApiMattleUpdateQuantityXmlData($inventoryGroup,$limitMaxNumber)
     {
-        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-        $xmlData .= '<Request>';
-        $xmlData .=     '<Product>';
-        $xmlData .=         '<Skus>';
+        $index = 1;
         foreach ($inventoryGroup as $platformMarketInventory) {
-            $messageDom = '<Sku>';
-            $messageDom .= '<SellerSku>'.$platformMarketInventory->marketplace_sku.'</SellerSku>';
-            $messageDom .= '<Quantity>'.$platformMarketInventory->inventory.'</Quantity>';
-            $messageDom .= '</Sku>';
-            $xmlData .= $messageDom;
+            if($index/$limitMaxNumber == 0) {
+                $messageDom = '<Sku>';
+                $messageDom .= '<SellerSku>'.$platformMarketInventory->marketplace_sku.'</SellerSku>';
+                $messageDom .= '<Quantity>'.$platformMarketInventory->inventory.'</Quantity>';
+                $messageDom .= '</Sku>';
+                $messageXmlArr[] = $messageDom;
+            }
+            $index++;
         }
-        $xmlData .=         '</Skus>';
-        $xmlData .=     '</Product>';
-        $xmlData .= '</Request>';
-        return $xmlData;
+        foreach ($messageXmlArr as $messageXml) {
+            $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
+            $xmlData .= '<Request>';
+            $xmlData .=     '<Product>';
+            $xmlData .=         '<Skus>';
+            $messageXmlArr . = $messageDom;
+            $xmlData .=         '</Skus>';
+            $xmlData .=     '</Product>';
+            $xmlData .= '</Request>';
+            $returnXmlData []= $xmlData;
+        }
+        return $returnXmlData;
     }
 
     private function getMattleUpdateQuantityXmlData($inventoryGroup)
