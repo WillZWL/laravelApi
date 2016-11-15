@@ -640,7 +640,7 @@ class PlatformMarketOrderTransfer
                 $soItem->line_no = $lineNumber;
                 $soItem->prod_sku = $item->sku;
                 $soItem->prod_name = $item->product->name;
-                $soItem->qty = $soItem->qty + $skuInOrder[$item->main_sku] * $item->replace_qty;
+                $soItem->qty = $skuInOrder[$item->main_sku] * $item->replace_qty;
                 $soItem->unit_price = 0;
                 $soItem->vat_total = 0;
                 $soItem->amount = 0;
@@ -653,7 +653,7 @@ class PlatformMarketOrderTransfer
                 $soItemDetail->so_no = $order->so_no;
                 $soItemDetail->line_no = $lineNumber;
                 $soItemDetail->item_sku = $item->sku;
-                $soItemDetail->qty = $soItemDetail->qty + $skuInOrder[$item->main_sku] * $item->replace_qty;
+                $soItemDetail->qty = $skuInOrder[$item->main_sku] * $item->replace_qty;
                 $soItemDetail->outstanding_qty = $soItemDetail->qty;
                 $soItemDetail->unit_price = 0;
                 $soItemDetail->vat_total = 0;
