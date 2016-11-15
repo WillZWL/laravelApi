@@ -66,7 +66,7 @@
               <th>PSP Fee</th>
               <th>PSP Adm. Fee</th>
               <th>Freight Cost</th>
-              <th>Warehouse Cost</th>
+              <th>W.H. Cost</th>
               <th>Total FBA Fee</th>
               <th>Supp. Cost</th>
               <th>Acce. Cost</th>
