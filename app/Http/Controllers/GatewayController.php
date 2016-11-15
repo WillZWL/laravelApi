@@ -24,6 +24,7 @@ class GatewayController extends Controller
 
     public function downloadGatewayReport(Request $request)
     {
+        set_time_limit(0);
         $flexService = new FlexService();
         $response = $flexService->generateFeedbackReport($request);
     }

@@ -160,12 +160,21 @@ class FlexService
               $gatewayFee->amount = null;
               if($gatewayFee->txn_id)
               {
-                $so = So::where(["platform_order_id"=>$gatewayFee->txn_id,"platform_group_order"=>1])->first();
-                if($so && array_key_exists($so->so_no, $feedbackReport))
+                $so = So::where(["platform_order_id"=>$gatewayFee->txn_id,"platform_group_order"=>1])->with("sellingPlatform")->first();
+                if($so)
                 {
-                  $feedbackReport[$so->so_no]->others = $gatewayFee->others;
-                  $feedbackReport[$so->so_no]->fbaFees = $gatewayFee->fbaFees;
-                  $feedbackReport[$so->so_no]->subTotal = $feedbackReport[$so->so_no]->subTotal + $gatewayFee->others +$gatewayFee->fbaFees;
+                  if(array_key_exists($so->so_no, $feedbackReport))
+                  {
+                    $feedbackReport[$so->so_no]->others = $gatewayFee->others;
+                    $feedbackReport[$so->so_no]->fbaFees = $gatewayFee->fbaFees;
+                    $feedbackReport[$so->so_no]->subTotal = $feedbackReport[$so->so_no]->subTotal + $gatewayFee->others +$gatewayFee->fbaFees;
+                  }
+                  else
+                  {
+                    $gatewayFee->merchant_id = $so->sellingPlatform->merchant_id;
+                    $gatewayFee->so_no = $so->so_no;
+                    $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;  
+                  }
                 }
                 else
                 {
