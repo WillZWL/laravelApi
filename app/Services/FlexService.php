@@ -80,11 +80,11 @@ class FlexService
         }
         if(count($soList) > 0)
         {
-          foreach ($soList as $so_no => $so) 
+          foreach ($soList as $so_no => $so)
           {
               $commissionFees = 0;
               $receiptFees = 0;
-              foreach ($so as $fee) 
+              foreach ($so as $fee)
               {
                   if(in_array($fee->fee_status,["A_COMM"]))
                   {
@@ -103,7 +103,7 @@ class FlexService
               //$cellData[] = [$fee->merchant_id,$fee->so_no,$fee->txn_id,$fee->flex_batch_id,$fee->gateway_id,$fee->txn_time,$fee->currency_id,$fee->amount,$fee->commissionFees ==0 ?'':$fee->commissionFees,$fee->receiptFees==0?'':$fee->receiptFees,'','','',$fee->subTotal];
           }
         }
-        
+
         //flex refund
         $flexRefund = new FlexRefund;
         $flexRefundList = $flexRefund->soFee($batchIdList);
@@ -116,11 +116,11 @@ class FlexService
         }
         if(count($refundList)>0)
         {
-          foreach ($refundList as $so_no =>$so) 
+          foreach ($refundList as $so_no =>$so)
           {
               $commissionFees = 0;
               $refundOthers = 0;
-              foreach ($so as $fee) 
+              foreach ($so as $fee)
               {
                   if(in_array($fee->fee_status,["A_RF_RC","A_RF_C"]))
                   {
@@ -133,7 +133,7 @@ class FlexService
               }
               $refund = $fee;
               $subTotal = $refund->amount + $commissionFees + $refundOthers;
-              
+
               $refund->commissionFees = $commissionFees;
               $refund->refundOthers = $refundOthers;
               $refund->subTotal = $subTotal;
@@ -142,7 +142,7 @@ class FlexService
               //$cellData[] = [$refund->merchant_id,$refund->so_no,$refund->txn_id,$refund->flex_batch_id,$refund->gateway_id,$refund->txn_time,$refund->currency_id,$refund->amount,$refund->commissionFees==0?'':$refund->commissionFees,'',$refund->refundOthers==0?'':$refund->refundOthers,'','',$refund->subTotal];
           }
         }
-        
+
         //gateway fee
         $flexGatewayFeeList = FlexGatewayFee::whereIn("flex_batch_id",$batchIdList)->get();
         $gatewayNum = 1;
@@ -161,7 +161,7 @@ class FlexService
               if($gatewayFee->txn_id)
               {
                 $so = So::where(["platform_order_id"=>$gatewayFee->txn_id,"platform_group_order"=>1])->first();
-                if(array_key_exists($so->so_no, $feedbackReport))
+                if($so && array_key_exists($so->so_no, $feedbackReport))
                 {
                   $feedbackReport[$so->so_no]->others = $gatewayFee->others;
                   $feedbackReport[$so->so_no]->fbaFees = $gatewayFee->fbaFees;
@@ -169,8 +169,8 @@ class FlexService
                 }
                 else
                 {
-                  $gatewayFee->txn_id = null;
-                  $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;  
+                  //$gatewayFee->txn_id = null;
+                  $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;
                 }
               }else{
                 $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;
@@ -178,7 +178,7 @@ class FlexService
               //$cellData[] = ['','','',$gatewayFee->flex_batch_id,$gatewayFee->gateway_id,$gatewayFee->txn_time,$gatewayFee->currency_id,'','','','',$gatewayFee->others,$gatewayFee->fbaFees,''];
           }
         }
-        
+
         foreach($feedbackReport as $so_no => $so)
         {
             $cellData[] = [
@@ -198,10 +198,9 @@ class FlexService
                           $so->subTotal
                         ];
         }
-        
-        $flexReportPath = Config::find("flex_report_path")->value;
+
         Excel::create('flex_batch_'.implode('_', $batchIdList),function($excel) use ($cellData){
-            $excel->sheet('feedback', function($sheet) use ($cellData){        
+            $excel->sheet('feedback', function($sheet) use ($cellData){
               $sheet->rows($cellData);
               $sheet->freezeFirstRow();
             });
@@ -211,8 +210,100 @@ class FlexService
 
    public function generatePriceministerFeedbackReport(Request $request)
    {
-      return false;
+        $batchIdList = $request->batchIdList;
+        $pmgw = $request->pmgw;
+
+        $feedbackReport = array();
+        $cellData[] = ["Merchant ID","SO Number","PriceMinister ID","Flex Batch ID","Gateway ID","Txn Time","Currency ID","Amount","Commission Fees", "Receipt fees","Refund Others","Others","FBA fees","Subtotal"];
+        //flex ria
+        $flexRia = new FlexRia();
+        $flexRiaList = $flexRia->soFee($batchIdList);
+        $soList = [];
+        if($flexRiaList->count())
+        {
+          foreach($flexRiaList as $flex)
+          {
+            $soList[$flex->so_no][] = $flex;
+          }
+        }
+        if(count($soList) > 0)
+        {
+          foreach ($soList as $so_no => $so)
+          {
+              $receiptFees = 0;
+              foreach ($so as $fee)
+              {
+                  if(in_array($fee->fee_status,["P_SO_FEE"]))
+                  {
+                    $receiptFees += $fee->fee_amount;
+                  }
+              }
+              $fee->receiptFees = $receiptFees;
+              $fee->subTotal = $fee->amount + $receiptFees;
+
+              $feedbackReport[$fee->so_no] = $fee;
+          }
+        }
+
+        //flex refund
+        $flexRefund = new FlexRefund;
+        $flexRefundList = $flexRefund->soFee($batchIdList);
+        $refundList = [];
+        if($flexRefundList->count() )
+        {
+          foreach ($flexRefundList as $flex) {
+              $refundList[$flex->so_no][] = $flex;
+          }
+        }
+        if(count($refundList)>0)
+        {
+          foreach ($refundList as $so_no =>$so)
+          {
+              $refundOthers = 0;
+              foreach ($so as $fee)
+              {
+                  if(in_array($fee->fee_status,['P_RF']))
+                  {
+                    $refundOthers += $fee->fee_amount;
+                  }
+              }
+              $refund = $fee;
+              $subTotal = $refund->amount + $refundOthers;
+
+              $refund->refundOthers = $refundOthers;
+              $refund->subTotal = $subTotal;
+
+              $feedbackReport[$refund->so_no] = $refund;
+          }
+        }
+
+        foreach($feedbackReport as $so_no => $so)
+        {
+            $cellData[] = [
+                          $so->merchant_id,
+                          $so->so_no,
+                          $so->txn_id,
+                          $so->flex_batch_id,
+                          $so->gateway_id,
+                          $so->txn_time,
+                          $so->currency_id,
+                          $so->amount,
+                          '',
+                          $so->receiptFees==0?'':$so->receiptFees,
+                          $so->refundOthers==0?'':$so->refundOthers,
+                          '',
+                          '',
+                          $so->subTotal
+                        ];
+        }
+
+        Excel::create('flex_batch_'.implode('_', $batchIdList),function($excel) use ($cellData){
+            $excel->sheet('feedback', function($sheet) use ($cellData){
+              $sheet->rows($cellData);
+              $sheet->freezeFirstRow();
+            });
+        })->download("csv"); //->store('xls',$flexReportPath.'feedback_report/report');
    }
 
-  
+
 }
