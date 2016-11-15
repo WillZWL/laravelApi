@@ -32,10 +32,15 @@ class FnacValidateService extends BaseValidateService
     {
         $platform = '';
         $platformAccount = strtoupper(substr($order->platform, 0, 2));
+        $countryCode = strtoupper(substr($order->platform, -2));
         switch ($platformAccount) {
             case 'BC':
                 $platform["accountName"] = 'BrandsConnect';
-                $platform["alertEmail"] = 'fnaces@brandsconnect.net';
+                if ($countryCode == "ES") {
+                    $platform["alertEmail"] = 'fnaces@brandsconnect.net';
+                } else if ($countryCode == "PT") {
+                    $platform["alertEmail"] = 'fnacpt@brandsconnect.net';
+                }
                 break;
         }
         return  $platform;
