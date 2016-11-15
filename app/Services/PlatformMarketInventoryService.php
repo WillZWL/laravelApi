@@ -51,10 +51,10 @@ class PlatformMarketInventoryService
     {
         $object = [];
         $object['store_id'] = $item['store_id'];
-        $object['warehouse_id'] = $item['warehouse_id'];
-        $object['marketplace_sku'] = $item['marketplace_sku'];
-        $object['mattel_sku'] = $item['mattel_sku'];
-        $object['dc_sku'] = $item['dc_sku'];
+        $object['warehouse_id'] = trim($item['warehouse_id']);
+        $object['marketplace_sku'] = trim($item['marketplace_sku']);
+        $object['mattel_sku'] = trim($item['mattel_sku']);
+        $object['dc_sku'] = trim($item['dc_sku']);
         $object['inventory'] = $item['quantity'];
         $object['threshold'] = $item['threshold'];
         $platformMarketInventory = PlatformMarketInventory::updateOrCreate(
