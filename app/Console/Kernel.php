@@ -120,5 +120,8 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('platformMarket:removeApiFileSystem')
             ->monthlyOn(4, '15:00');
+
+        $schedule->command('platformMarket:sendLowStockAlert')
+            ->dailyAt('16:00');
     }
 }
