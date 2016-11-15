@@ -167,6 +167,10 @@ class FlexService
                   $feedbackReport[$so->so_no]->fbaFees = $gatewayFee->fbaFees;
                   $feedbackReport[$so->so_no]->subTotal = $feedbackReport[$so->so_no]->subTotal + $gatewayFee->others +$gatewayFee->fbaFees;
                 }
+                else
+                {
+                  $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;  
+                }
               }else{
                 $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;
               }

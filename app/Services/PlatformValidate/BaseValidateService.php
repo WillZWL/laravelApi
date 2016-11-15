@@ -147,7 +147,7 @@ abstract class BaseValidateService
 
     public function addMailMessage($alertEmail, $subject, $message)
     {
-        mail("{$alertEmail}, jimmy.gao@eservicesgroup.com, handy.hon@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
+        mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $headers = 'From: admin@shop.eservciesgroup.com');
         /*Mail::queue("emails.transfer-order",$data,function($message){
             $message->from('admin@shop.eservciesgroup.com', 'Accelerator');
             $message->to($alertEmail);
