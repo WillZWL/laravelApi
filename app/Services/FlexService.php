@@ -169,6 +169,7 @@ class FlexService
                 }
                 else
                 {
+                  $gatewayFee->txn_id = null;
                   $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;  
                 }
               }else{
