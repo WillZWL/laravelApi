@@ -338,6 +338,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
 
     public function getAmazonFbaOrderSkuOrderedList()
     {
+        $emailMessage = null;
         $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
         $toDate = date("Y-m-d 00:00:00");
         $amazonFbaOrders = So::where("so.biz_type","=","AMAZON")
@@ -349,17 +350,24 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
                         ->get();
         foreach ($amazonFbaOrders as $amazonFbaOrder) {
             $warehouseId = $this->getOrderWarehouseId($amazonFbaOrder);
-            foreach ($amazonFbaOrder->soItem as $value) {
-                $FbaOrder = array(
-                    "so_no" => $amazonFbaOrder->so_no,
-                    "platform_id" => $amazonFbaOrder->platform_id,
-                    "warehouse_id" => $warehouseId,
-                    "prod_sku" => $value->prod_sku,
-                    "qty" => $value->qty,
-                );
-                $FbaOrderList[] = $FbaOrder;
+            if($warehouseId){
+                foreach ($amazonFbaOrder->soItem as $value) {
+                    $FbaOrder = array(
+                        "so_no" => $amazonFbaOrder->so_no,
+                        "platform_id" => $amazonFbaOrder->platform_id,
+                        "warehouse_id" => $warehouseId,
+                        "prod_sku" => $value->prod_sku,
+                        "qty" => $value->qty,
+                    );
+                    $FbaOrderList[] = $FbaOrder;
+                }
+                $amazonFbaOrderGroups[$warehouseId] = $FbaOrderList; 
+            }else{
+                $emailMessage .="so no ".$amazonFbaOrder->so_no. " platform_id "$amazonFbaOrder->platform_id." need add warehouse mapping";
             }
-            $amazonFbaOrderGroups[$warehouse->warehouse_id] = $FbaOrderList;
+        }
+        if($emailMessage){
+            mail('jimmy@eservciesgroup.com', 'Amazon Warehouse mapping', $emailMessage);
         }
         return $this->getWmsWarehouseSkuOrderedList($amazonFbaOrderGroups);
     }
@@ -443,9 +451,9 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
     public function getOrderWarehouseId($so)
     {
         $wmsWarehouse = WmsWarehouseMapping::where("platform_id",$so->platform_id);
-                                ->where("status",1)
-                                ->pluck("delivery_type","warehouse_id");
-        if(!empty($wmsWarehouse)){
+                        ->where("status",1)
+                        ->pluck("warehouse_id","delivery_type");
+        if(!$wmsWarehouse->isEmpty()){
             if(isset($wmsWarehouse[$so->delivery_type_id])){
                 $warehouseId = $wmsWarehouse[$so->delivery_type_id];
             }else{
