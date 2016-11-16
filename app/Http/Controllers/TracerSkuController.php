@@ -103,8 +103,8 @@ class TracerSkuController extends Controller
         $marketplaceProduct->product->height = $request->input('height');
         $marketplaceProduct->product->save();
 
-        $this->api->put('product-size-tier/2305');
-        $this->api->put('fba-fees/2305');
+        $this->api->be(auth()->user())->put('product-size-tier/2305');
+        $this->api->be(auth()->user())->put('fba-fees/2305');
 
         \DB::connection('mysql_esg')->table('supplier_prod')->where('prod_sku', $marketplaceProduct->product->sku)
             ->where('order_default', 1)
