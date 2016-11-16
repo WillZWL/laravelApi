@@ -16,6 +16,7 @@ use App\Models\InvMovement;
 use App\Models\StoreWarehouse;
 use App\Models\MattelSkuMapping;
 use App\Models\PlatformMarketReasons;
+use App\Models\PlatformMarketInventory;
 
 class ApiPlatformFactoryService
 {
@@ -130,12 +131,12 @@ class ApiPlatformFactoryService
             $returnData = array();
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
             foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
-                $warehouse = $this->getWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                //if($warehouse){
+                $warehouse = $this->getMattelWarehouseByPlatform($platform,$platformMarketOrderGroup);
+                if($warehouse){
                     $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
-                /*}else{
+                }else{
                     $returnData["error"][$platform] = $platform." warehouse not find, please to check";
-                }*/
+                }
             }
             return $result = array("status" => "success","message" => $returnData);
         }else{
@@ -456,6 +457,35 @@ class ApiPlatformFactoryService
         $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status",$esgOrderStatus)->whereIn("platform",$platforms)
             ->get();
         return $platformMarketOrders;
+    }
+
+    public function getMattelWarehouseByPlatform($platform,$platformMarketOrderGroup)
+    {
+        $countryCode = strtoupper(substr($platform, -2));
+        $marketplaceId = strtoupper(substr($platform, 0, -2));
+        $warehouseIdList = $this->getWarehouseIdByMarketplaceId($marketplaceId);
+        if($warehouseIdList){
+            $sellSkuList = null;$warehouse = null;
+            foreach ($platformMarketOrderGroup as $platformMarketOrder) {
+                foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
+                    $sellSkuList[] = $orderItem->seller_sku;
+                }
+                $storeId = $platformMarketOrder->store_id;
+            }
+            $platformMarketInventory = PlatformMarketInventory::where("store_id",$storeId)
+                ->where("warehouse_id",$warehouseIdList[$countryCode])
+                ->whereIn("marketplace_sku",$sellSkuList)
+                ->get()
+                ->toArray();
+            if($platformMarketInventory){
+                foreach($platformMarketInventory as $marketplaceProduct){
+                    $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
+                }
+            }
+            return $warehouse;
+        }else{
+            return null;
+        }
     }
 
     public function getWarehouseByPlatform($platform,$platformMarketOrderGroup)

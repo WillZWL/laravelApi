@@ -39,6 +39,32 @@ trait ApiBaseOrderTraitService
         }
         $warehouseInventory["warehouse"] = $updateAction ? $newWarehouse : $orginWarehouse;
         $warehouseInventory["updateObject"] = $updateObject;
+        print_r($warehouseInventory);exit();
+        return $warehouseInventory;
+    }
+
+    public function checkMattelWarehouseInventory($platformMarketOrder,$orginWarehouse)
+    {
+        $updateAction = true; $warehouseInventory = null; $updateObject = null;
+        $newWarehouse = $orginWarehouse;
+        foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
+            $remainInventroy = $newWarehouse[$orderItem->seller_sku]["inventory"] - $orderItem->quantity_ordered;
+            if($remainInventroy >= 0){
+                $newWarehouse[$orderItem->seller_sku]["inventory"] = $remainInventroy;
+                if(isset($updateObject[$orderItem->seller_sku])){
+                    $updateObject[$orderItem->seller_sku]["qty"] += $orderItem->quantity_ordered;
+                }else{
+                    $updateObject[$orderItem->seller_sku]["qty"] = $orderItem->quantity_ordered;
+                    $updateObject[$orderItem->seller_sku]["store_id"] = $newWarehouse[$orderItem->seller_sku]["store_id"];
+                    $updateObject[$orderItem->seller_sku]["marketplace_sku"] = $newWarehouse[$orderItem->seller_sku]["marketplace_sku"];
+                    $updateObject[$orderItem->seller_sku]["warehouse_id"] = $newWarehouse[$orderItem->seller_sku]["warehouse_id"];
+                }
+            }else{
+                $updateAction = false;
+            }
+        }
+        $warehouseInventory["warehouse"] = $updateAction ? $newWarehouse : $orginWarehouse;
+        $warehouseInventory["updateObject"] = $updateObject;
         return $warehouseInventory;
     }
 
@@ -64,18 +90,11 @@ trait ApiBaseOrderTraitService
         }
     }
 
-    public function updatePlatformMarketInventory($order,$updateObject)
+    public function updatePlatformMarketInventory($updateObject)
     {
-        $countryCode = strtoupper(substr($order->platform, -2));
-        $marketplaceId = strtoupper(substr($order->platform, 0, -2));
-        $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$updateObject["sku"])
-                ->where("marketplace_id","=",$marketplaceId)
-                ->where("country_id","=",$countryCode)
-                ->with('merchantProductMapping')
-                ->first();
-        $platformMarketInventory = PlatformMarketInventory::where("store_id",$order->store_id)
+        $platformMarketInventory = PlatformMarketInventory::where("store_id",$updateObject["store_id"])
                 ->where("warehouse_id",$updateObject["warehouse_id"])
-                ->where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
+                ->where("marketplace_sku",$updateObject["marketplace_sku"])
                 ->first();
         if($platformMarketInventory){
             $remainInventroy = $platformMarketInventory->inventory - $updateObject["qty"];

@@ -37,14 +37,48 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function getProductList($storeName)
     {
         $this->lazadaProductList = new LazadaProductList($storeName);
-        $this->storeCurrency = $this->lazadaProductList->getStoreCurrency();
-        //$dateTime=date(\DateTime::ISO8601, strtotime($this->getSchedule()->last_access_time));
-        $dateTime = date(\DateTime::ISO8601, strtotime('2016-07-31'));
-        $this->lazadaProductList->setCreatedBefore($dateTime);
+        $this->lazadaProductList->setFilter("all");
+        $this->lazadaProductList->setLimit("500");
         $orginProductList = $this->lazadaProductList->fetchProductList();
-        $this->saveDataToFile(serialize($orginProductList), 'getProductList');
-
+        //$this->saveDataToFile(serialize($orginProductList), 'getProductList');
         return $orginProductList;
+    }
+
+    public function exportPlatformMarketInventoryAvailable($storeName)
+    {
+        $store = $this->getPlatformStore($storeName);
+        $platformMarketInventory = PlatformMarketInventory::where("store_id",$store->id)
+                    ->select("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","inventory")
+                    ->get()
+                    ->toArray();
+        if(!empty($platformMarketInventory)){
+            $orginProductList = $this->getProductList($storeName);
+            if(isset($this->stores[$storeName]["new_api"])){
+                foreach ($orginProductList as $orginProduct) {
+                    if(isset($orginProduct["Skus"]["Sku"]["SellerSku"])){
+                        $inventory[$orginProduct["Skus"]["Sku"]["SellerSku"]] = $orginProduct["Skus"]["Sku"]["Available"];
+                    }else{
+                        foreach ($orginProduct["Skus"]["Sku"] as $sku) {
+                            $inventory[$sku["SellerSku"]] = $sku["Available"];
+                        }
+                    }
+                }
+            }else{
+                foreach ($orginProductList as $value) {
+                    $inventory[$value["SellerSku"]] = $value["Available"];
+                }
+            }
+            $newPlatformMarketInventory[] = array("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","inventory","Available");
+            foreach ($platformMarketInventory as $value) {
+                if($value["inventory"] != $inventory[$value["marketplace_sku"]]){
+                    $value["Available"] = $inventory[$value["marketplace_sku"]];
+                    $newPlatformMarketInventory[] = $value;
+                }
+            }
+            $cellDataArr[$storeName] = $newPlatformMarketInventory;
+            $path = \Storage::disk('report')->getDriver()->getAdapter()->getPathPrefix()."LazadaProduct";
+            $this->generateMultipleSheetsExcel($storeName,$cellDataArr,$path);
+        }
     }
 
     public function submitProductPriceAndInventory($storeName)
@@ -59,7 +93,6 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
                     $this->updatePlatformMarketProductStatus($processStatusProduct,$errorSku,$processStatus);
                 }
-                
             }else{
                 $xmlData = $this->getUpdatePriceQuantityXmlData($processStatusProduct);
                 $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
@@ -108,24 +141,11 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function submitProductCreate($storeName,$pendingSkuGroup)
     {   
         foreach ($pendingSkuGroup as $key => $product) {
-            $productAttributes = $this->mappingProductAttributes($storeName,$product);
+            $attributeOptions = $this->getPlatformMarketAttributeOptions($storeName);
             $this->lazadaProductCreate = new LazadaProductCreate($storeName);
-            $responseData = $this->lazadaProductCreate->createProduct($product);
+            $responseData = $this->lazadaProductCreate->createProduct($product,$attributeOptions);
             $this->saveDataToFile(serialize($responseData), 'CreateProduct');
         }
-    }
-
-    public function mappingProductAttributes($storeName,$product)
-    {
-        /*$storeId = "";
-        $attributeTypes = PlatformMarketAttributeType::where("store_id",$storeId)
-                    ->with("PlatformMarketAttributeOptions")
-                    ->get();
-        foreach ($attributeTypes as $attributeType) {
-            # code...
-        }*/
-        $productObject = null;
-        return $productObject;
     }
 
     public function searchLazadaSPUs($storeName,$param)
