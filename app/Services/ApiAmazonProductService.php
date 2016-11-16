@@ -338,7 +338,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
 
     public function getAmazonFbaOrderSkuOrderedList()
     {
-        $emailMessage = null;
+        $noMappingPlatformId = array();
         $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
         $toDate = date("Y-m-d 00:00:00");
         $amazonFbaOrders = So::where("so.biz_type","=","AMAZON")
@@ -363,10 +363,14 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
                 }
                 $amazonFbaOrderGroups[$warehouseId] = $FbaOrderList; 
             }else{
-                $emailMessage .="so no ".$amazonFbaOrder->so_no. " platform_id "$amazonFbaOrder->platform_id." need add warehouse mapping";
+                $noMappingPlatformId[] = $amazonFbaOrder->platform_id;
             }
         }
-        if($emailMessage){
+        if(!empty($noMappingPlatformId)){
+            $errorMappingPlatformId = array_unique($noMappingPlatformId);
+            foreach ($errorMappingPlatformId as $platformId) {
+               $emailMessage .= " platform_id ".$platformId." need add warehouse mapping \r\n";
+            }
             mail('jimmy@eservciesgroup.com', 'Amazon Warehouse mapping', $emailMessage);
         }
         return $this->getWmsWarehouseSkuOrderedList($amazonFbaOrderGroups);
@@ -450,7 +454,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
 
     public function getOrderWarehouseId($so)
     {
-        $wmsWarehouse = WmsWarehouseMapping::where("platform_id",$so->platform_id);
+        $wmsWarehouse = WmsWarehouseMapping::where("platform_id",$so->platform_id)
                         ->where("status",1)
                         ->pluck("warehouse_id","delivery_type");
         if(!$wmsWarehouse->isEmpty()){
