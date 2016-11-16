@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpCategory;
 use App\Models\MpControl;
+use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
 class TracerSkuController extends Controller
 {
+    use Helpers;
     /**
      * Display a listing of the resource.
      *
@@ -100,6 +102,9 @@ class TracerSkuController extends Controller
         $marketplaceProduct->product->width = $request->input('width');
         $marketplaceProduct->product->height = $request->input('height');
         $marketplaceProduct->product->save();
+
+        $this->api->put('product-size-tier/2305');
+        $this->api->put('fba-fees/2305');
 
         \DB::connection('mysql_esg')->table('supplier_prod')->where('prod_sku', $marketplaceProduct->product->sku)
             ->where('order_default', 1)
