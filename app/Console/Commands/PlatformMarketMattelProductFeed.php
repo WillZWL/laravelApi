@@ -12,7 +12,7 @@ class PlatformMarketMattelProductFeed extends Command
      *
      * @var string
      */
-    protected $signature = 'Mattel:updateInventory';
+    protected $signature = 'Mattel:product {action}';
 
     /**
      * The console command description.
@@ -43,6 +43,14 @@ class PlatformMarketMattelProductFeed extends Command
     public function handle()
     {
         //
-         $this->apiLazadaProductService->updatePlatformMarketMattleInventory();
+        $action = $this->argument('action');
+        if($action == "updateInventory"){
+            $this->apiLazadaProductService->updatePlatformMarketMattleInventory();
+        }else if($action == "getInventoryReport"){
+            $storeNameArr = array("MDLAZADASG","MDLAZADATH","MDLAZADAPH","MDLAZADAID","MDLAZADAVN","MDLAZADAMY");
+            foreach ($storeNameArr as $storeName) {
+                $this->apiLazadaProductService->exportPlatformMarketInventoryAvailable($storeName);
+            }
+        }
     }
 }

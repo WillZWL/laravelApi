@@ -12,9 +12,9 @@ class LazadaProductCreate extends LazadaProductsCore
         $this->getRequestParams();
     }
 
-    public function createProduct($product)
+    public function createProduct($product,$attributeOptions)
     {
-        $xmlData = $this->getCreateProductXmlData($product);
+        $xmlData = $this->getCreateProductXmlData($product,$attributeOptions);
         return parent::curlPostDataToApi($this->_requestParams, $xmlData);
     }
 
@@ -25,25 +25,21 @@ class LazadaProductCreate extends LazadaProductsCore
         $this->_requestParams['Action'] = 'CreateProduct';
     }
 
-    public function getCreateProductXmlData($product)
+    public function getCreateProductXmlData($product,$attributeOptions)
     {
         $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
         $xmlData .= '<Request>';
         $xmlData .= '<Product>';
-        $xmlData .= '<PrimaryCategory>'.$product->platformMarketProductAttributes->cat_id.'</PrimaryCategory>';
-        $xmlData .= '<SPUId>'.$product->platformMarketProductAttributes->spu_id.'</SPUId>';
-        $xmlData .= '<AssociatedSku>'.$product->marketplace_sku.'</AssociatedSku>';
+        $xmlData .= $this->getFormatAttributeOption($attributeOptions["basic"]);
         $xmlData .= '<Attributes>';
         $xmlData .=      '<name>'.$product->prod_name.'</name>';
         $xmlData .=      '<short_description>'.$product->short_desc.'</short_description>';
-        $xmlData .=      '<model>'.$product->platformMarketProductAttributes->model.'</model>';
-        $xmlData .=      '<kid_years></kid_years>';
+        $xmlData .= $this->getFormatAttributeOption($attributeOptions["attributes"]);
         $xmlData .= '</Attributes>';
         $xmlData .= '<Skus>';
         $xmlData .=      '<Sku>';
         $xmlData .=          '<SellerSku>'.$product->marketplace_sku.'</SellerSku>';
-        $xmlData .=          '<color_family>'.$product.'</color_family>';
-        $xmlData .=          '<size>'.$product.'</size>';
+        $xmlData .= $this->getFormatAttributeOption($attributeOptions["skus"]);
         $xmlData .=          '<quantity>'.$product->inventory.'</quantity>';
         $xmlData .=          '<price>'.$product->price.'</price>';
         $xmlData .=          '<package_length>'.$product->length.'</package_length>';
@@ -69,5 +65,14 @@ class LazadaProductCreate extends LazadaProductsCore
             return $data['Head'];
         }
         return null;
+    }
+
+    public function getFormatAttributeOption($attributeOption)
+    {
+        $xmlData = null;
+        foreach ($attributeOption as $key => $value) {
+            $xmlData .= '<'.$key.'>'.$value.'</'.$key.'>';
+        }
+        return $xmlData;
     }
 }
