@@ -15,39 +15,39 @@ class PlatformOrderTransformer extends TransformerAbstract
         $merchant = 'MATTEL';
         $items = [];
         foreach ($order->platformMarketOrderItem as $orderItem) {
-            $marketplaceSkuMapping = $orderItem->marketplaceSkuMapping()->first()->sku;
+            $marketplaceSkuMapping = $orderItem->marketplaceSkuMapping()->first();
             if(!empty($marketplaceSkuMapping)){
                 $assemblyMappings = ProductAssemblyMapping::active()
                         ->where('main_sku', $marketplaceSkuMapping->sku)
                         ->where('status', '=', '1')
                         ->get();
-                $marketplaceId = $marketplaceSkuMapping->marketplace_id;       
-            }
-            if (!$assemblyMappings->isEmpty()) {
+                $marketplaceId = $marketplaceSkuMapping->marketplace_id;
+                if (!$assemblyMappings->isEmpty()) {
                 //replace Assembly Sku
-                foreach ($assemblyMappings as $assemblySku) {
-                    $merchantProductMapping = $assemblySku->merchantProductMapping($merchant)->first();
-                    if(!empty($merchantProductMapping)){
-                       $item['sku'] = $merchantProductMapping->merchant_sku; 
-                    }
-                    $item['qty'] = $orderItem->quantity_ordered * $assemblySku->replace_qty;
+                    foreach ($assemblyMappings as $assemblySku) {
+                        $merchantProductMapping = $assemblySku->merchantProductMapping($merchant)->first();
+                        if(!empty($merchantProductMapping)){
+                           $item['sku'] = $merchantProductMapping->merchant_sku; 
+                        }
+                        $item['qty'] = $orderItem->quantity_ordered * $assemblySku->replace_qty;
 
-                    $inventory = PlatformMarketInventory::where('mattel_sku', $item['sku'])->where('store_id', $order->store_id)->first();
+                        $inventory = PlatformMarketInventory::where('mattel_sku', $item['sku'])->where('store_id', $order->store_id)->first();
+                        $item['inventory'] = 0;
+                        if ($inventory) {
+                            $item['inventory'] = $inventory->inventory;
+                        }
+                        $items[] = $item;
+                    }
+                } else {
+                    $item['sku'] = $orderItem->seller_sku;
+                    $item['qty'] = $orderItem->quantity_ordered;
+                    $inventory = $orderItem->platformMarketInventory($order->store_id)->first();
                     $item['inventory'] = 0;
                     if ($inventory) {
                         $item['inventory'] = $inventory->inventory;
                     }
                     $items[] = $item;
-                }
-            } else {
-                $item['sku'] = $orderItem->seller_sku;
-                $item['qty'] = $orderItem->quantity_ordered;
-                $inventory = $orderItem->platformMarketInventory($order->store_id)->first();
-                $item['inventory'] = 0;
-                if ($inventory) {
-                    $item['inventory'] = $inventory->inventory;
-                }
-                $items[] = $item;
+                }   
             }
         };
         
