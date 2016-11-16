@@ -341,14 +341,26 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
         $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
         $toDate = date("Y-m-d 00:00:00");
         $amazonFbaOrders = So::join('so_item', 'so_item.so_no', '=', 'so.so_no')
-                        ->join('wms_warehouse_mapping as wwm', 'wwm.platform_id', '=', 'so.platform_id')
-                        ->where("so.delivery_type_id","=","wwm.delivery_type")
+                        ->leftJoin('wms_warehouse_mapping AS wwm', function ($wwm) {
+                            $wwm->on('wwm.platform_id', '=', 'so.platform_id')
+                                ->on('wwm.delivery_type', '=', 'so.delivery_type_id')
+                                ->on('wwm.status', '=', '1');
+                        })
+                        ->leftJoin('wms_warehouse_mapping AS wwm_all', function ($wwm_all) {
+                            $wwm_all->on('wwm_all.platform_id', '=', 'so.platform_id')
+                                ->on('wwm_all.delivery_type', '=', 'ALL')
+                                ->on('wwm_all.status', '=', '1');
+                        })
                         ->where("so.biz_type","=","AMAZON")
                         ->where("so.delivery_type_id","=","FBA")
                         ->where("so.platform_group_order","=","1")
                         ->where("so.create_on",">",$fromDate)
                         ->where("so.create_on","<",$toDate)
-                        ->select('so.so_no','so.platform_id','wwm.warehouse_id','so_item.prod_sku','so_item.qty')
+                        ->select(
+                            'so.so_no','so.platform_id',
+                            DB::raw('IFNULL(wwm.warehouse_id, wwm_all.warehouse_id) AS warehouse_id'),
+                            'so_item.prod_sku','so_item.qty'
+                        )
                         ->get();
         $amazonFbaOrderGroups = $amazonFbaOrders->groupBy("warehouse_id");
         return $this->getWmsWarehouseSkuOrderedList($amazonFbaOrderGroups);
