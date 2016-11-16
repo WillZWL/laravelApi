@@ -46,14 +46,10 @@ class FlexService
         {
             return $this->generatePriceministerFeedbackReport($request);
         }
-        die;
-        // $data['result'] = $feedback_report;
-        // $this->write_file($data, 'report', 'feedback_report', false);
-
-        // DEFINE('REPORT_PATH', $this->get_config_srv()->value_of("flex_report_path"));
-        // $this->generate_zip_file(REPORT_PATH.'feedback_report/report/', 'feedback_report.zip');
-
-        // return array('filename' => 'feedback_report.zip', 'file_path' => REPORT_PATH.'feedback_report/report/feedback_report.zip');
+        elseif(strpos($pmgw,"lazada") !== false)
+        {
+            return $this->generateLazadaFeedbackReport($request);
+        }
    }
 
 
@@ -138,8 +134,14 @@ class FlexService
               $refund->refundOthers = $refundOthers;
               $refund->subTotal = $subTotal;
 
-              $feedbackReport[$refund->so_no] = $refund;
-              //$cellData[] = [$refund->merchant_id,$refund->so_no,$refund->txn_id,$refund->flex_batch_id,$refund->gateway_id,$refund->txn_time,$refund->currency_id,$refund->amount,$refund->commissionFees==0?'':$refund->commissionFees,'',$refund->refundOthers==0?'':$refund->refundOthers,'','',$refund->subTotal];
+              if(array_key_exists($refund->so_no, $feedbackReport))
+              {
+                  $feedbackReport["R".$refund->so_no] = $refund;//so have receipt order ,also have refund order
+              }
+              else
+              {
+                  $feedbackReport[$refund->so_no] = $refund;
+              }
           }
         }
 
@@ -282,7 +284,14 @@ class FlexService
               $refund->refundOthers = $refundOthers;
               $refund->subTotal = $subTotal;
 
-              $feedbackReport[$refund->so_no] = $refund;
+              if(array_key_exists($refund->so_no, $feedbackReport))
+              {
+                  $feedbackReport["R".$refund->so_no] = $refund;//so have receipt order ,also have refund order. should show two lines
+              }
+              else
+              {
+                  $feedbackReport[$refund->so_no] = $refund;
+              }
           }
         }
 
@@ -314,5 +323,133 @@ class FlexService
         })->download("csv"); //->store('xls',$flexReportPath.'feedback_report/report');
    }
 
+
+   public function generateLazadaFeedbackReport(Request $request)
+   {
+        $batchIdList = $request->batchIdList;
+        $pmgw = $request->pmgw;
+
+        $feedbackReport = array();
+        $cellData[] = ["Merchant ID","SO Number","Lazada ID","Flex Batch ID","Gateway ID","Txn Time","Currency ID","Amount","Commission Fees", "Receipt fees","Refund Others","Others","FBA fees","Subtotal"];
+        //flex ria
+        $flexRia = new FlexRia();
+        $flexRiaList = $flexRia->soFee($batchIdList);
+        $soList = [];
+        if($flexRiaList->count())
+        {
+          foreach($flexRiaList as $flex)
+          {
+            $soList[$flex->so_no][] = $flex;
+          }
+        }
+        if(count($soList) > 0)
+        {
+          foreach ($soList as $so_no => $so)
+          {
+              $commissionFees = 0;
+              $receiptFees = 0;
+              foreach ($so as $fee)
+              {
+                  if(in_array($fee->fee_status,["L_COMM"]))
+                  {
+                    $commissionFees += $fee->fee_amount;
+                  }
+                  if(in_array($fee->fee_status,["L_PMF"]))
+                  {
+                    $receiptFees += $fee->fee_amount;
+                  }
+              }
+              $fee->commissionFees = $commissionFees;
+              $fee->receiptFees = $receiptFees;
+              $fee->subTotal = $fee->amount + $receiptFees + $commissionFees;
+
+              $feedbackReport[$fee->so_no] = $fee;
+          }
+        }
+
+        //flex refund
+        $flexRefund = new FlexRefund;
+        $flexRefundList = $flexRefund->soFee($batchIdList);
+        $refundList = [];
+        if($flexRefundList->count() )
+        {
+          foreach ($flexRefundList as $flex) {
+              $refundList[$flex->so_no][] = $flex;
+          }
+        }
+        if(count($refundList)>0)
+        {
+          foreach ($refundList as $so_no =>$so)
+          {
+              $refundOthers = 0;
+              foreach ($so as $fee)
+              {
+                  if(in_array($fee->fee_status,['L_RCOMM']))
+                  {
+                    $refundOthers += $fee->fee_amount;
+                  }
+              }
+              $refund = $fee;
+              $subTotal = $refund->amount + $refundOthers;
+
+              $refund->refundOthers = $refundOthers;
+              $refund->subTotal = $subTotal;
+
+              if(array_key_exists($refund->so_no, $feedbackReport))
+              {
+                  $feedbackReport["R".$refund->so_no] = $refund;//so have receipt order ,also have refund order
+              }
+              else
+              {
+                  $feedbackReport[$refund->so_no] = $refund;
+              }
+          }
+        }
+
+        //shipping fee
+        $flexSofee = new FlexSoFee();
+        $shippingfee = $flexSofee->getLazadaShippingfee($batchIdList);
+        foreach ($shippingfee as $fee) {
+            $fee->others = $fee->amount;    
+            $fee->amount = null;
+            if(array_key_exists($fee->so_no, $feedbackReport))
+            {
+                $feedbackReport[$fee->so_no]->others = $fee->others;
+                $feedbackReport[$fee->so_no]->subTotal = $feedbackReport[$fee->so_no]->subTotal + $fee->others;
+            }
+            else
+            {
+                $feedbackReport[$fee->so_no] = $fee; 
+            }           
+        }
+
+
+        foreach($feedbackReport as $so_no => $so)
+        {
+            $cellData[] = [
+                          $so->merchant_id,
+                          $so->so_no,
+                          $so->txn_id,
+                          $so->flex_batch_id,
+                          $so->gateway_id,
+                          $so->txn_time,
+                          $so->currency_id,
+                          $so->amount,
+                          $so->commissionFees==0?'':$so->commissionFees,
+                          $so->receiptFees==0?'':$so->receiptFees,
+                          $so->refundOthers==0?'':$so->refundOthers,
+                          $so->others==0?'':$so->others,
+                          '',
+                          $so->subTotal
+                        ];
+        }
+
+        Excel::create('flex_batch_'.implode('_', $batchIdList),function($excel) use ($cellData){
+            $excel->sheet('feedback', function($sheet) use ($cellData){
+              $sheet->rows($cellData);
+              $sheet->freezeFirstRow();
+            });
+        })->download("csv"); //->store('xls',$flexReportPath.'feedback_report/report');
+   }
 
 }

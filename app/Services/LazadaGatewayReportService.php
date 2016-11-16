@@ -34,6 +34,10 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
     ***********************************/
     public function isRefundRecord($cell)
     {
+        if($cell->transaction_type == "Item Price")
+        {
+            return "R";
+        }
         return false;
     }
     public function isSoFeeRecord($cell)
@@ -41,9 +45,18 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
         if($cell->transaction_type == "Commission")
         {
             return "L_COMM";
-        }else if($cell->transaction_type == "Shipping Fee (Item Level)")
+        }
+        else if($cell->transaction_type == "Shipping Fee (Item Level)")
         {
             return "L_SF";
+        }
+        else if($cell->transaction_type == "Commission Credit")
+        {
+            return "L_RCOMM";
+        }
+        else if($cell->transaction_type == "Payment Fee")
+        {
+            return "L_PMF";
         }
         return false;
     }
@@ -52,11 +65,7 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
         return false;
     }
     public function isGatewayFeeRecord($cell)
-    {
-        if($cell->transaction_type == "Payment Fee")
-        {
-            return "PMF";
-        }
+    {        
         return false;
     }
     public function isRiaIncludeSoFee()
@@ -85,7 +94,9 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
     }
     protected function insertInterfaceFlexRefund($batchId, $status, $cell)
     {
-
+        $this->_data_reform($cell);
+        $cell->internal_txn_id = $cell->txn_id;
+        $this->createInterfaceFlexRefund($batchId, $status, $cell);
     }
     protected function insertInterfaceFlexRollingReserve($batchId, $status, $cell)
     {
