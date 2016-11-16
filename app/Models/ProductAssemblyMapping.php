@@ -21,10 +21,9 @@ class ProductAssemblyMapping extends Model
         return $this->belongsTo('App\Models\Product', 'sku', 'sku');
     }
 
-    public function merchantProductMapping($merchantId)
+    public function merchantProductMapping()
     {
-        return $this->hasOne('App\Models\MerchantProductMapping', 'sku', 'sku')
-                    ->where('merchant_id', $merchantId);
+        return $this->hasMany('App\Models\MerchantProductMapping', 'sku', 'sku');
     }
 
     public function scopeActive($query)
