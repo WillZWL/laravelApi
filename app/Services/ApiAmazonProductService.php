@@ -345,14 +345,10 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
                         ->where("so.platform_group_order","=","1")
                         ->where("so.create_on",">",$fromDate)
                         ->where("so.create_on","<",$toDate)
+                        ->with("soItem")
                         ->get();
         foreach ($amazonFbaOrders as $amazonFbaOrder) {
-            $wmsWarehouse = $amazonFbaOrder->wmsWarehouseMapping->pluck("delivery_type","warehouse_id");
-            if(isset($wmsWarehouse[$amazonFbaOrder->delivery_type_id])){
-                 $warehouseId = $wmsWarehouse[$amazonFbaOrder->delivery_type_id];
-            }else{
-                $warehouseId = $wmsWarehouse["ALL"];
-            }
+            $warehouseId = $this->getOrderWarehouseId($amazonFbaOrder);
             foreach ($amazonFbaOrder->soItem as $value) {
                 $FbaOrder = array(
                     "so_no" => $amazonFbaOrder->so_no,
@@ -442,6 +438,21 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
         mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+    }
+
+    public function getOrderWarehouseId($so)
+    {
+        $wmsWarehouse = WmsWarehouseMapping::where("platform_id",$so->platform_id);
+                                ->where("status",1)
+                                ->pluck("delivery_type","warehouse_id");
+        if(!empty($wmsWarehouse)){
+            if(isset($wmsWarehouse[$so->delivery_type_id])){
+                $warehouseId = $wmsWarehouse[$so->delivery_type_id];
+            }else{
+                $warehouseId = $wmsWarehouse["ALL"];
+            }
+            return $warehouseId;
+        }
     }
 
 }
