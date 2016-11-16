@@ -224,48 +224,49 @@ class AmazonProductSizeTierService
 
     public function checkProductSizeRulesInEu($rules, $weight, $longestSide, $medianSide, $shortestSide)
     {
+
         if (isset($rules['weight']) && ($rules['weight'] < $weight)) {
             return false;
         }
 
-        if (isset($rule['longestSide']) && $rule['longestSide'] < $longestSide) {
+        if (isset($rules['longestSide']) && $rules['longestSide'] < $longestSide) {
             return false;
         }
 
-        if (isset($rule['medianSide']) && $rule['medianSide'] < $medianSide) {
+        if (isset($rules['medianSide']) && $rules['medianSide'] < $medianSide) {
             return false;
         }
 
-        if (isset($rule['shortestSide']) && $rule['shortestSide'] < $shortestSide) {
+        if (isset($rules['shortestSide']) && $rules['shortestSide'] < $shortestSide) {
             return false;
         }
 
         return true;
     }
 
-    public function checkProductSizeRulesInUs($rule, $media, $weight, $longestSide, $medianSide, $shortestSide)
+    public function checkProductSizeRulesInUs($rules, $media, $weight, $longestSide, $medianSide, $shortestSide)
     {
-        if (isset($rule['media']) && $rule['media'] != $media) {
+        if (isset($rules['media']) && $rules['media'] != $media) {
             return false;
         }
 
-        if (isset($rule['weight']) && $rule['weight'] < $weight) {
+        if (isset($rules['weight']) && $rules['weight'] < $weight) {
             return false;
         }
 
-        if (isset($rule['longestSide']) && $rule['longestSide'] < $longestSide) {
+        if (isset($rules['longestSide']) && $rules['longestSide'] < $longestSide) {
             return false;
         }
 
-        if (isset($rule['medianSide']) && $rule['medianSide'] < $medianSide) {
+        if (isset($rules['medianSide']) && $rules['medianSide'] < $medianSide) {
             return false;
         }
 
-        if (isset($rule['shortestSide']) && $rule['shortestSide'] < $shortestSide) {
+        if (isset($rules['shortestSide']) && $rules['shortestSide'] < $shortestSide) {
             return false;
         }
 
-        if (isset($rule['lengthPlusGirth']) && $rule['lengthPlusGirth'] < ($longestSide + 2 * ($medianSide + $shortestSide))) {
+        if (isset($rules['lengthPlusGirth']) && $rules['lengthPlusGirth'] < ($longestSide + 2 * ($medianSide + $shortestSide))) {
             return false;
         }
 
