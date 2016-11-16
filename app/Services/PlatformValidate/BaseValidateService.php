@@ -37,6 +37,7 @@ abstract class BaseValidateService
             ->get();
         if(!$platformMarketExcludeSku->isEmpty()){
             $this->order->acknowledge = -1;
+            $this->order->save();
             return false;
         }
         //2 check marketplace sku mapping

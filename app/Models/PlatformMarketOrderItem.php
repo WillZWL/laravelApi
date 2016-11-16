@@ -20,10 +20,9 @@ class PlatformMarketOrderItem extends Model
         return $this->hasOne('App\Models\MarketplaceSkuMapping', 'marketplace_sku', 'seller_sku');
     }
 
-    public function platformMarketInventory($storeId)
+    public function platformMarketInventory()
     {
-        return $this->hasOne('App\Models\PlatformMarketInventory', 'marketplace_sku', 'seller_sku')
-                    ->where('store_id', '=', $storeId);
+        return $this->hasMany('App\Models\PlatformMarketInventory', 'marketplace_sku', 'seller_sku');
     }
 
 }

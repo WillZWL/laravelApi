@@ -25,7 +25,10 @@ class PlatformOrderTransformer extends TransformerAbstract
             if (!$assemblyMappings->isEmpty()) {
                 //replace Assembly Sku
                 foreach ($assemblyMappings as $assemblySku) {
-                    $item['sku'] = $assemblySku->merchantProductMapping($merchant)->first()->merchant_sku;
+                    $item['sku'] = $assemblySku->merchantProductMapping()
+                                               ->where('merchant_id', $merchant)
+                                               ->first()
+                                               ->merchant_sku;
                     $item['qty'] = $orderItem->quantity_ordered * $assemblySku->replace_qty;
 
                     $inventory = PlatformMarketInventory::where('mattel_sku', $item['sku'])->where('store_id', $order->store_id)->first();
@@ -38,7 +41,9 @@ class PlatformOrderTransformer extends TransformerAbstract
             } else {
                 $item['sku'] = $orderItem->seller_sku;
                 $item['qty'] = $orderItem->quantity_ordered;
-                $inventory = $orderItem->platformMarketInventory($order->store_id)->first();
+                $inventory = $orderItem->platformMarketInventory()
+                                       ->where('store_id', $order->store_id)
+                                       ->first();
                 $item['inventory'] = 0;
                 if ($inventory) {
                     $item['inventory'] = $inventory->inventory;

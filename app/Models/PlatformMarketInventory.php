@@ -27,9 +27,4 @@ class PlatformMarketInventory extends Model
                     ->where('type', '=', 'low_stock_alert')
                     ->where('status', '=', 1);
     }
-
-    public function platformMarketOrderItem()
-    {
-        return $this->belongsTo('App\Models\PlatformMarketOrderItem');
-    }
 }
