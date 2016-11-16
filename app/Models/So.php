@@ -80,4 +80,10 @@ class So extends Model
     {
         return $this->hasOne('App\Models\AmazonOrder', 'amazon_order_id', 'platform_order_id');
     }
+
+    public function wmsWarehouseMapping()
+    {
+        return $this->hasMany('App\Models\WmsWarehouseMapping', 'platform_id', 'platform_id');
+    }
+
 }
