@@ -34,6 +34,16 @@ class MarketplaceSkuMapping extends Model
         return $this->merchantProductMapping->merchant();
     }
 
+    public function amazonFbaFee()
+    {
+        return $this->hasOne('App\Models\AmazonFbaFee');
+    }
+
+    public function amazonProductSizeTier()
+    {
+        return $this->hasOne('App\Models\AmazonProductSizeTier');
+    }
+
     public function inventory()
     {
         return $this->hasMany('App\Models\Inventory', 'prod_sku', 'sku');
