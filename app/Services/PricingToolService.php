@@ -79,7 +79,7 @@ class PricingToolService
             }
 
             $totalFbaFee = 0;
-            if ($shippingOption['deliveryType'] === 'FBA') {
+            if ($shippingOption['deliveryType'] === 'FBA' && substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON') {
 
                 $fbafees = $this->getFbaFees($request);
                 $totalFbaFee = $fbafees->storage_fee + $fbafees->order_handing_fee
