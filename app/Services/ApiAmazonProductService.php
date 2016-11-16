@@ -340,29 +340,27 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
     {
         $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
         $toDate = date("Y-m-d 00:00:00");
-        $amazonFbaOrders = So::join('so_item', 'so_item.so_no', '=', 'so.so_no')
-                        ->leftJoin('wms_warehouse_mapping AS wwm', function ($wwm) {
-                            $wwm->on('wwm.platform_id', '=', 'so.platform_id')
-                                ->on('wwm.delivery_type', '=', 'so.delivery_type_id')
-                                ->on('wwm.status', '=', '1');
-                        })
-                        ->leftJoin('wms_warehouse_mapping AS wwm_all', function ($wwm_all) {
-                            $wwm_all->on('wwm_all.platform_id', '=', 'so.platform_id')
-                                ->on('wwm_all.delivery_type', '=', 'ALL')
-                                ->on('wwm_all.status', '=', '1');
-                        })
-                        ->where("so.biz_type","=","AMAZON")
+        $amazonFbaOrders = So::where("so.biz_type","=","AMAZON")
                         ->where("so.delivery_type_id","=","FBA")
                         ->where("so.platform_group_order","=","1")
                         ->where("so.create_on",">",$fromDate)
                         ->where("so.create_on","<",$toDate)
-                        ->select(
-                            'so.so_no','so.platform_id',
-                            DB::raw('IFNULL(wwm.warehouse_id, wwm_all.warehouse_id) AS warehouse_id'),
-                            'so_item.prod_sku','so_item.qty'
-                        )
+                        ->with("soItem")
                         ->get();
-        $amazonFbaOrderGroups = $amazonFbaOrders->groupBy("warehouse_id");
+        foreach ($amazonFbaOrders as $amazonFbaOrder) {
+            $warehouseId = $this->getOrderWarehouseId($amazonFbaOrder);
+            foreach ($amazonFbaOrder->soItem as $value) {
+                $FbaOrder = array(
+                    "so_no" => $amazonFbaOrder->so_no,
+                    "platform_id" => $amazonFbaOrder->platform_id,
+                    "warehouse_id" => $warehouseId,
+                    "prod_sku" => $value->prod_sku,
+                    "qty" => $value->qty,
+                );
+                $FbaOrderList[] = $FbaOrder;
+            }
+            $amazonFbaOrderGroups[$warehouse->warehouse_id] = $FbaOrderList;
+        }
         return $this->getWmsWarehouseSkuOrderedList($amazonFbaOrderGroups);
     }
 
@@ -440,6 +438,21 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
         mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+    }
+
+    public function getOrderWarehouseId($so)
+    {
+        $wmsWarehouse = WmsWarehouseMapping::where("platform_id",$so->platform_id);
+                                ->where("status",1)
+                                ->pluck("delivery_type","warehouse_id");
+        if(!empty($wmsWarehouse)){
+            if(isset($wmsWarehouse[$so->delivery_type_id])){
+                $warehouseId = $wmsWarehouse[$so->delivery_type_id];
+            }else{
+                $warehouseId = $wmsWarehouse["ALL"];
+            }
+            return $warehouseId;
+        }
     }
 
 }
