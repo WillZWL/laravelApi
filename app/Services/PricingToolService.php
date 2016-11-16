@@ -81,12 +81,12 @@ class PricingToolService
             $totalFbaFee = 0;
             if ($shippingOption['deliveryType'] === 'FBA') {
 
+                $fbafees = $this->getFbaFees($request);
+                $totalFbaFee = $fbafees->storage_fee + $fbafees->order_handing_fee
+                    + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
+
                 if ($request->input('country') == 'GB' && $request->input('price') >= 300) {
-                    $totalFbaFee = 0;
-                } else {
-                    $fbafees = $this->getFbaFees($request);
-                    $totalFbaFee = $fbafees->storage_fee + $fbafees->order_handing_fee
-                        + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
+                    $totalFbaFee = $totalFbaFee - $fbafees->weight_handing_fee;
                 }
             }
 
