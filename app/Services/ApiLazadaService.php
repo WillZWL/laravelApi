@@ -159,8 +159,8 @@ class ApiLazadaService implements ApiPlatformInterface
                 if(isset($warehouseInventory["warehouse"])){
                     $warehouse = $warehouseInventory["warehouse"];
                 }
-                //$warehouseInventory = $this->checkWarehouseInventory($order,$warehouse);
-                //if($warehouseInventory["updateObject"]){
+                $warehouseInventory = $this->checkMattelWarehouseInventory($order,$warehouse);
+                if($warehouseInventory["updateObject"]){
                     $orderItemIds = array();
                     foreach($order->platformMarketOrderItem as $orderItem){
                         if($orderItem->status === "Pending"){
@@ -173,8 +173,7 @@ class ApiLazadaService implements ApiPlatformInterface
                         if($result){
                             $orderIdList[] = $order->platform_order_id;
                             $this->updateOrderStatusReadyToShip($order->platform,$orderIdList);
-                            //$this->updateWarehouseInventory($order->so_no,$warehouseInventory["updateObject"]);
-                            //$this->updatePlatformMarketInventory($order,$warehouseInventory["updateObject"]);
+                            $this->updatePlatformMarketInventory($warehouseInventory["updateObject"]);
                             $returnData[$order->platform_order_no] = " Set Ready To Ship Success\r\n";
                         }else{
                             $returnData[$order->platform_order_no] = " Set Ready To Ship Failed\r\n";
@@ -182,7 +181,9 @@ class ApiLazadaService implements ApiPlatformInterface
                     }else{
                         $returnData[$order->platform_order_no] = "Shipment Provider is not exit in lazada admin system.";
                     }
-               // }
+               }else{
+                    $returnData[$order->platform_order_no] = " Has no inventory.";
+               }
             }
         }
         return $returnData;
@@ -638,6 +639,9 @@ class ApiLazadaService implements ApiPlatformInterface
             ['platform_order_id' => $order['OrderId']],
             $object
         );
+        if($platformMarketOrderItem->acknowledge === "1"){
+            $this->markSplitOrderShipped($platformMarketOrder);
+        }
         return $platformMarketOrder;
 	}
 
@@ -908,6 +912,26 @@ class ApiLazadaService implements ApiPlatformInterface
             }
         }
         return $documentFile;
+    }
+
+    private function markSplitOrderShipped($order)
+    {
+        $splitOrders = So::where('platform_order_id', '=', $order->platform_order_no)
+            ->where('platform_split_order', '=', 1)
+            ->where('status', '!=', '6')
+            ->get();
+        $groupOrders = So::where('platform_order_id', '=', $order->platform_order_no)
+            ->where('platform_group_order', '=', 1)
+            ->where('status', '=', '6')
+            ->get();
+        if(!$splitOrders->isEmpty() && !$groupOrders->isEmpty()){
+            $splitOrders->map(function ($splitOrder) use ($order) {
+                $splitOrder->dispatch_date = $order->dispatch_date;
+                $splitOrder->status = 6;
+                $splitOrder->save();
+            });
+        }
+        
     }
 
 }

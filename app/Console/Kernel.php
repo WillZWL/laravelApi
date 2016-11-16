@@ -106,7 +106,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('platformMarket:product updatePriceInventory', array('--api' => 'all'))
             ->everyThirtyMinutes();
-        $schedule->command('Mattel:updateInventory')->hourly();
+        $schedule->command('Mattel:product updateInventory')->hourly();
         $schedule->command('platformMarket:feedBack', array('--api' => 'all'))->hourly();
 
         $schedule->command('feed:price')

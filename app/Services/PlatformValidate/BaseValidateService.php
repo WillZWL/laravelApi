@@ -5,6 +5,7 @@ namespace App\Services\PlatformValidate;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\PlatformBizVar;
+use App\Models\PlatformMarketExcludeSku;
 
 abstract class BaseValidateService
 {
@@ -26,12 +27,20 @@ abstract class BaseValidateService
     public function validate()
     {
         $this->countryCode = strtoupper(substr($this->order->platform, -2));
-        //$countryCode = $order->amazonShippingAddress->country_code;
         $this->platformAccount = strtoupper(substr($this->order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($this->order->platform, 0, -2));
-        // 1 check marketplace sku mapping
+        //1 check marketplace sku exclude
         $marketplaceSkuList = $this->order->platformMarketOrderItem->pluck('seller_sku')->toArray();
         $marketplaceSkuList = array_unique($marketplaceSkuList);
+        $platformMarketExcludeSku = PlatformMarketExcludeSku::whereIn('marketplace_sku', $marketplaceSkuList)
+            ->where("store_name",$this->order->platform)
+            ->get();
+        if(!$platformMarketExcludeSku->isEmpty()){
+            $this->order->acknowledge = -1;
+            $this->order->save();
+            return false;
+        }
+        //2 check marketplace sku mapping
         $marketplaceSkuMapping = MarketplaceSkuMapping::whereIn('marketplace_sku', $marketplaceSkuList)
             ->whereMarketplaceId($marketplaceId)
             ->whereCountryId($this->countryCode)
@@ -44,17 +53,17 @@ abstract class BaseValidateService
         $merchantProductMapping = MerchantProductMapping::join('merchant', 'id', '=', 'merchant_id')
             ->whereIn('sku', $esgSkuList)
             ->get();
-         // 2check  Merchant Sku Mapping
+        //3 check  Merchant Sku Mapping
         $valid = $this->checkSkuMerchant($esgSkuList, $merchantProductMapping);
         if ($valid == false) {
             return false;
         }
-        //3 check selling platform is exist or not.
+        //4 check selling platform is exist or not.
         $valid = $this->checkSellingPlatform($merchantProductMapping);
         if ($valid == false) {
             return false;
         }
-        // 4 check sku delivery type.
+        // 5 check sku delivery type.
         $valid = $this->checkSkuDeliveryType($marketplaceSkuMapping);
         if ($valid == false) {
             return false;

@@ -7,6 +7,8 @@ use App\Models\MarketplaceSkuMapping;
 use App\Models\WmsWarehouseMapping;
 use App\Models\PlatformMarketFeedBatch;
 use App\Models\PlatformMarketInventory;
+use App\Models\Store;
+use App\Models\PlatformMarketAttributeType;
 /**
 * 
 */
@@ -133,7 +135,7 @@ trait ApiBaseProductTraitService
             "process_status" => $processStatus,
             "status" => "N"
         );
-        PlatformMarketFeedBatch::updateOrCreate(['feed_id' => $feedId,'update_id' => $updateId,], $object);
+        PlatformMarketFeedBatch::updateOrCreate(['marketplace_sku' => $marketplaceSku,'update_id' => $updateId,"status"=> "F"], $object);
     }
 
     public function getWmsWarehouseSkuOrderedList($warehouseOrderGroups)
@@ -158,4 +160,18 @@ trait ApiBaseProductTraitService
         }
         return $warehouseSkuOrderedList;
     }
+
+    public function getPlatformMarketAttributeOptions($storeName,$product)
+    {
+        $store = $this->getPlatformStore($storeName);
+        $attributeTypes = PlatformMarketAttributeType::where("store_id",$store->id)
+                    ->where("category_id",$product->platmarket_cat_id)
+                    ->with("PlatformMarketAttributeOptions")
+                    ->get();       
+        foreach ($attributeTypes as $attributeType) {
+           $attributeOptions[$attributeType->attribute_type_name] = $attributeType->platformMarketAttributeOptions->pluck("value","meta_key")->toArray();
+        }
+        return $attributeOptions;
+    }
+
 }

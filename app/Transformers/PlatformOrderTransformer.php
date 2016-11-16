@@ -54,7 +54,6 @@ class PlatformOrderTransformer extends TransformerAbstract
 
         return [
             'id' => $order->id,
-            'store_id' => $order->store_id,
             'biz_type' => $order->biz_type,
             'merchant' => $merchant,
             'platform_order_id' => $order->platform_order_no,
