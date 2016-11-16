@@ -15,17 +15,21 @@ class PlatformOrderTransformer extends TransformerAbstract
         $merchant = 'MATTEL';
         $items = [];
         foreach ($order->platformMarketOrderItem as $orderItem) {
-            $esgSku = $orderItem->marketplaceSkuMapping()->first()->sku;
-            $marketplaceId = $orderItem->marketplaceSkuMapping()->first()->marketplace_id;
-
-            $assemblyMappings = ProductAssemblyMapping::active()->where('main_sku', $esgSku)
-                ->where('status', '=', '1')
-                ->get();
-
+            $marketplaceSkuMapping = $orderItem->marketplaceSkuMapping()->first()->sku;
+            if(!empty($marketplaceSkuMapping)){
+                $assemblyMappings = ProductAssemblyMapping::active()
+                        ->where('main_sku', $marketplaceSkuMapping->sku)
+                        ->where('status', '=', '1')
+                        ->get();
+                $marketplaceId = $marketplaceSkuMapping->marketplace_id;       
+            }
             if (!$assemblyMappings->isEmpty()) {
                 //replace Assembly Sku
                 foreach ($assemblyMappings as $assemblySku) {
-                    $item['sku'] = $assemblySku->merchantProductMapping($merchant)->first()->merchant_sku;
+                    $merchantProductMapping = $assemblySku->merchantProductMapping($merchant)->first();
+                    if(!empty($merchantProductMapping)){
+                       $item['sku'] = $merchantProductMapping->merchant_sku; 
+                    }
                     $item['qty'] = $orderItem->quantity_ordered * $assemblySku->replace_qty;
 
                     $inventory = PlatformMarketInventory::where('mattel_sku', $item['sku'])->where('store_id', $order->store_id)->first();
@@ -46,7 +50,7 @@ class PlatformOrderTransformer extends TransformerAbstract
                 $items[] = $item;
             }
         };
-
+        
         return [
             'id' => $order->id,
             'biz_type' => $order->biz_type,
