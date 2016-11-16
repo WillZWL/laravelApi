@@ -35,6 +35,11 @@ class PlatformMarketOrder extends Model
         return $this->belongsTo('App\Models\So');
     }
 
+    public function marketplaceProduct()
+    {
+
+    }
+
     /***************************************************/
     /****                scope method               ****/
     /***************************************************/

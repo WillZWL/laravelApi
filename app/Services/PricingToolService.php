@@ -9,6 +9,7 @@ use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
 use App\Models\HscodeDutyCountry;
 use App\Models\Marketplace;
+use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\MpCategoryCommission;
 use App\Models\MpControl;
@@ -65,8 +66,6 @@ class PricingToolService
         $accessoryCost = $this->getAccessoryCost($request);
         $deliveryCharge = 0;
 
-        $pricingType = $this->getMerchantType($request);
-
         $totalCharged = $request->input('price') + $deliveryCharge;
 
         $priceInfo = [];
@@ -78,6 +77,19 @@ class PricingToolService
             if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
                 $pnpCost = 0;
             }
+
+            $totalFbaFee = 0;
+            if ($shippingOption['deliveryType'] === 'FBA') {
+
+                $fbafees = $this->getFbaFees($request);
+                $totalFbaFee = $fbafees->storage_fee + $fbafees->order_handing_fee
+                    + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
+
+                if ($request->input('country') == 'GB' && $request->input('price') >= 300) {
+                    $totalFbaFee = $totalFbaFee - $fbafees->weight_handing_fee;
+                }
+            }
+
             $deliveryType = $shippingOption['deliveryType'];
 
             $priceInfo[$deliveryType] = [];
@@ -93,6 +105,7 @@ class PricingToolService
             $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
             $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
             $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
+            $priceInfo[$deliveryType]['totalFbaFee'] = $totalFbaFee;
             $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
             $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
 
@@ -370,5 +383,12 @@ class PricingToolService
         }
 
         return round($accessoryCost, 2);
+    }
+
+    public function getFbaFees(Request $request)
+    {
+        $marketplaceProduct = MarketplaceSkuMapping::find($request->input('id'));
+
+        return $marketplaceProduct->amazonFbaFee;
     }
 }
