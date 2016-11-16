@@ -345,7 +345,6 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
                         ->where("so.platform_group_order","=","1")
                         ->where("so.create_on",">",$fromDate)
                         ->where("so.create_on","<",$toDate)
-                        ->with("wmsWarehouseMapping")
                         ->with("soItem")
                         ->get();
         foreach ($amazonFbaOrders as $amazonFbaOrder) {
