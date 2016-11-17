@@ -134,7 +134,7 @@ class PlatformMarketInventoryService
             }
 
             $message .= "</tbody></table>";
-            $message .= "<p>Please arrange stock replenishment at your earliest convenience.</p>";
+            $message .= "<p>Please note: SKU with 0 stock level will remain inactive until inventory has been updated.</p>";
             $message .= "<p>Thank you.</p>";
             $message .= "</body></html>";
 
