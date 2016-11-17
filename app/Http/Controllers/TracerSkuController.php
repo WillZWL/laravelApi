@@ -101,6 +101,7 @@ class TracerSkuController extends Controller
         $marketplaceProduct->product->length = $request->input('length');
         $marketplaceProduct->product->width = $request->input('width');
         $marketplaceProduct->product->height = $request->input('height');
+        $marketplaceProduct->product->default_ship_to_warehouse = $request->input('default_warehouse');
         $marketplaceProduct->product->save();
 
         $this->api->be(auth()->user())->put('product-size-tier/2305');
