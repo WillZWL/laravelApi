@@ -103,7 +103,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                 }
             }
         }
-    } 
+    }
 
     public function getProductUpdateFeedBack($storeName,$productUpdateFeeds)
     {
@@ -139,7 +139,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     }
 
     public function submitProductCreate($storeName,$pendingSkuGroup)
-    {   
+    {
         foreach ($pendingSkuGroup as $key => $product) {
             $attributeOptions = $this->getPlatformMarketAttributeOptions($storeName);
             $this->lazadaProductCreate = new LazadaProductCreate($storeName);
@@ -191,7 +191,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function submitProductUpdate($storeName)
     {
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
-        
+
     }
 
     public function updatePlatformMarketMattleInventory()
@@ -228,7 +228,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
 
     public function fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData)
     {
-        $message = null; $errorDetail = array(); 
+        $message = null; $errorDetail = array();
         $this->lazadaUpdatePriceQuantity = new LazadaUpdatePriceQuantity($storeName);
         $responseXml = $this->lazadaUpdatePriceQuantity->submitXmlData($xmlData);
         if($responseXml){
@@ -273,10 +273,10 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
             $messageXml = null;
            foreach ($limitInventoryGroup as $pendingSku) {
                 $messageDom = '<Sku>';
-                $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-                $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-                $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
-                $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
+                $messageDom .= '<SellerSku>'.$pendingSku['marketplace_sku'].'</SellerSku>';
+                $messageDom .= '<Quantity>'.$pendingSku['inventory'].'</Quantity>';
+                $messageDom .= '<Price>'.round($pendingSku['price'] * 1.3, 2).'</Price>';
+                $messageDom .= '<SalePrice>'.$pendingSku['price'].'</SalePrice>';
                 $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
                 $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
                 $messageDom .= '</Sku>';

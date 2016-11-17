@@ -639,7 +639,7 @@ class ApiLazadaService implements ApiPlatformInterface
             ['platform_order_id' => $order['OrderId']],
             $object
         );
-        if($platformMarketOrderItem->acknowledge === "1"){
+        if($platformMarketOrder->acknowledge === "1"){
             $this->markSplitOrderShipped($platformMarketOrder);
         }
         return $platformMarketOrder;
@@ -931,7 +931,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $splitOrder->save();
             });
         }
-        
+
     }
 
 }
