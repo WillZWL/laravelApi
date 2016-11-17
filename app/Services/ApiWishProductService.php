@@ -14,7 +14,7 @@ use App\Repository\LazadaMws\LazadaProductUpdate;
 class ApiWishProductService extends ApiWishAuthService  implements ApiPlatformProductInterface
 {
     use ApiBaseProductTraitService;
-    
+
     public function __construct()
     {
         parent::__construct();
@@ -66,7 +66,7 @@ class ApiWishProductService extends ApiWishAuthService  implements ApiPlatformPr
         }
     }
 
-    public function submitProductCreate($storeName)
+    public function submitProductCreate($storeName, $productGroup = '')
     {
         $pendingSkuGroup = MarketplaceSkuMapping::PendingProductSkuGroup($storeName);
         $wishClient = $this->initWishClient($storeName);

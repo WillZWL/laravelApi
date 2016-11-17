@@ -13,7 +13,7 @@ use App\Repository\TangaMws\TangaOrder;
 use App\Repository\TangaMws\TangaOrderList;
 use App\Repository\TangaMws\TangaOrderUpdate;
 
-class ApiTangaService  implements ApiPlatformInterface
+class ApiTangaService implements ApiPlatformInterface
 {
     use ApiBaseOrderTraitService;
 
