@@ -24,6 +24,17 @@ class PlatformMarketInventoryService
         return $query->paginate(30);
     }
 
+    public function update($data)
+    {
+        try {
+            $id = $data['id'];
+            $inventory = PlatformMarketInventory::updateOrCreate(['id' => $id], $data);
+            return ['success' => true, 'message' => 'Update Success'];
+        } catch ( \Exception $e) {
+            return ['error' => true, 'message' => 'Update Error'];
+        }
+    }
+
     public function handleUploadFile($fileName = '')
     {
         if (file_exists($fileName)) {

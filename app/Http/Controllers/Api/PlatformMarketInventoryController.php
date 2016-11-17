@@ -72,4 +72,10 @@ class PlatformMarketInventoryController extends Controller
         }
     }
 
+    public function update(Request $request)
+    {
+        $result = $this->inventoryService->update($request->all());
+        return response()->json($result);
+    }
+
 }
