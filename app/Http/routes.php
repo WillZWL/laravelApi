@@ -120,6 +120,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('platform-market-inventory-upload', 'PlatformMarketInventoryController@upload');
     $api->post('platform-market-inventory-upload', 'PlatformMarketInventoryController@upload');
     $api->get('platform-market-inventory', 'PlatformMarketInventoryController@index');
+    $api->post('platform-market-inventory', 'PlatformMarketInventoryController@update');
     $api->get('platform-market-inventory-upload/donwload-example-file/{file}', 'PlatformMarketInventoryController@donwloadExampleFile');
 
     $api->get('download-inventory-report', 'PlatformMarketInventoryController@downloadReport');
