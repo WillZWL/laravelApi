@@ -341,6 +341,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
         $noMappingPlatformId = array();
         $fromDate = date("Y-m-d 00:00:00",strtotime("-1 weeks"));
         $toDate = date("Y-m-d 00:00:00");
+        $emailMessage = '';
         $amazonFbaOrders = So::where("so.biz_type","=","AMAZON")
                         ->where("so.delivery_type_id","=","FBA")
                         ->where("so.platform_group_order","=","1")
@@ -361,7 +362,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
                     );
                     $FbaOrderList[] = $FbaOrder;
                 }
-                $amazonFbaOrderGroups[$warehouseId] = $FbaOrderList; 
+                $amazonFbaOrderGroups[$warehouseId] = $FbaOrderList;
             }else{
                 $noMappingPlatformId[] = $amazonFbaOrder->platform_id;
             }
