@@ -7,9 +7,11 @@ use App\Models\FlexBatch;
 use App\Models\InterfaceFlexRia;
 use App\Models\InterfaceFlexGatewayFee;
 use App\Models\InterfaceFlexSoFee;
+use App\Models\InterfaceFlexRefund;
 use App\Models\FlexRia;
 use App\Models\FlexSoFee;
 use App\Models\FlexGatewayFee;
+use App\Models\FlexRefund;
 use App\Models\So;
 use Excel;
 
@@ -166,11 +168,12 @@ abstract class PaymentGatewayReportService
     {
         if ($this->isRiaRecord($cell))
         {
+            echo "insert interfaceFlexRia";
             $this->insertInterfaceFlexRia($batchId, 'RIA', $cell);
         }
         else if ($refundStatus = $this->isRefundRecord($cell))
         {
-            //$this->insertInterfaceFlexRefund($batchId, $refundStatus, $cell);
+            $this->insertInterfaceFlexRefund($batchId, $refundStatus, $cell);
         }
         else if ($feeStatus = $this->isSoFeeRecord($cell))
         {
@@ -283,6 +286,44 @@ abstract class PaymentGatewayReportService
         }
 
         $result = InterfaceFlexSoFee::insert($interfaceFlexSoFee);
+    }
+
+    protected function createInterfaceFlexRefund($batchId, $status, $cell, $includeFsf = false)
+    {
+        $interfaceFlexRefundObj = [];
+        if(!$cell->so_no && $cell->txn_id)
+        {
+            if($so = So::where("txn_id",$cell->txn_id)->where("platform_group_order","1")->select("so_no")->first())
+            {
+                $cell->so_no = $so->so_no;
+            }
+        }
+        $interfaceFlexRefundObj = [
+                "so_no"=>$cell->so_no,
+                "flex_batch_id"=>$batchId,
+                "gateway_id"=> $this->getPmgw(),
+                'internal_txn_id'=>$cell->internal_txn_id,
+                "txn_id"=>$cell->txn_id,
+                "txn_time"=>$cell->txn_time,
+                "currency_id"=>$cell->currency_id,
+                "amount"=>$cell->amount,
+                "status"=>$status,
+                "batch_status"=>"N"
+                ];
+        if(!$interfaceFlexRefundObj["so_no"])
+        {
+            $interfaceFlexRefundObj["so_no"] = " ";
+            $interfaceFlexRefundObj["batch_status"] = "F";
+            $interfaceFlexRefundObj["failed_reason"] = PaymentGatewayReportService::WRONG_TRANSACTION_ID;
+        }
+
+        if( $res = InterfaceFlexRefund::insert($interfaceFlexRefundObj) && $interfaceFlexRefundObj["batch_status"] != "F" )
+        {
+            if ($includeFsf)
+            {
+                //$this->insert_so_fee_from_refund_record($batch_id, $status, $dto_obj);
+            }
+        }
     }
 
     public function insertMaster($batchId)
@@ -405,6 +446,87 @@ abstract class PaymentGatewayReportService
 
     public function insertFlexRefund($batchId)
     {
+        $interfaceFlexRefund = new InterfaceFlexRefund();
+        $interfaceFlexRefundList = $interfaceFlexRefund->getFlexRefundByBatch($batchId);
+        
+        $flexRefund = new FlexRefund();
+
+        if($interfaceFlexRefundList->count())
+        {
+            $returnResult = TRUE;
+            foreach($interfaceFlexRefundList AS $refund)
+            {
+                if($refund->batch_status == 'N')
+                {
+                    $flexRefundSingle = $flexRefund->where(["so_no"=>$refund->so_no,"gateway_id"=>$refund->gateway_id,"status"=>$refund->status,"txn_time"=>$refund->txn_time,"internal_txn_id"=>$refund->internal_txn_id])->first();
+
+                    if($flexRefundSingle)
+                    {
+                        if( $flexRefundSingle->amount == $refund->amount )
+                        {
+                            $this->_updateInterfaceFlexRefundStatusByGroup($batchId, $refund->so_no, $refund->status, "C", "duplicated record");
+                        }
+                        else
+                        {
+                            $flexRefundSingle->flex_batch_id = $refund->flex_batch_id;
+                            $flexRefundSingle->amount = $refund->amount;
+
+                            if($flexRefund->where(["so_no"=>$flexRefundSingle->so_no,"gateway_id"=>$flexRefundSingle->gateway_id,"status"=>$flexRefundSingle->status,"txn_time"=>$flexRefundSingle->txn_time,"internal_txn_id"=>$flexRefundSingle->internal_txn_id])->update($flexRefundSingle->toArray()))
+                            {
+                                $this->_updateInterfaceFlexRefundStatusByGroup($batchId, $refund->so_no, $refund->status, "I", "record updated on ". date("Y-m-d H:i:s"));
+                                $returnResult = FALSE;
+                            }
+                            else
+                            {
+                                $this->_updateInterfaceFlexRefundStatusByGroup($batchId, $refund->so_no, $refund->status, "F", "update record error");
+                                $returnResult = FALSE;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        $insert = ['so_no'=>$refund->so_no,
+                                  'flex_batch_id'=>$refund->flex_batch_id,
+                                  'gateway_id'=>$refund->gateway_id,
+                                  'internal_txn_id'=>$refund->internal_txn_id,
+                                  'txn_id'=>$refund->txn_id,
+                                  'txn_time'=>$refund->txn_time,
+                                  'currency_id'=>$refund->currency_id,
+                                  'amount'=>$refund->amount,
+                                  'status'=>$refund->status];
+
+                        if($this->validTxnId($insert))
+                        {
+                            if($flexRefund->insert($insert))
+                            {
+                                $this->_updateInterfaceFlexRefundStatusByGroup($batchId, $refund->so_no, $refund->status, "S", "");
+                            }
+                            else
+                            {
+                                if(!$failedReason = $this->validSoNo($insert))
+                                {
+                                    $failedReason = "datebase error";
+                                }
+                                $this->_updateInterfaceFlexRefundStatusByGroup($batchId, $refund->so_no, $refund->status, "F", $failedReason);
+                                $returnResult = FALSE;
+                            }
+                        }
+                        else
+                        {
+                            $this->_updateInterfaceFlexRefundStatusByGroup($batchId, $refund->so_no, $refund->status, "F", "invalid txn_id");
+                            $returnResult = FALSE;
+                        }
+                    }
+                }
+                elseif($refund->batch_status == 'F')
+                {
+                    $returnResult = FALSE;
+                }
+            }
+
+            return $returnResult;
+        }
+
         return TRUE;
     }
 
@@ -430,6 +552,25 @@ abstract class PaymentGatewayReportService
                 $ria->batch_status = $batchStatus;
                 if ($failedReason) $ria->failed_reason = $failedReason;
                 $ria->save();
+            }
+        }
+    }
+    private function _updateInterfaceFlexRefundStatusByGroup($batchId, $soNo, $status, $batchStatus, $failedReason)
+    {
+        $interfaceFlexRefund = new InterfaceFlexRefund();
+        $collect = $interfaceFlexRefund->where("flex_batch_id",$batchId)
+                        ->where("gateway_id",$this->getPmgw())
+                        ->where("so_no",$soNo)
+                        ->where("status",$status)
+                        ->get();
+
+        if($collect->count())
+        {
+            foreach($collect as $refund)
+            {
+                $refund->batch_status = $batchStatus;
+                if ($failedReason) $refund->failed_reason = $failedReason;
+                $refund->save();
             }
         }
     }
