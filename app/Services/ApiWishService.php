@@ -10,10 +10,10 @@ use Wish\Model\WishTracker;
 use Wish\Exception\OrderAlreadyFulfilledException;
 use Wish\Model\WishReason;
 
-class ApiWishService extends ApiBaseOrderService implements ApiPlatformInterface
-{   
+class ApiWishService implements ApiPlatformInterface
+{
     use ApiBaseOrderTraitService;
-    
+
     public function __construct()
     {
         parent::__construct();
@@ -55,7 +55,7 @@ class ApiWishService extends ApiBaseOrderService implements ApiPlatformInterface
     }
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
-    {   
+    {
         return false;//testing
         $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
         $wishClient = $this->initWishClient($storeName);
@@ -63,7 +63,7 @@ class ApiWishService extends ApiBaseOrderService implements ApiPlatformInterface
             $courier = $this->getWishCourier($esgOrderShipment->courierInfo->aftership_id);
             $tracker = new WishTracker($courier,$esgOrderShipment->tracking_no, $message);
             $wishClient->fulfillOrderById($orderId,$tracker);
-        }      
+        }
     }
 
     public function getWishCourier($courier)
@@ -132,7 +132,7 @@ class ApiWishService extends ApiBaseOrderService implements ApiPlatformInterface
         $object['state_or_region'] = $deliveryInfo['state'];
         $object['phone'] = $deliveryInfo['phone_number'];
         $object['postal_code'] = $deliveryInfo['zipcode'];
-        
+
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
             ['platform_order_id' => $order['order_id']],
             $object
