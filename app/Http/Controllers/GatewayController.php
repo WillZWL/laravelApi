@@ -74,7 +74,7 @@ class GatewayController extends Controller
             else
             {
                 $result['status'] = FALSE;
-                $result['msg'].="no files in $fileFrom\n";
+                $result['msg'].="no files in $fileFrom";
             }
         }
         else
@@ -96,12 +96,16 @@ class GatewayController extends Controller
             {
                 $request->batchIdList = $result['batchIdList'];
                 $this->downloadGatewayReport($request);
+            }else if(strpos($pmgw,'lazada') !== false)
+            {
+                $request->batchIdList = $result['batchIdList'];
+                $this->downloadGatewayReport($request);
             }
         }
 
         if($result['status'] == FALSE)
         {
-             return "<script>alert('".$result['msg']."');history.back();</script>";
+             echo "<script>alert('".$result['msg']."');history.back();</script>";
         }
     }
 

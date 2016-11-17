@@ -24,6 +24,25 @@ class FlexSoFee extends Model
         return $this->belongsTo('App\Models\So', 'so_no', 'so_no');
     }
 
+    public function getLazadaShippingfee($batchIdlist)
+    {
+         return Self::join("so","so.so_no","=","flex_so_fee.so_no")
+        ->join('selling_platform AS sp', 'sp.id', '=', 'so.platform_id')
+        ->whereIn("flex_batch_id",$batchIdlist)
+        ->where("flex_so_fee.status","L_SF")
+        ->select('flex_so_fee.so_no',
+                 'flex_so_fee.txn_id', 
+                 'flex_so_fee.flex_batch_id', 
+                 'flex_so_fee.gateway_id', 
+                 'flex_so_fee.txn_time', 
+                 'flex_so_fee.currency_id', 
+                 'flex_so_fee.amount', 
+                 'flex_so_fee.status', 
+                 'sp.merchant_id')
+        ->orderBy("sp.merchant_id","asc")
+        ->orderBy("so.so_no","asc")
+        ->get();
+    }
     /**
      * Get not Commission Charge.
      *
