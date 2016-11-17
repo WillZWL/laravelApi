@@ -101,7 +101,7 @@ class PlatformMarketInventoryService
                         </style>
                         </head>
                         <body>";
-            $message .= "<p>This is to inform below Inventory listed has reached its SKU threshold settings</p>";
+            $message .= "<p>Please note the allocated stock for one or more SKU has fallen below the minimum threshold. <br/>Please arrange stock replenishment or update allocated stock at your earliest convenience.</p>";
             $message .= "<table>
                             <thead>
                                 <tr>
