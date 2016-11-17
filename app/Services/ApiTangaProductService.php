@@ -19,7 +19,7 @@ class ApiTangaProductService implements ApiPlatformProductInterface
         return 'Tanga';
     }
 
-    public function getProductList()
+    public function getProductList($storeName)
     {
         //
     }
