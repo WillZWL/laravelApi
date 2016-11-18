@@ -28,6 +28,7 @@ class PlatformMarketInventoryService
     {
         try {
             $id = $data['id'];
+            $data['update_status'] = 1;
             $inventory = PlatformMarketInventory::updateOrCreate(['id' => $id], $data);
             return ['success' => true, 'message' => 'Update Success'];
         } catch ( \Exception $e) {
@@ -68,6 +69,7 @@ class PlatformMarketInventoryService
         $object['dc_sku'] = trim($item['dc_sku']);
         $object['inventory'] = $item['quantity'];
         $object['threshold'] = $item['threshold'];
+        $object['update_status'] = 1;
         $platformMarketInventory = PlatformMarketInventory::updateOrCreate(
                 [
                     'store_id' => $object['store_id'],
