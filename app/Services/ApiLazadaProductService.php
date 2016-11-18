@@ -48,7 +48,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     {
         $store = $this->getPlatformStore($storeName);
         $platformMarketInventory = PlatformMarketInventory::where("store_id",$store->id)
-                    ->select("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","inventory")
+                    ->select("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","threshold","inventory")
                     ->get()
                     ->toArray();
         if(!empty($platformMarketInventory)){
@@ -68,7 +68,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     $inventory[$value["SellerSku"]] = $value["Available"];
                 }
             }
-            $newPlatformMarketInventory[] = array("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","inventory","Available");
+            $newPlatformMarketInventory[] = array("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","threshold","inventory","Available");
             foreach ($platformMarketInventory as $value) {
                 if($value["inventory"] != $inventory[$value["marketplace_sku"]]){
                     $value["Available"] = $inventory[$value["marketplace_sku"]];
