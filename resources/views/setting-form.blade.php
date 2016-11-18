@@ -61,6 +61,16 @@
                         </div>
                     </div>
 
+                    <div class="form-group">
+                        <label for="inputWarehouse" class="col-sm-3 control-label">Marketplace:</label>
+                        <div class="col-sm-3">
+                            <select name="default_warehouse" id="inputWarehouse" class="form-control" required="required">
+                                <option value="ES_HK" {{ $tracerSku->product->default_ship_to_warehouse == 'ES_HK' ? 'selected' : '' }}>ES_HK</option>
+                                <option value="ES_DGME" {{ $tracerSku->product->default_ship_to_warehouse == 'ES_DGME' ? 'selected' : '' }}>ES_DGME</option>
+                                <option value="4PXDG_PL" {{ $tracerSku->product->default_ship_to_warehouse == '4PXDG_PL' ? 'selected' : '' }}>4PXDG_PL</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div class="form-group">
                         <label for="inputMarketplace" class="col-sm-3 control-label">Marketplace:</label>

@@ -148,12 +148,48 @@ class FnacCore
     * @param $xml string
     * @return string
     */
-    private function postXmlFileToApi($xmlFeed, &$info = array())
+    private function postXmlFileToApi($xmlFeed)
     {
+        $request = $this->urlbase . $this->getFnacAction();
+        $error = [];
         $client = new \GuzzleHttp\Client();
-        $response = $client->request('POST', $this->urlbase . $this->getFnacAction(), ['body' => $xmlFeed]);
-        $responseXml = $response->getBody()->getContents();
+        try {
+            $response = $client->request('POST', $request, ['body' => $xmlFeed]);
+            $responseXml = $response->getBody()->getContents();
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            $error[] = $e->getFile(). " ".__LINE__." networking error. ";
+            $error[] = "Request: {$request}";
+            $error[] = "message: {$e->getMessage()}. ";
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            # 400-level errors
+            $error[] = $e->getFile(). " ".__LINE__." client 400-level error. ";
+            $error[] = "Request: {$request}";
+            if($e->hasResponse()) {
+                $error["response"] = $e->getResponse()->getBody()->getContents();
+            } else {
+                $error[] = "message: {$e->getMessage()}. ";
+            }
+        } catch (\GuzzleHttp\Exception\ServerException $e) {
 
+            $error[] = $e->getFile(). " ".__LINE__." server 500-level error. ";
+            $error[] = "Request: {$request}";
+            if($e->hasResponse()) {
+                $error[] = "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
+            } else {
+                $error[] = "message: {$e->getMessage()}. ";
+            }
+        } catch (\Exception  $e) {
+            $error[] = $e->getFile(). " ".__LINE__." other error. ";
+            $error[] = "Request: {$request}";
+            $error[] = "message: {$e->getMessage()}. ";
+        }
+        if ($error) {
+            $error['request'] = $request;
+            $error['requestBody'] = $xmlFeed;
+            $errorMessage = serialize($error);
+            mail('brave.liu@eservicesgroup.com', 'Calling Fnac API Failed', $errorMessage, 'From: admin@eservciesgroup.com');
+            return false;
+        }
         return $responseXml;
     }
 
