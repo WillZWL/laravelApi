@@ -101,7 +101,27 @@ class PlatformMarketInventoryService
                         </style>
                         </head>
                         <body>";
-            $message .= "<p>This is to inform below Inventory listed has reached its SKU threshold settings</p>";
+            $table = '';
+            foreach ($row as $sRow) {
+                $email = $sRow->marketplaceLowStockAlertEmail->to_mail;
+                $cc_email = $sRow->marketplaceLowStockAlertEmail->cc_mail;
+                $bcc_email = $sRow->marketplaceLowStockAlertEmail->bcc_mail;
+
+                $merchant_id = $sRow->merchantProductMapping->merchant_id;
+                $country_id = substr($sRow->warehouse_id, -5, 2);
+
+                $table .= "<tr>";
+                $table .=     "<td>".$sRow->merchantProductMapping->product->name."</td>";
+                $table .=     "<td>".$sRow->mattel_sku."</td>";
+                $table .=     "<td>".$sRow->dc_sku."</td>";
+                $table .=     "<td>".$sRow->merchantProductMapping->sku."</td>";
+                $table .=     "<td>".$sRow->inventory."</td>";
+                $table .=     "<td>".$sRow->threshold."</td>";
+                $table .= "</tr>";
+            }
+
+            $message .= "<p>To: ".$country_id.'_'.$merchant_id."</p>";
+            $message .= "<p>Please note the allocated stock for one or more SKU has fallen below the minimum threshold. Please arrange stock replenishment or update allocated stock at your earliest convenience.</p>";
             $message .= "<table>
                             <thead>
                                 <tr>
@@ -114,27 +134,9 @@ class PlatformMarketInventoryService
                                 </tr>
                             </thead>
                             <tbody>";
-
-            foreach ($row as $sRow) {
-                $email = $sRow->marketplaceLowStockAlertEmail->to_mail;
-                $cc_email = $sRow->marketplaceLowStockAlertEmail->cc_mail;
-                $bcc_email = $sRow->marketplaceLowStockAlertEmail->bcc_mail;
-
-                $merchant_id = $sRow->merchantProductMapping->merchant_id;
-                $country_id = substr($sRow->warehouse_id, -5, 2);
-
-                $message .= "<tr>";
-                $message .=     "<td>".$sRow->merchantProductMapping->product->name."</td>";
-                $message .=     "<td>".$sRow->mattel_sku."</td>";
-                $message .=     "<td>".$sRow->dc_sku."</td>";
-                $message .=     "<td>".$sRow->merchantProductMapping->sku."</td>";
-                $message .=     "<td>".$sRow->inventory."</td>";
-                $message .=     "<td>".$sRow->threshold."</td>";
-                $message .= "</tr>";
-            }
-
+            $message .= $table;
             $message .= "</tbody></table>";
-            $message .= "<p>Please arrange stock replenishment at your earliest convenience.</p>";
+            $message .= "<p>NOTE: SKU with 0 stock level will remain inactive until inventory has been updated.</p>";
             $message .= "<p>Thank you.</p>";
             $message .= "</body></html>";
 
