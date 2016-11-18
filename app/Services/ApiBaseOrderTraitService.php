@@ -99,6 +99,7 @@ trait ApiBaseOrderTraitService
             if($platformMarketInventory){
                 $remainInventroy = $platformMarketInventory->inventory - $updateObject["qty"];
                 $platformMarketInventory->inventory = $remainInventroy;
+                $platformMarketInventory->update_status = 1;
                 $platformMarketInventory->save();
             }
         }
