@@ -7,7 +7,7 @@
             <div class="col-sm-8 col-sm-offset-2">
                 <form action="{{ url('tracer').'/'.$tracerSku->id }}" method="POST" class="form-horizontal" role="form">
                     <div class="form-group">
-                        <legend>Tracer SKU Setting</legend>
+                        <legend>{{ $tracerSku->product->name }} : {{ $tracerSku->product->sku  }}</legend>
                     </div>
 
                     <div class="form-group">
