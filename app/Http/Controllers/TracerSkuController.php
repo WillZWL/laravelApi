@@ -60,11 +60,11 @@ class TracerSkuController extends Controller
      */
     public function edit($id)
     {
-        if ($id != 2305) {
+        $ids = [2305, 36458, 36459, 36460, 36461, 36462];
+        if (!in_array($id, $ids)) {
             return redirect('/tracer/2305/edit');
         }
 
-        $id = 2305;
         $tracerSku = MarketplaceSkuMapping::find($id);
 
         $mpControls = MpControl::whereStatus(1)->get(['control_id', 'marketplace_id', 'country_id']);
