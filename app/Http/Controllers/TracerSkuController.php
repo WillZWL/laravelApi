@@ -85,7 +85,10 @@ class TracerSkuController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $id = 2305;
+        $ids = [2305, 36458, 36459, 36460, 36461, 36462];
+        if (!in_array($id, $ids)) {
+             return;
+        }
         $marketplaceProduct = MarketplaceSkuMapping::find($id);
         $marketplaceProduct->mp_category_id = $request->input('category');
         $marketplaceProduct->mp_sub_category_id = $request->input('subCategory');
@@ -104,8 +107,8 @@ class TracerSkuController extends Controller
         $marketplaceProduct->product->default_ship_to_warehouse = $request->input('default_warehouse');
         $marketplaceProduct->product->save();
 
-        $this->api->be(auth()->user())->put('product-size-tier/2305');
-        $this->api->be(auth()->user())->put('fba-fees/2305');
+        $this->api->be(auth()->user())->put('product-size-tier/'.$id);
+        $this->api->be(auth()->user())->put('fba-fees/', $id);
 
         \DB::connection('mysql_esg')->table('supplier_prod')->where('prod_sku', $marketplaceProduct->product->sku)
             ->where('order_default', 1)
