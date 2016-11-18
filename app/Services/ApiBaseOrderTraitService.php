@@ -39,7 +39,6 @@ trait ApiBaseOrderTraitService
         }
         $warehouseInventory["warehouse"] = $updateAction ? $newWarehouse : $orginWarehouse;
         $warehouseInventory["updateObject"] = $updateObject;
-        print_r($warehouseInventory);exit();
         return $warehouseInventory;
     }
 
@@ -90,17 +89,20 @@ trait ApiBaseOrderTraitService
         }
     }
 
-    public function updatePlatformMarketInventory($updateObject)
+    public function updatePlatformMarketInventory($updateObjects)
     {
-        $platformMarketInventory = PlatformMarketInventory::where("store_id",$updateObject["store_id"])
+        foreach ($updateObjects as $updateObject) {
+           $platformMarketInventory = PlatformMarketInventory::where("store_id",$updateObject["store_id"])
                 ->where("warehouse_id",$updateObject["warehouse_id"])
                 ->where("marketplace_sku",$updateObject["marketplace_sku"])
                 ->first();
-        if($platformMarketInventory){
-            $remainInventroy = $platformMarketInventory->inventory - $updateObject["qty"];
-            $platformMarketInventory->inventory = $remainInventroy;
-            $platformMarketInventory->save();
+            if($platformMarketInventory){
+                $remainInventroy = $platformMarketInventory->inventory - $updateObject["qty"];
+                $platformMarketInventory->inventory = $remainInventroy;
+                $platformMarketInventory->save();
+            }
         }
+        
     }
 
     public function checkDuplicateOrder($storeName,$orderNo,$orderId)
