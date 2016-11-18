@@ -118,6 +118,7 @@ class LazadaCore
      */
     protected function initRequestParams()
     {
+        date_default_timezone_set("UTC");
         $now = new \DateTime();
         $requestParams = array(
           'UserID' => $this->options['userId'],
@@ -139,9 +140,14 @@ class LazadaCore
     private function signature($params)
     {
         ksort($params);
-        $strToSign = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-        $signature = rawurlencode(hash_hmac('sha256', $strToSign, $this->options['apiToken'], false));
-        $params['Signature'] = $signature;
+        // URL encode the params.
+        $encoded = array();
+        foreach ($params as $name => $value) {
+            $encoded[] = rawurlencode($name) . '=' . rawurlencode($value);
+        }
+        // Concatenate the sorted and URL encoded params into a string.
+        $concatenated = implode('&', $encoded);
+        $params['Signature'] = rawurlencode(hash_hmac('sha256', $concatenated, $this->options['apiToken'], false));
 
         return $params;
     }
@@ -159,6 +165,7 @@ class LazadaCore
         $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
       // Open Curl connection
         $ch = curl_init();
+        //print_r($this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_URL, $this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
