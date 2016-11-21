@@ -106,8 +106,11 @@ class FnacCore
             if( ! $valide)
             {
                 $errorMessage = $this->_xmlErrorToString();
+                $content = file_get_contents($tplPath . $schema);
+                mail('brave.liu@eservicesgroup.com', 'Xml validation failed !', $errorMessage ."\r\n\r\n". serialize($content) . "\r\n\r\n". serialize($requestXml), 'From: admin@eservciesgroup.com');
 
-                throw new \Exception("xml validation failed ! $errorMessage");
+                return false;
+                // throw new \Exception("xml validation failed ! $errorMessage");
             }
 
             return true;
