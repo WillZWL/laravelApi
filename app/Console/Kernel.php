@@ -35,6 +35,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketReasons::class,
         Commands\PlatformMarketUpdateOrderItemSellerSku::class,
         Commands\PlatformMarketLowStockAlert::class,
+        Commands\PlatformMarketOrderScore::class,
     ];
 
     /**
