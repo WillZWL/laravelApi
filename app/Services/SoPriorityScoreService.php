@@ -24,7 +24,8 @@ class SoPriorityScoreService
     {
         if ($options['platform'] == 'AMAZON' && $options['merchant'] == '3DOODLER') {
             $platformList = SellingPlatform::where('marketplace', '=', '3DAMAZON')->where('merchant_id', '=', '3DOODLER')->pluck('id')->all();
-            $platformOrderList = So::whereIn('platform_id', $platformList)->pluck('platform_order_id')->all();
+            $date = date('Y-m-d 00:00:00');
+            $platformOrderList = So::whereIn('platform_id', $platformList)->where('create_on', '>=', $date)->pluck('platform_order_id')->all();
             $soList = So::whereIn('platform_order_id', $platformOrderList)->pluck('so_no')->all();
             return $soList;
         }
