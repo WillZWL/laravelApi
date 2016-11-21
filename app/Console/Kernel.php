@@ -124,5 +124,15 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('platformMarket:sendLowStockAlert')
             ->dailyAt('16:00');
+
+        $schedule->command('platformMarket:setOrderScore',
+                    array('--platform' => 'AMAZON', '--merchant' => '3DOODLER', '--score' => '2500'))
+            ->dailyAt('00:30');
+        $schedule->command('platformMarket:setOrderScore',
+                    array('--platform' => 'AMAZON', '--merchant' => '3DOODLER', '--score' => '2500'))
+            ->dailyAt('02:30');
+        $schedule->command('platformMarket:setOrderScore',
+                    array('--platform' => 'AMAZON', '--merchant' => '3DOODLER', '--score' => '2500'))
+            ->dailyAt('09:30');
     }
 }
