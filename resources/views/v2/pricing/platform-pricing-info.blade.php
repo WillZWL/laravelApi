@@ -49,6 +49,7 @@
               <col width="5%">
               <col width="5%">
               <col width="5%">
+              <col width="5%">
               <col width="8%">
               <col width="5%">
             </colgroup>
@@ -68,6 +69,7 @@
               <th>Freight Cost</th>
               <th>W.H. Cost</th>
               <th>Total FBA Fee</th>
+              <th>TUV Fee</th>
               <th>Supp. Cost</th>
               <th>Acce. Cost</th>
               <th>Total Cost</th>
@@ -99,6 +101,7 @@
                 <td>{{ $item['freightCost'] }}</td>
                 <td>{{ $item['warehouseCost'] }}</td>
                 <td>{{ $item['totalFbaFee'] }}</td>
+                <td>{{ $item['tuvFee'] }}</td>
                 <td>{{ $item['supplierCost'] }}</td>
                 <td>{{ $item['accessoryCost'] }}</td>
                 <td>{{ $item['totalCost'] }}</td>
@@ -111,7 +114,7 @@
             @endforeach
 
             <tr>
-              <td colspan="3">Listing Status:</td>
+              <td colspan="4">Listing Status:</td>
               <td colspan="6">
                 <select name="listingStatus" required="required">
                   <option value="">-- Select --</option>
@@ -125,7 +128,7 @@
               </td>
             </tr>
             <tr>
-              <td colspan="3"> <a href="/images/amazon_latency.jpg" target="_blank"> Latency </a> </td>
+              <td colspan="4"> <a href="/images/amazon_latency.jpg" target="_blank"> Latency </a> </td>
               <td colspan="6">
                 <input type="text" name="latency" id="inputLatency" value="{{ $platformInfo['fulfillmentLatency'] }}" required="required">
               </td>
@@ -135,7 +138,7 @@
               </td>
             </tr>
             <tr>
-              <td colspan="3"> Condition </td>
+              <td colspan="4"> Condition </td>
               <td colspan="6">
                 <select name="condition" id="condition">
                   <option value="New" {{ ($platformInfo['condition'] == 'New') ? 'selected' : '' }}>New</option>
@@ -157,7 +160,7 @@
               </td>
             </tr>
             <tr>
-              <td colspan="3">Weight</td>
+              <td colspan="4">Weight</td>
               <td colspan="6">
                 {{ $platformInfo['weight'] }} kg
               </td>
@@ -167,7 +170,7 @@
               </td>
             </tr>
             <tr>
-              <td colspan="18" align="center">
+              <td colspan="19" align="center">
                 <button type="button" data-platform="{{ $platform }}" class="btn btn-danger save_price_info"> Save</button>
               </td>
             </tr>

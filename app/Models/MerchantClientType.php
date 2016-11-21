@@ -11,4 +11,9 @@ class MerchantClientType extends Model
     protected $table = 'merchant_client_type';
 
     public $timestamps = false;
+
+    public function merchant()
+    {
+        return $this->belongsTo('App\Models\Merchant');
+    }
 }
