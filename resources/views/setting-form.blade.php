@@ -62,7 +62,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="inputWarehouse" class="col-sm-3 control-label">Marketplace:</label>
+                        <label for="inputWarehouse" class="col-sm-3 control-label">Warehouse:</label>
                         <div class="col-sm-3">
                             <select name="default_warehouse" id="inputWarehouse" class="form-control" required="required">
                                 <option value="ES_HK" {{ $tracerSku->product->default_ship_to_warehouse == 'ES_HK' ? 'selected' : '' }}>ES_HK</option>
