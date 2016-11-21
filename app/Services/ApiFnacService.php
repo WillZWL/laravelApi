@@ -162,16 +162,20 @@ class ApiFnacService implements ApiPlatformInterface
         if ($pendingPaymentOrderList) {
             $fnacOrderIds = [];
             foreach ($pendingPaymentOrderList as $pendingOrder) {
-                $fnacOrderIds[] = $pendingOrder->platform_order_id;
+                if (isset($pendingOrder)) {
+                    $fnacOrderIds[] = $pendingOrder->platform_order_id;
+                }
             }
 
-            $this->fnacOrderList = new FnacOrderList($storeName);
-            $this->fnacOrderList->setFnacOrderIds($fnacOrderIds);
+            if ($fnacOrderIds) {
+                $this->fnacOrderList = new FnacOrderList($storeName);
+                $this->fnacOrderList->setFnacOrderIds($fnacOrderIds);
 
-            if ($responseDataList = $this->fnacOrderList->requestFnacPendingPayment()) {
-                $this->updateOrderPendingPaymentStatus($responseDataList);
+                if ($responseDataList = $this->fnacOrderList->requestFnacPendingPayment()) {
+                    $this->updateOrderPendingPaymentStatus($responseDataList);
 
-                $this->saveDataToFile(serialize($responseDataList),"responseFnacPendingPayment");
+                    $this->saveDataToFile(serialize($responseDataList),"responseFnacPendingPayment");
+                }
             }
         }
     }
