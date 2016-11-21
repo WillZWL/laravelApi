@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Services\SoPriorityScoreService;
 
 class PlatformMarketOrderScore extends Command
 {
@@ -11,7 +12,7 @@ class PlatformMarketOrderScore extends Command
      *
      * @var string
      */
-    protected $signature = 'PlatformMarket:setOrderScore {--platform= : amazon}';
+    protected $signature = 'platformMarket:setOrderScore {--platform=AMAZON} {--merchant=3DOODLER} {--score=2500}';
 
     /**
      * The console command description.
@@ -25,9 +26,10 @@ class PlatformMarketOrderScore extends Command
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(SoPriorityScoreService $soPriorityScoreService)
     {
         parent::__construct();
+        $this->soPriorityScoreService = $soPriorityScoreService;
     }
 
     /**
@@ -37,6 +39,10 @@ class PlatformMarketOrderScore extends Command
      */
     public function handle()
     {
-        //
+        \Log::info('Set Order Priority Score at . '.\Carbon\Carbon::now());
+        $options = $this->option();
+        if (isset($options['score'])) {
+            $this->soPriorityScoreService->setSoScore($options);
+        }
     }
 }

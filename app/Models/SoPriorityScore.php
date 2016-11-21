@@ -10,6 +10,8 @@ class SoPriorityScore extends Model
 
     protected $table = 'so_priority_score';
 
+    protected $primaryKey = 'so_no';
+
     public $timestamps = false;
 
     protected $guarded = ['create_at'];
