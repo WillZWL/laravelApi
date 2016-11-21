@@ -81,4 +81,8 @@ class So extends Model
         return $this->hasOne('App\Models\AmazonOrder', 'amazon_order_id', 'platform_order_id');
     }
 
+    public function soPriorityScore()
+    {
+        return $this->hasOne('App\Models\SoPriorityScore', 'so_no', 'so_no');
+    }
 }
