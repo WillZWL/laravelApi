@@ -64,6 +64,7 @@ class PricingToolService
         $warehouseCostDetails = $this->getWarehouseCost($request);
         $supplierCost = $this->getSupplierCost($request);
         $accessoryCost = $this->getAccessoryCost($request);
+        $tuvFee = $this->getTuvFee($request);
         $deliveryCharge = 0;
 
         $totalCharged = $request->input('price') + $deliveryCharge;
@@ -106,6 +107,7 @@ class PricingToolService
             $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
             $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
             $priceInfo[$deliveryType]['totalFbaFee'] = $totalFbaFee;
+            $priceInfo[$deliveryType]['tuvFee'] = $tuvFee;
             $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
             $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
 
@@ -390,5 +392,16 @@ class PricingToolService
         $marketplaceProduct = MarketplaceSkuMapping::find($request->input('id'));
 
         return $marketplaceProduct->amazonFbaFee;
+    }
+
+    public function getTuvFee(Request $request)
+    {
+        $tuvFee = 0;
+        $acceleratorMerchant = $this->product->merchantProductMapping->merchant->merchantClientType()->where('client_type', 'ACCELERATOR')->first();
+        if ($acceleratorMerchant && ($acceleratorMerchant->q_rated == 1)) {
+            $tuvFee = round(0.02 * $request->input('price'), 2);
+        }
+
+        return $tuvFee;
     }
 }

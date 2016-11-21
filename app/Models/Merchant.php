@@ -37,4 +37,9 @@ class Merchant extends Model
     {
         return $this->hasMany('App\Models\SellingPlatform', 'merchant_id', 'id');
     }
+
+    public function merchantClientType()
+    {
+        return $this->hasMany('App\Models\MerchantClientType');
+    }
 }
