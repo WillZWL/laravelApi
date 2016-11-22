@@ -77,7 +77,7 @@ class NeweggSbnFeesService extends FulfilmentByMarketplaceFeesService
         $unitWeightInLbs = $marketplaceProduct->product->weight / 0.4535;
 
         if ($productSize === 19) {
-            $shippingWeight = cell($unitWeightInLbs) * 0.4535;
+            $shippingWeight = ceil($unitWeightInLbs) * 0.4535;
         } else {
             $dimensionalWeightInLbs = $marketplaceProduct->product->length
                 * $marketplaceProduct->product->width
