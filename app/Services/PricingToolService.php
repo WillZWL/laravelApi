@@ -9,6 +9,7 @@ use App\Models\DeclarationException;
 use App\Models\ExchangeRate;
 use App\Models\HscodeDutyCountry;
 use App\Models\Marketplace;
+use App\Models\MarketplaceProduct;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MerchantProductMapping;
 use App\Models\MpCategoryCommission;
@@ -36,6 +37,8 @@ class PricingToolService
 
     public function getPricingInfo(Request $request)
     {
+        $marketplaceProduct = MarketplaceSkuMapping::find($request->input('id'));
+
         $this->product = Product::findOrFail($request->input('sku'));
         $this->destination = CountryState::firstOrNew(['country_id' => $request->input('country'), 'is_default_state' => 1]);
         if ($this->destination->state_id === null) {
@@ -79,15 +82,26 @@ class PricingToolService
                 $pnpCost = 0;
             }
 
-            $totalFbaFee = 0;
-            if ($shippingOption['deliveryType'] === 'FBA' && substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON') {
+            $fulfilmentByMarketplaceFee = 0;
+            if ( ($shippingOption['deliveryType'] === 'FBA' && substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON')
+                || ($shippingOption['deliveryType'] === 'SBN' && substr($this->marketplaceControl->marketplace_id, 2) === 'NEWEGG')
+            ) {
 
                 $fbafees = $this->getFbaFees($request);
-                $totalFbaFee = $fbafees->storage_fee + $fbafees->order_handing_fee
+                $fulfilmentByMarketplaceFee = $fbafees->storage_fee + $fbafees->order_handing_fee
                     + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
 
-                if ($request->input('country') == 'GB' && $request->input('price') >= 300) {
-                    $totalFbaFee = $totalFbaFee - $fbafees->weight_handing_fee;
+                if (substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON'
+                    && $request->input('country') == 'GB' && $request->input('price') >= 300
+                ) {
+                    $fulfilmentByMarketplaceFee = 0;
+                }
+
+                if (substr($this->marketplaceControl->marketplace_id, 2) === 'NEWEGG'
+                    && $request->input('price') >= 300
+                    && in_array($marketplaceProduct->amazonProductSizeTier->product_size, [14, 15])
+                ) {
+                    $fulfilmentByMarketplaceFee = 0;
                 }
             }
 
@@ -106,7 +120,7 @@ class PricingToolService
             $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
             $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
             $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
-            $priceInfo[$deliveryType]['totalFbaFee'] = $totalFbaFee;
+            $priceInfo[$deliveryType]['fulfilmentByMarketplaceFee'] = $fulfilmentByMarketplaceFee;
             $priceInfo[$deliveryType]['tuvFee'] = $tuvFee;
             $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
             $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
