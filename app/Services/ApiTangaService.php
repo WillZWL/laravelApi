@@ -110,7 +110,7 @@ class ApiTangaService implements ApiPlatformInterface
         $totalAmount = 0;
 
         foreach($order['line_items'] as $orderItem){
-            $totalAmount += $orderItem['cost'] * $orderItem['quantity'];
+            $totalAmount += $orderItem['cost'] * $orderItem['quantity'] + $orderItem['shipping_cost'];
         }
 
         $orderStatus = "unshipped";
@@ -158,6 +158,10 @@ class ApiTangaService implements ApiPlatformInterface
 
         if (isset($orderItem['cost'])) {
             $object['item_price'] = $orderItem['cost'];
+        }
+
+        if (isset($orderItem['shipping_cost'])) {
+            $object['shipping_price'] = $orderItem['shipping_cost'];
         }
 
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
