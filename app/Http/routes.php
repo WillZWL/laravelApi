@@ -127,6 +127,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->resource('product-size-tier', 'AmazonProductSizeTierController');
     $api->resource('fba-fees', 'CalculateAmazonFbaFeesController');
+    $api->resource('sbn-fees', 'CalculateAmazonFbaFeesController');
 
     $api->resource('orders', 'OrderController');
     $api->resource('export-orders', 'OrderController@exportOrdersToExcel');
