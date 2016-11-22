@@ -171,9 +171,9 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                 $message = "courierId: $courierId, courierName: $courierName Lack with Priceminister courier Mapping, Please Contact IT Support";
             }
 
-            $to = 'priceministerfr@brandsconnect.net';
+            $to = 'priceministerfr@brandsconnect.net, celine@eservicesgroup.net';
             $header = "From: admin@eservicesgroup.com\r\n";
-            $header .= "Cc: it@eservicesgroup.net, celine@eservicesgroup.net\r\n";
+            $header .= "Cc: handy.hon@eservicesgroup.com, jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com\r\n";
 
             mail($to, "Alert, Courier: {$courierName} Lack Mapping", $message, $header);
 
