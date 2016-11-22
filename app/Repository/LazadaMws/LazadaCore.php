@@ -10,6 +10,7 @@ class LazadaCore
     protected $mwsName = 'lazada-mws';
     private $storeCurrency;
     protected $errorResponse = array();
+    private $postUrl;
 
     public function __construct($storeName)
     {
@@ -26,7 +27,7 @@ class LazadaCore
 
         if (isset($data['Head']) && isset($data['Head']['ErrorCode'])) {
             $this->ErrorResponse = $data['Head'];
-            $message = $this->storeName." ErrorCode ".$data['Head']['ErrorCode']." message ".$data["Head"]["ErrorMessage"];
+            $message = $this->storeName." ErrorCode ".$data['Head']['ErrorCode']." message ".$data["Head"]["ErrorMessage"].$this->postUrl;
             mail("jimmy.gao@eservicesgroup.com", "lazada error message", $message, $headers = 'From: admin@shop.eservciesgroup.com');
             return null;
         }
@@ -165,6 +166,7 @@ class LazadaCore
         $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
       // Open Curl connection
         $ch = curl_init();
+        $this->postUrl = $this->urlbase.'?'.$queryString;
         //print_r($this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_URL, $this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
