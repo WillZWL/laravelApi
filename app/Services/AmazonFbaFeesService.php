@@ -68,18 +68,18 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
                 case 1:
                 case 2:
                     if ($unitWeightInLbs <= 1) {
-                        $shippingWeight = round($unitWeightInLbs + 0.25) * 0.4535924;
+                        $shippingWeight = ceil($unitWeightInLbs + 0.25) * 0.4535924;
                     } else {
-                        $shippingWeight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 0.25) * 0.4535924;
+                        $shippingWeight = ceil(max($unitWeightInLbs, $dimensionalWeightInLbs) + 0.25) * 0.4535924;
                     }
                     break;
                 case 3:
                 case 4:
                 case 5:
-                    $shippingWeight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 1) * 0.4535924;
+                    $shippingWeight = ceil(max($unitWeightInLbs, $dimensionalWeightInLbs) + 1) * 0.4535924;
                     break;
                 case 6:
-                    $shippingWeight = round($unitWeightInLbs + 1) * 0.4535924;
+                    $shippingWeight = ceil($unitWeightInLbs + 1) * 0.4535924;
                     break;
             }
         }

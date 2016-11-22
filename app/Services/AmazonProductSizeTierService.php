@@ -95,44 +95,44 @@ class AmazonProductSizeTierService
 
         $smallStandardSizeRulesOne = [
             'media' => 0,
-            'weight' => 12 * 0.0283495, // oz to kg
-            'longestSide' => 15 * 2.54, // inch to cm
-            'medianSide' => 12 * 2.54,
-            'shortestSide' => 0.75 * 2.54,
+            'weight' =>  0.3401940,         // 12 * 0.0283495, // oz to kg
+            'longestSide' => 38.10,         // 15 * 2.54, // inch to cm
+            'medianSide' => 30.48,          // 12 * 2.54,
+            'shortestSide' => 1.9050,       // 0.75 * 2.54,
         ];
 
         $smallStandardSizeRulesTwo = [
             'media' => 1,
-            'weight' => 14 * 0.0283495, // oz to kg
-            'longestSide' => 15 * 2.54, // inch to cm
-            'medianSide' => 12 * 2.54,
-            'shortestSide' => 0.75 * 2.54,
+            'weight' => 0.3968930,          // 14 * 0.0283495, // oz to kg
+            'longestSide' => 38.10,         // 15 * 2.54, // inch to cm
+            'medianSide' => 30.48,          // 12 * 2.54,
+            'shortestSide' => 1.9050,       // 0.75 * 2.54,
         ];
 
         $largeStandardSizeRules = [
-            'weight' => 20 * 0.4535924, // lb to kg
-            'longestSide' => 18 * 2.54, // inch to cm
-            'medianSide' => 14 * 2.54,
-            'shortestSide' => 8 * 2.54,
+            'weight' => 9.0718480,          // 20 * 0.4535924, // lb to kg
+            'longestSide' => 45.72,         // 18 * 2.54, // inch to cm
+            'medianSide' => 35.56,          // 14 * 2.54,
+            'shortestSide' => 20.32,        // 8 * 2.54,
         ];
 
         $smallOversizeRules = [
-            'weight' => 70 * 0.4535924, // lb to kg
-            'longestSide' => 60 * 2.54, // inch to cm
-            'medianSide' => 30 * 2.54,
-            'lengthPlusGirth' => 130 * 2.54,
+            'weight' => 31.7514680,         // 70 * 0.4535924,     // lb to kg
+            'longestSide' => 152.40,        // 60 * 2.54, // inch to cm
+            'medianSide' => 76.20,          // 30 * 2.54,
+            'lengthPlusGirth' => 330.20,    // 130 * 2.54,
         ];
 
         $mediumOversizeRules = [
-            'lengthPlusGirth' => 130 * 2.54,
-            'weight' => 150 * 0.4535924, // lb to kg
-            'longestSide' => 108 * 2.54, // inch to cm
+            'lengthPlusGirth' => 330.20,    // 130 * 2.54,
+            'weight' => 68.0388600,         // 150 * 0.4535924, // lb to kg
+            'longestSide' => 274.32,        // 108 * 2.54, // inch to cm
         ];
 
         $largeOversizeRules = [
-            'lengthPlusGirth' => 160 * 2.54,
-            'weight' => 150 * 0.4535924, // lb to kg
-            'longestSide' => 108 * 2.54, // inch to cm
+            'lengthPlusGirth' => 406.40,    // 160 * 2.54,
+            'weight' => 68.0388600,         // 150 * 0.4535924, // lb to kg
+            'longestSide' => 274.32,        // 108 * 2.54, // inch to cm
         ];
 
         if ($this->checkProductSizeRulesInUs($smallStandardSizeRulesOne, $media, $unitWeight, $longestSide, $medianSide, $shortestSide)
@@ -166,42 +166,42 @@ class AmazonProductSizeTierService
     {
         // get product size tier from  https://go.amazonservices.com/2015-EU-FBA-Fee-Update.html
         $smallEnvelope = [
-            'weight' => (100 - 20) / 1000,      // unit weight = outbound shipping weight - packaging weight
+            'weight' => 0.080,                  // (100 - 20) / 1000, unit weight = outbound shipping weight - packaging weight
             'longestSide' => 20,
             'medianSide' => 15,
             'shortestSide' => 1,
         ];
 
         $standardEnvelope = [
-            'weight' => (500 - 40) / 1000,      // unit weight = outbound shipping weight - packaging weight
+            'weight' => 0.4600,                 // (500 - 40) / 1000, unit weight = outbound shipping weight - packaging weight
             'longestSide' => 33,
             'medianSide' => 23,
             'shortestSide' => 2.5,
         ];
 
         $largeEnvelope = [
-            'weight' => (1000 - 40) / 1000,      // unit weight = outbound shipping weight - packaging weight
+            'weight' => 0.9600,                 // (1000 - 40) / 1000, unit weight = outbound shipping weight - packaging weight
             'longestSide' => 33,
             'medianSide' => 23,
             'shortestSide' => 5,
         ];
 
         $standardParcel = [
-            'weight' => (12000 - 100) / 1000,      // unit weight = outbound shipping weight - packaging weight
+            'weight' => 11.9000,                // (12000 - 100) / 1000, unit weight = outbound shipping weight - packaging weight
             'longestSide' => 45,
             'medianSide' => 34,
             'shortestSide' => 26,
         ];
 
         $smallOversize = [
-            'weight' => (2000- 240) / 1000,      // unit weight = outbound shipping weight - packaging weight
+            'weight' => 1.7600,                 // (2000- 240) / 1000, unit weight = outbound shipping weight - packaging weight
             'longestSide' => 61,
             'medianSide' => 46,
             'shortestSide' => 46,
         ];
 
         $standardOversize = [
-            'weight' => (30000- 240) / 1000,      // unit weight = outbound shipping weight - packaging weight
+            'weight' => 29.7600,                // (30000- 240) / 1000, unit weight = outbound shipping weight - packaging weight
             'longestSide' => 120,
             'medianSide' => 60,
             'shortestSide' => 60,
@@ -237,7 +237,6 @@ class AmazonProductSizeTierService
 
     public function checkProductSizeRulesInEu($rules, $weight, $longestSide, $medianSide, $shortestSide)
     {
-
         if (isset($rules['weight']) && ($rules['weight'] < $weight)) {
             return false;
         }
@@ -291,36 +290,36 @@ class AmazonProductSizeTierService
         $maxWeight = max($unitWeight, $dimensionalWeight);
 
         $smallStandardSizeRules = [
-            'weight' => 15.99 * 0.0283495, // oz to kg
-            'longestSide' => 14.25 * 2.54, // inch to cm
-            'medianSide' => 9.5 * 2.54,
-            'shortestSide' => 0.75 * 2.54,
+            'weight' => 0.453308505,            // 15.99 * 0.0283495, oz to kg
+            'longestSide' => 36.1950,           // 14.25 * 2.54, inch to cm
+            'medianSide' => 24.130,             // 9.5 * 2.54,
+            'shortestSide' => 1.9050,           // 0.75 * 2.54,
         ];
 
         $largeStandardSizeRules = [
-            'weight' => 20 * 0.4535924, // lb to kg
-            'longestSide' => 25 * 2.54, // inch to cm
-            'medianSide' => 17 * 2.54,
-            'shortestSide' => 12 * 2.54,
+            'weight' => 9.0718480,              // 20 * 0.4535924, lb to kg
+            'longestSide' => 63.50,             // 25 * 2.54, // inch to cm
+            'medianSide' => 43.18,              // 17 * 2.54,
+            'shortestSide' => 30.48             // 12 * 2.54,
         ];
 
         $smallOversizeRules = [
-            'weight' => 70 * 0.4535924, // lb to kg
-            'longestSide' => 60 * 2.54, // inch to cm
-            'medianSide' => 30 * 2.54,
-            'lengthPlusGirth' => 130 * 2.54,
+            'weight' => 31.7514680,             // 70 * 0.4535924, lb to kg
+            'longestSide' => 152.40,            // 60 * 2.54, // inch to cm
+            'medianSide' => 76.20,              // 30 * 2.54,
+            'lengthPlusGirth' => 330.20,        // 130 * 2.54,
         ];
 
         $mediumOversizeRules = [
-            'weight' => 90 * 0.4535924, // lb to kg
-            'longestSide' => 108 * 2.54, // inch to cm
-            'lengthPlusGirth' => 130 * 2.54,
+            'weight' => 40.8233160,             // 90 * 0.4535924, // lb to kg
+            'longestSide' => 274.32,            // 274.32108 * 2.54, // inch to cm
+            'lengthPlusGirth' => 330.20,        // 130 * 2.54,
         ];
 
         $largeOversizeRules = [
-            'weight' => 150 * 0.4535924, // lb to kg
-            'longestSide' => 108 * 2.54, // inch to cm
-            'lengthPlusGirth' => 165 * 2.54,
+            'weight' => 68.0388600,             // 150 * 0.4535924, // lb to kg
+            'longestSide' => 274.32,            // 108 * 2.54, // inch to cm
+            'lengthPlusGirth' => 419.10,        // 165 * 2.54,
         ];
 
         if ($this->checkProductSizeRulesInEu($smallStandardSizeRules, $unitWeight, $longestSide, $medianSide, $shortestSide)) {

@@ -77,13 +77,13 @@ class NeweggSbnFeesService extends FulfilmentByMarketplaceFeesService
         $unitWeightInLbs = $marketplaceProduct->product->weight / 0.4535;
 
         if ($productSize === 19) {
-            $shippingWeight = round($unitWeightInLbs) * 0.4535;
+            $shippingWeight = cell($unitWeightInLbs) * 0.4535;
         } else {
             $dimensionalWeightInLbs = $marketplaceProduct->product->length
                 * $marketplaceProduct->product->width
                 * $marketplaceProduct->product->height
                 / 166 / 2.54 / 2.54 / 2.54;
-            $shippingWeight = round(max($unitWeightInLbs, $dimensionalWeightInLbs)) * 0.4535;
+            $shippingWeight = ceil(max($unitWeightInLbs, $dimensionalWeightInLbs)) * 0.4535;
         }
 
         $feeRate = AmazonFulfilmentFeeRate::where('marketplace', '=', 'NEWEGG')
