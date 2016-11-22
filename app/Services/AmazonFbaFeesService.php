@@ -64,6 +64,7 @@ class AmazonFbaFeesService
         $country = $marketplaceProduct->mpControl->country_id;
         $productSize = $marketplaceProduct->amazonProductSizeTier->product_size;
         $unitWeight = $marketplaceProduct->product->weight;
+        $weight = $unitWeight;
 
         if ($country == 'US') {
             $unitWeightInLbs = $unitWeight / 0.4535924;
