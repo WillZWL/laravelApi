@@ -134,7 +134,7 @@ class PriceMinisterCore extends CommonMws
         }
     }
 
-    function __destruct()
+    public function __destruct()
     {
         if($error = $this->errorMessage()){
             //test
