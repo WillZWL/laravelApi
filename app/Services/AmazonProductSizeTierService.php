@@ -61,14 +61,14 @@ class AmazonProductSizeTierService
         ];
         sort($dimensions);
         list($shortestSide, $medianSide, $longestSide) = $dimensions;
-        $weight = $marketplaceProduct->product->weight;
+        $unitWeight = $marketplaceProduct->product->weight;
 
         if (in_array($country, ['GB', 'FR', 'DE', 'ES', 'IT'])) {
-            $productSizeTier = $this->calculateProductSizeTierInAmazonEu($weight, $longestSide, $medianSide, $shortestSide);
+            $productSizeTier = $this->calculateProductSizeTierInAmazonEu($unitWeight, $longestSide, $medianSide, $shortestSide);
         } elseif ($country === 'US') {
-            $dimensionalWeight = $longestSide * $medianSide * $shortestSide / 166;
-            $weight = ($weight > $dimensionalWeight) ? $weight : $dimensionalWeight;
-            $productSizeTier = $this->calculateProductSizeTierInAmazonUs($media, $weight, $longestSide, $medianSide, $shortestSide);
+            // cm / inch = 2.54, lb * 0.4535924 = kg, 166 is const
+            $dimensionalWeight = $longestSide * $medianSide * $shortestSide / 166 / 2.54 / 2.54 / 2.54 * 0.4535924;
+            $productSizeTier = $this->calculateProductSizeTierInAmazonUs($media, $unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
         } else {
             // TODO
             // calculate product size tier in other countries.
@@ -78,8 +78,10 @@ class AmazonProductSizeTierService
         return $productSizeTier;
     }
 
-    public function calculateProductSizeTierInAmazonUs($media, $weight, $longestSide, $medianSide, $shortestSide)
+    public function calculateProductSizeTierInAmazonUs($media, $unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide)
     {
+        $maxWeight = max($unitWeight, $dimensionalWeight);
+
         $smallStandardSizeRulesOne = [
             'media' => 0,
             'weight' => 12 * 0.0283495, // oz to kg
@@ -122,26 +124,26 @@ class AmazonProductSizeTierService
             'longestSide' => 108 * 2.54, // inch to cm
         ];
 
-        if ($this->checkProductSizeRulesInUs($smallStandardSizeRulesOne, $media, $weight, $longestSide, $medianSide, $shortestSide)
-            || $this->checkProductSizeRulesInUs($smallStandardSizeRulesTwo, $media, $weight, $longestSide, $medianSide, $shortestSide)
+        if ($this->checkProductSizeRulesInUs($smallStandardSizeRulesOne, $media, $unitWeight, $longestSide, $medianSide, $shortestSide)
+            || $this->checkProductSizeRulesInUs($smallStandardSizeRulesTwo, $media, $unitWeight, $longestSide, $medianSide, $shortestSide)
         ) {
 
             return self::SMALL_STANDARD_SIZE_IN_US;
         }
 
-        if ($this->checkProductSizeRulesInUs($largeStandardSizeRules, $media, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInUs($largeStandardSizeRules, $media, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::LARGE_STANDARD_SIZE_IN_US;
         }
 
-        if ($this->checkProductSizeRulesInUs($smallOversizeRules, $media, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInUs($smallOversizeRules, $media, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::SMALL_OVERSIZE_IN_US;
         }
 
-        if ($this->checkProductSizeRulesInUs($mediumOversizeRules, $media, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInUs($mediumOversizeRules, $media, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::MEDIUM_OVERSIZE_IN_US;
         }
 
-        if ($this->checkProductSizeRulesInUs($largeOversizeRules, $media, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInUs($largeOversizeRules, $media, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::LARGE_OVERSIZE_IN_US;
         }
 
@@ -149,7 +151,7 @@ class AmazonProductSizeTierService
         return self::SPECIAL_OVERSIZE_IN_US;
     }
 
-    public function calculateProductSizeTierInAmazonEu($weight, $longestSide, $medianSide, $shortestSide)
+    public function calculateProductSizeTierInAmazonEu($unitWeight, $longestSide, $medianSide, $shortestSide)
     {
         // get product size tier from  https://go.amazonservices.com/2015-EU-FBA-Fee-Update.html
         $smallEnvelope = [
@@ -194,27 +196,27 @@ class AmazonProductSizeTierService
             'shortestSide' => 60,
         ];
 
-        if ($this->checkProductSizeRulesInEu($smallEnvelope, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInEu($smallEnvelope, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::SMALL_ENVELOPE_IN_EU;
         }
 
-        if ($this->checkProductSizeRulesInEu($standardEnvelope, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInEu($standardEnvelope, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::STANDARD_ENVELOPE_IN_EU;
         }
 
-        if ($this->checkProductSizeRulesInEu($largeEnvelope, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInEu($largeEnvelope, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::LARGE_ENVELOPE_IN_EU;
         }
 
-        if ($this->checkProductSizeRulesInEu($standardParcel, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInEu($standardParcel, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::STANDARD_PARCEL_IN_EU;
         }
 
-        if ($this->checkProductSizeRulesInEu($smallOversize, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInEu($smallOversize, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::SMALL_OVERSIZE_IN_EU;
         }
 
-        if ($this->checkProductSizeRulesInEu($standardOversize, $weight, $longestSide, $medianSide, $shortestSide)) {
+        if ($this->checkProductSizeRulesInEu($standardOversize, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
             return self::STANDARD_OVERSIZE_IN_EU;
         }
 

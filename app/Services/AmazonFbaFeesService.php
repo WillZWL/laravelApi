@@ -63,7 +63,34 @@ class AmazonFbaFeesService
     {
         $country = $marketplaceProduct->mpControl->country_id;
         $productSize = $marketplaceProduct->amazonProductSizeTier->product_size;
-        $weight = $marketplaceProduct->product->weight;
+        $unitWeight = $marketplaceProduct->product->weight;
+
+        if ($country == 'US') {
+            $unitWeightInLbs = $unitWeight / 0.4535924;
+            $dimensionalWeightInLbs = $marketplaceProduct->product->length
+                * $marketplaceProduct->product->width
+                * $marketplaceProduct->product->height
+                / 166 / 2.54 / 2.54 / 2.54;
+
+            switch ($productSize) {
+                case 1:
+                case 2:
+                    if ($unitWeightInLbs <= 1) {
+                        $weight = round($unitWeightInLbs + 0.25) * 0.4535924;
+                    } else {
+                        $weight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 0.25) * 0.4535924;
+                    }
+                    break;
+                case 3:
+                case 4:
+                case 5:
+                    $weight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 1) * 0.4535924;
+                    break;
+                case 6:
+                    $weight = round($unitWeightInLbs + 1) * 0.4535924;
+                    break;
+            }
+        }
 
         $feeRate = AmazonFulfilmentFeeRate::where('country', $country)
             ->where('product_size', $productSize)
