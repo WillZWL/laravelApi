@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\AmazonFbaFeesService;
+use App\Services\NeweggSbnFeesService;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class CalculateAmazonFbaFeesController extends Controller
+class CalculateSbnFeesController extends Controller
 {
-    private $fbaFeesService;
+    private $sbnFeesService;
 
-    public function __construct(AmazonFbaFeesService $fbaFeesService)
+    public function __construct(NeweggSbnFeesService $sbnFeesService)
     {
-        $this->fbaFeesService = $fbaFeesService;
+        $this->sbnFeesService = $sbnFeesService;
     }
+
     /**
      * Display a listing of the resource.
      *

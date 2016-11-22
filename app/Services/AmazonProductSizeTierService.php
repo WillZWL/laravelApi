@@ -23,6 +23,13 @@ class AmazonProductSizeTierService
     const STANDARD_OVERSIZE_IN_EU = 12;
     const LARGE_OVERSIZE_IN_EU = 13;
 
+    const SMALL_STANDARD_SIZE_IN_NEWEGG_US = 14;
+    const LARGE_STANDARD_SIZE_IN_NEWEGG_US = 15;
+    const SMALL_OVERSIZE_IN_NEWEGG_US = 16;
+    const MEDIUM_OVERSIZE_IN_NEWEGG_US = 17;
+    const LARGE_OVERSIZE_IN_NEWEGG_US = 18;
+    const SPECIAL_OVERSIZE_IN_NEWEGG_US = 19;
+
     const UNKNOWN_SIZE = 77;
 
     private $marketplaceProductRepository;
@@ -48,6 +55,9 @@ class AmazonProductSizeTierService
 
     public function getProductSize(MarketplaceSkuMapping $marketplaceProduct)
     {
+        $productSizeTier = self::UNKNOWN_SIZE;
+
+        $marketplace = $marketplaceProduct->mpControl->marketplace_type;
         $country = $marketplaceProduct->mpControl->country_id;
 
         // TODO
@@ -62,18 +72,19 @@ class AmazonProductSizeTierService
         sort($dimensions);
         list($shortestSide, $medianSide, $longestSide) = $dimensions;
         $unitWeight = $marketplaceProduct->product->weight;
+        $dimensionalWeight = $longestSide * $medianSide * $shortestSide / 166 / 2.54 / 2.54 / 2.54 * 0.4535924;
 
-        if (in_array($country, ['GB', 'FR', 'DE', 'ES', 'IT'])) {
-            $productSizeTier = $this->calculateProductSizeTierInAmazonEu($unitWeight, $longestSide, $medianSide, $shortestSide);
-        } elseif ($country === 'US') {
-            // cm / inch = 2.54, lb * 0.4535924 = kg, 166 is const
-            $dimensionalWeight = $longestSide * $medianSide * $shortestSide / 166 / 2.54 / 2.54 / 2.54 * 0.4535924;
-            $productSizeTier = $this->calculateProductSizeTierInAmazonUs($media, $unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
-        } else {
-            // TODO
-            // calculate product size tier in other countries.
-            $productSizeTier = self::UNKNOWN_SIZE;
+        if ($marketplace === 'AMAZON') {
+            if (in_array($country, ['GB', 'FR', 'DE', 'ES', 'IT'])) {
+                $productSizeTier = $this->calculateProductSizeTierInAmazonEu($unitWeight, $longestSide, $medianSide, $shortestSide);
+            } elseif ($country === 'US') {
+                // cm / inch = 2.54, lb * 0.4535924 = kg, 166 is const
+                $productSizeTier = $this->calculateProductSizeTierInAmazonUs($media, $unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
+            }
+        } elseif ($marketplace === 'NEWEGG') {
+            $productSizeTier = $this->calculateProductSizeTierInNeweggUs($unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
         }
+
 
         return $productSizeTier;
     }
@@ -273,5 +284,66 @@ class AmazonProductSizeTierService
         }
 
         return true;
+    }
+
+    public function calculateProductSizeTierInNeweggUs($unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide)
+    {
+        $maxWeight = max($unitWeight, $dimensionalWeight);
+
+        $smallStandardSizeRules = [
+            'weight' => 15.99 * 0.0283495, // oz to kg
+            'longestSide' => 14.25 * 2.54, // inch to cm
+            'medianSide' => 9.5 * 2.54,
+            'shortestSide' => 0.75 * 2.54,
+        ];
+
+        $largeStandardSizeRules = [
+            'weight' => 20 * 0.4535924, // lb to kg
+            'longestSide' => 25 * 2.54, // inch to cm
+            'medianSide' => 17 * 2.54,
+            'shortestSide' => 12 * 2.54,
+        ];
+
+        $smallOversizeRules = [
+            'weight' => 70 * 0.4535924, // lb to kg
+            'longestSide' => 60 * 2.54, // inch to cm
+            'medianSide' => 30 * 2.54,
+            'lengthPlusGirth' => 130 * 2.54,
+        ];
+
+        $mediumOversizeRules = [
+            'weight' => 90 * 0.4535924, // lb to kg
+            'longestSide' => 108 * 2.54, // inch to cm
+            'lengthPlusGirth' => 130 * 2.54,
+        ];
+
+        $largeOversizeRules = [
+            'weight' => 150 * 0.4535924, // lb to kg
+            'longestSide' => 108 * 2.54, // inch to cm
+            'lengthPlusGirth' => 165 * 2.54,
+        ];
+
+        if ($this->checkProductSizeRulesInEu($smallStandardSizeRules, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::SMALL_STANDARD_SIZE_IN_NEWEGG_US;
+        }
+
+        if ($this->checkProductSizeRulesInEu($largeStandardSizeRules, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::LARGE_STANDARD_SIZE_IN_NEWEGG_US;
+        }
+
+        if ($this->checkProductSizeRulesInEu($smallOversizeRules, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::SMALL_OVERSIZE_IN_NEWEGG_US;
+        }
+
+        if ($this->checkProductSizeRulesInEu($mediumOversizeRules, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::MEDIUM_OVERSIZE_IN_NEWEGG_US;
+        }
+
+        if ($this->checkProductSizeRulesInEu($largeOversizeRules, $maxWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::LARGE_OVERSIZE_IN_NEWEGG_US;
+        }
+
+        // default return special oversize
+        return self::SPECIAL_OVERSIZE_IN_NEWEGG_US;
     }
 }
