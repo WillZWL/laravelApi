@@ -79,7 +79,7 @@ class CalculateSbnFeesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->fbaFeesService->updateFulfilmentFees($id);
+        $this->sbnFeesService->updateFulfilmentFees($id);
     }
 
     /**
