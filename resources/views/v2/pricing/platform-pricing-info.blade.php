@@ -68,7 +68,7 @@
               <th>PSP Adm. Fee</th>
               <th>Freight Cost</th>
               <th>W.H. Cost</th>
-              <th>Total FBA Fee</th>
+              <th>Total FBA/SBN Fee</th>
               <th>TUV Fee</th>
               <th>Supp. Cost</th>
               <th>Acce. Cost</th>
@@ -100,7 +100,7 @@
                 <td>{{ $item['paymentGatewayAdminFee'] }}</td>
                 <td>{{ $item['freightCost'] }}</td>
                 <td>{{ $item['warehouseCost'] }}</td>
-                <td>{{ $item['totalFbaFee'] }}</td>
+                <td>{{ $item['fulfilmentByMarketplaceFee'] }}</td>
                 <td>{{ $item['tuvFee'] }}</td>
                 <td>{{ $item['supplierCost'] }}</td>
                 <td>{{ $item['accessoryCost'] }}</td>
