@@ -55,7 +55,7 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
         $country = $marketplaceProduct->mpControl->country_id;
         $productSize = $marketplaceProduct->amazonProductSizeTier->product_size;
         $unitWeight = $marketplaceProduct->product->weight;
-        $weight = $unitWeight;
+        $shippingWeight = $unitWeight;
 
         if ($country == 'US') {
             $unitWeightInLbs = $unitWeight / 0.4535924;
@@ -68,18 +68,18 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
                 case 1:
                 case 2:
                     if ($unitWeightInLbs <= 1) {
-                        $weight = round($unitWeightInLbs + 0.25) * 0.4535924;
+                        $shippingWeight = round($unitWeightInLbs + 0.25) * 0.4535924;
                     } else {
-                        $weight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 0.25) * 0.4535924;
+                        $shippingWeight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 0.25) * 0.4535924;
                     }
                     break;
                 case 3:
                 case 4:
                 case 5:
-                    $weight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 1) * 0.4535924;
+                    $shippingWeight = round(max($unitWeightInLbs, $dimensionalWeightInLbs) + 1) * 0.4535924;
                     break;
                 case 6:
-                    $weight = round($unitWeightInLbs + 1) * 0.4535924;
+                    $shippingWeight = round($unitWeightInLbs + 1) * 0.4535924;
                     break;
             }
         }
@@ -87,12 +87,12 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
         $feeRate = AmazonFulfilmentFeeRate::where('marketplace', '=', 'AMAZON')
             ->where('country', $country)
             ->where('product_size', $productSize)
-            ->where('max_weight_in_kg', '>=', $weight)
+            ->where('max_weight_in_kg', '>=', $shippingWeight)
             ->orderBy('max_weight_in_kg', 'asc')
             ->first();
 
         if ($feeRate) {
-            $weightHandingFee = round($feeRate->first_fixed_fee + ($weight - $feeRate->first_weight_in_kg) * $feeRate->addition_fee_per_kg, 2);
+            $weightHandingFee = round($feeRate->first_fixed_fee + ($shippingWeight - $feeRate->first_weight_in_kg) * $feeRate->addition_fee_per_kg, 2);
         } else {
             // TODO
             // can't find the rules
