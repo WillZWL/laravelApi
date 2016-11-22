@@ -28,7 +28,6 @@ class PriceMinisterCore extends CommonMws
         $data = $this->convert($xml);
         if (isset($data['error'])) {
             $this->ErrorResponse = $data['error'];
-            return null;
         } else {
             if (isset($data['response'])) {
                 return $this->prepare($data);
@@ -132,6 +131,16 @@ class PriceMinisterCore extends CommonMws
         }
         if (\App::environment('local') && env('APP_DEBUG')) {
             $this->mwsName = $sandbox;
+        }
+    }
+
+    function __destruct()
+    {
+        if($error = $this->errorMessage()){
+            //test
+            $message = "Results: " .$error;
+            mail('jimmy.gao@eservicesgroup.com', $this->storeName.' error ', $message);
+            //test end
         }
     }
 }

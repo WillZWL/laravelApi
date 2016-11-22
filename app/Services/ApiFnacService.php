@@ -180,16 +180,17 @@ class ApiFnacService implements ApiPlatformInterface
         }
     }
 
-    public function  setOrderFufillmentXmlData($esgOrder, $esgOrderShipment)
+    public function  setOrderFufillmentXmlData($storeName,$esgOrder, $esgOrderShipment)
     {
-        if ($esgOrderShipment) {
+        $result = $this->checkOrderStatusToShip($storeName,$esgOrder->platform_order_id);
+        if ($result && $esgOrderShipment) {
             $courier = $esgOrderShipment->courierInfo->courier_name;
             $xmlData = '<order order_id="'. $esgOrder->platform_order_id .'" action="confirm_all_to_send">';
             $xmlData .=    '<order_detail>';
             $xmlData .=       '<action>Shipped</action>';
             $xmlData .=       '<tracking_number>'. $esgOrderShipment->tracking_no .'</tracking_number>';
-            if($courier)
-            $xmlData .=       '<tracking_company>'. $courier .'</tracking_company>';
+            /*if($courier)
+            $xmlData .=       '<tracking_company>'. $courier .'</tracking_company>';*/
             $xmlData .=    '</order_detail>';
             $xmlData .= '</order>';
         }
@@ -476,6 +477,19 @@ class ApiFnacService implements ApiPlatformInterface
                     $orderItem->save();
                 }
             }
+        }
+    }
+
+    private function checkOrderStatusToShip($storeName,$orderId)
+    {
+        $result = $this->getOrder($storeName,$orderId);
+        if($result["state"] === "ToShip"){
+            return true;
+        }else{
+            //test
+            $message = "Results: " . print_r( $result, true);
+            mail('jimmy.gao@eservicesgroup.com', $storeName.' checkOrderStatusToShip', $message);
+            //test end
         }
     }
 
