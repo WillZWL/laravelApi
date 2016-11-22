@@ -102,17 +102,19 @@ class ApiPriceMinisterService implements ApiPlatformInterface
             $itemIds = explode('||', $extItem);
             foreach ($itemIds as $itemId) {
                 if ($esgOrderShipment && $itemId) {
-                    $courier = $this->getPriceMinisterCourier($esgOrderShipment->courierInfo->aftership_id);
-                    $this->priceMinisterOrderTracking = new PriceMinisterOrderTracking($storeName);
-                    $this->priceMinisterOrderTracking->setItemId($itemId);
-                    $this->priceMinisterOrderTracking->setTransporterName($courier['transporter_name']);
-                    $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
-                    if (isset($courier['tracking_url'])) {
-                        $this->priceMinisterOrderTracking->setTrackingUrl($courier['tracking_url']);
+                    $courier = $this->getPriceMinisterCourier($esgOrderShipment->courierInfo);
+                    if ($courier) {
+                        $this->priceMinisterOrderTracking = new PriceMinisterOrderTracking($storeName);
+                        $this->priceMinisterOrderTracking->setItemId($itemId);
+                        $this->priceMinisterOrderTracking->setTransporterName($courier['transporter_name']);
+                        $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
+                        if (isset($courier['tracking_url'])) {
+                            $this->priceMinisterOrderTracking->setTrackingUrl($courier['tracking_url']);
+                        }
+                        //print_r($this->priceMinisterOrderTracking);exit();
+                        $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                        $this->saveDataToFile($result, 'setTrackingPackageInfo');
                     }
-                    //print_r($this->priceMinisterOrderTracking);exit();
-                    $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
-                    $this->saveDataToFile($result, 'setTrackingPackageInfo');
                 }
             }
         }
@@ -120,40 +122,64 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         return $result == 'OK' ? true : false;
     }
 
-    public function getPriceMinisterCourier($courier)
+    public function getPriceMinisterCourier($courierInfo)
     {
-        switch ($courier) {
-            case 'dhl':
-            case 'dhl-global-mail':
-                $priceMinisterCourier = array('transporter_name' => 'DHL');
-                break;
-            case 'dpd':
-                $priceMinisterCourier = array('transporter_name' => 'DPD');
-                break;
-            case 'dpd-uk':
-                $priceMinisterCourier = array(
-                    'transporter_name' => 'DPD',
-                    'tracking_url' => 'https://www.deutschepost.de/sendung/simpleQueryResult.html',
-                    );
-                break;
-            case 'chronopost-france':
-                $priceMinisterCourier = array(
-                    'transporter_name' => 'CHRONOPOST',
-                    'tracking_url' => 'http://www.chronopost.fr/en',
-                    );
-                break;
-            case 'tnt':
-                $priceMinisterCourier = array(
-                    'transporter_name' => 'TNT',
-                    );
-                break;
+        $aftershipId = $courierInfo->aftership_id;
+        $priceMinisterCourier = [];
+        if ($aftershipId) {
+            switch ($aftershipId) {
+                case 'dhl':
+                case 'dhl-global-mail':
+                    $priceMinisterCourier = array('transporter_name' => 'DHL');
+                    break;
+                case 'dpd':
+                    $priceMinisterCourier = array('transporter_name' => 'DPD');
+                    break;
+                case 'dpd-uk':
+                    $priceMinisterCourier = array(
+                        'transporter_name' => 'DPD',
+                        'tracking_url' => 'https://www.deutschepost.de/sendung/simpleQueryResult.html',
+                        );
+                    break;
+                case 'chronopost-france':
+                    $priceMinisterCourier = array(
+                        'transporter_name' => 'CHRONOPOST',
+                        'tracking_url' => 'http://www.chronopost.fr/en',
+                        );
+                    break;
+                case 'tnt':
+                    $priceMinisterCourier = array(
+                        'transporter_name' => 'TNT',
+                        );
+                    break;
 
-            default:
-                // code...
-                break;
+                default:
+                    // code...
+                    break;
+            }
         }
 
-        return $priceMinisterCourier;
+        if ($priceMinisterCourier) {
+            return $priceMinisterCourier;
+        } else {
+
+            $courierId = $courierInfo->courier_id;
+            $courierName = $courierInfo->courier_name;
+            if (!$aftershipId) {
+                $message = "courierId: $courierId, courierName: $courierName Lack aftership Id Mapping";
+            } else {
+                $message = "courierId: $courierId, courierName: $courierName Lack with Priceminister courier Mapping, Please Contact IT Support";
+            }
+
+            $to = 'priceministerfr@brandsconnect.net, celine@eservicesgroup.net';
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $header .= "Cc: handy.hon@eservicesgroup.com, jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com\r\n";
+
+            mail($to, "Alert, Courier: {$courierName} Lack Mapping", $message, $header);
+
+            return false;
+        }
+
     }
 
     // update or insert data to databse

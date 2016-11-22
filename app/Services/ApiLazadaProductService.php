@@ -53,26 +53,30 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     ->toArray();
         if(!empty($platformMarketInventory)){
             $orginProductList = $this->getProductList($storeName);
-            if(isset($this->stores[$storeName]["new_api"])){
-                foreach ($orginProductList as $orginProduct) {
-                    if(isset($orginProduct["Skus"]["Sku"]["SellerSku"])){
-                        $inventory[$orginProduct["Skus"]["Sku"]["SellerSku"]] = $orginProduct["Skus"]["Sku"]["Available"];
-                    }else{
-                        foreach ($orginProduct["Skus"]["Sku"] as $sku) {
-                            $inventory[$sku["SellerSku"]] = $sku["Available"];
+            if($orginProductList){
+                if(isset($this->stores[$storeName]["new_api"])){
+                    foreach ($orginProductList as $orginProduct) {
+                        if(isset($orginProduct["Skus"]["Sku"]["SellerSku"])){
+                            $inventory[$orginProduct["Skus"]["Sku"]["SellerSku"]] = $orginProduct["Skus"]["Sku"]["Available"];
+                        }else{
+                            foreach ($orginProduct["Skus"]["Sku"] as $sku) {
+                                $inventory[$sku["SellerSku"]] = $sku["Available"];
+                            }
                         }
                     }
-                }
-            }else{
-                foreach ($orginProductList as $value) {
-                    $inventory[$value["SellerSku"]] = $value["Available"];
+                }else{
+                    foreach ($orginProductList as $value) {
+                        $inventory[$value["SellerSku"]] = $value["Available"];
+                    }
                 }
             }
             $newPlatformMarketInventory[] = array("store_id","warehouse_id","mattel_sku","dc_sku","marketplace_sku","threshold","inventory","Available");
             foreach ($platformMarketInventory as $value) {
-                if($value["inventory"] != $inventory[$value["marketplace_sku"]]){
-                    $value["Available"] = $inventory[$value["marketplace_sku"]];
-                    $newPlatformMarketInventory[] = $value;
+                if(isset($inventory[$value["marketplace_sku"]])){
+                    if($value["inventory"] != $inventory[$value["marketplace_sku"]]){
+                        $value["Available"] = $inventory[$value["marketplace_sku"]];
+                        $newPlatformMarketInventory[] = $value;
+                    }
                 }
             }
             $cellDataArr[$storeName] = $newPlatformMarketInventory;
