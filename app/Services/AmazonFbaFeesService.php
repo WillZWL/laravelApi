@@ -2,21 +2,12 @@
 
 namespace App\Services;
 
-
 use App\Models\AmazonFulfilmentFeeRate;
 use App\Models\MarketplaceSkuMapping;
-use App\Repository\MarketplaceProductRepository;
 
-class AmazonFbaFeesService
+class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
 {
-    private $marketplaceProductRepository;
-
-    public function __construct(
-        MarketplaceProductRepository $marketplaceProductRepository
-    ) {
-        $this->marketplaceProductRepository = $marketplaceProductRepository;
-    }
-    public function updateFbaFees($id)
+    public function updateFulfilmentFees($id)
     {
         $marketplaceProduct = $this->marketplaceProductRepository->find($id);
         $amazonFbaFees = $marketplaceProduct->amazonFbaFee;
@@ -36,7 +27,7 @@ class AmazonFbaFeesService
         $amazonFbaFees->save();
     }
 
-    private function calculateStorageFee(MarketplaceSkuMapping $marketplaceProduct)
+    public function calculateStorageFee(MarketplaceSkuMapping $marketplaceProduct)
     {
         $length = $marketplaceProduct->product->height;
         $height = $marketplaceProduct->product->length;
@@ -59,7 +50,7 @@ class AmazonFbaFeesService
         return round($volumeInCubicMetre / 0.0283168466 * $pricePerCubicFoot, 2);
     }
 
-    private function calculateWeightHandingFee(MarketplaceSkuMapping $marketplaceProduct)
+    public function calculateWeightHandingFee(MarketplaceSkuMapping $marketplaceProduct)
     {
         $country = $marketplaceProduct->mpControl->country_id;
         $productSize = $marketplaceProduct->amazonProductSizeTier->product_size;
@@ -93,7 +84,8 @@ class AmazonFbaFeesService
             }
         }
 
-        $feeRate = AmazonFulfilmentFeeRate::where('country', $country)
+        $feeRate = AmazonFulfilmentFeeRate::where('marketplace', '=', 'AMAZON')
+            ->where('country', $country)
             ->where('product_size', $productSize)
             ->where('max_weight_in_kg', '>=', $weight)
             ->orderBy('max_weight_in_kg', 'asc')
@@ -110,7 +102,7 @@ class AmazonFbaFeesService
         return $weightHandingFee;
     }
 
-    private function calculatePickAndPackFee(MarketplaceSkuMapping $marketplaceProduct)
+    public function calculatePickAndPackFee(MarketplaceSkuMapping $marketplaceProduct)
     {
         $pickAndPackFee = 0;
         $country = $marketplaceProduct->mpControl->country_id;
@@ -140,7 +132,7 @@ class AmazonFbaFeesService
         return $pickAndPackFee;
     }
 
-    private function calculateOrderHandingFee(MarketplaceSkuMapping $marketplaceProduct)
+    public function calculateOrderHandingFee(MarketplaceSkuMapping $marketplaceProduct)
     {
         $orderHandingFee = 0;
         $country = $marketplaceProduct->mpControl->country_id;

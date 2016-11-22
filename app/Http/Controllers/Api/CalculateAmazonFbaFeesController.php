@@ -78,7 +78,7 @@ class CalculateAmazonFbaFeesController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $this->fbaFeesService->updateFbaFees($id);
+        $this->fbaFeesService->updateFulfilmentFees($id);
     }
 
     /**
