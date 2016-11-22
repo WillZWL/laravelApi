@@ -229,6 +229,8 @@ class PricingToolService
         $categoryCommission = MpCategoryCommission::join('marketplace_sku_mapping', 'mp_id', '=', 'mp_sub_category_id')
             ->where('marketplace_sku', '=', $request->input('marketplaceSku'))
             ->where('marketplace_id', '=', $request->input('marketplace'))
+            ->where('from_price', '<', $request->input('price'))
+            ->where('to_price', '>=', $request->input('price'))
             ->where('country_id', '=', $request->input('country'))
             ->select(['mp_commission', 'maximum'])
             ->first();
