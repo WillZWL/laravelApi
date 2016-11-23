@@ -77,6 +77,8 @@ class PricingService
         $warehouseCostDetails = $this->getWarehouseCost($marketplaceProduct);
         $supplierCost = $this->getSupplierCost($marketplaceProduct);
         $accessoryCost = $this->getAccessoryCost($marketplaceProduct);
+        $tuvFee = $this->getTuvFee($marketplaceProduct);
+
         $pricingType = $this->getMerchantType($marketplaceProduct);
         $deliveryCharge = 0;
         $sellingPrice = $marketplaceProduct->price;
@@ -85,22 +87,46 @@ class PricingService
         $totalCostExcludeDeliveryCost = array_sum([
             $tax, $duty, $marketplaceCommission,
             $marketplaceListingFee, $marketplaceFixedFee, $paymentGatewayFee, $paymentGatewayAdminFee,
-            $supplierCost, $accessoryCost, $deliveryCharge,
+            $supplierCost, $accessoryCost, $deliveryCharge, $tuvFee
         ]);
 
         $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->keyBy('deliveryType');
 
         $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $warehouseCostDetails,
-            $totalCostExcludeDeliveryCost) {
+            $totalCostExcludeDeliveryCost, $marketplaceProduct) {
 
             $bookInCost = $warehouseCostDetails['book_in_cost'];
             $pnpCost = $warehouseCostDetails['pnp_cost'];
             if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
                 $pnpCost = 0;
             }
+
+            $fulfilmentByMarketplaceFee = 0;
+            if ( ($shippingOption['deliveryType'] === 'FBA' && substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'AMAZON')
+                || ($shippingOption['deliveryType'] === 'SBN' && substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'NEWEGG')
+            ) {
+
+                $fbafees = $marketplaceProduct->amazonFbaFee;
+                $fulfilmentByMarketplaceFee = $fbafees->storage_fee + $fbafees->order_handing_fee
+                    + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
+
+                if (substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'AMAZON'
+                    && $request->input('country') == 'GB' && $sellingPrice >= 300
+                ) {
+                    $fulfilmentByMarketplaceFee = 0;
+                }
+
+                if (substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'NEWEGG'
+                    && $sellingPrice >= 300
+                    && in_array($marketplaceProduct->amazonProductSizeTier->product_size, [14, 15])
+                ) {
+                    $fulfilmentByMarketplaceFee = 0;
+                }
+            }
+
             $option = [];
             $option['deliveryCost'] = $shippingOption['cost'];
-            $option['totalCost'] = $totalCostExcludeDeliveryCost + $bookInCost + $pnpCost + $option['deliveryCost'];
+            $option['totalCost'] = $totalCostExcludeDeliveryCost + $fulfilmentByMarketplaceFee + $bookInCost + $pnpCost + $option['deliveryCost'];
             $option['profit'] = round($totalCharged - $option['totalCost'], 2);
             $option['margin'] = round($option['profit'] / $sellingPrice * 100, 2);
             return $option;
@@ -234,7 +260,7 @@ class PricingService
         $mpListingFee = MpListingFee::select('mp_listing_fee')
             ->where('control_id', '=', $marketplaceProduct->mp_control_id)
             ->where('from_price', '<=', $marketplaceProduct->price)
-            ->where('to_price', '>', $marketplaceProduct->price)
+            ->where('to_price', '>=', $marketplaceProduct->price)
             ->first();
 
         if ($mpListingFee) {
@@ -250,7 +276,7 @@ class PricingService
         $mpFixedFee = MpFixedFee::select('mp_fixed_fee')
             ->where('control_id', '=', $marketplaceProduct->mp_control_id)
             ->where('from_price', '<=', $marketplaceProduct->price)
-            ->where('to_price', '>', $marketplaceProduct->price)
+            ->where('to_price', '>=', $marketplaceProduct->price)
             ->first();
 
         if ($mpFixedFee) {
@@ -352,5 +378,16 @@ class PricingService
         }
 
         return $warehouseCost;
+    }
+
+    public function getTuvFee($marketplaceProduct)
+    {
+        $tuvFee = 0;
+        $acceleratorMerchant = $marketplaceProduct->product->merchantProductMapping->merchant->merchantClientType()->where('client_type', 'ACCELERATOR')->first();
+        if ($acceleratorMerchant && ($acceleratorMerchant->q_rated == 1)) {
+            $tuvFee = round(0.02 * $marketplaceProduct->price, 2);
+        }
+
+        return $tuvFee;
     }
 }
