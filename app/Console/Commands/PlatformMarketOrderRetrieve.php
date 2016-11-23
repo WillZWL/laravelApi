@@ -47,29 +47,31 @@ class PlatformMarketOrderRetrieve extends BaseApiPlatformCommand
     {
         if ($stores) {
             foreach ($stores as $storeName => $store) {
-                $previousSchedule = Schedule::where('store_name', '=', $storeName)
-                                    ->where('status', '=', 'C')
-                                    ->orderBy('last_access_time', 'desc')
-                                    ->first();
-                $currentSchedule = Schedule::create([
-                        'store_name' => $storeName,
-                        'status' => 'N',
-                        // MWS API requested: Must be no later than two minutes before the time that the request was submitted.
-                        'last_access_time' => Carbon::now()->subMinutes(2),
-                    ]);
-                if (!$previousSchedule) {
-                    $previousSchedule = $currentSchedule;
-                }
+                if(!in_array($storeName, array("BCLAZADASG","CFLAZADASG"))){
+                    $previousSchedule = Schedule::where('store_name', '=', $storeName)
+                                        ->where('status', '=', 'C')
+                                        ->orderBy('last_access_time', 'desc')
+                                        ->first();
+                    $currentSchedule = Schedule::create([
+                            'store_name' => $storeName,
+                            'status' => 'N',
+                            // MWS API requested: Must be no later than two minutes before the time that the request was submitted.
+                            'last_access_time' => Carbon::now()->subMinutes(2),
+                        ]);
+                    if (!$previousSchedule) {
+                        $previousSchedule = $currentSchedule;
+                    }
 
-                //print_r($this->getApiPlatformFactoryService($apiName));break;
-                $result = $this->getApiPlatformFactoryService($apiName)->retrieveOrder($storeName, $previousSchedule);
-                if ($result) {
-                    $currentSchedule->status = 'C';
-                } else {
-                    $currentSchedule->status = 'F';
-                    //$currentSchedule->remark = json_encode($amazonOrderList->getLastResponse());
+                    //print_r($this->getApiPlatformFactoryService($apiName));break;
+                    $result = $this->getApiPlatformFactoryService($apiName)->retrieveOrder($storeName, $previousSchedule);
+                    if ($result) {
+                        $currentSchedule->status = 'C';
+                    } else {
+                        $currentSchedule->status = 'F';
+                        //$currentSchedule->remark = json_encode($amazonOrderList->getLastResponse());
+                    }
+                    $currentSchedule->save();
                 }
-                $currentSchedule->save();
             }
         }
     }
