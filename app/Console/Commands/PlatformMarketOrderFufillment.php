@@ -41,8 +41,15 @@ class PlatformMarketOrderFufillment extends BaseApiPlatformCommand
     public function runApiPlatformServiceFunction($stores, $apiName)
     {
         if ($stores){
-            //print_r($this->getApiPlatformFactoryService($apiName));exit();
-            $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
+            try {
+                $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
+            } catch (Exception $e) {
+                $header = "From: admin@eservicesgroup.com\r\n";
+                $to = "jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com";
+                $subject = "Alert, Submit Order Fufillment Shipment Tracking Failed";
+                $message = "message: {$e->getMessage()}, Line: {$e->getLine()}";
+                mail($to, $subject, $message, $header);
+            }
         }
     }
 }
