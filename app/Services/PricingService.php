@@ -102,21 +102,21 @@ class PricingService
             }
 
             $fulfilmentByMarketplaceFee = 0;
-            if ( ($shippingOption['deliveryType'] === 'FBA' && substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'AMAZON')
-                || ($shippingOption['deliveryType'] === 'SBN' && substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'NEWEGG')
+            if ( ($shippingOption['deliveryType'] === 'FBA' && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'AMAZON')
+                || ($shippingOption['deliveryType'] === 'SBN' && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'NEWEGG')
             ) {
 
                 $fbafees = $marketplaceProduct->amazonFbaFee;
                 $fulfilmentByMarketplaceFee = $fbafees->storage_fee + $fbafees->order_handing_fee
                     + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
 
-                if (substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'AMAZON'
-                    && $request->input('country') == 'GB' && $sellingPrice >= 300
+                if (substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'AMAZON'
+                    && $marketplaceProduct->mpControl->country_id === 'GB' && $sellingPrice >= 300
                 ) {
                     $fulfilmentByMarketplaceFee = 0;
                 }
 
-                if (substr($marketplaceProduct->marketplaceControl->marketplace_id, 2) === 'NEWEGG'
+                if (substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'NEWEGG'
                     && $sellingPrice >= 300
                     && in_array($marketplaceProduct->amazonProductSizeTier->product_size, [14, 15])
                 ) {
