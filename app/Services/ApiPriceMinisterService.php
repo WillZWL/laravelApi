@@ -10,6 +10,7 @@ use Illuminate\Support\Arr;
 //use priceminister api package
 use App\Repository\PriceMinisterMws\PriceMinisterOrder;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderList;
+use App\Repository\PriceMinisterMws\PriceMinisterOrderInfo;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderTracking;
 
 class ApiPriceMinisterService implements ApiPlatformInterface
@@ -366,10 +367,10 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
     public function updatePlatMarketOrderStatus($storeName,$platformMarketOrderList)
     {
-        $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
+        $this->priceMinisterOrderInfo = new PriceMinisterOrderInfo($storeName);
         foreach ($platformMarketOrderList as $platformMarketOrder) {
-            $this->priceMinisterOrderList->setPurchaseId($platformMarketOrder->platform_order_id);
-            $orderInfo = $this->priceMinisterOrderList->getBillingInformation();
+            $this->priceMinisterOrderInfo->setPurchaseId($platformMarketOrder->platform_order_id);
+            $orderInfo = $this->priceMinisterOrderInfo->getBillingInformation();
             foreach ($orderInfo as $key => $orderItem) {
                 $soOrderStatus = $this->getSoOrderStatus($orderItem["itemstatus"]);
                 if($platformMarketOrder->esg_order_status != $ $soOrderStatus){
