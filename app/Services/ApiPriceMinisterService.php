@@ -371,12 +371,16 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         foreach ($platformMarketOrderList as $platformMarketOrder) {
             $this->priceMinisterOrderInfo->setPurchaseId($platformMarketOrder->platform_order_id);
             $orderInfo = $this->priceMinisterOrderInfo->getBillingInformation();
-            foreach ($orderInfo as $key => $orderItem) {
-                $soOrderStatus = $this->getSoOrderStatus($orderItem["itemstatus"]);
-                if($platformMarketOrder->esg_order_status != $ $soOrderStatus){
-                    $platformMarketOrder->esg_order_status = $soOrderStatus;
-                    $platformMarketOrder->save();
-                }
+            if (isset($orderInfo['item']['itemstatus'])) {
+                $orderStatus = $orderInfo['item']['itemstatus'];
+            } else {
+                $orderStatus = $orderInfo['item'][0]['itemstatus'];
+            }
+            $soOrderStatus = $this->getSoOrderStatus($orderStatus);
+            if($platformMarketOrder->esg_order_status != $soOrderStatus){
+                $platformMarketOrder->order_status = $orderStatus;
+                $platformMarketOrder->esg_order_status = $soOrderStatus;
+                $platformMarketOrder->save();
             }
         } 
     }
