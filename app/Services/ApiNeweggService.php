@@ -286,6 +286,12 @@ class ApiNeweggService implements ApiPlatformInterface
                 {
                     if($ship_status == 'Shipped')
                     {
+                            $subject = "SUCCESS: UpdateShipment to MarketPlace: [{$storeName}]! ESG Order [{$esgOrder->so_no}], Newegg Order [{$esgOrder->platform_order_id}]\r\n";
+                            $message = "Successful Update of shipment for ESG Order [{$esgOrder->so_no}], [{$storeName}] Order [{$esgOrder->platform_order_id}]\r\n";
+                            $message .= "Thanks\r\n\r\n";
+                            $message .= serialize($response);
+                            $email = 'jerry.lim@eservicesgroup.com';
+                            $this->sendAlertMailMessage($email, $subject, $message);
                             return true;
                     } else {
                             $subject = "FAIL: UpdateShipment to MarketPlace: [{$storeName}]! ESG Order [{$esgOrder->so_no}], Newegg Order [{$esgOrder->platform_order_id}]\r\n";
