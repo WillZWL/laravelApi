@@ -108,7 +108,11 @@ class TracerSkuController extends Controller
         $marketplaceProduct->product->save();
 
         $this->api->be(auth()->user())->put('product-size-tier/'.$id);
-        $this->api->be(auth()->user())->put('fba-fees/'.$id);
+        if (substr($marketplaceProduct->marketplace_id, 2) === 'AMAZON') {
+            $this->api->be(auth()->user())->put('fba-fees/'.$id);
+        } elseif (substr($marketplaceProduct->marketplace_id, 2) === 'NEWEGG') {
+            $this->api->be(auth()->user())->put('sbn-fees/'.$id);
+        }
 
         \DB::connection('mysql_esg')->table('supplier_prod')->where('prod_sku', $marketplaceProduct->product->sku)
             ->where('order_default', 1)
