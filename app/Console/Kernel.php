@@ -37,6 +37,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketLowStockAlert::class,
         Commands\PlatformMarketOrderScore::class,
         Commands\LazadaSGOrderRetrieve::class,
+        Commands\PlatformMarketOrderUpdate::class,
     ];
 
     /**
@@ -95,6 +96,8 @@ class Kernel extends ConsoleKernel
             ->dailyAt('12:00');
 
         $schedule->command('platformMarket:updateShipment', array('--api' => 'all'))
+            ->dailyAt('12:20');
+         $schedule->command('platformMarket:orderUpdate', array('--api' => 'all'))
             ->dailyAt('12:20');
 
         $schedule->command('platformMarket:orderReport alertOrder', array('--api' => 'lazada'))

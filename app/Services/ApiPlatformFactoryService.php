@@ -546,4 +546,11 @@ class ApiPlatformFactoryService
         return  $warehouseIdList;
     }
 
+    public function updatePlatMarketOrderStatus($storeName)
+    {
+        $bizType = $this->apiPlatformInterface->getPlatformId();
+        $platformOrderList = PlatformMarketOrder::unshippedOrder()->where('biz_type', '=', $bizType)->get();
+        $this->apiPlatformInterface->updatePlatMarketOrderStatus($storeName,$platformOrderList);
+    }
+
 }

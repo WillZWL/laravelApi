@@ -363,4 +363,20 @@ class ApiPriceMinisterService implements ApiPlatformInterface
             return $countryalpha2;
         }
     }
+
+    public function updatePlatMarketOrderStatus($storeName,$platformMarketOrderList)
+    {
+        $this->priceMinisterOrderList = new PriceMinisterOrderList($storeName);
+        foreach ($platformMarketOrderList as $platformMarketOrder) {
+            $this->priceMinisterOrderList->setPurchaseId($platformMarketOrder->platform_order_id);
+            $orderInfo = $this->priceMinisterOrderList->getBillingInformation();
+            foreach ($orderInfo as $key => $orderItem) {
+                $soOrderStatus = $this->getSoOrderStatus($orderItem["itemstatus"]);
+                if($platformMarketOrder->esg_order_status != $ $soOrderStatus){
+                    $platformMarketOrder->esg_order_status = $soOrderStatus;
+                    $platformMarketOrder->save();
+                }
+            }
+        } 
+    }
 }
