@@ -98,6 +98,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     {
         $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
         $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
+        $message = $result = "";
         foreach ($extItemCd as $extItem) {
             $itemIds = explode('||', $extItem);
             foreach ($itemIds as $itemId) {
@@ -111,12 +112,23 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                         if (isset($courier['tracking_url'])) {
                             $this->priceMinisterOrderTracking->setTrackingUrl($courier['tracking_url']);
                         }
-                        //print_r($this->priceMinisterOrderTracking);exit();
-                        $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
-                        $this->saveDataToFile($result, 'setTrackingPackageInfo');
+                        try {
+                            $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                            $this->saveDataToFile($result, 'setTrackingPackageInfo');
+                        } catch (Exception $e) {
+                            $message .= "platform_order_id: ". $esgOrder->platform_order_id ."message: {$e->getMessage()}, Line: {$e->getLine()}\r\n";
+                        }
                     }
                 }
             }
+        }
+        if ($message) {
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $to = "jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com";
+            $subject = "Alert, Submit PriceMinister Order Fufillment Shipment Failed";
+            mail($to, $subject, $message, $header);
+
+            return false;
         }
 
         return $result == 'OK' ? true : false;
