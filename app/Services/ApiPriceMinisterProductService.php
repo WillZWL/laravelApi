@@ -122,8 +122,7 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
     public function submitProductCreate($storeName,$pendingSkuGroup)
     {
         $this->priceMinisterProductCreate = new PriceMinisterProductCreate($storeName);
-        $productGroup = $this->mappingProductAttributes($storeName,$pendingSkuGroup);
-        $xmlData = $this->priceMinisterProductCreate->getRequestXmlData($productGroup);
+        $xmlData = $this->priceMinisterProductCreate->getCreateProductRequestXmlData($storeName,$pendingSkuGroup);
         $responseXml = $this->priceMinisterProductCreate->submitXmlFile($xmlData);
         $this->saveDataToFile(serialize($responseXml), 'submitProductCreate');
     }
@@ -146,5 +145,67 @@ class ApiPriceMinisterProductService implements ApiPlatformProductInterface
     public function submitProductUpdate()
     {
         
+    }
+
+    public function getCreateProductRequestXmlData($storeName,$pendingSkuGroup)
+    {
+        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
+        $xmlData .= '<items>';
+        foreach ($pendingSkuGroup as $pendingSku) {
+            $attributeOptions = $this->getPlatformMarketAttributeOptions($storeName,$pendingSku);
+            $messageDom = '<item>';
+            $messageDom .= '<alias>'.$pendingSku->marketplace_sku.'</alias>';
+            $messageDom .= '<attributes>';
+            $messageDom .= '<product>';
+            $messageDom .=      '<attribute>';
+            $messageDom .=          '<key>submitterreference</key>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->detail_desc.']]</value>';
+            $messageDom .=      '</attribute>';
+            $messageDom .=      '<attribute>';
+            $messageDom .=          '<key>titre</key>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->detail_desc.']]</value>';
+            $messageDom .=      '</attribute>';
+            $messageDom .=  $this->getFormatAttributeOption($attributeOptions["product"]);
+            $messageDom .= '</product>';
+            $messageDom .= '<advert>';
+            $messageDom .=  $this->getFormatAttributeOption($attributeOptions["advert"]);
+            $messageDom .=      '<attribute>';
+            $messageDom .=          '<key>state</key>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->detail_desc.']]</value>';
+            $messageDom .=      '</attribute>';
+            $messageDom .=      '<attribute>';
+            $messageDom .=          '<key>sellingPrice</key>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->detail_desc.']]</value>';
+            $messageDom .=      '</attribute>';
+            $messageDom .=      '<attribute>';
+            $messageDom .=          '<key>qty</key>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->detail_desc.']]</value>';
+            $messageDom .=      '</attribute>';
+            $messageDom .=      '<attribute>';
+            $messageDom .=          '<key>sellerReference</key>';
+            $messageDom .=          '<value><![CDATA['.$pendingSku->sku.']]</value>';
+            $messageDom .=      '</attribute>';
+            $messageDom .= '</advert>';
+            $messageDom .= '<media>';
+            $messageDom .=  $this->getFormatAttributeOption($attributeOptions["media"]);
+            $messageDom .= '</media>';
+            $messageDom .= '</attributes>';
+            $messageDom .= '</item>';
+            $xmlData .= $messageDom;
+        }
+        $xmlData .= '</items>';
+        return $xmlData;
+    }
+
+    public function getFormatAttributeOption($attributeOption)
+    {
+        $xmlData = null;
+        foreach ($attributeOption as $key => $value) {
+            $xmlData .= '<attribute>';
+            $xmlData .=    '<key>'.$key.'</key>';
+            $xmlData .=    '<value><![CDATA['.$value.']]</value>';
+            $xmlData .= '</attribute>';
+        }
+        return $xmlData;
     }
 }

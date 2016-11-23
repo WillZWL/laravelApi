@@ -145,7 +145,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     public function submitProductCreate($storeName,$pendingSkuGroup)
     {
         foreach ($pendingSkuGroup as $key => $product) {
-            $attributeOptions = $this->getPlatformMarketAttributeOptions($storeName);
+            $attributeOptions = $this->getPlatformMarketAttributeOptions($storeName,$product);
             $this->lazadaProductCreate = new LazadaProductCreate($storeName);
             $responseData = $this->lazadaProductCreate->createProduct($product,$attributeOptions);
             $this->saveDataToFile(serialize($responseData), 'CreateProduct');

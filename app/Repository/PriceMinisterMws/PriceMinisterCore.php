@@ -13,6 +13,7 @@ class PriceMinisterCore extends CommonMws
     protected $mwsName = 'priceminister-mws';
     protected $storeCurrency = 'EUR';
     protected $errorResponse = [];
+    private $signRequestParams;
 
     public function __construct($storeName)
     {
@@ -23,8 +24,8 @@ class PriceMinisterCore extends CommonMws
 
     public function query($requestParams)
     {
-        $signRequestParams = $this->signature($requestParams);
-        $xml = $this->curl($signRequestParams);
+        $this->signRequestParams = $this->signature($requestParams);
+        $xml = $this->curl($this->signRequestParams);
         $data = $this->convert($xml);
         if (isset($data['error'])) {
             $this->ErrorResponse = $data['error'];
@@ -138,7 +139,7 @@ class PriceMinisterCore extends CommonMws
     {
         if($error = $this->errorMessage()){
             //test
-            $message = "Results: " .$error;
+            $message = "Results: " .$error." Params: ".print_r($this->signRequestParams,true);
             mail('jimmy.gao@eservicesgroup.com', $this->storeName.' error ', $message);
             //test end
         }
