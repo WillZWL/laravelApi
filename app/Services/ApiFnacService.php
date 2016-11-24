@@ -509,7 +509,8 @@ class ApiFnacService implements ApiPlatformInterface
     {
         $message = "";
         try {
-            $result = $this->getOrder($storeName,$orderId);
+            $results = $this->getOrder($storeName,$orderId);
+            $result = $results[0];
             if(isset($result["state"])
                 && $result["state"] === "ToShip"
             ){
