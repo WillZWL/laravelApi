@@ -32,9 +32,9 @@ class ApiPlatformFactoryService
         return $this->apiPlatformInterface->retrieveOrder($storeName,$schedule);
     }
 
-    public function submitOrderFufillment($apiName)
+    public function submitOrderFufillment()
     {
-        $bizType = $this->apiPlatformInterface->getPlatformId($apiName);
+        $bizType = $this->apiPlatformInterface->getPlatformId();
         $platformOrderIdList = $this->getPlatformOrderIdList($bizType);
         $esgOrders = $this->getEsgOrders($platformOrderIdList);
         $orderFufillmentByGroup = ["Fnac"];
@@ -71,12 +71,12 @@ class ApiPlatformFactoryService
         $esgOrderGroups = $esgOrders->groupBy("platform_id");
         foreach ($esgOrderGroups as $esgOrderGroup) {
             foreach ($esgOrderGroup as $esgOrder) {
+                $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
                 $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
                 if ($esgOrderShipment) {
                     //testing
                     $xmlData .= $this->apiPlatformInterface->setOrderFufillmentXmlData($storeName,$esgOrder, $esgOrderShipment);
                 }
-                $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
             }
             $response = $this->apiPlatformInterface->submitOrderFufillment($storeName,$xmlData);
             if ($response) {
