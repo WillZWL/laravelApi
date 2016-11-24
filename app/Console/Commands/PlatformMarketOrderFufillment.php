@@ -42,7 +42,7 @@ class PlatformMarketOrderFufillment extends BaseApiPlatformCommand
     {
         if ($stores){
             try {
-                $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment($apiName);
+                $this->getApiPlatformFactoryService($apiName)->submitOrderFufillment();
             } catch (Exception $e) {
                 $header = "From: admin@eservicesgroup.com\r\n";
                 $to = "jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com";
