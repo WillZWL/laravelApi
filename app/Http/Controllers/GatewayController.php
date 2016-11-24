@@ -56,7 +56,7 @@ class GatewayController extends Controller
                         
                         $newName = pathinfo(trim($oldName), PATHINFO_FILENAME)."_".date("YmdHis").".".pathinfo(trim($oldName), PATHINFO_EXTENSION);
                       
-                        if (copy($fileFrom.$oldName, $fileTo.$newName)) {
+                        if (rename($fileFrom.$oldName, $fileTo.$newName)) {
                             list($batchResult, $batchIdList[]) =$flexService->processReport($pmgw, $newName,$email);
 
                             if($batchResult == FALSE &&  $result['status'] == TRUE) {
