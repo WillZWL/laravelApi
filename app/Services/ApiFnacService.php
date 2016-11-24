@@ -65,6 +65,7 @@ class ApiFnacService implements ApiPlatformInterface
         $this->storeCurrency = $this->fnacOrder->getStoreCurrency();
         $this->fnacOrder->setOrderId($orderId);
         $returnData = $this->fnacOrder->fetchOrder();
+        $this->saveDataToFile(serialize($returnData),"getOrder");
 
         return $returnData;
     }
@@ -506,15 +507,34 @@ class ApiFnacService implements ApiPlatformInterface
 
     private function checkOrderStatusToShip($storeName,$orderId)
     {
-        $result = $this->getOrder($storeName,$orderId);
-        if($result["state"] === "ToShip"){
-            return true;
-        }else{
-            //test
-            $message = "Results: " . print_r( $result, true);
-            mail('jimmy.gao@eservicesgroup.com', $storeName.' checkOrderStatusToShip', $message);
-            //test end
+        $message = "";
+        try {
+            $result = $this->getOrder($storeName,$orderId);
+            if(isset($result["state"])
+                && $result["state"] === "ToShip"
+            ){
+                return true;
+            } else {
+                $fnacStateArr = ["NotReceived", "Shipped", "Received", "Cancelled", "Refunded"];
+                if (isset($result["state"])
+                    && in_array($result["state"], $fnacStateArr)
+                ) {
+                    $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
+                            ->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_UNSHIPPED)
+                            ->firstOrFail();
+                    if ($platformMarketOrder) {
+                        $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $result['state']);
+                    }
+                }
+                $message = "Results: " . print_r( $result, true);
+            }
+        } catch (Exception $e) {
+            $message = $e->getMessage();
         }
+
+        mail('jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com', $storeName.' checkOrderStatusToShip for platformOrderID: '.$orderId, $message);
+
+        return false;
     }
 
 }
