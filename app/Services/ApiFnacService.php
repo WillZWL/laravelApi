@@ -65,8 +65,7 @@ class ApiFnacService implements ApiPlatformInterface
         $this->storeCurrency = $this->fnacOrder->getStoreCurrency();
         $this->fnacOrder->setOrderId($orderId);
         $returnData = $this->fnacOrder->fetchOrder();
-        $this->saveDataToFile(serialize($returnData),"getOrder");
-
+        //$this->saveDataToFile(serialize($returnData),"getOrder");
         return $returnData;
     }
 
