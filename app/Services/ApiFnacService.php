@@ -183,6 +183,7 @@ class ApiFnacService implements ApiPlatformInterface
 
     public function  setOrderFufillmentXmlData($storeName,$esgOrder, $esgOrderShipment)
     {
+        $xmlData = null;
         $result = $this->checkOrderStatusToShip($storeName,$esgOrder->platform_order_id);
         if ($result && $esgOrderShipment) {
             $courier = $esgOrderShipment->courierInfo->courier_name;
@@ -200,6 +201,10 @@ class ApiFnacService implements ApiPlatformInterface
 
     public function submitOrderFufillment($storeName,$xmlData)
     {
+        if (!$xmlData) {
+            return false;
+        }
+
         $this->fnacOrderUpdate = new fnacOrderUpdate($storeName);
         $result = "";
         $responseDataList = $this->fnacOrderUpdate->updateTrackingNumber($xmlData);
