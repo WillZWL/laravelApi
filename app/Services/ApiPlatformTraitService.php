@@ -110,10 +110,10 @@ trait ApiPlatformTraitService
     {
         $skuOrderedQtyList = null;$platformSkuOrderedList = null;
         foreach($warehouseOrderGroup as $warehouseOrder){
-            if(isset($skuOrderedQtyList[$warehouseOrder->prod_sku])){
-                $skuOrderedQtyList[$warehouseOrder->prod_sku] +=$warehouseOrder->qty;
+            if(isset($skuOrderedQtyList[$warehouseOrder["prod_sku"]])){
+                $skuOrderedQtyList[$warehouseOrder["prod_sku"]] +=$warehouseOrder["qty"];
             }else{
-                $skuOrderedQtyList[$warehouseOrder->prod_sku] =$warehouseOrder->qty;
+                $skuOrderedQtyList[$warehouseOrder["prod_sku"]] =$warehouseOrder["qty"];
             }
         }
         foreach($marketplaceSkuList as $marketplaceSku){
