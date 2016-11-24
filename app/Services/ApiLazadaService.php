@@ -156,6 +156,10 @@ class ApiLazadaService implements ApiPlatformInterface
         $returnData = array();$warehouseInventory = null;
         foreach($orderGroup as $order){
             if($order->esg_order_status != 6){
+                if(!$this->checkPlatformMarketUnshippedOrder($order)){
+                   $returnData[$order->platform_order_no] = "The order status has been setted in lazada sell system\r\n";
+                   continue;
+                }
                 if(isset($warehouseInventory["warehouse"])){
                     $warehouse = $warehouseInventory["warehouse"];
                 }
@@ -932,6 +936,25 @@ class ApiLazadaService implements ApiPlatformInterface
             });
         }
 
+    }
+    private function checkPlatformMarketUnshippedOrder($platformMarketOrder)
+    {
+        $order = $this->getOrder($platformMarketOrder->platform,$platformMarketOrder->platform_order_id);
+        if($order["Statuses"]){
+            if(is_array($order['Statuses']["Status"])){
+                $orderStatus=implode("||",$order['Statuses']["Status"]);
+            }else{
+                $orderStatus=studly_case($order['Statuses']["Status"]);
+            }
+            if($platformMarketOrder->order_status == $orderStatus){
+                return true;
+            }else{
+                $platformMarketOrder->order_status = $orderStatus;
+                $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderStatus);
+                $platformMarketOrder->save();
+                return false;
+            }
+        }
     }
 
 }
