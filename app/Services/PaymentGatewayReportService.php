@@ -168,7 +168,6 @@ abstract class PaymentGatewayReportService
     {
         if ($this->isRiaRecord($cell))
         {
-            echo "insert interfaceFlexRia";
             $this->insertInterfaceFlexRia($batchId, 'RIA', $cell);
         }
         else if ($refundStatus = $this->isRefundRecord($cell))
