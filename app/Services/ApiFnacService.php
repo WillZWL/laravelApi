@@ -545,4 +545,17 @@ class ApiFnacService implements ApiPlatformInterface
         return false;
     }
 
+    public function updatePlatMarketOrderStatus($storeName,$platformMarketOrderList)
+    {
+        foreach ($platformMarketOrderList as $platformMarketOrder) {
+            $orderInfo = $this->getOrder($storeName,$platformMarketOrder->platform_order_id);
+            $soOrderStatus = $this->getSoOrderStatus($orderInfo["state"]);
+            if($platformMarketOrder->esg_order_status != $soOrderStatus){
+                $platformMarketOrder->order_status = $orderInfo["state"];
+                $platformMarketOrder->esg_order_status = $soOrderStatus;
+                $platformMarketOrder->save();
+            }
+        } 
+    }
+
 }

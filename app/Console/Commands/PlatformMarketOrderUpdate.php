@@ -39,7 +39,7 @@ class PlatformMarketOrderUpdate extends BaseApiPlatformCommand
      */
     public function handle()
     {   
-        $this->platfromMakert = array("priceminister");
+        $this->platfromMakert = array("priceminister","fnac");
         $this->runPlatformMarketConsoleFunction();
     }
 
