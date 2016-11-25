@@ -97,7 +97,7 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('platformMarket:updateShipment', array('--api' => 'all'))
             ->dailyAt('12:20');
-         $schedule->command('platformMarket:orderUpdate', array('--api' => 'all'))
+        $schedule->command('platformMarket:orderUpdate', array('--api' => 'all'))
             ->dailyAt('12:20');
 
         $schedule->command('platformMarket:orderReport alertOrder', array('--api' => 'lazada'))
