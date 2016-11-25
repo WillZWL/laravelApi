@@ -24,7 +24,6 @@ class LazadaCore
         $signRequestParams = $this->signature($requestParams);
         $xml = $this->curl($signRequestParams);
         $data = $this->convert($xml);
-
         if (isset($data['Head']) && isset($data['Head']['ErrorCode'])) {
             $this->ErrorResponse = $data['Head'];
             $message = $this->storeName." ErrorCode ".$data['Head']['ErrorCode']." message ".$data["Head"]["ErrorMessage"].$this->postUrl;
@@ -167,7 +166,7 @@ class LazadaCore
       // Open Curl connection
         $ch = curl_init();
         $this->postUrl = $this->urlbase.'?'.$queryString;
-        //print_r($this->urlbase.'?'.$queryString);
+       //print_r($this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_URL, $this->urlbase.'?'.$queryString);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -189,13 +188,13 @@ class LazadaCore
      */
     private function convert($xml)
     {
-       $xmlParser = xml_parser_create();   
-       if(xml_parse($xmlParser,$xml,true)){   
+        $xml = preg_replace(array('/&#xd;/','/&#x3;/'), array(' '), $xml);
+        $xmlParser = xml_parser_create(); 
+        if(xml_parse($xmlParser,$xml,true)){
             $obj = simplexml_load_string($xml);
             $array = json_decode(json_encode($obj), true);
             if (is_array($array)) {
                 $array = $this->sanitize($array);
-
                 return $array;
             }
         }
