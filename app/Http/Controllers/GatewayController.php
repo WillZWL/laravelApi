@@ -136,20 +136,26 @@ class GatewayController extends Controller
         else
         {
             $data = Excel::load($file->getPathName())->get();
-            if(!$data)
+            
+            if($data->count() <= 0)
             {
                 return "<script>alert('file format error');history.back();</script>";
             }
             $error = [];
             foreach ($data as $key => $row) { 
-                $so_no = $row->order_number;
+                $so_no = $row->so_number;
                 if(!$so_no)
                 {
-                    return "<script>alert('file data format error');history.back();</script>";
+                    return "<script>alert('file data format error, do not read so number');history.back();</script>";
                 }
+                if(!$row->settlement_date)
+                {
+                    return "<script>alert('file data format error, do not read so settlement_date');history.back();</script>";
+                }
+
                 $so = So::find($so_no);
                 if($so)
-                {
+                {                   
                     if($so->settlement_date == "0000-00-00")
                     {
                         $res = So::where("so_no",$so_no)->update(['settlement_date' => date("Y-m-d",strtotime($row->settlement_date))]);
@@ -167,7 +173,7 @@ class GatewayController extends Controller
                             "so_no"=>$so_no,
                             "reason"=>"so already have settlement_date (".$so->settlement_date.")"
                             ];
-                    }
+                    }                    
                 }
                 else
                 {
