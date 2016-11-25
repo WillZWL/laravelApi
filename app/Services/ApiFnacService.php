@@ -520,9 +520,9 @@ class ApiFnacService implements ApiPlatformInterface
             ){
                 return true;
             } else {
-                $fnacStateArr = ["NotReceived", "Shipped", "Received", "Cancelled", "Refunded"];
+                $fnacShippedStateArr = ["NotReceived", "Shipped", "Received"];
                 if (isset($result["state"])
-                    && in_array($result["state"], $fnacStateArr)
+                    && in_array($result["state"], $fnacShippedStateArr)
                 ) {
                     $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
                             ->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_UNSHIPPED)
@@ -531,6 +531,13 @@ class ApiFnacService implements ApiPlatformInterface
                         $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $result['state']);
                     }
                 }
+                $fnacCancelStateArr = ["Cancelled", "Refunded"];
+                if (isset($result["state"])
+                    && in_array($result["state"], $fnacCancelStateArr)
+                ) {
+                    $message = "FNAC order state: " . $result["state"]. "\r\n\r\n";
+                }
+
                 $message = "Results: " . print_r( $result, true);
             }
         } catch (Exception $e) {
