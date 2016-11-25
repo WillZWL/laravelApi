@@ -549,11 +549,13 @@ class ApiFnacService implements ApiPlatformInterface
     {
         foreach ($platformMarketOrderList as $platformMarketOrder) {
             $orderInfo = $this->getOrder($storeName,$platformMarketOrder->platform_order_id);
-            $soOrderStatus = $this->getSoOrderStatus($orderInfo["state"]);
-            if($platformMarketOrder->esg_order_status != $soOrderStatus){
-                $platformMarketOrder->order_status = $orderInfo["state"];
-                $platformMarketOrder->esg_order_status = $soOrderStatus;
-                $platformMarketOrder->save();
+            if(isset($orderInfo[0]["state"])){
+                $soOrderStatus = $this->getSoOrderStatus($orderInfo[0]["state"]);
+                if($platformMarketOrder->esg_order_status != $soOrderStatus){
+                    $platformMarketOrder->order_status = $orderInfo[0]["state"];
+                    $platformMarketOrder->esg_order_status = $soOrderStatus;
+                    $platformMarketOrder->save();
+                }   
             }
         } 
     }
