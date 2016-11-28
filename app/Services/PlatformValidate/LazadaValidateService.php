@@ -59,6 +59,10 @@ class LazadaValidateService extends BaseValidateService
                 $platform['accountName'] = '3Doodler Lazada';
                 $platform['alertEmail'] = '3doodler@buholoco.com';
                 break;
+            case 'CF':
+                $platform['accountName'] = 'Q-Rated Lazada';
+                $platform['alertEmail'] = 'lazada@eservicesgroup.com';
+                break;
         }
 
         return  $platform;
