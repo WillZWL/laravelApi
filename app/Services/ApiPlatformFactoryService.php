@@ -555,7 +555,7 @@ class ApiPlatformFactoryService
         );
         $platformOrderList = PlatformMarketOrder::where("biz_type",$bizType)
                         ->where('acknowledge', '=', '0')
-                        ->whereNotIn('esg_order_status',$notInStatus);
+                        ->whereNotIn('esg_order_status',$notInStatus)
                         ->get();
         if(!$platformOrderList->isEmpty()){
             $this->apiPlatformInterface->updatePlatMarketOrderStatus($storeName,$platformOrderList);
