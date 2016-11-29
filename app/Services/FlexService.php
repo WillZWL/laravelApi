@@ -66,12 +66,13 @@ class FlexService
         //flex ria
         $flexRia = new FlexRia();
         $flexRiaList = $flexRia->soFee($batchIdList);
+        
         $soList = [];
         if($flexRiaList->count())
         {
           foreach($flexRiaList as $flex)
           {
-            $soList[$flex->so_no][] = $flex;
+            $soList[$flex->so_no.$flex->txn_time][] = $flex;
           }
         }
         if(count($soList) > 0)
@@ -95,7 +96,7 @@ class FlexService
               $fee->receiptFees = $receiptFees;
               $fee->subTotal = $fee->amount + $commissionFees + $receiptFees;
 
-              $feedbackReport[$fee->so_no] = $fee;
+              $feedbackReport[$fee->so_no.$fee->txn_time] = $fee;
               //$cellData[] = [$fee->merchant_id,$fee->so_no,$fee->txn_id,$fee->flex_batch_id,$fee->gateway_id,$fee->txn_time,$fee->currency_id,$fee->amount,$fee->commissionFees ==0 ?'':$fee->commissionFees,$fee->receiptFees==0?'':$fee->receiptFees,'','','',$fee->subTotal];
           }
         }
@@ -107,7 +108,7 @@ class FlexService
         if($flexRefundList->count() )
         {
           foreach ($flexRefundList as $flex) {
-              $refundList[$flex->so_no][] = $flex;
+              $refundList[$flex->so_no.$flex->txn_time][] = $flex;
           }
         }
         if(count($refundList)>0)
@@ -122,7 +123,7 @@ class FlexService
                   {
                     $commissionFees += $fee->fee_amount;
                   }
-                  if(in_array($fee->fee_status,['A_RF_SC','A_RF_RFOIP','A_RF_RAF','A_RF','A_RO_S','A_RO']))
+                  if(in_array($fee->fee_status,['A_RF_SC','A_RF_RFOIP','A_RF_RAF','A_RF','A_RO_S','A_RO','A_RPS','A_RP']))
                   {
                     $refundOthers += $fee->fee_amount;
                   }
@@ -134,13 +135,13 @@ class FlexService
               $refund->refundOthers = $refundOthers;
               $refund->subTotal = $subTotal;
 
-              if(array_key_exists($refund->so_no, $feedbackReport))
+              if(array_key_exists($refund->so_no.$refund->txn_time, $feedbackReport))
               {
-                  $feedbackReport["R".$refund->so_no] = $refund;//so have receipt order ,also have refund order
+                  $feedbackReport["R".$refund->so_no.$refund->txn_time] = $refund;//so have receipt order ,also have refund order
               }
               else
               {
-                  $feedbackReport[$refund->so_no] = $refund;
+                  $feedbackReport[$refund->so_no.$refund->txn_time] = $refund;
               }
           }
         }
@@ -165,11 +166,11 @@ class FlexService
                 $so = So::where(["platform_order_id"=>$gatewayFee->txn_id,"platform_group_order"=>1])->with("sellingPlatform")->first();
                 if($so)
                 {
-                  if(array_key_exists($so->so_no, $feedbackReport))
+                  if(array_key_exists($so->so_no.$gatewayFee->txn_time, $feedbackReport))
                   {
-                    $feedbackReport[$so->so_no]->others = $gatewayFee->others;
-                    $feedbackReport[$so->so_no]->fbaFees = $gatewayFee->fbaFees;
-                    $feedbackReport[$so->so_no]->subTotal = $feedbackReport[$so->so_no]->subTotal + $gatewayFee->others +$gatewayFee->fbaFees;
+                    $feedbackReport[$so->so_no.$gatewayFee->txn_time]->others = $gatewayFee->others;
+                    $feedbackReport[$so->so_no.$gatewayFee->txn_time]->fbaFees = $gatewayFee->fbaFees;
+                    $feedbackReport[$so->so_no.$gatewayFee->txn_time]->subTotal = $feedbackReport[$so->so_no.$gatewayFee->txn_time]->subTotal + $gatewayFee->others +$gatewayFee->fbaFees;
                   }
                   else
                   {
@@ -183,13 +184,15 @@ class FlexService
                   //$gatewayFee->txn_id = null;
                   $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;
                 }
-              }else{
+              }
+              else
+              {
                 $feedbackReport["gateway".$gatewayNum++] = $gatewayFee;
               }
               //$cellData[] = ['','','',$gatewayFee->flex_batch_id,$gatewayFee->gateway_id,$gatewayFee->txn_time,$gatewayFee->currency_id,'','','','',$gatewayFee->others,$gatewayFee->fbaFees,''];
           }
         }
-
+        ksort($feedbackReport);
         foreach($feedbackReport as $so_no => $so)
         {
             $cellData[] = [

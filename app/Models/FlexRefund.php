@@ -47,7 +47,9 @@ class FlexRefund extends Model
         return Self::join("so","so.so_no","=","flex_refund.so_no")
         ->join('selling_platform AS sp', 'sp.id', '=', 'so.platform_id')
         ->leftJoin('flex_so_fee',function($join){
-            $join->on('flex_so_fee.flex_batch_id', '=', 'flex_refund.flex_batch_id')->on('flex_so_fee.so_no', '=', 'flex_refund.so_no');
+            $join->on('flex_so_fee.flex_batch_id', '=', 'flex_refund.flex_batch_id')
+                 ->on('flex_so_fee.so_no', '=', 'flex_refund.so_no')
+                 ->on('flex_so_fee.txn_time', '=', 'flex_refund.txn_time');
         })
         ->whereIn("flex_refund.flex_batch_id",$batchIdlist)
         ->select('flex_refund.so_no',
