@@ -48,7 +48,9 @@ class FlexRia extends Model
         return Self::join("so","so.so_no","=","flex_ria.so_no")
         ->join('selling_platform AS sp', 'sp.id', '=', 'so.platform_id')
         ->leftJoin('flex_so_fee',function($join){
-            $join->on('flex_so_fee.flex_batch_id', '=', 'flex_ria.flex_batch_id')->on('flex_so_fee.so_no', '=', 'flex_ria.so_no');
+            $join->on('flex_so_fee.flex_batch_id', '=', 'flex_ria.flex_batch_id')
+                 ->on('flex_so_fee.so_no', '=', 'flex_ria.so_no')
+                 ->on('flex_so_fee.txn_time', '=', 'flex_ria.txn_time');
         })
         ->whereIn("flex_ria.flex_batch_id",$batchIdlist)
         ->select('flex_ria.so_no',
