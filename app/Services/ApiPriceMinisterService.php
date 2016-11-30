@@ -430,6 +430,9 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                     $acceptedStatus = array("COMMITTED","PENDING","ACCEPTED","ON_HOLD");
                     if(in_array($orderStatus,$acceptedStatus)){
                         return true;
+                    }else{
+                        $message .= "PriceMinister order state: " .$orderStatus. "\r\n\r\n";
+                        $message .= "Results: " . print_r( $orderInfo, true);
                     }
                 }
             }
