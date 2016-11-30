@@ -98,43 +98,42 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
         $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
-        $result = $this->checkOrderStatusToShip($storeName,$esgOrder->platform_order_id);
-        if($result){
-            $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
-            $message = $result = "";
-            foreach ($extItemCd as $extItem) {
-                $itemIds = explode('||', $extItem);
-                foreach ($itemIds as $itemId) {
-                    if ($esgOrderShipment && $itemId) {
-                        $courier = $this->getPriceMinisterCourier($esgOrderShipment->courierInfo);
-                        if ($courier) {
-                            $this->priceMinisterOrderTracking = new PriceMinisterOrderTracking($storeName);
-                            $this->priceMinisterOrderTracking->setItemId($itemId);
-                            $this->priceMinisterOrderTracking->setTransporterName($courier['transporter_name']);
-                            $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
-                            if (isset($courier['tracking_url'])) {
-                                $this->priceMinisterOrderTracking->setTrackingUrl($courier['tracking_url']);
-                            }
-                            try {
-                                $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
-                                $this->saveDataToFile($result, 'setTrackingPackageInfo');
-                            } catch (Exception $e) {
-                                $message .= "platform_order_id: ". $esgOrder->platform_order_id ."message: {$e->getMessage()}, Line: {$e->getLine()}\r\n";
-                            }
+        $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
+        $message = $result = "";
+        foreach ($extItemCd as $extItem) {
+            $itemIds = explode('||', $extItem);
+            foreach ($itemIds as $itemId) {
+                $result = $this->checkOrderItemStatusToShip($storeName,$itemId,$esgOrder->platform_order_id);
+                if ($result && $esgOrderShipment) {
+                    $courier = $this->getPriceMinisterCourier($esgOrderShipment->courierInfo);
+                    if ($courier) {
+                        $this->priceMinisterOrderTracking = new PriceMinisterOrderTracking($storeName);
+                        $this->priceMinisterOrderTracking->setItemId($itemId);
+                        $this->priceMinisterOrderTracking->setTransporterName($courier['transporter_name']);
+                        $this->priceMinisterOrderTracking->setTrackingNumber($esgOrderShipment->tracking_no);
+                        if (isset($courier['tracking_url'])) {
+                            $this->priceMinisterOrderTracking->setTrackingUrl($courier['tracking_url']);
+                        }
+                        try {
+                            $result = $this->priceMinisterOrderTracking->setTrackingPackageInfo();
+                            $this->saveDataToFile($result, 'setTrackingPackageInfo');
+                        } catch (Exception $e) {
+                            $message .= "platform_order_id: ". $esgOrder->platform_order_id ."message: {$e->getMessage()}, Line: {$e->getLine()}\r\n";
                         }
                     }
                 }
             }
-            if ($message) {
-                $header = "From: admin@eservicesgroup.com\r\n";
-                $to = "jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com";
-                $subject = "Alert, Submit PriceMinister Order Fufillment Shipment Failed";
-                mail($to, $subject, $message, $header);
+        }
+        if ($message) {
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $to = "jimmy.gao@eservicesgroup.com, brave.liu@eservicesgroup.com";
+            $subject = "Alert, Submit PriceMinister Order Fufillment Shipment Failed";
+            mail($to, $subject, $message, $header);
 
-                return false;
-            }
-            return $result == 'OK' ? true : false;
-        } 
+            return false;
+        }
+        return $result == 'OK' ? true : false;
+        
     }
 
     public function getPriceMinisterCourier($courierInfo)
@@ -329,7 +328,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     public function getSoOrderStatus($platformOrderStatus)
     {
         switch ($platformOrderStatus) {
-            case 'COMMITTED':
+            case 'COMMITED':
                 $status = PlatformMarketConstService::ORDER_STATUS_PAID;
                 break;
             case 'PENDING':
@@ -396,24 +395,18 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         } 
     }
 
-    private function checkOrderStatusToShip($storeName,$orderId)
+    private function checkOrderItemStatusToShip($storeName,$itemId,$orderId)
     {
         $message = "";
         try {
-            $this->priceMinisterOrderInfo = new PriceMinisterOrderInfo($storeName);
-            $this->priceMinisterOrderInfo->setPurchaseId($orderId);
-            $orderInfo = $this->priceMinisterOrderInfo->getBillingInformation();
-            if(!empty($orderInfo)){
-                foreach ($orderInfo as $key => $orderItem) {
-                    if (isset($orderItem['item']['shipped'])) {
-                        $orderStatus = $orderItem['item']['itemstatus'];
-                        $shipped = $orderItem['item']['shipped'];
-                    } else {
-                        $orderStatus = $orderItem['item'][0]['itemstatus'];
-                        $shipped = $orderItem['item'][0]['shipped'];
-                    }
+            $this->priceMinisterOrderItemInfo = new PriceMinisterOrderItemInfo($storeName);
+            $this->priceMinisterOrderItemInfo->setItemId($itemId);
+            $itemInfo = $this->priceMinisterOrderInfo->getItemInfos();
+            if(!empty($itemInfo)){
+                if (isset($itemInfo['itemstatus'])) {
+                    $orderStatus = $itemInfo['itemstatus'];
                 }
-                if($shipped){
+                if($itemInfo['shipped']){
                    $object = array(
                         "order_status" => "Shipped",
                         "esg_order_status"=> PlatformMarketConstService::ORDER_STATUS_SHIPPED,
@@ -427,12 +420,12 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                         $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderStatus);
                         $platformMarketOrder->save();
                     }
-                    $acceptedStatus = array("COMMITTED","PENDING","ACCEPTED","ON_HOLD");
+                    $acceptedStatus = array("COMMITED","PENDING","ACCEPTED","ON_HOLD");
                     if(in_array($orderStatus,$acceptedStatus)){
                         return true;
                     }else{
                         $message .= "PriceMinister order state: " .$orderStatus. "\r\n\r\n";
-                        $message .= "Results: " . print_r( $orderInfo, true);
+                        $message .= "Results: " . print_r( $itemInfo, true);
                     }
                 }
             }
