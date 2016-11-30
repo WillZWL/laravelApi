@@ -95,6 +95,7 @@ class PlatformMarketOrder extends Model
 
     public function scopeLazadaUnshippedOrder($query)
     {
+
         return $query->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_UNSHIPPED)
             ->where('biz_type', '=', 'Lazada')
             ->where('acknowledge', '=', '1');
@@ -102,7 +103,13 @@ class PlatformMarketOrder extends Model
 
     public function scopeUnshippedOrder($query)
     {
-        return $query->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_UNSHIPPED)
+        $notInStatus = array(
+            PlatformMarketConstService::ORDER_STATUS_CANCEL,
+            PlatformMarketConstService::ORDER_STATUS_SHIPPED,
+            PlatformMarketConstService::ORDER_STATUS_RETURENED,
+            PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED,
+        );
+        return $query->whereNotIn('esg_order_status',$notInStatus)
             ->where('acknowledge', '=', '1');
     }
 
