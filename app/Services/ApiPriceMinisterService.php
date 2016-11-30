@@ -59,7 +59,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     {
         $this->priceMinisterOrder = new PriceMinisterOrder($storeName);
         $this->storeCurrency = $this->priceMinisterOrder->getStoreCurrency();
-        $thhis->PriceMinisterOrder->setOrderId($orderId);
+        $this->priceMinisterOrder->setOrderId($orderId);
 
         return $this->priceMinisterOrder->fetchOrder();
     }
@@ -97,9 +97,9 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
     public function submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList)
     {
+        $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
         $result = $this->checkOrderStatusToShip($storeName,$esgOrder->platform_order_id);
         if($result){
-            $storeName = $platformOrderIdList[$esgOrder->platform_order_id];
             $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
             $message = $result = "";
             foreach ($extItemCd as $extItem) {
@@ -400,29 +400,33 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     {
         $message = "";
         try {
-            $results = $this->getOrder($storeName,$orderId);
-            if(isset($result["state"]) && $result["state"] === "ToShip"){
-                return true;
-            } else {
-                $fnacShippedStateArr = ["Shipped", "Received"];
-                if (isset($result["state"])
-                    && in_array($result["state"], $fnacShippedStateArr)
-                ) {
-                    $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)
-                            ->where('esg_order_status', '=', PlatformMarketConstService::ORDER_STATUS_UNSHIPPED)
-                            ->firstOrFail();
-                    if ($platformMarketOrder) {
-                        $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $result['state']);
+            $this->priceMinisterOrderInfo = new PriceMinisterOrderInfo($storeName);
+            $this->priceMinisterOrderInfo->setPurchaseId($orderId);
+            $orderInfo = $this->priceMinisterOrderInfo->getBillingInformation();
+            if(!empty($orderInfo)){
+                foreach ($orderInfo as $key => $orderItem) {
+                    if (isset($orderItem['item']['shipped'])) {
+                        $shipped = $orderItem['item']['shipped'];
+                    } else {
+                        $shipped = $orderItem['item'][0]['shipped'];
                     }
                 }
-                $message .= "PriceMiniser order state: " . $result["state"]. "\r\n\r\n";
-                $message .= "Results: " . print_r( $result, true);
+                if($shipped){
+                    $object = array(
+                        "order_status" => "Shipped",
+                        "esg_order_status"=> PlatformMarketConstService::ORDER_STATUS_SHIPPED
+                    );
+                    $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)->update($object);
+                    $message .= "PriceMiniser order state: " . $result["state"]. "\r\n\r\n";
+                    $message .= "Results: " . print_r( $result, true);
+                }else{
+                    return true;
+                }
             }
         } catch (Exception $e) {
             $message = $e->getMessage();
         }
         mail('jimmy.gao@eservicesgroup.com', $storeName.' checkOrderStatusToShip for platformOrderID: '.$orderId, $message);
-
         return false;
     }
 }
