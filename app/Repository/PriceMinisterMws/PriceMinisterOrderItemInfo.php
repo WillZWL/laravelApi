@@ -17,7 +17,7 @@ class PriceMinisterOrderItemInfo extends PriceMinisterOrderCore
 
     public function getItemInfos()
     {
-        $this->_requestParams['action'] = 'getbillinginformation';
+        $this->_requestParams['action'] = 'getiteminfos';
         $this->_requestParams['version'] = '2016-03-16';
         $this->_requestParams['itemid'] = $this->getItemId();
 

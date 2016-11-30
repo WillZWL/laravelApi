@@ -12,6 +12,7 @@ use App\Repository\PriceMinisterMws\PriceMinisterOrder;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderList;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderInfo;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderTracking;
+use App\Repository\PriceMinisterMws\PriceMinisterOrderItemInfo;
 
 class ApiPriceMinisterService implements ApiPlatformInterface
 {
@@ -101,7 +102,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
         $message = $result = "";
         foreach ($extItemCd as $extItem) {
-            $itemIds = explode('||', $extItem);
+            $itemIds = array_filter(explode('||', $extItem));
             foreach ($itemIds as $itemId) {
                 $result = $this->checkOrderItemStatusToShip($storeName,$itemId,$esgOrder->platform_order_id);
                 if ($result && $esgOrderShipment) {
@@ -329,6 +330,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     {
         switch ($platformOrderStatus) {
             case 'COMMITED':
+            case 'COMMITTED':
                 $status = PlatformMarketConstService::ORDER_STATUS_PAID;
                 break;
             case 'PENDING':
@@ -401,12 +403,13 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         try {
             $this->priceMinisterOrderItemInfo = new PriceMinisterOrderItemInfo($storeName);
             $this->priceMinisterOrderItemInfo->setItemId($itemId);
-            $itemInfo = $this->priceMinisterOrderInfo->getItemInfos();
+            $itemInfo = $this->priceMinisterOrderItemInfo->getItemInfos();
             if(!empty($itemInfo)){
-                if (isset($itemInfo['itemstatus'])) {
-                    $orderStatus = $itemInfo['itemstatus'];
+                foreach ($itemInfo as $key => $value) {
+                    $orderStatus = $value['itemstatus'];
+                    $shipped = $value['shipped'];
                 }
-                if($itemInfo['shipped']){
+                if($shipped){
                    $object = array(
                         "order_status" => "Shipped",
                         "esg_order_status"=> PlatformMarketConstService::ORDER_STATUS_SHIPPED,
@@ -420,7 +423,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                         $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderStatus);
                         $platformMarketOrder->save();
                     }
-                    $acceptedStatus = array("COMMITED","PENDING","ACCEPTED","ON_HOLD");
+                    $acceptedStatus = array("COMMITTED","PENDING","ACCEPTED","ON_HOLD");
                     if(in_array($orderStatus,$acceptedStatus)){
                         return true;
                     }else{
