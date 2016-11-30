@@ -406,21 +406,31 @@ class ApiPriceMinisterService implements ApiPlatformInterface
             if(!empty($orderInfo)){
                 foreach ($orderInfo as $key => $orderItem) {
                     if (isset($orderItem['item']['shipped'])) {
+                        $orderStatus = $orderItem['item']['itemstatus'];
                         $shipped = $orderItem['item']['shipped'];
                     } else {
+                        $orderStatus = $orderItem['item'][0]['itemstatus'];
                         $shipped = $orderItem['item'][0]['shipped'];
                     }
                 }
                 if($shipped){
-                    $object = array(
+                   $object = array(
                         "order_status" => "Shipped",
-                        "esg_order_status"=> PlatformMarketConstService::ORDER_STATUS_SHIPPED
+                        "esg_order_status"=> PlatformMarketConstService::ORDER_STATUS_SHIPPED,
                     );
-                    $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)->update($object);
-                    $message .= "PriceMiniser order state: " . $result["state"]. "\r\n\r\n";
-                    $message .= "Results: " . print_r( $result, true);
+                    PlatformMarketOrder::where('platform_order_id', '=', $orderId)->update($object);
+                    return false;
                 }else{
-                    return true;
+                    $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)->first();
+                    if($platformMarketOrder->order_status != $orderStatus){
+                        $platformMarketOrder->order_status = $orderStatus;
+                        $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderStatus);
+                        $platformMarketOrder->save();
+                    }
+                    $acceptedStatus = array("COMMITTED","PENDING","ACCEPTED","ON_HOLD");
+                    if(in_array($orderStatus,$acceptedStatus)){
+                        return true;
+                    }
                 }
             }
         } catch (Exception $e) {
