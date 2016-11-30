@@ -105,6 +105,7 @@ class PlatformMarketOrder extends Model
     {
         $notInStatus = array(
             PlatformMarketConstService::ORDER_STATUS_CANCEL,
+            PlatformMarketConstService::ORDER_STATUS_NEW,
             PlatformMarketConstService::ORDER_STATUS_SHIPPED,
             PlatformMarketConstService::ORDER_STATUS_RETURENED,
             PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED,
