@@ -137,32 +137,37 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
     public function getPriceMinisterCourier($courierInfo)
     {
-        $aftershipId = $courierInfo->aftership_id;
+        $pmCourierId = $courierInfo->pm_courier_id;
         $priceMinisterCourier = [];
-        if ($aftershipId) {
-            switch ($aftershipId) {
-                case 'dhl':
-                case 'dhl-global-mail':
+        if ($pmCourierId) {
+            switch ($pmCourierId) {
+                case 'DHL':
                     $priceMinisterCourier = array('transporter_name' => 'DHL');
                     break;
-                case 'dpd':
+                case 'DPD':
                     $priceMinisterCourier = array('transporter_name' => 'DPD');
                     break;
-                case 'dpd-uk':
+                case 'DPD-UK':
                     $priceMinisterCourier = array(
                         'transporter_name' => 'DPD',
                         'tracking_url' => 'https://www.deutschepost.de/sendung/simpleQueryResult.html',
                         );
                     break;
-                case 'chronopost-france':
+                case 'CHRONOPOST':
                     $priceMinisterCourier = array(
                         'transporter_name' => 'CHRONOPOST',
                         'tracking_url' => 'http://www.chronopost.fr/en',
                         );
                     break;
-                case 'tnt':
+                case 'TNT':
                     $priceMinisterCourier = array(
                         'transporter_name' => 'TNT',
+                        );
+                    break;
+                case 'Autre':
+                    $priceMinisterCourier = array(
+                        'transporter_name' => 'Autre',
+                        'tracking_url' => 'https://www.rpxonline.com/',
                         );
                     break;
 
