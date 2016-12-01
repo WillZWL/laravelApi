@@ -24,6 +24,15 @@ class PriceMinisterOrderInfo extends PriceMinisterOrderCore
         return parent::query($this->_requestParams);
     }
 
+    public function getShippingInformation()
+    {
+        $this->_requestParams['action'] = 'getshippinginformation';
+        $this->_requestParams['version'] = '2014-02-11';
+        $this->_requestParams['purchaseid'] = $this->getPurchaseId();
+
+        return parent::query($this->_requestParams);
+    }
+
     protected function getRequestParams()
     {
         $this->_requestParams = parent::initRequestParams();
@@ -33,6 +42,8 @@ class PriceMinisterOrderInfo extends PriceMinisterOrderCore
     {
         if (isset($data['response']) && isset($data['response']['billinginformation']) && isset($data['response']['billinginformation']['items'])) {
             return parent::fix($data['response']['billinginformation']['items']);
+        }else if(isset($data['response']) && isset($data['response']['shippinginformation'])) {
+            return $data['response']['shippinginformation'];
         }
         return null;
     }

@@ -12,6 +12,7 @@ use App\Repository\PriceMinisterMws\PriceMinisterOrder;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderList;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderInfo;
 use App\Repository\PriceMinisterMws\PriceMinisterOrderTracking;
+use App\Repository\PriceMinisterMws\PriceMinisterOrderItemInfo;
 
 class ApiPriceMinisterService implements ApiPlatformInterface
 {
@@ -59,7 +60,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     {
         $this->priceMinisterOrder = new PriceMinisterOrder($storeName);
         $this->storeCurrency = $this->priceMinisterOrder->getStoreCurrency();
-        $thhis->PriceMinisterOrder->setOrderId($orderId);
+        $this->priceMinisterOrder->setOrderId($orderId);
 
         return $this->priceMinisterOrder->fetchOrder();
     }
@@ -101,9 +102,10 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         $extItemCd = $esgOrder->soItem->pluck('ext_item_cd');
         $message = $result = "";
         foreach ($extItemCd as $extItem) {
-            $itemIds = explode('||', $extItem);
+            $itemIds = array_filter(explode('||', $extItem));
             foreach ($itemIds as $itemId) {
-                if ($esgOrderShipment && $itemId) {
+                $result = $this->checkOrderItemStatusToShip($storeName,$itemId,$esgOrder->platform_order_id);
+                if ($result && $esgOrderShipment) {
                     $courier = $this->getPriceMinisterCourier($esgOrderShipment->courierInfo);
                     if ($courier) {
                         $this->priceMinisterOrderTracking = new PriceMinisterOrderTracking($storeName);
@@ -131,38 +133,43 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
             return false;
         }
-
         return $result == 'OK' ? true : false;
+        
     }
 
     public function getPriceMinisterCourier($courierInfo)
     {
-        $aftershipId = $courierInfo->aftership_id;
+        $pmCourierId = $courierInfo->pm_courier_id;
         $priceMinisterCourier = [];
-        if ($aftershipId) {
-            switch ($aftershipId) {
-                case 'dhl':
-                case 'dhl-global-mail':
+        if ($pmCourierId) {
+            switch ($pmCourierId) {
+                case 'DHL':
                     $priceMinisterCourier = array('transporter_name' => 'DHL');
                     break;
-                case 'dpd':
+                case 'DPD':
                     $priceMinisterCourier = array('transporter_name' => 'DPD');
                     break;
-                case 'dpd-uk':
+                case 'DPD-UK':
                     $priceMinisterCourier = array(
                         'transporter_name' => 'DPD',
                         'tracking_url' => 'https://www.deutschepost.de/sendung/simpleQueryResult.html',
                         );
                     break;
-                case 'chronopost-france':
+                case 'CHRONOPOST':
                     $priceMinisterCourier = array(
                         'transporter_name' => 'CHRONOPOST',
                         'tracking_url' => 'http://www.chronopost.fr/en',
                         );
                     break;
-                case 'tnt':
+                case 'TNT':
                     $priceMinisterCourier = array(
                         'transporter_name' => 'TNT',
+                        );
+                    break;
+                case 'Autre':
+                    $priceMinisterCourier = array(
+                        'transporter_name' => 'Autre',
+                        'tracking_url' => 'https://www.rpxonline.com/',
                         );
                     break;
 
@@ -178,7 +185,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
             $courierId = $courierInfo->courier_id;
             $courierName = $courierInfo->courier_name;
-            if (!$aftershipId) {
+            if (!$pmCourierId) {
                 $message = "courierId: $courierId, courierName: $courierName Lack aftership Id Mapping";
             } else {
                 $message = "courierId: $courierId, courierName: $courierName Lack with Priceminister courier Mapping, Please Contact IT Support";
@@ -322,6 +329,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
     public function getSoOrderStatus($platformOrderStatus)
     {
         switch ($platformOrderStatus) {
+            case 'COMMITED':
             case 'COMMITTED':
                 $status = PlatformMarketConstService::ORDER_STATUS_PAID;
                 break;
@@ -387,5 +395,47 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                 }
             }
         } 
+    }
+
+    private function checkOrderItemStatusToShip($storeName,$itemId,$orderId)
+    {
+        $message = "";
+        try {
+            $this->priceMinisterOrderItemInfo = new PriceMinisterOrderItemInfo($storeName);
+            $this->priceMinisterOrderItemInfo->setItemId($itemId);
+            $itemInfo = $this->priceMinisterOrderItemInfo->getItemInfos();
+            if(!empty($itemInfo)){
+                foreach ($itemInfo as $key => $value) {
+                    $orderStatus = $value['itemstatus'];
+                    $shipped = $value['shipped'];
+                }
+                if($shipped){
+                   $object = array(
+                        "order_status" => "Shipped",
+                        "esg_order_status"=> PlatformMarketConstService::ORDER_STATUS_SHIPPED,
+                    );
+                    PlatformMarketOrder::where('platform_order_id', '=', $orderId)->update($object);
+                    return false;
+                }else{
+                    $platformMarketOrder = PlatformMarketOrder::where('platform_order_id', '=', $orderId)->first();
+                    if($platformMarketOrder->order_status != $orderStatus){
+                        $platformMarketOrder->order_status = $orderStatus;
+                        $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderStatus);
+                        $platformMarketOrder->save();
+                    }
+                    $acceptedStatus = array("COMMITTED","PENDING","ACCEPTED","ON_HOLD");
+                    if(in_array($orderStatus,$acceptedStatus)){
+                        return true;
+                    }else{
+                        $message .= "PriceMinister order state: " .$orderStatus. "\r\n\r\n";
+                        $message .= "Results: " . print_r( $itemInfo, true);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+        }
+        mail('jimmy.gao@eservicesgroup.com', $storeName.' checkOrderStatusToShip for platformOrderID: '.$orderId, $message);
+        return false;
     }
 }

@@ -89,10 +89,12 @@ class ShippingService
                     ->where('delivery_type_id', $deliveryType)
                     ->first();
             if($courierCostMarkup){
-               $courierCostMarkupInPercent = $courierCostMarkup->quotation_percent / 100;
-               $surchargeInPercent = $courierCostModel->courierInfo->surcharge / 100;
-               $finalDeliveryCost = $courierCostModel->delivery_cost * (1 + $surchargeInPercent) * (1 + $courierCostMarkupInPercent);
+                $courierCostMarkupInPercent = $courierCostMarkup->quotation_percent / 100;
+            } else {
+                $courierCostMarkupInPercent = 0;
             }
+            $surchargeInPercent = $courierCostModel->courierInfo->surcharge / 100;
+            $finalDeliveryCost = $courierCostModel->delivery_cost * (1 + $surchargeInPercent) * (1 + $courierCostMarkupInPercent);
             return [
                 'courierId' => $courierCostModel->courierInfo->courier_id,
                 'cost' => $finalDeliveryCost,
