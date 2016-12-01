@@ -169,13 +169,47 @@ class ApiQoo10Service  implements ApiPlatformInterface
         ) {
             return true;
         } else {
+            $orderInfo = $this->getOrder($platformOrderNo, $storeName);
+            if (isset($orderInfo['ResultMsg'])
+                && $orderInfo['ResultMsg'] == "Success"
+                && isset($orderInfo['shippingStatus'])
+                && (
+                    $orderInfo['shippingStatus'] == "On delivery(4)"
+                    || $orderInfo['shippingStatus'] == "Delivere(5)"
+                )
+            ) {
+                $platformMarketOrder = PlatformMarketOrder::where('platform_order_no', '=', $platformOrderNo)
+                    ->firstOrFail();
+                $this->_updatePlatformMarketOrderStatus($platformMarketOrder, $orderInfo['shippingStatus']);
+            }
+            $orderInfoMsg = "";
+            if ($orderInfo) {
+                $orderInfoMsg = print_r($orderInfo, true);
+            }
+
             $to = 'qoo10sg@brandsconnect.net, celine@eservicesgroup.net';
             $header = "From: admin@eservicesgroup.com\r\n";
             $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
-            $message = serialize($updateShipmentData);
+            $message = serialize($updateShipmentData) ."\r\n". $orderInfoMsg;
             mail($to, "Alert, Update shipment tracking to qoo10 failed", $message, $header);
 
             return false;
+        }
+    }
+
+    private function _updatePlatformMarketOrderStatus($platformMarketOrder, $orderState)
+    {
+        if ($platformMarketOrder) {
+            $platformMarketOrder->order_status = $orderState;
+            $platformMarketOrder->esg_order_status = $this->getSoOrderStatus($orderState);
+            $platformMarketOrder->save();
+
+            if ($orderItems = $platformMarketOrder->platformMarketOrderItem()->get()) {
+                foreach ($orderItems as $orderItem) {
+                    $orderItem->status = $orderState;
+                    $orderItem->save();
+                }
+            }
         }
     }
 
