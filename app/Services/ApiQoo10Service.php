@@ -332,9 +332,11 @@ class ApiQoo10Service  implements ApiPlatformInterface
 
 
             case 'On delivery(4)':
+            case 'Delivery(4)':
                 $status = PlatformMarketConstService::ORDER_STATUS_SHIPPED;
                 break;
 
+            case 'Delivere(5)':
             case 'Delivered(5)':
                 $status = PlatformMarketConstService::ORDER_STATUS_DELIVERED;
                 break;
