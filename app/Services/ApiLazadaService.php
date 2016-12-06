@@ -195,6 +195,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     public function merchantOrderFufillmentGetDocument($orderGroups,$doucmentType)
     {
+
         $orderItemIds = array();$fileDate = date("h-i-s");
         $filePath = \Storage::disk('merchant')->getDriver()->getAdapter()->getPathPrefix();
         $pdfFilePath = $filePath.date("Y")."/".date("m")."/".date("d")."/label/";
@@ -213,7 +214,7 @@ class ApiLazadaService implements ApiPlatformInterface
             $documentFile = preg_replace(array('/transform:rotate/'), array('-webkit-transform:rotate'), $documentFile);
             $documentFile = $this->getFormatDocumentFile($documentFile,$doucmentType,$mattelDcSkuList);
             $file = $doucmentType.$fileDate.'.pdf';
-            PDF::loadHTML($documentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->save($pdfFilePath.$file);
+            PDF::loadHTML($documentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->setOption("encoding","UTF-8")->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
         }
@@ -454,7 +455,7 @@ class ApiLazadaService implements ApiPlatformInterface
         foreach($document as $documentType => $documentFile){
             if($documentFile){
                 $file = $pdfFilePath.$documentType.$fileDate.'.pdf';
-                PDF::loadHTML($documentFile)->save($file);
+                PDF::loadHTML($documentFile)->setOption("encoding","UTF-8")->save($file);
                 $documentPdf[$documentFile] = $file;
             }
         }
