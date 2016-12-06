@@ -81,6 +81,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('brand', 'BrandController');
     $api->resource('merchant', 'MerchantController');
     $api->resource('supplier', 'SupplierController');
+    $api->resource('weight', 'WeightController');
     $api->get('country-state', 'CountryController@fetchCountryWithState');
     $api->resource('country', 'CountryController');
     $api->resource('colour', 'ColourController');
