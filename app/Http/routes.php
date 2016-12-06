@@ -81,6 +81,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('brand', 'BrandController');
     $api->resource('merchant', 'MerchantController');
     $api->resource('supplier', 'SupplierController');
+    $api->get('country-state', 'CountryController@fetchCountryWithState');
     $api->resource('country', 'CountryController');
     $api->resource('colour', 'ColourController');
     $api->resource('version', 'VersionController');
@@ -128,6 +129,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('product-size-tier', 'AmazonProductSizeTierController');
     $api->resource('fba-fees', 'CalculateAmazonFbaFeesController');
     $api->resource('sbn-fees', 'CalculateSbnFeesController');
+
+    $api->get('freight-cost', 'FreightCostController@enquireFreightCost');
 
     $api->resource('orders', 'OrderController');
     $api->resource('export-orders', 'OrderController@exportOrdersToExcel');

@@ -10,4 +10,9 @@ class CountryRepository
     {
         return Country::all();
     }
+
+    public function countryWithState()
+    {
+        return Country::activeCountry()->with('countryState')->get();
+    }
 }

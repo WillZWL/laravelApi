@@ -22,4 +22,16 @@ class Country extends Model
     {
         return $this->hasMany('App\Models\CountryState');
     }
+
+    /**
+     * Get active country.
+     *
+     * @param $query
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeActiveCountry($query)
+    {
+        return $query->where('country.status', '=', 1);
+    }
 }
