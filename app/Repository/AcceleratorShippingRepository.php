@@ -8,7 +8,6 @@ use App\Models\Product;
 use App\Models\MerchantProductMapping;
 use App\Models\DeliveryTypeMapping;
 
-
 class AcceleratorShippingRepository
 {
     public function shippingOptions($merchantId = 'CASE', $warehouse = 'ES_HK', $deliveryCountry = 'US')
@@ -16,8 +15,14 @@ class AcceleratorShippingRepository
         // TODO
         // need to confirm use merchant ID or 'ALL'
         $merchantId = 'ALL';
-        return AcceleratorShipping::where('warehouse', '=', $warehouse)
-            ->where('country_id', '=', $deliveryCountry)
+
+        $query = AcceleratorShipping::query();
+
+        if ($warehouse !== '') {
+            $query = $query->where('warehouse', '=', $warehouse);
+        }
+
+        return $query->where('country_id', '=', $deliveryCountry)
             ->where('merchant_id', '=', $merchantId)
             ->where('status', 1)
             ->get();
