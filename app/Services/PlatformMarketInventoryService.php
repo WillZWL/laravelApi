@@ -169,6 +169,7 @@ class PlatformMarketInventoryService
             "WAREHOUSE ID",
             "Mattel SKU",
             "DC SKU",
+            "Seller SKU",
             "Inventory",
             "Threshold"
         ];
@@ -178,6 +179,7 @@ class PlatformMarketInventoryService
                 "WAREHOUSE ID" => $sku->warehouse_id,
                 "Mattel SKU" => $sku->mattel_sku,
                 "DC SKU" => $sku->dc_sku,
+                "Seller SKU" => $sku->marketplace_sku,
                 "Inventory" => $sku->inventory,
                 "Threshold" => $sku->threshold
             ];
