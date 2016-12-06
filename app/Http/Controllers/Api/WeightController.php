@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\CountryService;
-use App\Transformers\CountryTransformer;
+use App\Services\WeightCourierService;
+use App\Transformers\WeightTransformer;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class CountryController extends Controller
+class WeightController extends Controller
 {
     use Helpers;
+    private $weightCourierService;
 
-    private $countryService;
-
-    public function __construct(CountryService $countryService)
+    public function __construct(WeightCourierService $weightCourierService)
     {
-        $this->countryService = $countryService;
+        $this->weightCourierService = $weightCourierService;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -27,9 +27,9 @@ class CountryController extends Controller
      */
     public function index()
     {
-        $countries = $this->countryService->all();
+        $weights = $this->weightCourierService->all();
 
-        return $this->collection($countries, new CountryTransformer());
+        return $this->collection($weights, new WeightTransformer());
     }
 
     /**
@@ -96,12 +96,5 @@ class CountryController extends Controller
     public function destroy($id)
     {
         //
-    }
-
-    public function fetchCountryWithState()
-    {
-        $countryWithState = $this->countryService->countryWithState();
-
-        return response()->json($countryWithState);
     }
 }

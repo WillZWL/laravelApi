@@ -2,24 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\CountryService;
-use App\Transformers\CountryTransformer;
-use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
-
+use App\Services\FreightCostService;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class CountryController extends Controller
+class FreightCostController extends Controller
 {
-    use Helpers;
 
-    private $countryService;
+    private $freightCostService;
 
-    public function __construct(CountryService $countryService)
+    public function __construct(FreightCostService $freightCostService)
     {
-        $this->countryService = $countryService;
+        $this->freightCostService = $freightCostService;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -27,9 +24,7 @@ class CountryController extends Controller
      */
     public function index()
     {
-        $countries = $this->countryService->all();
-
-        return $this->collection($countries, new CountryTransformer());
+        //
     }
 
     /**
@@ -98,10 +93,10 @@ class CountryController extends Controller
         //
     }
 
-    public function fetchCountryWithState()
+    public function enquireFreightCost(Requests\FreightCostRequest $request)
     {
-        $countryWithState = $this->countryService->countryWithState();
+        $data = $this->freightCostService->enquireFreightCost($request);
 
-        return response()->json($countryWithState);
+        return response()->json($data);
     }
 }

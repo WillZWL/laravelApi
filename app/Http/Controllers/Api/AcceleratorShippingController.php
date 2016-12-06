@@ -2,24 +2,21 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\CountryService;
-use App\Transformers\CountryTransformer;
-use Dingo\Api\Routing\Helpers;
+use App\Services\AcceleratorShippingService;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class CountryController extends Controller
+class AcceleratorShippingController extends Controller
 {
-    use Helpers;
+    private $acceleratorShippingService;
 
-    private $countryService;
-
-    public function __construct(CountryService $countryService)
+    public function __construct(AcceleratorShippingService $acceleratorShippingService)
     {
-        $this->countryService = $countryService;
+        $this->acceleratorShippingService = $acceleratorShippingService;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -27,9 +24,7 @@ class CountryController extends Controller
      */
     public function index()
     {
-        $countries = $this->countryService->all();
-
-        return $this->collection($countries, new CountryTransformer());
+        //
     }
 
     /**
@@ -98,10 +93,10 @@ class CountryController extends Controller
         //
     }
 
-    public function fetchCountryWithState()
+    public function inquireShippingSetting(Requests\AcceleratorShippingRequest $request)
     {
-        $countryWithState = $this->countryService->countryWithState();
+        $options = $this->acceleratorShippingService->getShippingOptions($request);
 
-        return response()->json($countryWithState);
+        return response()->json($options);
     }
 }
