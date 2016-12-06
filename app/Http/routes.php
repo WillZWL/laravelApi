@@ -133,6 +133,9 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->get('freight-cost', 'FreightCostController@enquireFreightCost');
 
+    $api->get('accelerator-shipping', 'AcceleratorShippingController@inquireShippingSetting');
+    $api->resource('accelerator-shipping-setting', 'AcceleratorShippingController');
+
     $api->resource('orders', 'OrderController');
     $api->resource('export-orders', 'OrderController@exportOrdersToExcel');
 

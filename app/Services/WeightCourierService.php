@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: handy
- * Date: 06/12/2016
- * Time: 15:23
- */
 
 namespace App\Services;
-
 
 use App\Repository\WeightCourierRepository;
 
