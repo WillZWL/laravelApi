@@ -14,8 +14,8 @@ class IwmsFourpxWmsService extends IwmsCoreService
 
     public function createDeliveryOrder()
     {
-        $esgOrder = $this->gerEsgAllocateOrder($this->warehouseId);
-        $this->curlIwmsApi('create-delivery-order', $esgOrder);
+        $requestBody = $this->gerEsgAllocateOrderRequest($this->warehouseId);
+        $this->curlIwmsApi('create-delivery-order', $requestBody);
     }
 
     public function queryProduct()
