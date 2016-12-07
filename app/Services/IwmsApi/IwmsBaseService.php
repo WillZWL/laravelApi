@@ -52,7 +52,7 @@ trait IwmsBaseService
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $esgOrder->del_tel_1.$esgOrder->del_tel_2.$esgOrder->del_tel_3,
             "amount_in_hkd" => $esgOrder->amount * $esgOrder->rate_to_hkd,
-            "amount_in_usd" => '',
+            "amount_in_usd" => '0',
             //"doorplate" => $esgOrder->doorplate,
         );
         foreach ($esgOrder->soItem as $esgOrderItem) {
@@ -67,8 +67,8 @@ trait IwmsBaseService
                 "quantity" => $esgOrderItem->qty,
                 "hscode" => $hscode,
                 "hsDescription" => $hsDescription,
-                "amount_in_hkd" => $esgOrderItem->amount * $esgOrder->rate_to_hkd,
-                "amount_in_usd" => ''
+                "unit_price_hkd" => $esgOrderItem->unit_price * $esgOrder->rate_to_hkd,
+                "unit_price_usd" => '0'
                 //"skuLabelCode" => '',
             );
             $deliveryOrderObj["item"][] = $deliveryOrderItem;
