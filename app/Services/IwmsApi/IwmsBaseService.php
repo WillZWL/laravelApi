@@ -41,6 +41,7 @@ trait IwmsBaseService
             "courier_id" => $courierId,
             "marketplace_reference_no" => $esgOrder->platform_order_id,
             "platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
+            "merchant_id": "ESG",
             "delivery_name" => $esgOrder->delivery_name,
             "company" => $esgOrder->delivery_company,
             "email" => $esgOrder->client->email,
@@ -57,7 +58,10 @@ trait IwmsBaseService
         foreach ($esgOrder->soItem as $esgOrderItem) {
             $deliveryOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
+                "product_name" => $esgOrderItem->prod_name,
                 "quantity" => $esgOrderItem->qty,
+                "hscode" => $esgOrderItem->hscodeCategory->general_hscode,
+                "hsDescription" => $esgOrderItem->hscodeCategory->description,
                 "amount_in_hkd" => $esgOrderItem->amount * $esgOrder->rate_to_hkd,
                 "amount_in_usd" => ''
                 //"skuLabelCode" => '',
