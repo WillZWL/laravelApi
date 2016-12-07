@@ -6,12 +6,14 @@ use App\Models\So;
 
 trait IwmsBaseService
 {
+    private $warehouseId = null;
     public function gerEsgAllocateOrderRequest($warehouseId)
     {
         $esgAllocateOrder = null;
+        $this->warehouseId = $warehouseId;
         $esgOrders = So::where("status",5)
-            ->whereHas('soAllocate', function ($query,$warehouseId) {
-                $query->where('warehouse_id', '=', $warehouseId);
+            ->whereHas('soAllocate', function ($query) {
+                $query->where('warehouse_id', '=', $this->warehouseId);
             })
             ->with("client")
             ->with("soItem")
@@ -20,20 +22,23 @@ trait IwmsBaseService
             foreach ($esgOrders as $esgOrder) {
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     if($soAllocate->soShipment){
-                        $esgAllocateOrder[] = $this->getDeliveryCreationRequest($esgOrder,$soAllocate);
+                        $courierId = $soAllocate->soShipment->courier_id
+                    }else{
+                        continue;
                     }
                 }
+                $esgAllocateOrder[] = $this->getDeliveryCreationRequest($esgOrder,$courierId,$warehouseId);
             }  
         }
         return $esgAllocateOrder;
     }
 
-    private function getDeliveryCreationRequest($esgOrder,$soAllocate)
+    private function getDeliveryCreationRequest($esgOrder,$courierId,$warehouseId)
     {
         $deliveryOrderObj = array(
-            "warehouse" => $soAllocate->warehouse_id,
+            "warehouse" => $warehouseId,
             "reference_no" => $esgOrder->so_no,
-            "courier_id" => $soAllocate->soShipment->courier_id,
+            "courier_id" => $courierId,
             "marketplace_reference_no" => $esgOrder->platform_order_id,
             "sales_platform" => $esgOrder->biz_type,
             //"description" => '',
