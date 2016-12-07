@@ -22,7 +22,7 @@ trait IwmsBaseService
             foreach ($esgOrders as $esgOrder) {
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     if($soAllocate->soShipment){
-                        $courierId = $soAllocate->soShipment->courier_id
+                        $courierId = $soAllocate->soShipment->courier_id;
                     }else{
                         continue;
                     }
@@ -36,12 +36,11 @@ trait IwmsBaseService
     private function getDeliveryCreationRequest($esgOrder,$courierId,$warehouseId)
     {
         $deliveryOrderObj = array(
-            "warehouse" => $warehouseId,
+            "warehouse_id" => $warehouseId,
             "reference_no" => $esgOrder->so_no,
             "courier_id" => $courierId,
             "marketplace_reference_no" => $esgOrder->platform_order_id,
-            "sales_platform" => $esgOrder->biz_type,
-            //"description" => '',
+            "platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
             "delivery_name" => $esgOrder->delivery_name,
             "company" => $esgOrder->delivery_company,
             "email" => $esgOrder->client->email,
@@ -51,15 +50,19 @@ trait IwmsBaseService
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $esgOrder->del_tel_1.$esgOrder->del_tel_2.$esgOrder->del_tel_3,
+            "amount_in_hkd" => $esgOrder->amount * $esgOrder->rate_to_hkd,
+            "amount_in_usd" => '',
             //"doorplate" => $esgOrder->doorplate,
         );
         foreach ($esgOrder->soItem as $esgOrderItem) {
             $deliveryOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "quantity" => $esgOrderItem->qty,
+                "amount_in_hkd" => $esgOrderItem->amount * $esgOrder->rate_to_hkd,
+                "amount_in_usd" => ''
                 //"skuLabelCode" => '',
             );
-            $deliveryOrderObj["deliveryOrderItem"][] = $deliveryOrderItem;
+            $deliveryOrderObj["item"][] = $deliveryOrderItem;
         }
         return $deliveryOrderObj;
     }   
