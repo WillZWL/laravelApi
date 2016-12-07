@@ -23,4 +23,9 @@ class SoItem extends Model
     {
         return $this->belongsTo('App\Models\Product', 'prod_sku', 'sku');
     }
+
+    public function hscodeCategory()
+    {
+        return $this->belongsTo('App\Models\HscodeCategory', 'hscode_cat_id', 'id');
+    }
 }
