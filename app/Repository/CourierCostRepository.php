@@ -30,8 +30,10 @@ class CourierCostRepository
             $fuelSurchargeInPercent = $shippingOption->courierInfo->surcharge / 100;
             $currency = $shippingOption->currency_id;
             $type = $shippingOption->courierInfo->type;
+            $allowBuiltInBattery = $shippingOption->courierInfo->allow_builtin_battery;
+            $allowExternalBattery = $shippingOption->courierInfo->allow_external_battery;
             $courierName = $shippingOption->courierInfo->courier_name;
-            return compact('courierId', 'freightCost', 'fuelSurchargeInPercent', 'currency', 'type', 'courierName');
+            return compact('courierId', 'freightCost', 'fuelSurchargeInPercent', 'currency', 'type', 'allowBuiltInBattery', 'allowExternalBattery', 'courierName');
         });
 
         return $freightCost;
