@@ -53,7 +53,7 @@ class So extends Model
 
     public function client()
     {
-        return $this->belongsTo('App\Models\Client', 'id', 'client_id');
+        return $this->belongsTo('App\Models\Client', 'client_id', 'id');
     }
 
     public function courierInfo()

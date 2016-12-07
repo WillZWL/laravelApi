@@ -10,17 +10,17 @@ trait IwmsBaseService
     {
         $esgAllocateOrder = null;
         $esgOrders = So::where("status",5)
+            ->whereHas('soAllocate', function ($query,$warehouseId) {
+                $query->where('warehouse_id', '=', $warehouseId);
+            })
             ->with("client")
             ->with("soItem")
-            ->with("soAllocate")
             ->get();
-        foreach ($esgOrders as $esgOrder) {
-            if(!$esgOrder->soAllocate->isEmpty()){
+        if(!$esgOrders->isEmpty()){
+            foreach ($esgOrders as $esgOrder) {
                 foreach ($esgOrder->soAllocate as $soAllocate) {
-                    if($soAllocate->warehouse_id == $warehouseId){
-                        if($soAllocate->soShipment){
-                            $esgAllocateOrder[] = $this->getDeliveryCreationRequest($esgOrder,$soAllocate);
-                        }
+                    if($soAllocate->soShipment){
+                        $esgAllocateOrder[] = $this->getDeliveryCreationRequest($esgOrder,$soAllocate);
                     }
                 }
             }  
@@ -56,6 +56,7 @@ trait IwmsBaseService
             );
             $deliveryOrderObj["deliveryOrderItem"][] = $deliveryOrderItem;
         }
+        return $deliveryOrderObj;
     }   
 
 }
