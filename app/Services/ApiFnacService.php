@@ -254,7 +254,7 @@ class ApiFnacService implements ApiPlatformInterface
     {
         $itemCost = 0;
         if (Arr::isAssoc($order['order_detail'])) {
-            $itemCost = $order['order_detail']['price'] + $order['order_detail']['shipping_price'];
+            $itemCost = $order['order_detail']['price'] * $order['order_detail']['quantity'] + $order['order_detail']['shipping_price'];
         } else {
             foreach($order['order_detail'] as $orderItem){
                 $itemCost += $orderItem['price'] * $orderItem['quantity'] + $orderItem['shipping_price'];
@@ -555,9 +555,9 @@ class ApiFnacService implements ApiPlatformInterface
                     $platformMarketOrder->order_status = $orderInfo[0]["state"];
                     $platformMarketOrder->esg_order_status = $soOrderStatus;
                     $platformMarketOrder->save();
-                }   
+                }
             }
-        } 
+        }
     }
 
 }
