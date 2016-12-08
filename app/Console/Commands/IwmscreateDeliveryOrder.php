@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\IwmsApi\IwmsFourpxWmsService;
+use App\Services\IwmsApi\IwmsFactoryWmsService;
 
 class IwmscreateDeliveryOrder extends Command
 {
@@ -38,7 +38,7 @@ class IwmscreateDeliveryOrder extends Command
      */
     public function handle()
     {
-        $this->iwmsFourpxWmsService = new IwmsFourpxWmsService();
-        $this->iwmsFourpxWmsService->createDeliveryOrder();
+        $this->iwmsFactoryWmsService = new IwmsFactoryWmsService();
+        $this->iwmsFactoryWmsService->createDeliveryOrder();
     }
 }
