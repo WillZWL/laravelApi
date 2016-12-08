@@ -99,7 +99,7 @@ trait IwmsCreateDeliveryOrderService
         $object["platform_id"] = $requestData["platform_id"];
         $object["merchant_id"] = $requestData["merchant_id"];
         $object["courier_id"] = $requestData["courier_id"];
-        $object["platform_order_no"] = $requestData["platform_order_no"];
+        $object["platform_order_no"] = $requestData["marketplace_reference_no"];
         $object["request_log"] = json_encode($requestData);
         $object["status"] = "N";
         $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::updateOrCreate(
