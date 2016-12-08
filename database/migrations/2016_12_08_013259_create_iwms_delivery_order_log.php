@@ -16,12 +16,12 @@ class CreateIwmsDeliveryOrderLog extends Migration
         Schema::create('iwms_delivery_order_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('batch_id')->nullable();
-            $table->string('so_no');
+            $table->string('reference_no');
             $table->string('warehouse_id',60);
             $table->string('platform_id',60);
             $table->string('merchant_id',60);
             $table->integer('courier_id');
-            $table->string('platform_order_no',60);
+            $table->string('platform_order_id',60);
             $table->string('request_log',255);
             $table->string('response_log',255)->nullable();
             $table->string('response_message',255)->nullable();
