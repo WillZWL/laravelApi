@@ -152,6 +152,9 @@ class PlatformMarketOrderTransfer
             ->where('platform_split_order', '=', '1')
             ->first();
         $so->incoterm = $splitOrder->incoterm;
+        if ($order->fulfillment_channel === 'SBN') {
+                $so->dispatch_date = date('Y-m-d H:i:s');
+        }
         $so->save();
 
         $this->saveSoItem($so, $_orderItem);
