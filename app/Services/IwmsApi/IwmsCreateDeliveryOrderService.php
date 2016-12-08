@@ -28,12 +28,16 @@ trait IwmsCreateDeliveryOrderService
         $esgOrders = $this->getEsgAllocateOrders($warehouseId);
         if(!$esgOrders->isEmpty()){
             foreach ($esgOrders as $esgOrder) {
+                $courierId = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
-                    if($soAllocate->soShipment){
+                    if($soAllocate->soShipment && $soAllocate->soShipment->status == "1"){
                         $courierId = $soAllocate->soShipment->courier_id;
                     }else{
                         continue;
                     }
+                }
+                if(empty($courierId)){
+                    continue;
                 }
                 $deliveryCreationRequest[] = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
                 $batchRequest = $this->getBatchId("CREATE_DELIVERY",json_encode($deliveryCreationRequest));

@@ -15,6 +15,7 @@ class CreateIwmsDeliveryOrderLog extends Migration
         // 
         Schema::create('iwms_delivery_order_logs', function (Blueprint $table) {
             $table->increments('id');
+            $table->integer('batch_id')->nullable();
             $table->string('so_no');
             $table->string('warehouse_id',60);
             $table->string('platform_id',60);
@@ -24,7 +25,8 @@ class CreateIwmsDeliveryOrderLog extends Migration
             $table->string('request_log',255);
             $table->string('response_log',255)->nullable();
             $table->string('response_message',255)->nullable();
-            $table->integer('status')->default("0")->comment('0 - Unverified; 1 - Success,2 - Failed');;
+            $table->integer('status')->default("0")->comment('0 - Unverified; 1 - Success;2 - Failed');
+            $table->integer('repeat_request')->default("0")->comment('0 - No; 1 - Yes');
             $table->timestamps();
         });
     }
