@@ -61,7 +61,7 @@ trait IwmsCreateDeliveryOrderService
             "reference_no" => $esgOrder->so_no,
             "courier_id" => $courierId,
             "marketplace_reference_no" => $esgOrder->platform_order_id,
-            "platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
+            "marketplace_platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
             "merchant_id" => "ESG",
             "delivery_name" => $esgOrder->delivery_name,
             "company" => $esgOrder->delivery_company,
@@ -109,7 +109,7 @@ trait IwmsCreateDeliveryOrderService
             $iwmsDeliveryOrderLog->merchant_id = $requestData["merchant_id"];
             $iwmsDeliveryOrderLog->reference_no = $requestData["reference_no"];
             $iwmsDeliveryOrderLog->warehouse_id = $requestData["warehouse_id"];
-            $iwmsDeliveryOrderLog->platform_id = $requestData["platform_id"];
+            $iwmsDeliveryOrderLog->marketplace_platform_id = $requestData["marketplace_platform_id"];
             $iwmsDeliveryOrderLog->courier_id = $requestData["courier_id"];
             $iwmsDeliveryOrderLog->platform_order_id = $requestData["marketplace_reference_no"];
             $iwmsDeliveryOrderLog->request_log = json_encode($requestData);
