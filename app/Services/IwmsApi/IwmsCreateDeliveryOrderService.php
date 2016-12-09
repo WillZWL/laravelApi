@@ -8,14 +8,13 @@ use App\Models\IwmsDeliveryOrderLog;
 trait IwmsCreateDeliveryOrderService
 {
     private $warehouseId = null;
-    protected $wmsPlatform;
     
     use IwmsBaseService;
 
     public function getDeliveryCreationRequest($warehouseId)
     {
         $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseId);
-        $deliveryCreationRequest = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->get();
+        $deliveryCreationRequest = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
         $request = array(
             "batchId" => $batchRequest->id, 
             "requestBody" => $deliveryCreationRequest
@@ -40,7 +39,7 @@ trait IwmsCreateDeliveryOrderService
                 if(empty($courierId)){
                     continue;
                 }
-                $deliveryCreationRequest[] = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
+                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
                 $batchRequest = $this->getBatchId("CREATE_DELIVERY",json_encode($deliveryCreationRequest));
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
             } 
@@ -108,10 +107,11 @@ trait IwmsCreateDeliveryOrderService
         $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::updateOrCreate(
             [
                 'batch_id' => $batchId,
-                'reference_no' => $object['reference_no'],
-            ],$object
+                'reference_no' => $object['reference_no']
+            ],
+            $object
         );
-        return $platformMarketShippingAddress->id;
+        return $iwmsDeliveryOrderLog;
     } 
 
     public function _saveIwmsDeliveryOrderResponseData($batchId,$responseJsons)
