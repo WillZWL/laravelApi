@@ -8,7 +8,8 @@ use App\Models\IwmsDeliveryOrderLog;
 trait IwmsCreateDeliveryOrderService
 {
     private $warehouseId = null;
-
+    protected $wmsPlatform;
+    
     use IwmsBaseService;
 
     public function getDeliveryCreationRequest($warehouseId)
@@ -50,6 +51,7 @@ trait IwmsCreateDeliveryOrderService
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
         $deliveryOrderObj = array(
+            "wms_platform" => $this->wmsPlatform,
             "warehouse_id" => $warehouseId,
             "reference_no" => $esgOrder->so_no,
             "courier_id" => $courierId,
@@ -94,10 +96,11 @@ trait IwmsCreateDeliveryOrderService
     {
         $object = array();
         $object["batch_id"] = $batchId;
+        $object["wms_platform"] = $requestData["wms_platform"];
+        $object["merchant_id"] = $requestData["merchant_id"];
         $object["reference_no"] = $requestData["reference_no"];
         $object["warehouse_id"] = $requestData["warehouse_id"];
         $object["platform_id"] = $requestData["platform_id"];
-        $object["merchant_id"] = $requestData["merchant_id"];
         $object["courier_id"] = $requestData["courier_id"];
         $object["platform_order_no"] = $requestData["marketplace_reference_no"];
         $object["request_log"] = json_encode($requestData);

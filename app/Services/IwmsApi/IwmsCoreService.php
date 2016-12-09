@@ -8,6 +8,7 @@ class IwmsCoreService
 {
     protected $errorResponse = array();
     protected $accessToken;
+    protected $wmsPlatform;
 
     public function __construct($wmsPlatform,$debug)
     {
