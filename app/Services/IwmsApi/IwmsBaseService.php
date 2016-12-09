@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services\IwmsApi;
+use App;
 
 trait IwmsBaseService
 {
