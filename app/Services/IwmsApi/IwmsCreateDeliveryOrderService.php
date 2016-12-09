@@ -27,6 +27,7 @@ trait IwmsCreateDeliveryOrderService
         $esgAllocateOrder = null;
         $esgOrders = $this->getEsgAllocateOrders($warehouseId);
         if(!$esgOrders->isEmpty()){
+            $batchRequest = $this->getBatchId("CREATE_DELIVERY",json_encode($deliveryCreationRequest));
             foreach ($esgOrders as $esgOrder) {
                 $courierId = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
@@ -40,7 +41,6 @@ trait IwmsCreateDeliveryOrderService
                     continue;
                 }
                 $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
-                $batchRequest = $this->getBatchId("CREATE_DELIVERY",json_encode($deliveryCreationRequest));
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
             } 
         }
@@ -101,7 +101,7 @@ trait IwmsCreateDeliveryOrderService
         $object["warehouse_id"] = $requestData["warehouse_id"];
         $object["platform_id"] = $requestData["platform_id"];
         $object["courier_id"] = $requestData["courier_id"];
-        $object["platform_order_no"] = $requestData["marketplace_reference_no"];
+        $object["platform_order_id"] = $requestData["marketplace_reference_no"];
         $object["request_log"] = json_encode($requestData);
         $object["status"] = "N";
         $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::updateOrCreate(
