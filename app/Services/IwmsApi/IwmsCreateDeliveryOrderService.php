@@ -13,13 +13,19 @@ trait IwmsCreateDeliveryOrderService
 
     public function getDeliveryCreationRequest($warehouseId)
     {
+        $deliveryCreationRequest = null;
         $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseId);
-        $deliveryCreationRequest = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
-        $request = array(
-            "batchId" => $batchRequest->id, 
-            "requestBody" => $deliveryCreationRequest
-        );
-        return $request;
+        $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+        if(!empty($requestLogs)){
+            foreach ($requestLogs as $requestLog) {
+                $deliveryCreationRequest[] = json_decode($requestLog);
+            }
+            $request = array(
+                "batchId" => $batchRequest->id,
+                "requestBody" => $deliveryCreationRequest
+            );
+            return $request;
+        }
     }
 
     public function getDeliveryCreationRequestBatch($warehouseId)
@@ -27,7 +33,7 @@ trait IwmsCreateDeliveryOrderService
         $esgAllocateOrder = null;
         $esgOrders = $this->getEsgAllocateOrders($warehouseId);
         if(!$esgOrders->isEmpty()){
-            $batchRequest = $this->getBatchId("CREATE_DELIVERY",json_encode($deliveryCreationRequest));
+            $batchRequest = $this->getBatchId("CREATE_DELIVERY");
             foreach ($esgOrders as $esgOrder) {
                 $courierId = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
@@ -93,25 +99,25 @@ trait IwmsCreateDeliveryOrderService
 
     public function _saveIwmsDeliveryOrderRequestData($batchId,$requestData)
     {
-        $object = array();
-        $object["batch_id"] = $batchId;
-        $object["wms_platform"] = $requestData["wms_platform"];
-        $object["merchant_id"] = $requestData["merchant_id"];
-        $object["reference_no"] = $requestData["reference_no"];
-        $object["warehouse_id"] = $requestData["warehouse_id"];
-        $object["platform_id"] = $requestData["platform_id"];
-        $object["courier_id"] = $requestData["courier_id"];
-        $object["platform_order_id"] = $requestData["marketplace_reference_no"];
-        $object["request_log"] = json_encode($requestData);
-        $object["status"] = "N";
-        $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::updateOrCreate(
-            [
-                'batch_id' => $batchId,
-                'reference_no' => $object['reference_no']
-            ],
-            $object
-        );
-        return $iwmsDeliveryOrderLog;
+        $validIwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("reference_no",$requestData['reference_no'])
+            ->where("repeat_request",0)
+            ->get();
+        if($validIwmsDeliveryOrderLog->isEmpty()){
+            $iwmsDeliveryOrderLog = new IwmsDeliveryOrderLog();
+            $iwmsDeliveryOrderLog->batch_id = $batchId;
+            $iwmsDeliveryOrderLog->wms_platform = $requestData["wms_platform"];
+            $iwmsDeliveryOrderLog->merchant_id = $requestData["merchant_id"];
+            $iwmsDeliveryOrderLog->reference_no = $requestData["reference_no"];
+            $iwmsDeliveryOrderLog->warehouse_id = $requestData["warehouse_id"];
+            $iwmsDeliveryOrderLog->platform_id = $requestData["platform_id"];
+            $iwmsDeliveryOrderLog->courier_id = $requestData["courier_id"];
+            $iwmsDeliveryOrderLog->platform_order_id = $requestData["marketplace_reference_no"];
+            $iwmsDeliveryOrderLog->request_log = json_encode($requestData);
+            $iwmsDeliveryOrderLog->status = "0";
+            $iwmsDeliveryOrderLog->repeat_request = "0";
+            $iwmsDeliveryOrderLog->save();
+            return $iwmsDeliveryOrderLog;
+        }
     } 
 
     public function _saveIwmsDeliveryOrderResponseData($batchId,$responseJsons)
