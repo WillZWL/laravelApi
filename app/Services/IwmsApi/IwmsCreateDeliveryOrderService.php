@@ -13,13 +13,19 @@ trait IwmsCreateDeliveryOrderService
 
     public function getDeliveryCreationRequest($warehouseId)
     {
+        $deliveryCreationRequest = null;
         $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseId);
-        $deliveryCreationRequest = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
-        $request = array(
-            "batchId" => $batchRequest->id, 
-            "requestBody" => $deliveryCreationRequest
-        );
-        return $request;
+        $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+        if(!empty($requestLogs)){
+            foreach ($requestLogs as $requestLog) {
+                $deliveryCreationRequest[] = json_decode($requestLog);
+            }
+            $request = array(
+                "batchId" => $batchRequest->id,
+                "requestBody" => $deliveryCreationRequest
+            );
+            return $request;
+        }
     }
 
     public function getDeliveryCreationRequestBatch($warehouseId)
