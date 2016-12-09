@@ -5,11 +5,12 @@ namespace App\Services\IwmsApi;
 class IwmsFactoryWmsService extends IwmsCoreService
 {
     use IwmsCreateDeliveryOrderService;
+    protected $wmsPlatform;
 
     public function __construct($wmsPlatform = "4px",$debug = 0)
     {
+        $this->$wmsPlatform = $wmsPlatform;
         parent::__construct($wmsPlatform,$debug);
-        
     }
 
     public function createDeliveryOrder()
@@ -23,7 +24,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function queryProduct()
     {
         $requestBody = array(
-            "sku" => "sku123"
+            "sku" => "21695-AA-WH"
             );
         $this->curlIwmsApi('query-product', $requestBody);
     }
