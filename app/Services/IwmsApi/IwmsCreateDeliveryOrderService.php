@@ -130,6 +130,9 @@ trait IwmsCreateDeliveryOrderService
     {
         $this->warehouseId = $warehouseId;
         return $esgOrders = So::where("status",5)
+            ->where("refund_status","0")
+            ->where("hold_status","0")
+            ->where("prepay_hold_status","0")
             ->whereHas('soAllocate', function ($query) {
                 $query->where('warehouse_id', '=', $this->warehouseId);
             })

@@ -77,10 +77,16 @@ class PricingToolService
         foreach ($shippingOptions as $shippingOption) {
             $bookInCost = $warehouseCostDetails['book_in_cost'];
             $pnpCost = $warehouseCostDetails['pnp_cost'];
+            $bookOutCost = $warehouseCostDetails['book_out_cost'];
+            $labelingCost = $warehouseCostDetails['labeling_cost'];
 
             if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
                 $pnpCost = 0;
+            } else {
+                $labelingCost = 0;
             }
+
+            $warehouseCost = $bookInCost + $bookOutCost + $pnpCost + $labelingCost;
 
             $fulfilmentByMarketplaceFee = 0;
             if ( ($shippingOption['deliveryType'] === 'FBA' && substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON')
@@ -116,7 +122,7 @@ class PricingToolService
             $priceInfo[$deliveryType]['paymentGatewayFee'] = $paymentGatewayFee;
             $priceInfo[$deliveryType]['paymentGatewayAdminFee'] = $paymentGatewayAdminFee;
             $priceInfo[$deliveryType]['freightCost'] = $shippingOption['cost'];
-            $priceInfo[$deliveryType]['warehouseCost'] = $bookInCost + $pnpCost;
+            $priceInfo[$deliveryType]['warehouseCost'] = $warehouseCost;
             $priceInfo[$deliveryType]['supplierCost'] = $supplierCost;
             $priceInfo[$deliveryType]['accessoryCost'] = $accessoryCost;
             $priceInfo[$deliveryType]['deliveryCharge'] = $deliveryCharge;
@@ -353,7 +359,7 @@ class PricingToolService
 
     public function getWarehouseCost(Request $request)
     {
-        $warehouseCost = ['book_in_cost' => 0, 'pnp_cost' => 0];
+        $warehouseCost = ['book_in_cost' => 0, 'pnp_cost' => 0, 'book_out_cost' => 0, 'labeling_cost' => 0];
 
         $warehouseId = $this->product->default_ship_to_warehouse;
         if (!$warehouseId) {
@@ -372,12 +378,19 @@ class PricingToolService
             // above 1kg, need to calculate addition weight.
             $additionWeight = ceil($weight - 1);
 
-            $warehouseCost['book_in_cost'] = round(( $warehouse->warehouseCost->book_in_fixed
+            $warehouseCost['book_in_cost'] = round(($warehouse->warehouseCost->book_in_fixed
                     + $warehouse->warehouseCost->additional_book_in_per_kg * $additionWeight)
                 * $currencyRate / $this->adjustRate, 2);
 
             $warehouseCost['pnp_cost'] = round(($warehouse->warehouseCost->pnp_fixed
                     + $warehouse->warehouseCost->additional_pnp_per_kg * $additionWeight )
+                * $currencyRate / $this->adjustRate, 2);
+
+            $warehouseCost['book_out_cost'] = round(($warehouse->warehouseCost->book_out_fixed
+                    + $warehouse->warehouseCost->additional_book_out_per_kg * $additionWeight)
+                * $currencyRate / $this->adjustRate, 2);
+
+            $warehouseCost['labeling_cost'] = round($warehouse->warehouseCost->labeling_cost_per_item
                 * $currencyRate / $this->adjustRate, 2);
         }
 

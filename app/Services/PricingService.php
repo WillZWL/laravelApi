@@ -97,9 +97,16 @@ class PricingService
 
             $bookInCost = $warehouseCostDetails['book_in_cost'];
             $pnpCost = $warehouseCostDetails['pnp_cost'];
+            $bookOutCost = $warehouseCostDetails['book_out_cost'];
+            $labelingCost = $warehouseCostDetails['labeling_cost'];
+
             if ($shippingOption['deliveryType'] === 'FBA' || $shippingOption['deliveryType'] === 'SBN') {
                 $pnpCost = 0;
+            } else {
+                $labelingCost = 0;
             }
+
+            $warehouseCost = $bookInCost + $bookOutCost + $pnpCost + $labelingCost;
 
             $fulfilmentByMarketplaceFee = 0;
             if ( ($shippingOption['deliveryType'] === 'FBA' && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'AMAZON')
@@ -126,7 +133,7 @@ class PricingService
 
             $option = [];
             $option['deliveryCost'] = $shippingOption['cost'];
-            $option['totalCost'] = $totalCostExcludeDeliveryCost + $fulfilmentByMarketplaceFee + $bookInCost + $pnpCost + $option['deliveryCost'];
+            $option['totalCost'] = $totalCostExcludeDeliveryCost + $fulfilmentByMarketplaceFee + $warehouseCost + $option['deliveryCost'];
             $option['profit'] = round($totalCharged - $option['totalCost'], 2);
             $option['margin'] = round($option['profit'] / $sellingPrice * 100, 2);
             return $option;
@@ -349,7 +356,7 @@ class PricingService
 
     public function getWarehouseCost($marketplaceProduct)
     {
-        $warehouseCost = ['book_in_cost' => 0, 'pnp_cost' => 0];
+        $warehouseCost = ['book_in_cost' => 0, 'pnp_cost' => 0, 'book_out_cost' => 0, 'labeling_cost' => 0];
 
         $warehouseId = $marketplaceProduct->product->default_ship_to_warehouse;
         if (!$warehouseId) {
@@ -374,6 +381,13 @@ class PricingService
 
             $warehouseCost['pnp_cost'] = round(($warehouse->warehouseCost->pnp_fixed
                     + $warehouse->warehouseCost->additional_pnp_per_kg * $additionWeight )
+                * $currencyRate / $this->adjustRate, 2);
+
+            $warehouseCost['book_out_cost'] = round(($warehouse->warehouseCost->book_out_fixed
+                    + $warehouse->warehouseCost->additional_book_out_per_kg * $additionWeight)
+                * $currencyRate / $this->adjustRate, 2);
+
+            $warehouseCost['labeling_cost'] = round($warehouse->warehouseCost->labeling_cost_per_item
                 * $currencyRate / $this->adjustRate, 2);
         }
 
