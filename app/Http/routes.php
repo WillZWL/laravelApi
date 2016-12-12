@@ -70,6 +70,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::resource('platform-market/export-lazada-pricing', 'PlatformMarketProductManage@exportLazadaPricingCsv');
     Route::get('platform-market/download-xlsx/{file}', 'PlatformMarketProductManage@getMarketplacdeSkuMappingFile');
     Route::get('product-upload/donwload-example-file/{file}', 'Api\ProductUploadController@donwloadExampleFile');
+    Route::get('price-upload/donwload-example-file/{file}', 'Api\PriceUploadController@donwloadExampleFile');
     Route::get('order-delivery-cost/{soNo}', 'Api\DeliveryController@getOrderDeiveryCostBySoNo');
     Route::get('order-delivery-options/{soNo}', 'Api\DeliveryController@getOrderDeliveryOptionsBySoNo');
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
@@ -112,6 +113,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('marketplace-product', 'MarketplaceProductController');
     $api->post('product-upload', 'ProductUploadController@upload');
     $api->get('product-upload', 'ProductUploadController@index');
+    $api->post('price-upload', 'PriceUploadController@upload');
     $api->get('mattel-sku-mapping-upload', 'MattelSkuMappingController@upload');
     $api->post('mattel-sku-mapping-upload', 'MattelSkuMappingController@upload');
     $api->get('mattel-sku-mapping-list', 'MattelSkuMappingController@index');
