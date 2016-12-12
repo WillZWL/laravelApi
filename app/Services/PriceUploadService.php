@@ -7,6 +7,10 @@ use Excel;
 
 class PriceUploadService
 {
+    const PRODUCT_UPDATED = 1;
+    const PRICE_UPDATED = 2;
+    const INVENTORY_UPDATED = 4;
+    const PRODUCT_DISCONTINUED = 64;
 
     public function handleUploadFile($fileName = '')
     {
@@ -45,10 +49,22 @@ class PriceUploadService
 
     private function updateMarketplaceSkuMapping($skuMapping,$item = [])
     {
-        $skuMapping->inventory = $item['listing_quantity'];
+        if ($skuMapping->inventory != $item['listing_quantity']) {
+            $skuMapping->inventory = $item['listing_quantity'];
+            $skuMapping->process_status = $skuMapping->process_status | self::INVENTORY_UPDATED;
+        }
         $skuMapping->delivery_type = $item['delivery_type'];
-        $skuMapping->price = $item['selling_price'];
+        if ($skuMapping->price != $item['selling_price']) {
+            $skuMapping->price = $item['selling_price'];
+            $skuMapping->process_status = $skuMapping->process_status | self::PRICE_UPDATED;
+        }
         $skuMapping->listing_status = $item['listing_status'];
+        if ($skuMapping->listing_status === "N") {
+            $skuMapping->process_status = $skuMapping->process_status | self::PRODUCT_DISCONTINUED;
+        } elseif ($skuMapping->listing_status === "Y") {
+            $skuMapping->process_status = $skuMapping->process_status ^ self::PRODUCT_DISCONTINUED;
+        }
+
         $skuMapping->save();
     }
 
