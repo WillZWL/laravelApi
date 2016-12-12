@@ -89,7 +89,8 @@ trait IwmsCreateDeliveryOrderService
                 "hscode" => $hscode,
                 "hsDescription" => $hsDescription,
                 "unit_price_hkd" => $esgOrderItem->unit_price * $esgOrder->rate_to_hkd,
-                "unit_price_usd" => '0'
+                "unit_price_usd" => '0',
+                "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
                 //"skuLabelCode" => '',
             );
             $deliveryOrderObj["item"][] = $deliveryOrderItem;
