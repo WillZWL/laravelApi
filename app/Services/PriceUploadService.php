@@ -54,6 +54,11 @@ class PriceUploadService
             $skuMapping->process_status = $skuMapping->process_status | self::INVENTORY_UPDATED;
         }
         $skuMapping->delivery_type = $item['delivery_type'];
+        if ($skuMapping->delivery_type == "FBA") {
+            $skuMapping->fulfillment = "AFN";
+        } else {
+            $skuMapping->fulfillment = "MFN";
+        }
         if ($skuMapping->price != $item['selling_price']) {
             $skuMapping->price = $item['selling_price'];
             $skuMapping->process_status = $skuMapping->process_status | self::PRICE_UPDATED;

@@ -42,6 +42,6 @@ class PriceUploadController extends Controller
     public function donwloadExampleFile($filename)
     {
         $file = \Storage::disk('priceUpload')->get($filename);
-        return response($file, 200)->header('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        return response($file, 200)->header('Content-Type', 'text/csv');
     }
 }
