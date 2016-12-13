@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Services\IwmsApi;
+
+use App\Models\IwmsMerchantWarehouseMapping;
+use App\Models\IwmsMerchantCourierMapping;
 use App;
 
 trait IwmsBaseService
