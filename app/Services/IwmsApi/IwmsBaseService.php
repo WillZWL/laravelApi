@@ -30,4 +30,9 @@ trait IwmsBaseService
             ->value("iwms_courier_code");
     }
 
+    public function updateBathchResponeData($value='')
+    {
+        $batchRequestService = App::make("App\Services\BatchRequestService");
+    }
+
 }
