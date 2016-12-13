@@ -4,7 +4,7 @@ namespace App\Services;
 
 use App\Models\So;
 
-class LazadaGatewayReportService extends PaymentGatewayReportService 
+class LazadaGatewayReportService extends PaymentGatewayReportService
 {
     public function __construct()
     {
@@ -18,7 +18,7 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
     public function setPmgw($value){
         $this->pmgw = $value;
     }
-    
+
     public function isRiaRecord($cell)
     {
         if($cell->transaction_type == "Item Price Credit")
@@ -41,7 +41,7 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
         return false;
     }
     public function isSoFeeRecord($cell)
-    {        
+    {
         if($cell->transaction_type == "Commission")
         {
             return "L_COMM";
@@ -65,7 +65,7 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
         return false;
     }
     public function isGatewayFeeRecord($cell)
-    {        
+    {
         return false;
     }
     public function isRiaIncludeSoFee()
@@ -132,10 +132,10 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
 
     private function _data_reform($cell)
     {
-        $settlementDate = date("Y-m-d", strtotime("+2 day",strtotime(explode(" - ", $cell->statement)[1])));
+        $settlementDate = date("Y-m-d", strtotime("+10 days",strtotime(explode(" - ", $cell->statement)[1])));
 
         $so = So::where("platform_order_id",$cell->order_no)->where("platform_group_order","1")->select('so_no','currency_id')->first();
-        
+
         if($so)
         {
             So::where("so_no",$so->so_no)->update(["settlement_date"=>$settlementDate]);
@@ -143,7 +143,7 @@ class LazadaGatewayReportService extends PaymentGatewayReportService
             $cell->currency_id = $so->currency_id;
         }
         $cell->txn_time = date("Y-m-d",strtotime($cell->transaction_date));
-        $cell->txn_id = $cell->order_no;  
+        $cell->txn_id = $cell->order_no;
     }
 
     public function validTxnId($interfaceRia)
