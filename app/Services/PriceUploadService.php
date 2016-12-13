@@ -37,7 +37,7 @@ class PriceUploadService
                             \DB::connection('mysql_esg')->commit();
                         } catch (\Exception $e) {
                             \DB::connection('mysql_esg')->rollBack();
-                            mail('milo.zhang@eservicesgroup.com', 'Price Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+                            mail('milo.chen@eservicesgroup.com', 'Price Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                         }
                     }
 
