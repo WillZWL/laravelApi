@@ -1,6 +1,9 @@
 <?php
 
 namespace App\Services\IwmsApi;
+
+use App\Models\IwmsMerchantWarehouseMapping;
+use App\Models\IwmsMerchantCourierMapping;
 use App;
 
 trait IwmsBaseService
@@ -25,6 +28,11 @@ trait IwmsBaseService
         return IwmsMerchantCourierMapping::where("merchant_courier_id",$courierId)
             ->where("merchant_id", $merchantId)
             ->value("iwms_courier_code");
+    }
+
+    public function updateBathchResponeData($value='')
+    {
+        $batchRequestService = App::make("App\Services\BatchRequestService");
     }
 
 }
