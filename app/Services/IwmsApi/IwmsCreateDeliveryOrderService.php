@@ -72,7 +72,7 @@ trait IwmsCreateDeliveryOrderService
             "state" => $esgOrder->delivery_state,
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
-            "phone" => $esgOrder->del_tel_1.$esgOrder->del_tel_2.$esgOrder->del_tel_3,
+            "phone" => $esgOrder->client->del_tel_1.$esgOrder->client->del_tel_2.$esgOrder->client->del_tel_3,
             "amount_in_hkd" => $esgOrder->amount * $esgOrder->rate_to_hkd,
             "amount_in_usd" => '0',
             //"doorplate" => $esgOrder->doorplate,
