@@ -55,14 +55,15 @@ trait IwmsCreateDeliveryOrderService
 
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
+        $merchantId = "ESG";
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
-            "warehouse_id" => $warehouseId,
+            "iwms_warehouse_code" => $this->getIwmsWarehouseCode($warehouseId,$merchantId),
             "reference_no" => $esgOrder->so_no,
-            "courier_id" => $courierId,
+            "iwms_courier_code" => $this->getIwmsCourierCode($courierId,$merchantId),
             "marketplace_reference_no" => $esgOrder->platform_order_id,
             "marketplace_platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
-            "merchant_id" => "ESG",
+            "merchant_id" => $merchantId,
             "delivery_name" => $esgOrder->delivery_name,
             "company" => $esgOrder->delivery_company,
             "email" => $esgOrder->client->email,
@@ -109,9 +110,9 @@ trait IwmsCreateDeliveryOrderService
             $iwmsDeliveryOrderLog->wms_platform = $requestData["wms_platform"];
             $iwmsDeliveryOrderLog->merchant_id = $requestData["merchant_id"];
             $iwmsDeliveryOrderLog->reference_no = $requestData["reference_no"];
-            $iwmsDeliveryOrderLog->warehouse_id = $requestData["warehouse_id"];
+            $iwmsDeliveryOrderLog->iwms_warehouse_code = $requestData["iwms_warehouse_code"];
             $iwmsDeliveryOrderLog->marketplace_platform_id = $requestData["marketplace_platform_id"];
-            $iwmsDeliveryOrderLog->courier_id = $requestData["courier_id"];
+            $iwmsDeliveryOrderLog->iwms_courier_code = $requestData["iwms_courier_code"];
             $iwmsDeliveryOrderLog->platform_order_id = $requestData["marketplace_reference_no"];
             $iwmsDeliveryOrderLog->request_log = json_encode($requestData);
             $iwmsDeliveryOrderLog->status = "0";
