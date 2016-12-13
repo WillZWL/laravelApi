@@ -125,15 +125,17 @@ trait IwmsCreateDeliveryOrderService
     public function _saveIwmsDeliveryOrderResponseData($batchId,$responseJsons)
     {
         $responseDatas = json_decode($responseJsons);
-        foreach ($responseData as $key => $value) {
-            $object = array(
-                "response_message"=> $value["message"],
-                "status"=> $this->iwmStatus[$value["status"]],
-                "response_log"=> json_encode($value),
-            );
-            IwmsDeliveryOrderLog::where('batch_id',$batchId)
-                    ->where("reference_no",$value["reference_no"])
+        foreach ($responseDatas as $key => $responseData) {
+            if(isset($responseData->reference_no)){
+                $object = array(
+                    "response_message"=> $responseData->message,
+                    "status"=> $this->iwmStatus[$responseData->status],
+                    "response_log"=> json_encode($responseData),
+                );
+                IwmsDeliveryOrderLog::where('batch_id',$batchId)
+                    ->where("reference_no",$responseData->reference_no)
                     ->update($object);
+            }
         }
     }
 
@@ -149,6 +151,7 @@ trait IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
+            ->limit(1)
             ->get();
     }
 
