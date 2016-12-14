@@ -15,10 +15,23 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function createDeliveryOrder()
     {
-        $warehouseId = $this->getWarehouseId($this->wmsPlatform);
-        $request = $this->getDeliveryCreationRequest($warehouseId);
+        $warehouseToIwms = $this->getWarehouseId($this->wmsPlatform);
+        $request = $this->getDeliveryCreationRequest($warehouseToIwms);
         $responseData = $this->curlIwmsApi('create-delivery-order', $request["requestBody"]);
         $this->_saveIwmsDeliveryOrderResponseData($request["batchId"],$responseData);
+        $this->sendIwmsReport($request["batchId"],$type);
+    }
+
+    public function queryDeliveryOrder()
+    {
+        $warehouseId = "4PXDG_PL"; $merchantId = "ESG";
+        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
+        $requestBody = array(
+            "iwms_warehouse_code" => $iwmsWarehouseCode,
+            );
+        $responseData = $this->curlIwmsApi('query-delivery-order', $requestBody);
+        print_r($responseData);exit();
+        return $responseData;
     }
 
     public function queryProduct()
@@ -29,12 +42,17 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $this->curlIwmsApi('query-product', $requestBody);
     }
 
-    public function getWarehouseId($wmsPlatform)
+    public function getWarehouseToIwms($wmsPlatform)
     {
         $warehouseIdArr = array(
-            '4px' => '4PXDG_PL',
+            '4px' => array("4PXDG_PL"),
         );
         return $warehouseIdArr[$wmsPlatform];
+    }
+
+    public function sendIwmsReport($batchId,$type)
+    {
+
     }
 
 }

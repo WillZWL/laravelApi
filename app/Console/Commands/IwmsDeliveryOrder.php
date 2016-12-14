@@ -5,14 +5,14 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\IwmsApi\IwmsFactoryWmsService;
 
-class IwmscreateDeliveryOrder extends Command
+class IwmsDeliveryOrder extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'Iwms:createDeliveryOrder  {--wms= : fourpx}';
+    protected $signature = 'Iwms:deliveryOrder {action}  {--wms= : fourpx} {--debug= : fourpx}';
 
     /**
      * The console command description.
@@ -38,7 +38,15 @@ class IwmscreateDeliveryOrder extends Command
      */
     public function handle()
     {
-        $this->iwmsFactoryWmsService = new IwmsFactoryWmsService();
-        $this->iwmsFactoryWmsService->createDeliveryOrder();
+        $debugOption = $this->option('debug');
+        $debug = $debugOption ? 1 :0;
+        $wmsPlatform = "4px";
+        $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform,$debug);
+        $action = $this->argument('action');
+        if($action == "create"){
+            $this->iwmsFactoryWmsService->createDeliveryOrder();
+        }else if($action == "query"){
+            $this->iwmsFactoryWmsService->queryDeliveryOrder();
+        }
     }
 }

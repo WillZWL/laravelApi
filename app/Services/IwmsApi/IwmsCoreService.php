@@ -80,10 +80,11 @@ class IwmsCoreService
 
     public function initIwmsConfig($wmsPlatform,$debug)
     {
+        $iwmsConfig = Config::get('iwms');
         $this->wmsPlatform = $wmsPlatform;
         $this->debug = $debug;
-        $this->urlbase = "http://iwms.dev/api/wms/";
-        $this->accessToken = "fee633396663cdad20570ecf87bcb1806581a91b2868fc028a204820e4cc33ec515bdd63f0571329";
+        $this->urlbase = $iwmsConfig["url"];
+        $this->accessToken = $iwmsConfig["accessToken"];
     }
 
 }
