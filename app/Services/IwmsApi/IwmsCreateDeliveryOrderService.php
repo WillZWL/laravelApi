@@ -7,14 +7,14 @@ use App\Models\IwmsDeliveryOrderLog;
 
 trait IwmsCreateDeliveryOrderService
 {
-    private $warehouseId = null;
+    private $warehouseIds = null;
     
     use IwmsBaseService;
 
-    public function getDeliveryCreationRequest($warehouseId)
+    public function getDeliveryCreationRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
-        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseId);
+        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
         $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
         if(!empty($requestLogs)){
             foreach ($requestLogs as $requestLog) {
@@ -28,10 +28,10 @@ trait IwmsCreateDeliveryOrderService
         }
     }
 
-    public function getDeliveryCreationRequestBatch($warehouseId)
+    public function getDeliveryCreationRequestBatch($warehouseIds)
     {
         $esgAllocateOrder = null;
-        $esgOrders = $this->getEsgAllocateOrders($warehouseId);
+        $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
         if(!$esgOrders->isEmpty()){
             $batchRequest = $this->getBatchId("CREATE_DELIVERY");
             foreach ($esgOrders as $esgOrder) {
@@ -46,19 +46,19 @@ trait IwmsCreateDeliveryOrderService
                 if(empty($courierId)){
                     continue;
                 }
-                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
+                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId);
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
             } 
         }
         return $batchRequest;
     }
 
-    private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
+    private function getDeliveryCreationObject($esgOrder,$courierId)
     {
         $merchantId = "ESG";
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
-            "iwms_warehouse_code" => $this->getIwmsWarehouseCode($warehouseId,$merchantId),
+            "iwms_warehouse_code" => $this->getIwmsWarehouseCode($esgOrder->soAllocate->warehouse_id,$merchantId),
             "reference_no" => $esgOrder->so_no,
             "iwms_courier_code" => $this->getIwmsCourierCode($courierId,$merchantId),
             "marketplace_reference_no" => $esgOrder->platform_order_id,
@@ -139,15 +139,15 @@ trait IwmsCreateDeliveryOrderService
         }
     }
 
-    public function getEsgAllocateOrders($warehouseId)
+    public function getEsgAllocateOrders($warehouseToIwms)
     {
-        $this->warehouseId = $warehouseId;
+        $this->warehouseIds = $warehouseToIwms;
         return $esgOrders = So::where("status",5)
             ->where("refund_status","0")
             ->where("hold_status","0")
             ->where("prepay_hold_status","0")
             ->whereHas('soAllocate', function ($query) {
-                $query->where('warehouse_id', '=', $this->warehouseId);
+                $query->whereIn('warehouse_id', $this->warehouseIds);
             })
             ->with("client")
             ->with("soItem")
