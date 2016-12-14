@@ -339,8 +339,7 @@ class OrderTransfer extends Command
      */
     private function generateSoNumber()
     {
-        // TODO: need add transaction.
-        $sequence = Sequence::where('seq_name', '=', 'customer_order')->first();
+        $sequence = Sequence::where('seq_name', '=', 'customer_order')->lockForUpdate()->first();
         $sequence->value += 1;
         $sequence->save();
 
