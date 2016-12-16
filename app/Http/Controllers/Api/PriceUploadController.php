@@ -23,7 +23,14 @@ class PriceUploadController extends Controller
             if ($response) {
                 $upload_file_path = $options['upload_dir'].$response['files'][0]->name;
                 $priceUploadService = New PriceUploadService();
-                $priceUploadService->handleUploadFile($upload_file_path);
+                $message = $priceUploadService->handleUploadFile($upload_file_path);
+                if ($message == "") {
+                    $message = "Upload all success!";
+                    $response['status'] = true;
+                }else{
+                    $response['status'] = false;
+                }
+                $response['message'] = $message;
             }
             return response()->json($response);
         } catch (\Exception $e) {
