@@ -63,7 +63,7 @@ class FlexSoFee extends Model
 
                 ->where('flex_batch.id', '=', $flexBatchId)
                 ->where('flex_so_fee.status', '=', 'A_COMM')
-                ->where('so.platform_split_order', '=', '1')
+                // ->where('so.platform_split_order', '=', '1')
 
                 ->select(
                     'flex_batch.id AS flex_batch_id',
