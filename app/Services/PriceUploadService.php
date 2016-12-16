@@ -15,7 +15,8 @@ class PriceUploadService
     public function handleUploadFile($fileName = '')
     {
         if (file_exists($fileName)) {
-            Excel::selectSheetsByIndex(0)->load($fileName, function ($reader) {
+            $message = '';
+            Excel::selectSheetsByIndex(0)->load($fileName, function ($reader) use (&$message) {
                 $sheetItems = $reader->all();
                 $sheetItems = $sheetItems->toArray();
                 array_filter($sheetItems);
@@ -37,12 +38,16 @@ class PriceUploadService
                             \DB::connection('mysql_esg')->commit();
                         } catch (\Exception $e) {
                             \DB::connection('mysql_esg')->rollBack();
+                            $message .= 'Price Upload - Exception: '.$e->getMessage()."<br/>";
                             mail('milo.chen@eservicesgroup.com', 'Price Upload - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
                         }
+                    } else {
+                        $message .= 'marketplace_id:'.$item['marketplace_id']." country_id: ".$item['country_id']." mp_sku: ".$item['mp_sku']." not found.\r\n";
                     }
 
                 }
             }, 'UTF-8');
+            return $message;
         }
     }
 
