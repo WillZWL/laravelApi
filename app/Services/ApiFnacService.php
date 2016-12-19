@@ -356,7 +356,9 @@ class ApiFnacService implements ApiPlatformInterface
         $object['district'] = '';
         $object['state_or_region'] = '';
         $object['postal_code'] = $order['shipping_address']['zipcode'];
-        $object['phone'] = $order['shipping_address']['phone'];
+        $object['phone'] = (isset($order['shipping_address']['phone']) && $order['shipping_address']['phone'])
+                            ? $order['shipping_address']['phone'] 
+                            : $order['shipping_address']['mobile'];
 
         $object['bill_name'] = $order['billing_address']['firstname']." ".$order['billing_address']['lastname'];
         $object['bill_address_line_1'] = $order['billing_address']['address1'];
@@ -368,7 +370,9 @@ class ApiFnacService implements ApiPlatformInterface
         $object['bill_district'] = '';
         $object['bill_state_or_region'] = '';
         $object['bill_postal_code'] = $order['billing_address']['zipcode'];
-        $object['bill_phone'] = $order['billing_address']['phone'];
+        $object['bill_phone'] = (isset($order['billing_address']['phone']) && $order['billing_address']['phone'])
+                                ? $order['billing_address']['phone'] 
+                                : $order['billing_address']['mobile'];
 
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
 
