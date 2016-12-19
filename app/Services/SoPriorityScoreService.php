@@ -29,6 +29,17 @@ class SoPriorityScoreService
             $soList = So::whereIn('platform_order_id', $platformOrderList)->pluck('so_no')->all();
             return $soList;
         }
+
+        elseif ($options['platform'] == 'DISPATCH' && $options['merchant'] == 'RING') {
+            $platformList = SellingPlatform::where('type', '=', 'DISPATCH')->where('merchant_id', '=', 'RING')->pluck('id')->all();
+            $date = date('Y-m-d 00:00:00');
+            //$platformOrderList = So::whereIn('platform_id', $platformList)->where('create_on', '>=', $date)->pluck('platform_order_id')->all();
+            $soList = So::whereIn('platform_id', $platformList)->where('create_on', '>=', $date)->pluck('so_no')->all();
+            $message = "[Total Score updated: ".count($soList)."] ".implode(',',$soList);
+            mail("willy.dharman@eservicesgroup.com", "Total priority score updated/inserted log (SBF #10757)", $message, $headers = 'From: willy.dharman@eservicesgroup.com');
+            //dd($message);
+            return $soList;
+        }
         return false;
     }
 }
