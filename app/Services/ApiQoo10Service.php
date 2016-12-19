@@ -303,7 +303,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $object['district'] = '';
         $object['state_or_region'] = '';
         $object['postal_code'] = $order['zipCode'];
-        $object['phone'] = $order['receiverMobile'] ;
+        $object['phone'] = (isset($order['receiverTel']) && $order['receiverTel']) ? $order['receiverTel'] : $order['receiverMobile'];
         $object['bill_name'] = $order['buyer'] ;
         $object['bill_address_line_1'] = $order['Addr1'] ;
         $object['bill_address_line_2'] = $order['Addr2'] ;
@@ -311,7 +311,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $object['bill_county'] = $order['shippingCountry'] ;
         $object['bill_postal_code'] = $order['zipCode'] ;
         $object['bill_country_code'] = strtoupper(substr($storeName, -2));
-        $object['bill_phone'] = $order['buyerMobile'];
+        $object['bill_phone'] = (isset($order['buyerTel']) && $order['buyerTel']) ? $order['buyerTel'] : $order['buyerMobile'];
 
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['packNo']], $object);
 
