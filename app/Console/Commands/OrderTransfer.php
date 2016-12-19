@@ -247,7 +247,6 @@ class OrderTransfer extends Command
     public function createSplitOrder(AmazonOrder $order)
     {
         $countryCode = strtoupper(substr($order->platform, -2));
-        $amazonAccount = strtoupper(substr($order->platform, 0, 2));
         $marketplaceId = strtoupper(substr($order->platform, 0, -2));
 
         $merchant = [];
