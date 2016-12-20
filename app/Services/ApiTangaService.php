@@ -121,14 +121,14 @@ class ApiTangaService implements ApiPlatformInterface
             'platform' => $storeName,
             'biz_type' => "Tanga",
             'store_id' => $platformStore->id,
-            'platform_order_id' => $order['purchase_order_id'],
+            'platform_order_id' => $order['order_id'],
             'platform_order_no' => $order['order_id'],
             'purchase_date' => $order['ordered_at'],
             'last_update_date' => '0000-00-00 00:00:00',
             'order_status' => $orderStatus,
             'esg_order_status'=>$this->getSoOrderStatus($orderStatus),
             'buyer_name' => $order['shipping_name'],
-            'buyer_email' => $order['purchase_order_id']."@tanga-api.com",
+            'buyer_email' => $order['order_id']."@tanga-api.com",
             'currency' => $this->storeCurrency,
             'shipping_address_id' => $addressId,
             'total_amount' => $totalAmount,
@@ -137,8 +137,8 @@ class ApiTangaService implements ApiPlatformInterface
 
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
             [
-                'platform_order_id' => $order['purchase_order_id'],
-                'platform_order_no' => $order['purchase_order_id']
+                'platform_order_id' => $order['order_id'],
+                'platform_order_no' => $order['order_id']
             ],
             $object
         );
@@ -149,7 +149,7 @@ class ApiTangaService implements ApiPlatformInterface
     public function updateOrCreatePlatformMarketOrderItem($order, $orderItem)
     {
         $object = [
-            'platform_order_id' => $order['purchase_order_id'],
+            'platform_order_id' => $order['order_id'],
             'seller_sku' => $orderItem['sku_code'],
             'order_item_id' => $orderItem['line_item_id'],
             'title' => $orderItem['sku_name'],
@@ -166,7 +166,7 @@ class ApiTangaService implements ApiPlatformInterface
 
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
             [
-                'platform_order_id' => $order['purchase_order_id'],
+                'platform_order_id' => $order['order_id'],
                 'order_item_id' => $orderItem['line_item_id']
             ],
             $object
@@ -176,7 +176,7 @@ class ApiTangaService implements ApiPlatformInterface
     public function updateOrCreatePlatformMarketShippingAddress($order, $storeName)
     {
         $object = [];
-        $object['platform_order_id']=$order['purchase_order_id'];
+        $object['platform_order_id']=$order['order_id'];
         $object['name'] = $order['shipping_name'];
         $object['address_line_1'] = $order['shipping_address1'];
         $object['address_line_2'] = $order['shipping_address2'];
@@ -189,7 +189,7 @@ class ApiTangaService implements ApiPlatformInterface
         $object['postal_code'] = $order['shipping_zip'];
         $object['phone'] = $order['shipping_phone'];
 
-        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['purchase_order_id']], $object);
+        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
 
         return $platformMarketShippingAddress->id;
     }
