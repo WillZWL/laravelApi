@@ -21,7 +21,7 @@ trait IwmsCreateDeliveryOrderService
                 $deliveryCreationRequest[] = json_decode($requestLog);
             }
             $request = array(
-                "batchId" => $batchRequest->id,
+                "batchRequest" => $batchRequest,
                 "requestBody" => $deliveryCreationRequest
             );
             return $request;
@@ -33,7 +33,7 @@ trait IwmsCreateDeliveryOrderService
         $esgAllocateOrder = null;
         $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
         if(!$esgOrders->isEmpty()){
-            $batchRequest = $this->getBatchId("CREATE_DELIVERY");
+            $batchRequest = $this->getNewBatchId("CREATE_DELIVERY");
             foreach ($esgOrders as $esgOrder) {
                 $courierId = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
@@ -121,23 +121,6 @@ trait IwmsCreateDeliveryOrderService
             return $iwmsDeliveryOrderLog;
         }
     } 
-
-    public function _saveIwmsDeliveryOrderResponseData($batchId,$responseJsons)
-    {
-        $responseDatas = json_decode($responseJsons);
-        foreach ($responseDatas as $key => $responseData) {
-            if(isset($responseData->reference_no)){
-                $object = array(
-                    "response_message"=> $responseData->message,
-                    "status"=> $this->iwmStatus[$responseData->status],
-                    "response_log"=> json_encode($responseData),
-                );
-                IwmsDeliveryOrderLog::where('batch_id',$batchId)
-                    ->where("reference_no",$responseData->reference_no)
-                    ->update($object);
-            }
-        }
-    }
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {

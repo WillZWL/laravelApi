@@ -6,6 +6,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
 {
     use IwmsCreateDeliveryOrderService;
     protected $wmsPlatform;
+    protected $merchantId = "ESG";
 
     public function __construct($wmsPlatform = "4px",$debug = 0)
     {
@@ -18,14 +19,13 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $warehouseToIwms = $this->getWarehouseId($this->wmsPlatform);
         $request = $this->getDeliveryCreationRequest($warehouseToIwms);
         $responseData = $this->curlIwmsApi('create-delivery-order', $request["requestBody"]);
-        $this->_saveIwmsDeliveryOrderResponseData($request["batchId"],$responseData);
-        $this->sendIwmsReport($request["batchId"],$type);
+        $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
     }
 
     public function queryDeliveryOrder()
     {
-        $warehouseId = "4PXDG_PL"; $merchantId = "ESG";
-        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
+        $warehouseId = "4PXDG_PL";
+        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$this->merchantId);
         $requestBody = array(
             "iwms_warehouse_code" => $iwmsWarehouseCode,
             );
@@ -50,7 +50,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $warehouseIdArr[$wmsPlatform];
     }
 
-    public function sendIwmsReport($batchId,$type)
+    public function _saveIwmsResponseData($batchId,$responseData)
     {
 
     }

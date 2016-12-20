@@ -9,8 +9,9 @@ use App;
 trait IwmsBaseService
 {
     private $iwmStatus = array("Success" => "1","Failed" => "2");
+    private $token = "iwms-esg";
 
-    public function getBatchId($name, $requestLog = null)
+    public function getNewBatchId($name, $requestLog = null)
     {
         $batchRequestService = App::make("App\Services\BatchRequestService");
         return $batchRequestService->getNewBatch($name, $requestLog);
@@ -30,9 +31,16 @@ trait IwmsBaseService
             ->value("iwms_courier_code");
     }
 
-    public function updateBathchResponeData($value='')
+    public function saveBatchIwmsResponseData($batchObject,$responseJson)
     {
         $batchRequestService = App::make("App\Services\BatchRequestService");
+        $batchRequestService->saveBatchIwmsResponseData($batchObject,$responseJson);
+    }
+
+    public function validIwmsCallBackApiToken()
+    {   
+        $iwmsCallbackApiService = App::make("App\Services\IwmsCallbackApiService");
+        return $iwmsCallbackApiService->valid();
     }
 
 }
