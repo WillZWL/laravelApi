@@ -92,8 +92,11 @@ return [
         'merchant' => [
             'driver' => 'local',
             'root' => storage_path('merchant'),
+        ],
+        'iwms' => [
+            'driver' => 'local',
+            'root' => storage_path('iwms'),
         ]
-
     ],
 
 ];

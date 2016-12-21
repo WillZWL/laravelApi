@@ -47,6 +47,8 @@ class IwmsDeliveryOrder extends Command
             $this->iwmsFactoryWmsService->createDeliveryOrder();
         }else if($action == "query"){
             $this->iwmsFactoryWmsService->queryDeliveryOrder();
+        }else if($action == "report"){
+            $this->iwmsFactoryWmsService->sendCreateDeliveryOrderReport();
         }
     }
 }
