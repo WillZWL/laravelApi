@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Http\Requests\ProfitEstimateRequest;
 use App\Models\AcceleratorShipping;
+use App\Models\CourierInfo;
 use App\Models\DeliveryTypeMapping;
 use App\Repository\DeliveryQuotationRepository;
 use App\Services\PlatformValidate\AmazonValidateService;
@@ -14,7 +15,6 @@ use App\Services\PlatformValidate\NeweggValidateService;
 use App\Services\PlatformValidate\TangaValidateService;
 use App\Services\PlatformValidate\Qoo10ValidateService;
 use App\Models\PlatformMarketOrder;
-use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
 use App\Models\CountryState;
 use App\Models\CourierCost;
@@ -25,18 +25,14 @@ use App\Models\MerchantQuotation;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
-use App\Models\Quotation;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
 use App\Models\SoItem;
 use App\Models\SoItemDetail;
-use App\Models\SoAllocate;
 use App\Models\SoPaymentStatus;
 use App\Models\SpIncoterm;
 use App\Models\WeightCourier;
-use App\Models\Inventory;
-use App\Models\InvMovement;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -522,6 +518,22 @@ class PlatformMarketOrderTransfer
         // check battery compact
 
         $order->esg_quotation_courier_id = $selectedCourierId;
+
+        $courier = CourierInfo::whereCourierId($selectedCourierId)->first();
+        if ($courier->type === 'POSTAGE') {
+            $shippingWeight = $order->weight;
+        } else {
+            $shippingWeight = max($order->weight, $order->vol_weight);
+        }
+        $weightId = WeightCourier::where('weight', '>=', $shippingWeight)->first()->id;
+        $courierCost = $courier->courierCost->where('dest_country_id', $order->delivery_country_id)
+            ->where('dest_state_id', $order->delivery_state)
+            ->where('weight_id', $weightId)
+            ->orderBy('dest_state_id', 'DESC');
+
+        $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
+        $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
+
         $order->save();
     }
 
@@ -551,7 +563,7 @@ class PlatformMarketOrderTransfer
                 $deliveryChargeInHKD = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
 
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
-                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate * 1.0125;
+                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate / 0.9725;
                 $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
 
                 return $order->save();
