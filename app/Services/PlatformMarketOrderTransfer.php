@@ -526,10 +526,11 @@ class PlatformMarketOrderTransfer
             $shippingWeight = max($order->weight, $order->vol_weight);
         }
         $weightId = WeightCourier::where('weight', '>=', $shippingWeight)->first()->id;
-        $courierCost = $courier->courierCost->where('dest_country_id', $order->delivery_country_id)
+        $courierCost = $courier->courierCost()->where('dest_country_id', $order->delivery_country_id)
             ->where('dest_state_id', $order->delivery_state)
             ->where('weight_id', $weightId)
-            ->orderBy('dest_state_id', 'DESC');
+            ->orderBy('dest_state_id', 'DESC')
+            ->first();
 
         $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
         $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
