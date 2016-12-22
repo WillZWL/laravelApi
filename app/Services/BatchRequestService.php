@@ -10,10 +10,12 @@ class BatchRequestService
     {
     }
 
-    public function getNewBatch($name, $requestLog = null)
+    public function getNewBatch($name, $wmsPlatform, $merchantId, $requestLog = null)
     {
         $batch = new BatchRequest();
         $batch->name = $name;
+        $batch->wms_Platform = $wmsPlatform;
+        $batch->merchant_id = $merchantId;
         $batch->status = 'N';
         if ($requestLog)
             $batch->request_log = $requestLog;

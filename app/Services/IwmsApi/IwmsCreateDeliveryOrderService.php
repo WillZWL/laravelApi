@@ -30,10 +30,10 @@ trait IwmsCreateDeliveryOrderService
 
     public function getDeliveryCreationRequestBatch($warehouseIds)
     {
-        $esgAllocateOrder = null;
+        $esgAllocateOrder = null; $merchantId = "ESG";
         $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
         if(!$esgOrders->isEmpty()){
-            $batchRequest = $this->getNewBatchId("CREATE_DELIVERY");
+            $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
             foreach ($esgOrders as $esgOrder) {
                 $courierId = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
