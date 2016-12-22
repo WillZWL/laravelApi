@@ -35,7 +35,7 @@ class IwmsCallbackApiService
     }
 
     public function responseMsg(Request $request)
-    { 
+    {
         $echoStr = $request->input("echostr");
         $postContent = $request->getContent();
         //extract post data
@@ -80,7 +80,7 @@ class IwmsCallbackApiService
             if($excelFile){
                 $subject = "WMS Delivery Order Create Report!";
                 $attachment = array("path" => $orderPath,"file_name"=>$fileName.".xlsx");
-                $this->sendAttachmentMail('fiona@etradegroup.net',$subject,$attachment);
+                $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com',$subject,$attachment);
             }
         }
     }   
