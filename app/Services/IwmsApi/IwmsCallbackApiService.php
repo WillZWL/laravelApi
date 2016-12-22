@@ -1,79 +1,119 @@
 <?php
 
+namespace App\Services\IwmsApi;
+
+use Illuminate\Http\Request;
+use App\Models\So;
+use App\Models\IwmsFeedRequest;
 
 class IwmsCallbackApiService
 {
-    public function valid()
+    private $callbackToken = "123";
+    use IwmsBaseService;
+
+    public function __construct()
     {
-        $echoStr = $_GET["echostr"];
-        //valid signature , option
-        if($this->checkSignature()){
-            echo $echoStr;
-            exit;
-        }
+        
     }
 
-    public function responseMsg()
+    public function valid(Request $request)
     {
-        //get post data, May be due to the different environments
-        $postStr = $GLOBALS["HTTP_RAW_POST_DATA"];
-
-        //extract post data
-        if (!empty($postStr)){
-                /* libxml_disable_entity_loader is to prevent XML eXternal Entity Injection,
-                   the best way is to check the validity of xml by yourself */
-                libxml_disable_entity_loader(true);
-                $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
-                $fromUsername = $postObj->MerchantId;
-                $toUsername = $postObj->WmsPlatform;
-                $toUsername = $postObj->WmsPlatform;
-                $keyword = trim($postObj->RequestId);
-                $time = time();
-                $textTpl = "<xml>
-                            <MerchantId><![CDATA[%s]]></MerchantId>
-                            <WmsPlatform><![CDATA[%s]]></WmsPlatform>
-                            <RequestId>%s</RequestId>
-                            </xml>";             
-                if(!empty( $keyword ))
-                {
-                    $msgType = "text";
-                    $contentStr = "Welcome to wechat world!";
-                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
-                    echo $resultStr;
-                }else{
-                    echo "Input something...";
-                }
-
-        }else {
-            echo "";
-            exit;
-        }
-    }
-        
-    private function checkSignature()
-    {
-        // you must define TOKEN by yourself
-        if (!defined("TOKEN")) {
-            throw new Exception('TOKEN is not defined!');
-        }
-        
+        $echoStr = $request->input("echostr");
         $signature = $_GET["signature"];
         $timestamp = $_GET["timestamp"];
         $nonce = $_GET["nonce"];
-                
-        $token = TOKEN;
-        $tmpArr = array($token, $timestamp, $nonce);
+        $tmpArr = array($this->callbackToken, $timestamp, $nonce);
         // use SORT_STRING rule
         sort($tmpArr, SORT_STRING);
         $tmpStr = implode( $tmpArr );
         $tmpStr = sha1( $tmpStr );
-        
         if( $tmpStr == $signature ){
-            return true;
+            echo $echoStr;
         }else{
-            return false;
+            exit;
         }
     }
+
+    public function responseMsg(Request $request)
+    { 
+        $echoStr = $request->input("echostr");
+        $postContent = $request->getContent();
+        //extract post data
+        if (!empty($postContent)){
+            $postMessage = json_decode($postContent);
+            //run the own program jobs
+            $this->responseMsgAction($postMessage);
+            $responseMsg["signature"] = $this->checkSignature($postMessage,$echoStr);
+            return $responseMsg;
+        }
+    }
+
+    public function responseMsgAction($postMessage)
+    {
+        if($postMessage->action == "orderCreate"){
+            $this->sendMsgCreateDeliveryOrderReport($postMessage);
+        }
+    }
+        
+    public function checkSignature($postMessage,$echoStr)
+    {
+        $signatureArr = array();
+        foreach ($postMessage->responseMessage as $value) {
+            if(isset($value->order_code)){
+                $signatureArr[] = $value->order_code;
+            }else if(isset($value->receiving_code)){
+                $signatureArr[] = $value->receiving_code;
+            }
+        }
+        $signature = implode($signatureArr);
+        return base64_encode($this->callbackToken.$signature.$echoStr);
+    }
+
+    public function sendMsgCreateDeliveryOrderReport($postMessage)
+    {
+        $cellData = $this->getMsgCreateDeliveryOrderReport($postMessage);
+        $filePath = \Storage::disk('iwms')->getDriver()->getAdapter()->getPathPrefix();
+        $orderPath = $filePath."orderCreate/";
+        $fileName = "deliveryOrderDetail-".time();
+        if(!empty($cellData)){
+            $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
+            if($excelFile){
+                $subject = "WMS Delivery Order Create Report!";
+                $attachment = array("path" => $orderPath,"file_name"=>$fileName.".xlsx");
+                $this->sendAttachmentMail('fiona@etradegroup.net',$subject,$attachment);
+            }
+        }
+    }   
+
+    public function getMsgCreateDeliveryOrderReport($postMessage)
+    {
+        if(!empty($postMessage->responseMessage)){
+            $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
+            foreach ($postMessage->responseMessage as $value) {
+                $esgOrder = So::where("so_no",$value->merchant_order_id)
+                        ->with("sellingPlatform")
+                        ->first();     
+                if(!empty($esgOrder)){
+                   $cellRow = array(
+                        'business_type' => $value->business_type,
+                        'merchant' => $esgOrder->sellingPlatform->merchant_id,
+                        'platform' => $esgOrder->platform_id,
+                        'order_id' => $value->reference_no,
+                        'delivery_type_id' => $esgOrder->delivery_type_id,
+                        'country' => $value->country,
+                        'battery_type' => "",
+                        're_courier' => $esgOrder->recommend_courier_id,
+                        'wms_order_code' => $value->wms_order_code,
+                        'wms_courier' => $value->iwms_courier,
+                    );
+                    $cellData[] = $cellRow; 
+                }
+                IwmsFeedRequest::where("iwms_request_id",$value->request_id)->update(array("status"=> "1","responese_log" => json_encode($postMessage->responseMessage)));
+            }
+            return $cellData;
+        }
+        return null;
+    }
+    
 }
 
-?>

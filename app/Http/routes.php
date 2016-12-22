@@ -160,3 +160,4 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'mid
 });
 
 Route::get('platform/test', 'InterfacePlatformOrder@index');
+Route::resource('iwms-callback', 'IwmsCallBackApiController');
