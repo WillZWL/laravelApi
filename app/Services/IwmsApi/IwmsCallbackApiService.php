@@ -108,7 +108,7 @@ class IwmsCallbackApiService
                     );
                     $cellData[] = $cellRow; 
                 }
-                IwmsFeedRequest::where("iwms_request_id",$value->request_id)->update(array("status"=> "1","responese_log" => json_encode($postMessage->responseMessage)));
+                IwmsFeedRequest::where("iwms_request_id",$value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
             }
             return $cellData;
         }
