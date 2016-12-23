@@ -39,6 +39,7 @@ trait IwmsCreateDeliveryOrderService
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     if($soAllocate->soShipment && $soAllocate->soShipment->status == "1"){
                         $courierId = $soAllocate->soShipment->courier_id;
+                        $warehouseId = $soAllocate->warehouse_id;
                     }else{
                         continue;
                     }
@@ -46,19 +47,19 @@ trait IwmsCreateDeliveryOrderService
                 if(empty($courierId)){
                     continue;
                 }
-                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId);
+                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
             } 
         }
         return $batchRequest;
     }
 
-    private function getDeliveryCreationObject($esgOrder,$courierId)
+    private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
         $merchantId = "ESG";
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
-            "iwms_warehouse_code" => $this->getIwmsWarehouseCode($esgOrder->soAllocate->warehouse_id,$merchantId),
+            "iwms_warehouse_code" => $this->getIwmsWarehouseCode($warehouseId,$merchantId),
             "reference_no" => $esgOrder->so_no,
             "iwms_courier_code" => $this->getIwmsCourierCode($courierId,$merchantId),
             "marketplace_reference_no" => $esgOrder->platform_order_id,
