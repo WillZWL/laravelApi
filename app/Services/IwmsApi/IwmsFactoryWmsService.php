@@ -21,6 +21,9 @@ class IwmsFactoryWmsService extends IwmsCoreService
     {
         $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
         $request = $this->getDeliveryCreationRequest($warehouseToIwms);
+        if (! $request["requestBody"]) {
+            return false;
+        }
         $responseData = $this->curlIwmsApi('create-delivery-order', $request["requestBody"]);
         $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
     }
