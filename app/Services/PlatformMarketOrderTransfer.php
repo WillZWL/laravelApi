@@ -532,9 +532,14 @@ class PlatformMarketOrderTransfer
             ->orderBy('dest_state_id', 'DESC')
             ->first();
 
-        $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
-        $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
-
+        if ($courierCost) {
+            $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
+            $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
+        } else {
+            $message = "Courier: {$courier->courier_id} \r\n Country: {$order->delivery_country_id} \r\n State: {$order->delivery_state} \r\n WeightId: {$weightId} \r\n ";
+            mail('handy.hon@eservicesgroup.com', 'Missing Delivery Cost', $message);
+        }
+        
         $order->save();
     }
 
