@@ -26,6 +26,6 @@ class AlertColumnIwmsDeliveryOrderLog extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists("iwms_delivery_order_logs");
     }
 }

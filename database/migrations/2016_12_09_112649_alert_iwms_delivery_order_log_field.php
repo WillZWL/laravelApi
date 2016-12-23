@@ -25,6 +25,8 @@ class AlertIwmsDeliveryOrderLogField extends Migration
      */
     public function down()
     {
-        //
+        Schema::table('iwms_delivery_order_logs', function (Blueprint $table) {
+            $table->renameColumn("marketplace_platform_id", 'platform_id');
+        });
     }
 }
