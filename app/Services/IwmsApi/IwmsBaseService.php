@@ -12,10 +12,10 @@ trait IwmsBaseService
     private $iwmStatus = array("Success" => "1","Failed" => "2");
     private $token = "iwms-esg";
 
-    public function getNewBatchId($name, $requestLog = null)
+    public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {
         $batchRequestService = App::make("App\Services\BatchRequestService");
-        return $batchRequestService->getNewBatch($name, $requestLog);
+        return $batchRequestService->getNewBatch($name,$wmsPlatform, $merchantId, $requestLog);
     }
 
     public function getIwmsWarehouseCode($warehouseId,$merchantId)

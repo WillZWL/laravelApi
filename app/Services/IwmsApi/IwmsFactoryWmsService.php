@@ -19,7 +19,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function createDeliveryOrder()
     {
-        $warehouseToIwms = $this->getWarehouseId($this->wmsPlatform);
+        $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
         $request = $this->getDeliveryCreationRequest($warehouseToIwms);
         $responseData = $this->curlIwmsApi('create-delivery-order', $request["requestBody"]);
         $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
