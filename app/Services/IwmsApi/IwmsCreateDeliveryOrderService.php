@@ -24,6 +24,8 @@ trait IwmsCreateDeliveryOrderService
                 "batchRequest" => $batchRequest,
                 "requestBody" => $deliveryCreationRequest
             );
+            $batchRequest->request_log = json_encode($deliveryCreationRequest);
+            $batchRequest->save();
             return $request;
         }
     }
@@ -57,6 +59,9 @@ trait IwmsCreateDeliveryOrderService
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
         $merchantId = "ESG";
+        $soPhone =  $esgOrder->del_tel_1.$esgOrder->del_tel_2.$esgOrder->del_tel_3;
+        $clientPhone = $esgOrder->client->tel_1.$esgOrder->client->tel_2.$esgOrder->client->tel_3;
+
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $this->getIwmsWarehouseCode($warehouseId,$merchantId),
@@ -70,11 +75,11 @@ trait IwmsCreateDeliveryOrderService
             "email" => $esgOrder->client->email,
             "country" => $esgOrder->delivery_country_id,
             "city" => $esgOrder->delivery_city,
-            "state" => $esgOrder->delivery_state,
+            "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x";
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
-            "phone" => $esgOrder->client->del_tel_1.$esgOrder->client->del_tel_2.$esgOrder->client->del_tel_3,
-            "amount_in_hkd" => $esgOrder->amount * $esgOrder->rate_to_hkd,
+            "phone" => $soPhone ? $soPhone : $clientPhone;
+            "amount_in_hkd" => '0',
             "amount_in_usd" => '0',
             //"doorplate" => $esgOrder->doorplate,
         );
@@ -90,7 +95,7 @@ trait IwmsCreateDeliveryOrderService
                 "quantity" => $esgOrderItem->qty,
                 "hscode" => $hscode,
                 "hsDescription" => $hsDescription,
-                "unit_price_hkd" => $esgOrderItem->unit_price * $esgOrder->rate_to_hkd,
+                "unit_price_hkd" => '0',
                 "unit_price_usd" => '0',
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
                 //"skuLabelCode" => '',
