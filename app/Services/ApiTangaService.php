@@ -157,7 +157,7 @@ class ApiTangaService implements ApiPlatformInterface
         ];
 
         if (isset($orderItem['cost'])) {
-            $object['item_price'] = $orderItem['cost'];
+            $object['item_price'] = $orderItem['cost'] * $orderItem['quantity'];
         }
 
         if (isset($orderItem['shipping_cost'])) {
