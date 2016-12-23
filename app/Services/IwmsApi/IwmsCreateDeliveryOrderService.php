@@ -75,10 +75,10 @@ trait IwmsCreateDeliveryOrderService
             "email" => $esgOrder->client->email,
             "country" => $esgOrder->delivery_country_id,
             "city" => $esgOrder->delivery_city,
-            "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x";
+            "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x",
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
-            "phone" => $soPhone ? $soPhone : $clientPhone;
+            "phone" => $soPhone ? $soPhone : $clientPhone,
             "amount_in_hkd" => '0',
             "amount_in_usd" => '0',
             //"doorplate" => $esgOrder->doorplate,
