@@ -24,14 +24,13 @@ trait IwmsCreateDeliveryOrderService
                 "batchRequest" => $batchRequest,
                 "requestBody" => $deliveryCreationRequest
             );
-            if ($deliveryCreationRequest) {
-                $batchRequest->request_log = json_encode($deliveryCreationRequest);
-            } else {
-                $batchRequest->remark = "No delivery order need send to wms";
-                $batchRequest->status = "F";
-            }
+            $batchRequest->request_log = json_encode($deliveryCreationRequest);
             $batchRequest->save();
             return $request;
+        } else {
+            $batchRequest->remark = "No delivery order request need send to wms";
+            $batchRequest->status = "CE";
+            $batchRequest->save();
         }
     }
 
