@@ -276,7 +276,6 @@ class ApiQoo10Service  implements ApiPlatformInterface
             'title' => $order['itemTitle'],
             'quantity_ordered' => 1,
             'item_price' => $orderPrice,
-            'quantity_ordered' => $order['orderQty'],
             'promotion_discount' => $order['discount'],
             'package_id' => $order['PackingNo']
         ];

@@ -306,7 +306,7 @@ class ApiFnacService implements ApiPlatformInterface
         ];
 
         if (isset($orderItem['price'])) {
-            $object['item_price'] = $orderItem['price'];
+            $object['item_price'] = $orderItem['price'] * $orderItem['quantity'];
         }
 
         if (isset($orderItem['shipping_price'])) {
