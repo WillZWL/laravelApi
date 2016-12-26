@@ -14,7 +14,7 @@ class BatchRequestService
     {
         $batch = new BatchRequest();
         $batch->name = $name;
-        $batch->wms_Platform = $wmsPlatform;
+        $batch->wms_platform = $wmsPlatform;
         $batch->merchant_id = $merchantId;
         $batch->status = 'N';
         if ($requestLog)
