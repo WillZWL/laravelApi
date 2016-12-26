@@ -32,6 +32,6 @@ class CreateIwmsFeedRequest extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists("iwms_feed_requests");
+         Schema::dropIfExists('iwms_feed_requests');
     }
 }

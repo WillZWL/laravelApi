@@ -335,6 +335,7 @@ class PlatformMarketOrderTransfer
         } else {
             $newOrder->bill_country_id = $order->platformMarketShippingAddress->country_code;
         }
+        $newOrder->statistic = 0;
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
         $newOrder->save();
@@ -539,7 +540,7 @@ class PlatformMarketOrderTransfer
             $message = "Courier: {$courier->courier_id} \r\n Country: {$order->delivery_country_id} \r\n State: {$order->delivery_state} \r\n WeightId: {$weightId} \r\n ";
             mail('handy.hon@eservicesgroup.com', 'Missing Delivery Cost', $message);
         }
-        
+
         $order->save();
     }
 

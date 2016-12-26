@@ -6,6 +6,7 @@ use App\Http\Requests\ProfitEstimateRequest;
 use App\Models\AcceleratorShipping;
 use App\Models\AmazonOrder;
 use App\Models\Client;
+use App\Models\Country;
 use App\Models\CountryState;
 use App\Models\CourierCost;
 use App\Models\CourierInfo;
@@ -18,6 +19,7 @@ use App\Models\PlatformBizVar;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
+use App\Models\SalesOrderStatistic;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
@@ -132,7 +134,7 @@ class OrderTransfer extends Command
                 $alertEmail = 'handy.hon@eservicesgroup.com';
         }
 
-        //$alertEmail = 'handy.hon@eservicesgroup.com';
+        $alertEmail = 'handy.hon@eservicesgroup.com';
 
         // check marketplace sku mapping
         $marketplaceSkuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
@@ -236,6 +238,7 @@ class OrderTransfer extends Command
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
+        $this->saveSalesOrderStatistic($so, $order->amazonOrderItem);
 
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
@@ -290,7 +293,9 @@ class OrderTransfer extends Command
             }
 
             // must after get correct delivery type id.
-            $spIncoterm = SpIncoterm::wherePlatformId($so->platform_id)->whereDeliveryTypeId($so->delivery_type_id)->first();
+            $spIncoterm = SpIncoterm::wherePlatformId($so->platform_id)
+                ->whereDeliveryTypeId($so->delivery_type_id)
+                ->first();
             if ($spIncoterm) {
                 $so->incoterm = $spIncoterm->incoterm;
             }
@@ -356,7 +361,8 @@ class OrderTransfer extends Command
         $client = $this->createOrUpdateClient($order);
         $newOrder->so_no = $this->generateSoNumber();
         $newOrder->platform_order_id = $order->amazon_order_id;
-        $newOrder->platform_id = 'AC-BCAZ-GROUPUS'; // it should depends on group order or split order. temporary set it this.
+        // it should depends on group order or split order. temporary set it this.
+        $newOrder->platform_id = 'AC-BCAZ-GROUPUS';
         $newOrder->txn_id = $order->amazon_order_id;
         $newOrder->client_id = $client->id;
         $newOrder->biz_type = 'AMAZON';
@@ -379,7 +385,6 @@ class OrderTransfer extends Command
             // set order import date as FBA dispatch date. Fiona required.
             $newOrder->dispatch_date = Carbon::now();
         } else {
-            // assume 'STD' first to fit database rule, need to decide it at createSplitOrder() and createGroupOrder() later.
             $newOrder->delivery_type_id = 'STD';
         }
         $newOrder->delivery_name = $order->amazonShippingAddress->name;
@@ -391,12 +396,16 @@ class OrderTransfer extends Command
         $newOrder->delivery_postcode = $order->amazonShippingAddress->postal_code;
         $newOrder->delivery_city = $order->amazonShippingAddress->city;
         $newOrder->delivery_country_id = $order->amazonShippingAddress->country_code;
-        $newOrder->delivery_state = CountryState::getStateId($order->amazonShippingAddress->country_code, $order->amazonShippingAddress->state_or_region);
+        $newOrder->delivery_state = CountryState::getStateId(
+            $order->amazonShippingAddress->country_code,
+            $order->amazonShippingAddress->state_or_region
+        );
         // if fulfillment by amazon, marked as shipped (6), if fulfillment by ESG, marked as 3, no need credit check.
         $newOrder->status = ($order->fulfillment_channel === 'AFN') ? '6' : '3';
         $newOrder->order_create_date = $order->purchase_date;
         $newOrder->del_tel_3 = $order->amazonShippingAddress->phone;
         $newOrder->bill_country_id = $order->amazonShippingAddress->country_code;
+        $newOrder->statistic = 0;
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
         $newOrder->save();
@@ -452,22 +461,11 @@ class OrderTransfer extends Command
             ]);
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if (!$marginAndProfit->isEmpty()) {
-                $profit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
-                if ($profit) {
-                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
-                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)['margin'];
-                } else {
-                    $selectedProfit = 0;
-                    $selectedMargin = 0;
-                }
-            } else {
-                $selectedProfit = 0;
-                $selectedMargin = 0;
+            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+                $newOrderItemDetail->profit = $costDetails['profit'] * $item->quantity_ordered;
+                $newOrderItemDetail->margin = $costDetails['margin'];
             }
 
-            $newOrderItemDetail->profit = $selectedProfit * $item->quantity_ordered;
-            $newOrderItemDetail->margin = $selectedMargin;
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
             $newOrderItemDetail->modify_on = Carbon::now();
@@ -535,6 +533,7 @@ class OrderTransfer extends Command
     {
         $merchantId = $order->sellingPlatform->merchant_id;
         $deliveryCountry = $order->delivery_country_id;
+        $deliveryStateId = $order->delivery_state;
         $deliveryType = $order->delivery_type_id;
 
         $quotationTypes = DeliveryTypeMapping::where('delivery_type', $deliveryType)
@@ -579,9 +578,24 @@ class OrderTransfer extends Command
         } else {
             $shippingWeight = max($order->weight, $order->vol_weight);
         }
+
+        // for FBA order, freight cost is 1st leg cost, from HK to FBA warehouse.
+        if ($courier->type === 'FBA') {
+            $deliveryCountry = substr($order->platform_id, -2);
+            $deliveryState = Country::find($deliveryCountry)
+                ->countryState()
+                ->where('is_default_state', '=', 1)
+                ->first();
+            if (empty($deliveryState)) {
+                $deliveryStateId = '';
+            } else {
+                $deliveryStateId = $deliveryState->state_id;
+            }
+        }
+
         $weightId = WeightCourier::where('weight', '>=', $shippingWeight)->first()->id;
-        $courierCost = $courier->courierCost()->where('dest_country_id', $order->delivery_country_id)
-            ->where('dest_state_id', $order->delivery_state)
+        $courierCost = $courier->courierCost()->where('dest_country_id', $deliveryCountry)
+            ->where('dest_state_id', $deliveryStateId)
             ->where('weight_id', $weightId)
             ->orderBy('dest_state_id', 'DESC')
             ->first();
@@ -616,7 +630,12 @@ class OrderTransfer extends Command
         }
 
         if ($splitOrders[0]->courierInfo) {
-            $courierCost = $this->getCourierCost($order->delivery_country_id, $order->delivery_state, $weightId, $splitOrders[0]->courierInfo->courier_id);
+            $courierCost = $this->getCourierCost(
+                $order->delivery_country_id,
+                $order->delivery_state,
+                $weightId,
+                $splitOrders[0]->courierInfo->courier_id
+            );
 
             if ($courierCost) {
                 $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
@@ -631,20 +650,6 @@ class OrderTransfer extends Command
         }
 
         return false;
-    }
-
-    /**
-     * @param $merchantShortId
-     *
-     * @return Collection|static[]
-     */
-    private function getAvailableMerchantQuotation($merchantShortId)
-    {
-        return MerchantQuotation::availableQuotation()
-            ->join('merchant', 'merchant.id', '=', 'merchant_quotation.merchant_id')
-            ->where('merchant.short_id', '=', $merchantShortId)
-            ->select('merchant_quotation.*')
-            ->get();
     }
 
     private function getCourierCost($destCountryId, $destStateId, $weightId, $courierId)
@@ -739,5 +744,38 @@ class OrderTransfer extends Command
                 ++$lineNumber;
             }
         }
+    }
+
+    private function saveSalesOrderStatistic(So $so, Collection $orderItem)
+    {
+        $salesOrderStatistic = new SalesOrderStatistic();
+        $salesOrderStatistic->so_no = $so->so_no;
+
+        foreach ($orderItem as $item) {
+            $unit_price = $item->item_price / $item->quantity_ordered;
+
+            $request = new ProfitEstimateRequest();
+            $request->merge([
+                'id' => $item->mapping->id,
+                'selling_price' => $unit_price,
+            ]);
+
+            $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
+            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+                $unitMarketplaceFee = $costDetails['marketplaceListingFee']
+                                        + $costDetails['marketplaceFixedFee']
+                                        + $costDetails['marketplaceCommission'];
+
+                $salesOrderStatistic->marketplace_fee += ($unitMarketplaceFee * $item->quantity_ordered);
+                $salesOrderStatistic->vat += ($costDetails['tax'] * $item->quantity_ordered);
+                $salesOrderStatistic->duty += ($costDetails['duty'] * $item->quantity_ordered);
+                $salesOrderStatistic->payment_gateway_fee += ($costDetails['paymentGatewayFee'] * $item->quantity_ordered);
+                $salesOrderStatistic->psp_admin_fee += ($costDetails['paymentGatewayAdminFee'] * $item->quantity_ordered);
+                $salesOrderStatistic->shipping_cost += ($costDetails['deliveryCost'] * $item->quantity_ordered);
+            }
+        }
+
+        $salesOrderStatistic->to_usd_rate = $so->rate;
+        $salesOrderStatistic->save();
     }
 }

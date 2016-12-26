@@ -63,38 +63,39 @@ class PricingService
             ->whereToCurrencyId($marketplaceProduct->mpControl->currency_id)
             ->firstOrFail();
 
-        $declaredValue = $this->getDeclaredValue($marketplaceProduct);
-        $tax = $this->getTax($marketplaceProduct, $declaredValue);
-        $duty = $this->getDuty($marketplaceProduct, $declaredValue);
+        $costDetails = [];
 
-        $targetMargin = $this->getTargetMargin($marketplaceProduct);
-        $marketplaceCommission = $this->getMarketplaceCommission($marketplaceProduct);
-        $marketplaceListingFee = $this->getMarketplaceListingFee($marketplaceProduct);
-        $marketplaceFixedFee = $this->getMarketplaceFixedFee($marketplaceProduct);
-        $paymentGatewayFee = $this->getPaymentGatewayFee($marketplaceProduct);
-        $paymentGatewayAdminFee = $this->getPaymentGatewayAdminFee($marketplaceProduct);
-        $availableDeliveryTypeWithCost = $this->getShippingOptions($marketplaceProduct);
-        $warehouseCostDetails = $this->getWarehouseCost($marketplaceProduct);
-        $supplierCost = $this->getSupplierCost($marketplaceProduct);
-        $accessoryCost = $this->getAccessoryCost($marketplaceProduct);
-        $tuvFee = $this->getTuvFee($marketplaceProduct);
+        $declaredValue = $this->getDeclaredValue($marketplaceProduct);
+
+        $costDetails['tax'] = $this->getTax($marketplaceProduct, $declaredValue);
+        $costDetails['duty'] = $this->getDuty($marketplaceProduct, $declaredValue);
+        $costDetails['marketplaceCommission'] =  $this->getMarketplaceCommission($marketplaceProduct);
+        $costDetails['marketplaceListingFee'] =  $this->getMarketplaceListingFee($marketplaceProduct);
+        $costDetails['marketplaceFixedFee'] =  $this->getMarketplaceFixedFee($marketplaceProduct);
+        $costDetails['paymentGatewayFee'] =  $this->getPaymentGatewayFee($marketplaceProduct);
+        $costDetails['paymentGatewayAdminFee'] =  $this->getPaymentGatewayAdminFee($marketplaceProduct);
+        $costDetails['supplierCost'] =  $this->getSupplierCost($marketplaceProduct);
+        $costDetails['accessoryCost'] =  $this->getAccessoryCost($marketplaceProduct);
+        $costDetails['tuvFee'] =  $this->getTuvFee($marketplaceProduct);
+        $costDetails['deliveryCharge'] = 0;
+
+        $availableDeliveryTypeWithCost =  $this->getShippingOptions($marketplaceProduct);
+        $warehouseCostDetails =  $this->getWarehouseCost($marketplaceProduct);
 
         $pricingType = $this->getMerchantType($marketplaceProduct);
-        $deliveryCharge = 0;
         $sellingPrice = $marketplaceProduct->price;
-        $totalCharged = $marketplaceProduct->price + $deliveryCharge;
-
-        $totalCostExcludeDeliveryCost = array_sum([
-            $tax, $duty, $marketplaceCommission,
-            $marketplaceListingFee, $marketplaceFixedFee, $paymentGatewayFee, $paymentGatewayAdminFee,
-            $supplierCost, $accessoryCost, $deliveryCharge, $tuvFee
-        ]);
+        $totalCharged = $marketplaceProduct->price + $costDetails['deliveryCharge'];
 
         $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->keyBy('deliveryType');
 
-        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use ($sellingPrice, $totalCharged, $pricingType, $targetMargin, $warehouseCostDetails,
-            $totalCostExcludeDeliveryCost, $marketplaceProduct) {
-
+        $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use (
+            $sellingPrice,
+            $totalCharged,
+            $pricingType,
+            $warehouseCostDetails,
+            $costDetails,
+            $marketplaceProduct
+        ) {
             $bookInCost = $warehouseCostDetails['book_in_cost'];
             $pnpCost = $warehouseCostDetails['pnp_cost'];
             $bookOutCost = $warehouseCostDetails['book_out_cost'];
@@ -106,36 +107,41 @@ class PricingService
                 $labelingCost = 0;
             }
 
-            $warehouseCost = $bookInCost + $bookOutCost + $pnpCost + $labelingCost;
+            $costDetails['warehouseCost'] = $bookInCost + $bookOutCost + $pnpCost + $labelingCost;
 
-            $fulfilmentByMarketplaceFee = 0;
-            if ( ($shippingOption['deliveryType'] === 'FBA' && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'AMAZON')
-                || ($shippingOption['deliveryType'] === 'SBN' && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'NEWEGG')
+            $costDetails['fulfilmentByMarketplaceFee'] = 0;
+            if (($shippingOption['deliveryType'] === 'FBA'
+                    && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'AMAZON')
+                || ($shippingOption['deliveryType'] === 'SBN'
+                    && substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'NEWEGG')
             ) {
-
-                $fbafees = $marketplaceProduct->amazonFbaFee;
-                $fulfilmentByMarketplaceFee = $fbafees->storage_fee + $fbafees->order_handing_fee
-                    + $fbafees->pick_and_pack_fee + $fbafees->weight_handing_fee;
+                $fbaFees = $marketplaceProduct->amazonFbaFee;
+                $costDetails['fulfilmentByMarketplaceFee'] = $fbaFees->storage_fee + $fbaFees->order_handing_fee
+                    + $fbaFees->pick_and_pack_fee + $fbaFees->weight_handing_fee;
 
                 if (substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'AMAZON'
                     && $marketplaceProduct->mpControl->country_id === 'GB' && $sellingPrice >= 300
                 ) {
-                    $fulfilmentByMarketplaceFee = 0;
+                    $costDetails['fulfilmentByMarketplaceFee'] = 0;
                 }
 
                 if (substr($marketplaceProduct->mpControl->marketplace_id, 2) === 'NEWEGG'
                     && $sellingPrice >= 300
                     && in_array($marketplaceProduct->amazonProductSizeTier->product_size, [14, 15])
                 ) {
-                    $fulfilmentByMarketplaceFee = 0;
+                    $costDetails['fulfilmentByMarketplaceFee'] = 0;
                 }
             }
 
+            $costDetails['deliveryCost'] = $shippingOption['cost'];
+
             $option = [];
             $option['deliveryCost'] = $shippingOption['cost'];
-            $option['totalCost'] = $totalCostExcludeDeliveryCost + $fulfilmentByMarketplaceFee + $warehouseCost + $option['deliveryCost'];
+            $option['totalCost'] = array_sum($costDetails);
             $option['profit'] = round($totalCharged - $option['totalCost'], 2);
             $option['margin'] = round($option['profit'] / $sellingPrice * 100, 2);
+            $option = array_merge($option, $costDetails);
+
             return $option;
         });
 
@@ -144,7 +150,10 @@ class PricingService
 
     public function getShippingOptions(MarketplaceSkuMapping $marketplaceProduct)
     {
-        $this->shippingService = new ShippingService(new AcceleratorShippingRepository, new MarketplaceProductRepository);
+        $this->shippingService = new ShippingService(
+            new AcceleratorShippingRepository,
+            new MarketplaceProductRepository
+        );
         $shippingOptions = $this->shippingService->shippingOptions($marketplaceProduct->id);
 
         // convert HKD to target currency.
