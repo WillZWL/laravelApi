@@ -6,5 +6,5 @@ use Illuminate\Database\Eloquent\Model;
 
 class IwmsFeedRequest extends Model
 {
-    //
+    protected $guarded = [];
 }
