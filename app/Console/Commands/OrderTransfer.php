@@ -19,6 +19,7 @@ use App\Models\PlatformBizVar;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
+use App\Models\SalesOrderStatistic;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
@@ -133,7 +134,7 @@ class OrderTransfer extends Command
                 $alertEmail = 'handy.hon@eservicesgroup.com';
         }
 
-//        $alertEmail = 'handy.hon@eservicesgroup.com';
+        $alertEmail = 'handy.hon@eservicesgroup.com';
 
         // check marketplace sku mapping
         $marketplaceSkuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
@@ -237,6 +238,7 @@ class OrderTransfer extends Command
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
+        $this->saveSalesOrderStatistic($so, $order->amazonOrderItem);
 
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
@@ -459,22 +461,11 @@ class OrderTransfer extends Command
             ]);
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if (!$marginAndProfit->isEmpty()) {
-                $profit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
-                if ($profit) {
-                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
-                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)['margin'];
-                } else {
-                    $selectedProfit = 0;
-                    $selectedMargin = 0;
-                }
-            } else {
-                $selectedProfit = 0;
-                $selectedMargin = 0;
+            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+                $newOrderItemDetail->profit = $costDetails['profit'] * $item->quantity_ordered;
+                $newOrderItemDetail->margin = $costDetails['margin'];
             }
 
-            $newOrderItemDetail->profit = $selectedProfit * $item->quantity_ordered;
-            $newOrderItemDetail->margin = $selectedMargin;
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
             $newOrderItemDetail->modify_on = Carbon::now();
@@ -661,20 +652,6 @@ class OrderTransfer extends Command
         return false;
     }
 
-    /**
-     * @param $merchantShortId
-     *
-     * @return Collection|static[]
-     */
-    private function getAvailableMerchantQuotation($merchantShortId)
-    {
-        return MerchantQuotation::availableQuotation()
-            ->join('merchant', 'merchant.id', '=', 'merchant_quotation.merchant_id')
-            ->where('merchant.short_id', '=', $merchantShortId)
-            ->select('merchant_quotation.*')
-            ->get();
-    }
-
     private function getCourierCost($destCountryId, $destStateId, $weightId, $courierId)
     {
         return CourierCost::where('dest_country_id', '=', $destCountryId)
@@ -767,5 +744,38 @@ class OrderTransfer extends Command
                 ++$lineNumber;
             }
         }
+    }
+
+    private function saveSalesOrderStatistic(So $so, Collection $orderItem)
+    {
+        $salesOrderStatistic = new SalesOrderStatistic();
+        $salesOrderStatistic->so_no = $so->so_no;
+
+        foreach ($orderItem as $item) {
+            $unit_price = $item->item_price / $item->quantity_ordered;
+
+            $request = new ProfitEstimateRequest();
+            $request->merge([
+                'id' => $item->mapping->id,
+                'selling_price' => $unit_price,
+            ]);
+
+            $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
+            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+                $unitMarketplaceFee = $costDetails['marketplaceListingFee']
+                                        + $costDetails['marketplaceFixedFee']
+                                        + $costDetails['marketplaceCommission'];
+
+                $salesOrderStatistic->marketplace_fee += ($unitMarketplaceFee * $item->quantity_ordered);
+                $salesOrderStatistic->vat += ($costDetails['tax'] * $item->quantity_ordered);
+                $salesOrderStatistic->duty += ($costDetails['duty'] * $item->quantity_ordered);
+                $salesOrderStatistic->payment_gateway_fee += ($costDetails['paymentGatewayFee'] * $item->quantity_ordered);
+                $salesOrderStatistic->psp_admin_fee += ($costDetails['paymentGatewayAdminFee'] * $item->quantity_ordered);
+                $salesOrderStatistic->shipping_cost += ($costDetails['deliveryCost'] * $item->quantity_ordered);
+            }
+        }
+
+        $salesOrderStatistic->to_usd_rate = $so->rate;
+        $salesOrderStatistic->save();
     }
 }
