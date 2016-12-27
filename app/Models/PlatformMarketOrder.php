@@ -108,6 +108,7 @@ class PlatformMarketOrder extends Model
             PlatformMarketConstService::ORDER_STATUS_NEW,
             PlatformMarketConstService::ORDER_STATUS_SHIPPED,
             PlatformMarketConstService::ORDER_STATUS_RETURENED,
+            PlatformMarketConstService::ORDER_STATUS_DELIVERED,
             PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED,
         );
         return $query->whereNotIn('esg_order_status',$notInStatus)
