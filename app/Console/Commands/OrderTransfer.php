@@ -134,7 +134,7 @@ class OrderTransfer extends Command
                 $alertEmail = 'handy.hon@eservicesgroup.com';
         }
 
-        $alertEmail = 'handy.hon@eservicesgroup.com';
+        // $alertEmail = 'handy.hon@eservicesgroup.com';
 
         // check marketplace sku mapping
         $marketplaceSkuList = $order->amazonOrderItem->pluck('seller_sku')->toArray();
@@ -748,12 +748,13 @@ class OrderTransfer extends Command
 
     private function saveSalesOrderStatistic(So $so, Collection $orderItem)
     {
-        $salesOrderStatistic = new SalesOrderStatistic();
-        $salesOrderStatistic->so_no = $so->so_no;
-
+        $lineNumber = 1;
         foreach ($orderItem as $item) {
-            $unit_price = $item->item_price / $item->quantity_ordered;
+            $salesOrderStatistic = new SalesOrderStatistic();
+            $salesOrderStatistic->so_no = $so->so_no;
+            $salesOrderStatistic->line_no = $lineNumber++;
 
+            $unit_price = $item->item_price / $item->quantity_ordered;
             $request = new ProfitEstimateRequest();
             $request->merge([
                 'id' => $item->mapping->id,
@@ -762,20 +763,25 @@ class OrderTransfer extends Command
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
             if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
-                $unitMarketplaceFee = $costDetails['marketplaceListingFee']
-                                        + $costDetails['marketplaceFixedFee']
-                                        + $costDetails['marketplaceCommission'];
-
-                $salesOrderStatistic->marketplace_fee += ($unitMarketplaceFee * $item->quantity_ordered);
-                $salesOrderStatistic->vat += ($costDetails['tax'] * $item->quantity_ordered);
-                $salesOrderStatistic->duty += ($costDetails['duty'] * $item->quantity_ordered);
-                $salesOrderStatistic->payment_gateway_fee += ($costDetails['paymentGatewayFee'] * $item->quantity_ordered);
-                $salesOrderStatistic->psp_admin_fee += ($costDetails['paymentGatewayAdminFee'] * $item->quantity_ordered);
-                $salesOrderStatistic->shipping_cost += ($costDetails['deliveryCost'] * $item->quantity_ordered);
+                $salesOrderStatistic->supplier_cost = $costDetails['supplierCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->accessory_cost = $costDetails['accessoryCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_list_fee = $costDetails['marketplaceListingFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_fixed_fee = $costDetails['marketplaceFixedFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_commission = $costDetails['marketplaceCommission'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_fee = $salesOrderStatistic->marketplace_list_fee
+                                                        + $salesOrderStatistic->marketplace_fixed_fee
+                                                        + $salesOrderStatistic->marketplace_commission;
+                $salesOrderStatistic->vat = $costDetails['tax'] * $item->quantity_ordered;
+                $salesOrderStatistic->duty = $costDetails['duty'] * $item->quantity_ordered;
+                $salesOrderStatistic->payment_gateway_fee = $costDetails['paymentGatewayFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->psp_admin_fee = $costDetails['paymentGatewayAdminFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->shipping_cost = $costDetails['deliveryCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->warehouse_cost = $costDetails['warehouseCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->fulfilment_by_marketplace_fee = $costDetails['fulfilmentByMarketplaceFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->tuv_fee = $costDetails['tuvFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->to_usd_rate = $so->rate;
             }
+            $salesOrderStatistic->save();
         }
-
-        $salesOrderStatistic->to_usd_rate = $so->rate;
-        $salesOrderStatistic->save();
     }
 }
