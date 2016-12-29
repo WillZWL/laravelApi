@@ -890,11 +890,13 @@ class ApiLazadaService implements ApiPlatformInterface
         $this->lazadaProductList = new LazadaProductList($storeName);
         $this->lazadaProductList->setSkuSellerList($sellerSkuList);
         $productList = $this->lazadaProductList->fetchProductList();
-        foreach ($productList as $product) {
-            if(isset($product["SellerSku"])){
-                $productMainImage[$product["SellerSku"]] = $product["MainImage"];
-            }else if(isset($product["Skus"]['Sku']['SellerSku'])){
-                $productMainImage[$product["Skus"]['Sku']["SellerSku"]] = $product["Skus"]['Sku']["Images"]["Image"]['0'];
+        if($productList){
+            foreach ($productList as $product) {
+                if(isset($product["SellerSku"])){
+                    $productMainImage[$product["SellerSku"]] = $product["MainImage"];
+                }else if(isset($product["Skus"]['Sku']['SellerSku'])){
+                    $productMainImage[$product["Skus"]['Sku']["SellerSku"]] = $product["Skus"]['Sku']["Images"]["Image"]['0'];
+                }
             }
         }
         return $productMainImage;

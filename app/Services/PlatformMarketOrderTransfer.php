@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Http\Requests\ProfitEstimateRequest;
 use App\Models\AcceleratorShipping;
+use App\Models\CourierInfo;
 use App\Models\DeliveryTypeMapping;
+use App\Models\SalesOrderStatistic;
 use App\Repository\DeliveryQuotationRepository;
 use App\Services\PlatformValidate\AmazonValidateService;
 use App\Services\PlatformValidate\LazadaValidateService;
@@ -14,7 +16,6 @@ use App\Services\PlatformValidate\NeweggValidateService;
 use App\Services\PlatformValidate\TangaValidateService;
 use App\Services\PlatformValidate\Qoo10ValidateService;
 use App\Models\PlatformMarketOrder;
-use App\Models\PlatformMarketOrderItem;
 use App\Models\Client;
 use App\Models\CountryState;
 use App\Models\CourierCost;
@@ -25,18 +26,14 @@ use App\Models\MerchantQuotation;
 use App\Models\Product;
 use App\Models\ProductAssemblyMapping;
 use App\Models\ProductComplementaryAcc;
-use App\Models\Quotation;
 use App\Models\Sequence;
 use App\Models\So;
 use App\Models\SoExtend;
 use App\Models\SoItem;
 use App\Models\SoItemDetail;
-use App\Models\SoAllocate;
 use App\Models\SoPaymentStatus;
 use App\Models\SpIncoterm;
 use App\Models\WeightCourier;
-use App\Models\Inventory;
-use App\Models\InvMovement;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -161,6 +158,7 @@ class PlatformMarketOrderTransfer
         $this->saveSoItemDetail($so, $_orderItem);
         $this->saveSoPaymentStatus($so, $order);
         $this->saveSoExtend($so, $order);
+        $this->saveSalesOrderStatistic($so, $_orderItem);
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
         $this->setGroupOrderRecommendCourierAndCharge($so);
@@ -339,6 +337,7 @@ class PlatformMarketOrderTransfer
         } else {
             $newOrder->bill_country_id = $order->platformMarketShippingAddress->country_code;
         }
+        $newOrder->statistic = 0;
         $newOrder->create_on = Carbon::now();
         $newOrder->modify_on = Carbon::now();
         $newOrder->save();
@@ -400,25 +399,11 @@ class PlatformMarketOrderTransfer
             ]);
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if (!$marginAndProfit->isEmpty()) {
-                $profit = null;
-                if ($marginAndProfit->get($item->mapping->delivery_type)) {
-                    $profit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
-                }
-                if ($profit) {
-                    $selectedProfit = $marginAndProfit->get($item->mapping->delivery_type)['profit'];
-                    $selectedMargin = $marginAndProfit->get($item->mapping->delivery_type)['margin'];
-                } else {
-                    $selectedProfit = 0;
-                    $selectedMargin = 0;
-                }
-            } else {
-                $selectedProfit = 0;
-                $selectedMargin = 0;
+            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+                $newOrderItemDetail->profit = $costDetails['profit'] * $item->quantity_ordered;
+                $newOrderItemDetail->margin = $costDetails['margin'];
             }
 
-            $newOrderItemDetail->profit = $selectedProfit * $item->quantity_ordered;
-            $newOrderItemDetail->margin = $selectedMargin;
             $newOrderItemDetail->amount = $item->item_price;
             $newOrderItemDetail->create_on = Carbon::now();
             $newOrderItemDetail->modify_on = Carbon::now();
@@ -522,6 +507,28 @@ class PlatformMarketOrderTransfer
         // check battery compact
 
         $order->esg_quotation_courier_id = $selectedCourierId;
+
+        $courier = CourierInfo::whereCourierId($selectedCourierId)->first();
+        if ($courier->type === 'POSTAGE') {
+            $shippingWeight = $order->weight;
+        } else {
+            $shippingWeight = max($order->weight, $order->vol_weight);
+        }
+        $weightId = WeightCourier::where('weight', '>=', $shippingWeight)->first()->id;
+        $courierCost = $courier->courierCost()->where('dest_country_id', $order->delivery_country_id)
+            ->where('dest_state_id', $order->delivery_state)
+            ->where('weight_id', $weightId)
+            ->orderBy('dest_state_id', 'DESC')
+            ->first();
+
+        if ($courierCost) {
+            $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
+            $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
+        } else {
+            $message = "Courier: {$courier->courier_id} \r\n Country: {$order->delivery_country_id} \r\n State: {$order->delivery_state} \r\n WeightId: {$weightId} \r\n ";
+            mail('handy.hon@eservicesgroup.com', 'Missing Delivery Cost', $message);
+        }
+
         $order->save();
     }
 
@@ -551,7 +558,7 @@ class PlatformMarketOrderTransfer
                 $deliveryChargeInHKD = $courierCost->delivery_cost * (100 + $splitOrders[0]->courierInfo->surcharge) / 100;
 
                 $order->esg_delivery_cost = $courierCost->delivery_cost * $currencyRate;
-                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate * 1.0125;
+                $order->esg_delivery_offer = $deliveryChargeInHKD * $currencyRate / 0.9725;
                 $order->esg_quotation_courier_id = $splitOrders[0]->courierInfo->courier_id;
 
                 return $order->save();
@@ -704,5 +711,44 @@ class PlatformMarketOrderTransfer
             $status = 3;
         }
         return $status;
+    }
+
+    private function saveSalesOrderStatistic(So $so, Collection $orderItem)
+    {
+        $lineNumber = 1;
+        foreach ($orderItem as $item) {
+            $salesOrderStatistic = new SalesOrderStatistic();
+            $salesOrderStatistic->so_no = $so->so_no;
+            $salesOrderStatistic->line_no = $lineNumber++;
+
+            $unit_price = $item->item_price / $item->quantity_ordered;
+            $request = new ProfitEstimateRequest();
+            $request->merge([
+                'id' => $item->mapping->id,
+                'selling_price' => $unit_price,
+            ]);
+
+            $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
+            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+                $salesOrderStatistic->supplier_cost = $costDetails['supplierCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->accessory_cost = $costDetails['accessoryCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_list_fee = $costDetails['marketplaceListingFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_fixed_fee = $costDetails['marketplaceFixedFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_commission = $costDetails['marketplaceCommission'] * $item->quantity_ordered;
+                $salesOrderStatistic->marketplace_fee = $salesOrderStatistic->marketplace_list_fee
+                    + $salesOrderStatistic->marketplace_fixed_fee
+                    + $salesOrderStatistic->marketplace_commission;
+                $salesOrderStatistic->vat = $costDetails['tax'] * $item->quantity_ordered;
+                $salesOrderStatistic->duty = $costDetails['duty'] * $item->quantity_ordered;
+                $salesOrderStatistic->payment_gateway_fee = $costDetails['paymentGatewayFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->psp_admin_fee = $costDetails['paymentGatewayAdminFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->shipping_cost = $costDetails['deliveryCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->warehouse_cost = $costDetails['warehouseCost'] * $item->quantity_ordered;
+                $salesOrderStatistic->fulfilment_by_marketplace_fee = $costDetails['fulfilmentByMarketplaceFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->tuv_fee = $costDetails['tuvFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->to_usd_rate = $so->rate;
+            }
+            $salesOrderStatistic->save();
+        }
     }
 }

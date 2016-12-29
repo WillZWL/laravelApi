@@ -12,7 +12,7 @@ class IwmsDeliveryOrder extends Command
      *
      * @var string
      */
-    protected $signature = 'Iwms:deliveryOrder {action}  {--wms= : fourpx} {--debug= : fourpx}';
+    protected $signature = 'Iwms:deliveryOrder {action}  {--wms= : fourpx} {--debug= : 0 || 1}';
 
     /**
      * The console command description.
@@ -47,6 +47,8 @@ class IwmsDeliveryOrder extends Command
             $this->iwmsFactoryWmsService->createDeliveryOrder();
         }else if($action == "query"){
             $this->iwmsFactoryWmsService->queryDeliveryOrder();
+        }else if($action == "report"){
+            $this->iwmsFactoryWmsService->sendCreateDeliveryOrderReport();
         }
     }
 }
