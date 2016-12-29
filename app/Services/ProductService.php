@@ -99,6 +99,7 @@ class ProductService
             'status',
             'condtions',
             'default_ship_to_warehouse',
+            'buyer'
         ];
 
         $object = [];
@@ -125,6 +126,14 @@ class ProductService
 
             return ['success' => true, 'product_info' => $product, 'msg' => 'Basic product info save success'];
         }
+    }
+
+    public function skuMappingList($data)
+    {
+        $keyword = trim($data['keyword']);
+        $productList = Product::where("sku","like","%{$keyword}%")->orWhere("name","like","%{$keyword}%")->with("marketplaceSkuMapping")->get();
+
+        return $productList;
     }
 
     public function productMapping($data)

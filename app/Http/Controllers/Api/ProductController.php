@@ -105,6 +105,13 @@ class ProductController extends Controller
         //
     }
 
+    public function skuMappingList(Request $request)
+    {
+        $result = $this->productService->skuMappingList($request->all());
+
+        return response()->json($result);
+    }
+
     public function productMapping(Requests\Product\MappingRequest $request)
     {
         $result = $this->productService->productMapping($request->all());
