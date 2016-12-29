@@ -21,6 +21,7 @@ class PlatformMarketSkuMappingService
             'fnac' => 'FN',
             'qoo10' => 'QO',
             'newegg' => 'NE',
+            'tanga' => 'TG',
         );
     public function __construct($stores = null)
     {
