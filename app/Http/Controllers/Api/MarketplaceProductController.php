@@ -9,6 +9,7 @@ use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Models\MarketplaceSkuMapping;
 use Excel;
 
 class MarketplaceProductController extends Controller
@@ -88,7 +89,13 @@ class MarketplaceProductController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $marketplaceSkuMapping = MarketplaceSkuMapping::find($id);
+        if ($request->get("operator")) {
+            $marketplaceSkuMapping->operator = $request->get("operator");
+        }
+        if ($marketplaceSkuMapping->save()) {
+            return response()->json($marketplaceSkuMapping);
+        }
     }
 
     /**
