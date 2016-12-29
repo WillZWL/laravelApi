@@ -486,7 +486,7 @@ class PlatformMarketOrderTransfer
             } else {
                 return $product->merchantProductMapping->merchant->default_ship_to_warehouse;
             }
-        })->unique('')->toArray();
+        })->toArray();
 
         $acceleratorShipping = AcceleratorShipping::whereIn('merchant_id', [$merchantId, 'ALL'])
             ->whereIn('warehouse', $defaultWarehouses)
