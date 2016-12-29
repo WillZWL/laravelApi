@@ -88,11 +88,13 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('colour', 'ColourController');
     $api->resource('version', 'VersionController');
     $api->resource('category', 'CategoryController');
+    $api->get('user/list', 'UserController@userList');
     $api->resource('hscode-category', 'HscodeCategoryController');
     $api->resource('warehouse/default-warehouse', 'WarehouseController@defaultWarehouse');
     $api->resource('marketplace-content-field', 'MarketplaceContentFieldController');
     $api->post('marketplace-content-export/setting', 'MarketplaceContentExportController@setting');
     $api->resource('marketplace-content-export', 'MarketplaceContentExportController');
+    $api->get('product/sku-mapping-list', 'ProductController@skuMappingList');
     $api->post('product/product-mapping', 'ProductController@productMapping');
     $api->post('product/supplier-product', 'ProductController@supplierProduct');
     $api->post('product/weight-dimension', 'ProductController@weightDimension');
