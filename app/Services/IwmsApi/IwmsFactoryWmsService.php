@@ -13,7 +13,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function __construct($wmsPlatform = "4px",$debug = 0)
     {
-        $this->$wmsPlatform = $wmsPlatform;
+        $this->wmsPlatform = $wmsPlatform;
         parent::__construct($wmsPlatform,$debug);
     }
 
@@ -24,7 +24,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         if (! $request["requestBody"]) {
             return false;
         }
-        $responseData = $this->curlIwmsApi('create-delivery-order', $request["requestBody"]);
+        $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
         $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
     }
 
@@ -33,7 +33,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $requestBody = array(
             "order_code" => $iwmsOrderCode,
             );
-        $responseData = $this->curlIwmsApi('cancel-delivery-order', $requestBody);
+        $responseData = $this->curlIwmsApi('wms/cancel-delivery-order', $requestBody);
     }
 
     public function sendCreateDeliveryOrderReport()
@@ -56,7 +56,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getCreateDeliveryOrderReport($iwmsRequestIds)
     {
         $requestBody = array("request_id" => $iwmsRequestIds);
-        $responseJson = $this->curlIwmsApi('get-delivery-order-report', $requestBody);
+        $responseJson = $this->curlIwmsApi('wms/get-delivery-order-report', $requestBody);
         if(!empty($responseJson)){
             $responseData = json_decode($responseJson);
             $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
@@ -93,7 +93,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $requestBody = array(
             "order_code" => $iwmsOrderCode,
             );
-        $responseData = $this->curlIwmsApi('query-delivery-order', $requestBody);
+        $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody);
         return $responseData;
     }
 
@@ -104,7 +104,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $requestBody = array(
             "iwms_warehouse_code" => $iwmsWarehouseCode,
             );
-        $responseData = $this->curlIwmsApi('query-delivery-order', $requestBody);
+        $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody);
         print_r($responseData);exit();
         return $responseData;
     }
@@ -114,7 +114,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $requestBody = array(
             "sku" => "21695-AA-WH"
             );
-        $this->curlIwmsApi('query-product', $requestBody);
+        $this->curlIwmsApi('wms/query-product', $requestBody);
     }
 
     public function getWarehouseToIwms($wmsPlatform)

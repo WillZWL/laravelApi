@@ -150,5 +150,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('platformMarket:setOrderScore',
                     array('--platform' => 'DISPATCH', '--merchant' => 'RING', '--score' => '2000'))
             ->dailyAt('09:30');
+
+         $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
+            ->dailyAt('09:30');
+            //->everyTenMinutes();
+            
     }
 }
