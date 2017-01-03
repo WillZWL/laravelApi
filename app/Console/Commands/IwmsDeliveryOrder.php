@@ -38,9 +38,9 @@ class IwmsDeliveryOrder extends Command
      */
     public function handle()
     {
+        $wmsPlatform = $this->option('wms');
         $debugOption = $this->option('debug');
         $debug = $debugOption ? 1 :0;
-        $wmsPlatform = "4px";
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform,$debug);
         $action = $this->argument('action');
         if($action == "create"){
