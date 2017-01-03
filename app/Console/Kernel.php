@@ -152,7 +152,7 @@ class Kernel extends ConsoleKernel
             ->dailyAt('09:30');
 
          $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
-            ->dailyAt('09:30');
+            ->dailyAt('01:20');
             //->everyTenMinutes();
             
     }
