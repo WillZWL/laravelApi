@@ -23,7 +23,11 @@ class IwmsCallBackApiController extends Controller
      */
     public function index(Request $request)
     {
-        return $this->iwmsCallbackApiService->valid($request);
+        $result = $this->iwmsCallbackApiService->valid($request);
+        if($result){ 
+            echo $result;
+        }
+        exit();
     }
 
     /**
