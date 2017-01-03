@@ -13,6 +13,6 @@ return [
      */
     //"url" => "http://iwms.dev/api/wms/",
     "url" => "http://iwms.eservicesgroup.com/api/wms/",
-    "accessToken" => "1fbbe726ab1f5986fdbdf448ee6d9e2732349b78866d5144a90b1ead7f51c9c5f459b596f3d6ffc2",
+    "accessToken" => "bf7238837236f822c88126e571a730a2ad733dddf718f8c148786096915516864515191dcfdd0ce3",
 ];
 

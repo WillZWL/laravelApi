@@ -8,7 +8,7 @@ use App\Models\IwmsFeedRequest;
 
 class IwmsCallbackApiService
 {
-    private $callbackToken = "123";
+    private $callbackToken = "esg-iwms-123456";
     use IwmsBaseService;
 
     public function __construct()
@@ -28,9 +28,7 @@ class IwmsCallbackApiService
         $tmpStr = implode( $tmpArr );
         $tmpStr = sha1( $tmpStr );
         if( $tmpStr == $signature ){
-            echo $echoStr;
-        }else{
-            exit;
+            return $echoStr;
         }
     }
 
