@@ -19,9 +19,9 @@ class IwmsCallbackApiService
     public function valid(Request $request)
     {
         $echoStr = $request->input("echostr");
-        $signature = $_GET["signature"];
-        $timestamp = $_GET["timestamp"];
-        $nonce = $_GET["nonce"];
+        $signature = $request->input("signature");
+        $timestamp = $request->input("timestamp");
+        $nonce = $request->input("nonce");
         $tmpArr = array($this->callbackToken, $timestamp, $nonce);
         // use SORT_STRING rule
         sort($tmpArr, SORT_STRING);
