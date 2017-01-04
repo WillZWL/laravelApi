@@ -101,7 +101,7 @@ class IwmsCallbackApiService
                         'country' => $value->country,
                         'battery_type' => "",
                         're_courier' => $esgOrder->recommend_courier_id,
-                        'wms_order_code' => $value->wms_order_code,
+                        'wms_order_code' => $value->order_code,
                         'wms_courier' => $value->iwms_courier,
                     );
                     $cellData[] = $cellRow; 
