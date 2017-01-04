@@ -131,7 +131,7 @@ class ProductService
     public function skuMappingList($data)
     {
         $keyword = trim($data['keyword']);
-        $productList = Product::where("sku","like","%{$keyword}%")->orWhere("name","like","%{$keyword}%")->with("marketplaceSkuMapping")->get();
+        $productList = Product::where("sku","like","%{$keyword}%")->orWhere("name","like","%{$keyword}%")->with("marketplaceSkuMapping")->with("user")->get();
 
         return $productList;
     }

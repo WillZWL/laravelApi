@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class User extends Model
+class Role extends Model
 {
     public $connection = 'mysql_esg';
 
-    protected $table = 'user';
+    protected $table = 'role';
 
     protected $primaryKey = 'id';
 
@@ -18,9 +18,9 @@ class User extends Model
 
     protected $fillable = [];
 
-    public function roles()
+    public function users()
     {
-        return $this->belongsToMany('App\Models\Role');
+        return $this->belongsToMany('App\Models\User');
     }
 
 }
