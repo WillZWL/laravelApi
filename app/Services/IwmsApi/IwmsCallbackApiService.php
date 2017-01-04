@@ -92,14 +92,22 @@ class IwmsCallbackApiService
                         ->with("sellingPlatform")
                         ->first();     
                 if(!empty($esgOrder)){
+                    $builtIn = $esgOrder->hasInternalBattery();
+                    $external = $esgOrder->hasExternalBattery();
+                    $batteryType = "No Battery";
+                    if($builtIn){
+                        $batteryType = "Built In";
+                    }else if($external){
+                        $batteryType = "External";
+                    }
                    $cellRow = array(
-                        'business_type' => $value->business_type,
+                        'business_type' => $esgOrder->sellingPlatform->type,
                         'merchant' => $esgOrder->sellingPlatform->merchant_id,
                         'platform' => $esgOrder->platform_id,
                         'order_id' => $value->merchant_order_id,
                         'delivery_type_id' => $esgOrder->delivery_type_id,
                         'country' => $value->country,
-                        'battery_type' => "",
+                        'battery_type' => $batteryType,
                         're_courier' => $esgOrder->recommend_courier_id,
                         'wms_order_code' => $value->order_code,
                         'wms_courier' => $value->iwms_courier,
