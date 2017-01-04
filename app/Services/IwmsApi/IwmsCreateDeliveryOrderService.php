@@ -134,17 +134,20 @@ trait IwmsCreateDeliveryOrderService
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {
+        $formDate = date("Y-m-d 00:00:00");
+        $toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         return $esgOrders = So::where("status",5)
             ->where("refund_status","0")
             ->where("hold_status","0")
             ->where("prepay_hold_status","0")
             ->whereHas('soAllocate', function ($query) {
-                $query->whereIn('warehouse_id', $this->warehouseIds);
+                $query->whereIn('warehouse_id', $this->warehouseIds)
+                    ->where("modify_on", ">=", $formDate);
+                    ->where("modify_on", "<", $toDate);
             })
             ->with("client")
             ->with("soItem")
-            ->limit(1)
             ->get();
     }
 
