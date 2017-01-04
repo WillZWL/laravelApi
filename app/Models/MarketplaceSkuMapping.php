@@ -84,6 +84,11 @@ class MarketplaceSkuMapping extends Model
         return $this->hasOne('App\Models\MpCategoryCommission', 'mp_id', 'mp_sub_category_id');
     }
 
+    public function operatorInfo()
+    {
+        return $this->hasOne('App\Models\User', 'id', 'operator');
+    }
+
     public function platformMarketOrderItem()
     {
         return $this->belongsTo('App\Models\PlatformMarketOrderItem');

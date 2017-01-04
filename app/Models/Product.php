@@ -43,6 +43,11 @@ class Product extends Model
         return $this->hasMany('App\Models\MarketplaceSkuMapping', 'sku', 'sku');
     }
 
+    public function user()
+    {
+        return $this->hasOne('App\Models\User', 'id', 'buyer');
+    }
+
     public function supplierProduct()
     {
         return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1);

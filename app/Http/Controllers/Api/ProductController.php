@@ -108,7 +108,17 @@ class ProductController extends Controller
     public function skuMappingList(Request $request)
     {
         $result = $this->productService->skuMappingList($request->all());
-
+        $result->map(function ($product) {
+            $marketplace_skus = $product->marketplaceSkuMapping;
+            //var_dump($product->marketplaceSkuMapping);die;
+            $product->marketplaceSkuMapping->map(function ($marketplace_sku) {
+                if ($marketplace_sku->operator) {
+                    $marketplace_sku->operator = $marketplace_sku->operatorInfo->username;
+                }
+                return $marketplace_sku;
+            });
+            return $product;
+        });
         return response()->json($result);
     }
 
