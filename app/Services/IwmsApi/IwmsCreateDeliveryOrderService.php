@@ -145,11 +145,12 @@ trait IwmsCreateDeliveryOrderService
             ->where("prepay_hold_status","0")
             ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
-                    ->where("modify_on", ">=", $fromData)
-                    ->where("modify_on", "<", $toDate);
+                    ->where("modify_on", ">=", $this->fromData)
+                    ->where("modify_on", "<", $this->toDate);
             })
             ->with("client")
             ->with("soItem")
+            ->limit(2)
             ->get();
     }
 
