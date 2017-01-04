@@ -96,7 +96,7 @@ class IwmsCallbackApiService
                         'business_type' => $value->business_type,
                         'merchant' => $esgOrder->sellingPlatform->merchant_id,
                         'platform' => $esgOrder->platform_id,
-                        'order_id' => $value->reference_no,
+                        'order_id' => $value->merchant_order_id,
                         'delivery_type_id' => $esgOrder->delivery_type_id,
                         'country' => $value->country,
                         'battery_type' => "",
