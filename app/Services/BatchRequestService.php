@@ -26,10 +26,9 @@ class BatchRequestService
     public function saveBatchIwmsResponseData($batchObject,$responseJson)
     {
         $responseData = json_decode($responseJson);
-        if ($responseData->request_id) {
-            $batchObject->response_log = $responseJson;
+        $batchObject->response_log = $responseJson;
+        if (isset($responseData->request_id)) {
             $batchObject->iwms_request_id = $responseData->request_id;
-            $batchObject->save();
             $object = [
                 'merchant_id' => $batchObject->merchant_id,
                 'wms_platform' => $batchObject->wms_platform,
@@ -44,5 +43,7 @@ class BatchRequestService
                 $object
             );
         }
+        $batchObject->status = "F";
+        $batchObject->save();
     }
 }
