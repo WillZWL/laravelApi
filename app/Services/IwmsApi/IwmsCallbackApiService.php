@@ -78,7 +78,7 @@ class IwmsCallbackApiService
         if(!empty($cellData)){
             $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
             if($excelFile){
-                $subject = "WMS Delivery Order Create Report!";
+                $subject = "OMS Create Delivery Order Report!";
                 $attachment = array("path" => $orderPath,"file_name"=>$fileName.".xlsx");
                 $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com',$subject,$attachment);
             }
