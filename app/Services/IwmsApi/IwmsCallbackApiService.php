@@ -14,7 +14,6 @@ class IwmsCallbackApiService
 
     public function __construct()
     {
-        
     }
 
     public function valid(Request $request)
