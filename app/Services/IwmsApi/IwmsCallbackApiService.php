@@ -138,14 +138,14 @@ class IwmsCallbackApiService
 
     public function createEsgSoShipment($esgOrder)
     {
-        $soShipment = new SoShipment();
-        $soShipment->sh_no = $esgOrder->so_no."-01";
-        $soShipment->courier_id = $esgOrder->esg_quotation_courier_id;
-        /*$soShipment->first_tracking_no = ;
-        $soShipment->first_courier_id = ;
-        $soShipment->tracking_no = ;*/
-        $soShipment->status = 1;
-        $soShipment->save();
+        $object['sh_no'] = $esgOrder->so_no."-01";
+        $object['courier_id'] = $esgOrder->esg_quotation_courier_id;
+        /*$object['first_tracking_no'] = ;
+        $object['first_courier_id'] = ;
+        $object['tracking_no'] = ;*/
+        $object['status'] = 1;
+        $soShipment = SoShipment::updateOrCreate(['sh_no' => $object['sh_no']],$object
+        );
         return $soShipment;
     }
     
