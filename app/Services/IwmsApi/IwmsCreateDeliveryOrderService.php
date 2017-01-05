@@ -46,17 +46,8 @@ trait IwmsCreateDeliveryOrderService
         if(!$esgOrders->isEmpty()){
             $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
             foreach ($esgOrders as $esgOrder) {
-                $courierId = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
-                    if($soAllocate->soShipment && $soAllocate->soShipment->status == "1"){
-                        $courierId = $soAllocate->soShipment->courier_id;
-                        $warehouseId = $soAllocate->warehouse_id;
-                    }else{
-                        continue;
-                    }
-                }
-                if(empty($courierId)){
-                    continue;
+                    $warehouseId = $soAllocate->warehouse_id;
                 }
                 $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
@@ -143,11 +134,13 @@ trait IwmsCreateDeliveryOrderService
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         return $esgOrders = So::where("status",5)
-            ->where("refund_status","0")
-            ->where("hold_status","0")
-            ->where("prepay_hold_status","0")
+            ->where("refund_status", "0")
+            ->where("hold_status", "0")
+            ->where("prepay_hold_status", "0")
+            ->where("esg_quotation_courier_id")
             ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
+                    ->where("status", 1)
                     ->where("modify_on", ">=", $this->fromData)
                     ->where("modify_on", "<", $this->toDate);
             })

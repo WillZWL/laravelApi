@@ -4,6 +4,7 @@ namespace App\Services\IwmsApi;
 
 use Illuminate\Http\Request;
 use App\Models\So;
+use App\Models\SoShipment;
 use App\Models\IwmsFeedRequest;
 
 class IwmsCallbackApiService
@@ -92,6 +93,7 @@ class IwmsCallbackApiService
                         ->with("sellingPlatform")
                         ->first();     
                 if(!empty($esgOrder)){
+                    $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
                     $builtIn = $esgOrder->hasInternalBattery();
                     $external = $esgOrder->hasExternalBattery();
                     $batteryType = "No Battery";
@@ -108,7 +110,7 @@ class IwmsCallbackApiService
                         'delivery_type_id' => $esgOrder->delivery_type_id,
                         'country' => $value->country,
                         'battery_type' => $batteryType,
-                        're_courier' => $esgOrder->recommend_courier_id,
+                        're_courier' => $esgOrder->courierInfo->courier_name,
                         'wms_order_code' => $value->order_code,
                         'wms_courier' => $value->iwms_courier,
                     );
@@ -119,6 +121,33 @@ class IwmsCallbackApiService
             return $cellData;
         }
         return null;
+    }
+
+    private function updateEsgToShipOrderStatusToDispatch($esgOrder)
+    {
+        $soShipment = $this->createEsgSoShipment($esgOrder);
+        foreach ($esgOrder->soAllocate as $soAllocate) {    
+            $invMovement = $soAllocate->invMovement;
+            $invMovement->ship_ref = $soShipment->sh_no;
+            $invMovement->status = "OT";
+            $invMovement->save();
+            $soAllocate->status = 2;
+            $soAllocate->sh_no = $soShipment->sh_no;
+            $soAllocate->save();
+        }
+    }
+
+    public function createEsgSoShipment($esgOrder)
+    {
+        $soShipment = new SoShipment();
+        $soShipment->sh_no = $esgOrder->so_no."-01";
+        $soShipment->courier_id = $esgOrder->esg_quotation_courier_id;
+        /*$soShipment->first_tracking_no = ;
+        $soShipment->first_courier_id = ;
+        $soShipment->tracking_no = ;*/
+        $soShipment->status = 1;
+        $soShipment->save();
+        return $soShipment;
     }
     
 }
