@@ -7,6 +7,7 @@ use App\Models\So;
 use App\Models\SoShipment;
 use App\Models\InvMovement;
 use App\Models\IwmsFeedRequest;
+use App\Models\BatchRequest;
 
 class IwmsCallbackApiService
 {
@@ -116,7 +117,9 @@ class IwmsCallbackApiService
                     );
                     $cellData[] = $cellRow; 
                 }
-                IwmsFeedRequest::where("iwms_request_id",$value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
+                BatchRequest::where("iwms_request_id", $value->request_id)
+                            ->update(array("status" , "C"));
+                IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
             }
             return $cellData;
         }
