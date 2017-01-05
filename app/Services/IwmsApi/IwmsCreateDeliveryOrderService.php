@@ -16,23 +16,27 @@ trait IwmsCreateDeliveryOrderService
     public function getDeliveryCreationRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
-        $requestLogs = $this->getDeliveryCreationRequestLogs($warehouseIds);
-        if(!empty($requestLogs)){
-            foreach ($requestLogs as $requestLog) {
-                $deliveryCreationRequest[] = json_decode($requestLog);
+        if(!empty($batchRequest)){
+            $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
+            $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+            if(!empty($requestLogs)){
+                foreach ($requestLogs as $requestLog) {
+                    $deliveryCreationRequest[] = json_decode($requestLog);
+                }
+                $request = array(
+                    "batchRequest" => $batchRequest,
+                    "requestBody" => $deliveryCreationRequest
+                );
+                $batchRequest->request_log = json_encode($deliveryCreationRequest);
+                $batchRequest->save();
+                return $request;
+            } else {
+                $batchRequest->remark = "No delivery order request need send to wms";
+                $batchRequest->status = "CE";
+                $batchRequest->save();
             }
-            $request = array(
-                "batchRequest" => $batchRequest,
-                "requestBody" => $deliveryCreationRequest
-            );
-            $batchRequest->request_log = json_encode($deliveryCreationRequest);
-            $batchRequest->save();
-            return $request;
-        } else {
-            $batchRequest->remark = "No delivery order request need send to wms";
-            $batchRequest->status = "CE";
-            $batchRequest->save();
         }
+        
     }
 
     public function getDeliveryCreationRequestBatch($warehouseIds)
@@ -156,25 +160,19 @@ trait IwmsCreateDeliveryOrderService
     public function getDeliveryOrderReportRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
-        $requestLogs = $this->getDeliveryCreationRequestLogs($warehouseIds);
-        if(!empty($requestLogs)){
-            foreach ($requestLogs as $requestLog) {
-                $deliveryCreationRequest[] = json_decode($requestLog);
-            }
-            $request = array(
-                "batchRequest" => $batchRequest,
-                "requestBody" => $deliveryCreationRequest
-            );
-            return $request;
-        }
-    }
-
-    private function getDeliveryCreationRequestLogs($warehouseIds)
-    {
         $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
-        if($batchRequest){
+        if(!empty($batchRequest)){
             $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
-            return $requestLogs;
+            if(!empty($requestLogs)){
+                foreach ($requestLogs as $requestLog) {
+                    $deliveryCreationRequest[] = json_decode($requestLog);
+                }
+                $request = array(
+                    "batchRequest" => $batchRequest,
+                    "requestBody" => $deliveryCreationRequest
+                );
+                return $request;
+            }
         }
     }
 
