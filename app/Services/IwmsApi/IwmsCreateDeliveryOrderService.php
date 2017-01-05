@@ -16,8 +16,8 @@ trait IwmsCreateDeliveryOrderService
     public function getDeliveryCreationRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
+        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
         if(!empty($batchRequest)){
-            $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
             $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
             if(!empty($requestLogs)){
                 foreach ($requestLogs as $requestLog) {
