@@ -124,8 +124,6 @@ trait IwmsCreateDeliveryOrderService
             $iwmsDeliveryOrderLog->repeat_request = "0";
             $iwmsDeliveryOrderLog->save();
             return $iwmsDeliveryOrderLog;
-        }else{
-
         }
     } 
 
