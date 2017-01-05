@@ -137,7 +137,7 @@ trait IwmsCreateDeliveryOrderService
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
-            ->where("esg_quotation_courier_id")
+            ->whereNotNull("esg_quotation_courier_id")
             ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
                     ->where("status", 1)
