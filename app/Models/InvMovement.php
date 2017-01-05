@@ -17,9 +17,5 @@ class InvMovement extends Model
 
     protected $guarded = ['create_at'];
 
-    public function soAllocate()
-    {  
-        return $this->belongsTo('App\Models\SoAllocate', 'ship_ref', 'id');
-    }
 }
 

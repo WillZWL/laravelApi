@@ -5,6 +5,7 @@ namespace App\Services\IwmsApi;
 use Illuminate\Http\Request;
 use App\Models\So;
 use App\Models\SoShipment;
+use App\Models\InvMovement;
 use App\Models\IwmsFeedRequest;
 
 class IwmsCallbackApiService
@@ -125,14 +126,21 @@ class IwmsCallbackApiService
     private function updateEsgToShipOrderStatusToDispatch($esgOrder)
     {
         $soShipment = $this->createEsgSoShipment($esgOrder);
-        foreach ($esgOrder->soAllocate as $soAllocate) {    
-            $invMovement = $soAllocate->invMovement;
-            $invMovement->ship_ref = $soShipment->sh_no;
-            $invMovement->status = "OT";
-            $invMovement->save();
-            $soAllocate->status = 2;
-            $soAllocate->sh_no = $soShipment->sh_no;
-            $soAllocate->save();
+        foreach ($esgOrder->soAllocate as $soAllocate) { 
+            if($soAllocate->status != 1){
+                continue;
+            }
+            $invMovement = InvMovement::where("ship_ref", $soAllocate->id)
+                ->where("status", "AL")
+                ->first();
+            if(!empty($invMovement)){
+                $invMovement->ship_ref = $soShipment->sh_no;
+                $invMovement->status = "OT";
+                $invMovement->save();
+                $soAllocate->status = 2;
+                $soAllocate->sh_no = $soShipment->sh_no;
+                $soAllocate->save();
+            }
         }
     }
 
