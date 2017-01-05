@@ -16,8 +16,7 @@ trait IwmsCreateDeliveryOrderService
     public function getDeliveryCreationRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
-        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
-        $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+        $requestLogs = $this->getDeliveryCreationRequestLogs($warehouseIds);
         if(!empty($requestLogs)){
             foreach ($requestLogs as $requestLog) {
                 $deliveryCreationRequest[] = json_decode($requestLog);
@@ -157,8 +156,7 @@ trait IwmsCreateDeliveryOrderService
     public function getDeliveryOrderReportRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
-        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
-        $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+        $requestLogs = $this->getDeliveryCreationRequestLogs($warehouseIds);
         if(!empty($requestLogs)){
             foreach ($requestLogs as $requestLog) {
                 $deliveryCreationRequest[] = json_decode($requestLog);
@@ -168,6 +166,15 @@ trait IwmsCreateDeliveryOrderService
                 "requestBody" => $deliveryCreationRequest
             );
             return $request;
+        }
+    }
+
+    private function getDeliveryCreationRequestLogs($warehouseIds)
+    {
+        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
+        if($batchRequest){
+            $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+            return $requestLogs;
         }
     }
 
