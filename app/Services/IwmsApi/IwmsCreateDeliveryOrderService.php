@@ -59,9 +59,6 @@ trait IwmsCreateDeliveryOrderService
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
         $merchantId = "ESG";
-        $soPhone =  $esgOrder->del_tel_1.$esgOrder->del_tel_2.$esgOrder->del_tel_3;
-        $clientPhone = $esgOrder->client->tel_1.$esgOrder->client->tel_2.$esgOrder->client->tel_3;
-
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $this->getIwmsWarehouseCode($warehouseId,$merchantId),
@@ -78,7 +75,7 @@ trait IwmsCreateDeliveryOrderService
             "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x",
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
-            "phone" => $soPhone ? $soPhone : $clientPhone,
+            "phone" => $this->getEsgOrderPhone($esgOrder),
             "amount_in_hkd" => '0',
             "amount_in_usd" => '0',
             //"doorplate" => $esgOrder->doorplate,
@@ -108,7 +105,9 @@ trait IwmsCreateDeliveryOrderService
     public function _saveIwmsDeliveryOrderRequestData($batchId,$requestData)
     {
         $validIwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("reference_no",$requestData['reference_no'])
-            ->where("repeat_request",0)
+            ->whereHas('batchRequest', function ($query) {
+                $query->whereIn('status', ['C','N']);
+            })
             ->get();
         if($validIwmsDeliveryOrderLog->isEmpty()){
             $iwmsDeliveryOrderLog = new IwmsDeliveryOrderLog();
@@ -125,6 +124,8 @@ trait IwmsCreateDeliveryOrderService
             $iwmsDeliveryOrderLog->repeat_request = "0";
             $iwmsDeliveryOrderLog->save();
             return $iwmsDeliveryOrderLog;
+        }else{
+
         }
     } 
 
@@ -167,6 +168,19 @@ trait IwmsCreateDeliveryOrderService
                 return $request;
             }
         }
+    }
+
+    private function getEsgOrderPhone($esgOrder)
+    {
+        $phone = "0-0-0";
+        $soPhone =  $esgOrder->del_tel_1.$esgOrder->del_tel_2.$esgOrder->del_tel_3;
+        $clientPhone = $esgOrder->client->tel_1.$esgOrder->client->tel_2.$esgOrder->client->tel_3;
+        if ($soPhone ) {
+            $phone = $soPhone;
+        } else if ($clientPhone) {
+            $phone = $clientPhone;  
+        }
+        return $phone;
     }
 
 }

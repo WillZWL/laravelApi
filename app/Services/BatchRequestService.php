@@ -44,7 +44,34 @@ class BatchRequestService
             );
         } else {
             $batchObject->status = "F";
+            $this->sendAlertEmail($responseData);
         }
         $batchObject->save();
+    }
+
+    public function sendAlertEmail($responseData)
+    {
+        $subject = "Wms Create Deliveyr Order Vaild Failed ";
+        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $message = null;
+        foreach ($responseData as $esgSoNo => $orderError) {
+            $message .= "Order no: ".$esgSoNo." Error: \r\n";
+            foreach ($orderError as $key => $error) {
+                if ($key == "itemError") {
+                    foreach ($error as $sku => $itemError) {
+                        $message .= "Item Sku :".$sku." Error: \r\n";
+                        foreach ($itemError as $k => $v) {
+                            $message .= $k.": ".$v."\r\n";
+                        }
+                    }
+                } else {
+                   $message .= $key.": ".$error."\r\n";
+                }
+            }
+            $message .= "\r\n";
+        }
+        if($message){
+            mail("{$alertEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+        }
     }
 }
