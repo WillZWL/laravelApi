@@ -49,7 +49,7 @@ trait IwmsCreateDeliveryOrderService
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     $warehouseId = $soAllocate->warehouse_id;
                 }
-                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
+                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id,$warehouseId);
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
             } 
             return $batchRequest;
