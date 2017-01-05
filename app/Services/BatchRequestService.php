@@ -42,8 +42,9 @@ class BatchRequestService
                 ],
                 $object
             );
+        } else {
+            $batchObject->status = "F";
         }
-        $batchObject->status = "F";
         $batchObject->save();
     }
 }
