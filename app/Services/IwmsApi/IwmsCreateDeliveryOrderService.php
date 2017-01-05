@@ -58,8 +58,8 @@ trait IwmsCreateDeliveryOrderService
                 $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$courierId,$warehouseId);
                 $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
             } 
+            return $batchRequest;
         }
-        return $batchRequest;
     }
 
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
