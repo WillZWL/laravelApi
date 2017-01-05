@@ -53,6 +53,7 @@ class BatchRequestService
     {
         $subject = "Wms Create Deliveyr Order Vaild Failed ";
         $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $alertEmail = "privatelabel-log@eservicesgroup.com";
         $message = null;
         foreach ($responseData as $esgSoNo => $orderError) {
             $message .= "Order no: ".$esgSoNo." Error: \r\n";
