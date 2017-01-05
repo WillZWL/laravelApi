@@ -145,7 +145,6 @@ trait IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
-            ->limit(2)
             ->get();
     }
 
