@@ -103,11 +103,12 @@ trait IwmsCreateDeliveryOrderService
 
         if ($iwmsWarehouseCode === null || $iwmsCourierCode === null) {
             if ($iwmsWarehouseCode === null) {
-                $this->_setWarehouseMessage($esgOrder->so_no, $merchantId, $warehouseId);
+                $this->_setWarehouseMessage($merchantId, $warehouseId);
             }
             if ($iwmsCourierCode === null) {
-                $this->_setCourierMessage($esgOrder->so_no, $merchantId, $courierId);
+                $this->_setCourierMessage($merchantId, $courierId);
             }
+            $this->_setSoNoMessage($esgOrder->so_no);
             return false;
         }
 
@@ -232,7 +233,7 @@ trait IwmsCreateDeliveryOrderService
         return $phone;
     }
 
-    private function _setWarehouseMessage($so_no, $merchantId, $warehouseId)
+    private function _setWarehouseMessage($merchantId, $warehouseId)
     {
         if (! isset($this->message['warehouse'])) {
             $this->message['warehouse'] = [];
@@ -243,13 +244,9 @@ trait IwmsCreateDeliveryOrderService
             $this->message['warehouse'][$merchantId] = [];
         }
         $this->message['warehouse'][$merchantId][] = $warehouseId;
-        if (! isset($this->message['so_no'])) {
-            $this->message['so_no'] = [];
-        }
-        $this->message['so_no'][] = $so_no;
     }
 
-    private function _setCourierMessage($so_no, $merchantId, $courierId)
+    private function _setCourierMessage($merchantId, $courierId)
     {
         if (! isset($this->message['courier'])) {
             $this->message['courier'] = [];
@@ -260,6 +257,10 @@ trait IwmsCreateDeliveryOrderService
             $this->message['courier'][$merchantId] = [];
         }
         $this->message['courier'][$merchantId][$courierId] = $courierId;
+    }
+
+    private function _setSoNoMessage($so_no)
+    {
         if (! isset($this->message['so_no'])) {
             $this->message['so_no'] = [];
         }
