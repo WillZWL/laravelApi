@@ -20,16 +20,28 @@ trait IwmsBaseService
 
     public function getIwmsWarehouseCode($warehouseId,$merchantId)
     {
-        return IwmsMerchantWarehouseMapping::where("merchant_warehouse_id",$warehouseId)
+        $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("merchant_warehouse_id",$warehouseId)
             ->where("merchant_id", $merchantId)
-            ->value("iwms_warehouse_code");
+            ->first();
+
+        if ($iwmsMerchantWarehouseMapping) {
+            return $iwmsMerchantWarehouseMapping->iwms_warehouse_code;
+        }
+
+        return null;
     }
 
     public function getIwmsCourierCode($courierId,$merchantId)
     {
-        return IwmsMerchantCourierMapping::where("merchant_courier_id",$courierId)
+        $iwmsMerchantCourierMapping = IwmsMerchantCourierMapping::where("merchant_courier_id",$courierId)
             ->where("merchant_id", $merchantId)
-            ->value("iwms_courier_code");
+            ->first();
+
+        if ($iwmsMerchantCourierMapping) {
+            return $iwmsMerchantCourierMapping->iwms_courier_code;
+        }
+
+        return null;
     }
 
     public function saveBatchIwmsResponseData($batchObject,$responseJson)
@@ -86,7 +98,7 @@ trait IwmsBaseService
 
         // Email content
         // Content-type can be text/plain or text/html
-        $message = "The Attachment Is Amazon FBA  Unsuppressed Inventory Report In 2 Weeks Platform Sales!".PHP_EOL;
+        $message = "The attachment is iwms delivery order Report, Please check it!".PHP_EOL;
         $message .= "Thanks".PHP_EOL.PHP_EOL;
         $message .= "--".$boundary.PHP_EOL;
 

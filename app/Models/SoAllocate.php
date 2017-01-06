@@ -24,9 +24,4 @@ class SoAllocate extends Model
         return $this->belongsTo('App\Models\SoShipment', 'sh_no', 'sh_no');
     }
 
-    public function InvMovement()
-    {
-        return $this->hasOne('App\Models\InvMovement', 'id', 'ship_ref')
-                ->where("status", 1);
-    }
 }
