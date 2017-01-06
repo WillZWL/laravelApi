@@ -154,7 +154,7 @@ class IwmsCallbackApiService
                 $soAllocate->save();
             }
         }
-        $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("reference_no",$esgOrder->platform_order_id)->first();
+        $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)->first();
         if(!empty($iwmsDeliveryOrderLog)){
             $iwmsDeliveryOrderLog->status = 1;
             $iwmsDeliveryOrderLog->save();
