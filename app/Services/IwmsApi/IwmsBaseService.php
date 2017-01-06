@@ -25,7 +25,7 @@ trait IwmsBaseService
             ->first();
 
         if ($iwmsMerchantWarehouseMapping) {
-            return $iwmsMerchantWarehouseMapping->value("iwms_warehouse_code");
+            return $iwmsMerchantWarehouseMapping->iwms_warehouse_code;
         }
 
         return null;
@@ -38,7 +38,7 @@ trait IwmsBaseService
             ->first();
 
         if ($iwmsMerchantCourierMapping) {
-            return $iwmsMerchantCourierMapping->value("iwms_courier_code");
+            return $iwmsMerchantCourierMapping->iwms_courier_code;
         }
 
         return null;
