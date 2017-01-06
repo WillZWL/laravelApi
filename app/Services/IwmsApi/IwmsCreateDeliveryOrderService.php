@@ -91,6 +91,7 @@ trait IwmsCreateDeliveryOrderService
 
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
+        $merchantId = "ESG";
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
         $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
 
@@ -104,7 +105,6 @@ trait IwmsCreateDeliveryOrderService
             return false;
         }
 
-        $merchantId = "ESG";
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $iwmsWarehouseCode,
