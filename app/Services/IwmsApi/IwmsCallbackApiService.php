@@ -139,8 +139,9 @@ class IwmsCallbackApiService
                         ->with("sellingPlatform")
                         ->first(); 
         if(empty($esgOrder)){
-            continue;
+            return false;
         }
+
         IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)
                     ->where("batch_id", $batchId)
                     ->where("status", 0)
