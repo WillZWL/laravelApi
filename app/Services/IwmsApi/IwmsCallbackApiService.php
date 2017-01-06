@@ -146,36 +146,41 @@ class IwmsCallbackApiService
                     ->where("status", 0)
                     ->update(array("status" => 1));
         $soShipment = $this->createEsgSoShipment($esgOrder);
-        foreach ($esgOrder->soAllocate as $soAllocate) { 
-            if($soAllocate->status != 1){
-                continue;
-            }
-            $invMovement = InvMovement::where("ship_ref", $soAllocate->id)
-                ->where("status", "AL")
-                ->first();
-            if(!empty($invMovement)){
-                $invMovement->ship_ref = $soShipment->sh_no;
-                $invMovement->status = "OT";
-                $invMovement->save();
-                $soAllocate->status = 2;
-                $soAllocate->sh_no = $soShipment->sh_no;
-                $soAllocate->save();
+        if(!empty($soShipment)){
+            foreach ($esgOrder->soAllocate as $soAllocate) { 
+                if($soAllocate->status != 1){
+                    continue;
+                }
+                $invMovement = InvMovement::where("ship_ref", $soAllocate->id)
+                    ->where("status", "AL")
+                    ->first();
+                if(!empty($invMovement)){
+                    $invMovement->ship_ref = $soShipment->sh_no;
+                    $invMovement->status = "OT";
+                    $invMovement->save();
+                    $soAllocate->status = 2;
+                    $soAllocate->sh_no = $soShipment->sh_no;
+                    $soAllocate->save();
+                }
             }
         }
     }
 
     public function createEsgSoShipment($esgOrder)
     {
-        $object['sh_no'] = $esgOrder->so_no."-01";
-        $object['courier_id'] = $esgOrder->esg_quotation_courier_id;
-        /*$object['first_tracking_no'] = ;
-        $object['first_courier_id'] = ;
-        $object['tracking_no'] = ;*/
-        $object['status'] = 1;
-        $soShipment = SoShipment::updateOrCreate(['sh_no' => $object['sh_no']],$object
-        );
-        return $soShipment;
+        $soShipment = SoShipment::where("sh_no", $esgOrder->so_no."-01")->first();
+        if(!empty($soShipment)){
+            return null;
+        }else{
+            $object['sh_no'] = $esgOrder->so_no."-01";
+            $object['courier_id'] = $esgOrder->esg_quotation_courier_id;
+            /*$object['first_tracking_no'] = ;
+            $object['first_courier_id'] = ;
+            $object['tracking_no'] = ;*/
+            $object['status'] = 1;
+            $soShipment = SoShipment::updateOrCreate(['sh_no' => $object['sh_no']],$object);
+            return $soShipment;
+        }
     }
-    
 }
 
