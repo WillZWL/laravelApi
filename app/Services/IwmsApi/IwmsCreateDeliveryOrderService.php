@@ -67,8 +67,9 @@ trait IwmsCreateDeliveryOrderService
         $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
         $alertEmail = "privatelabel-log@eservicesgroup.com";
         $msg = null;
-        if ($warehouseNotes = $this->message['warehouse']) {
+        if (isset($this->message['warehouse'])) {
             $msg .= "Here ESG warehouse ID need with IWMS fisrt mapping\r\n";
+            $warehouseNotes = array_unique($this->message['warehouse']);
             foreach ($warehouseNotes as $merchantId => $warehouseNote) {
                 foreach ($warehouseNote as $key => $warehouseId) {
                     $msg .= "Merchant ID: $merchantId, Warehouse ID: $warehouseId\r\n";
@@ -76,8 +77,9 @@ trait IwmsCreateDeliveryOrderService
             }
         }
         $msg .= "\r\n";
-        if ($courierNotes = $this->message['courier']) {
+        if (isset($this->message['courier'])) {
             $msg .= "Here ESG Courier ID need with IWMS fisrt mapping\r\n";
+            $courierNotes = array_unique($this->message['courier']);
             foreach ($courierNotes as $merchantId => $courierNote) {
                 foreach ($courierNote as $key => $courierId) {
                     $msg .= "Merchant ID: $merchantId, Courier ID: $courierId\r\n";
@@ -97,10 +99,10 @@ trait IwmsCreateDeliveryOrderService
 
         if ($iwmsWarehouseCode === null || $iwmsCourierCode === null) {
             if ($iwmsWarehouseCode === null) {
-                $this->message['warehouse'][$merchantId][$warehouseId] = $warehouseId;
+                $this->_setWarehouseMessage($merchantId, $warehouseId);
             }
             if ($iwmsCourierCode === null) {
-                $this->message['courier'][$merchantId][$courierId] = $courierId;
+                $this->_setCourierMessage($merchantId, $courierId);
             }
             return false;
         }
@@ -224,6 +226,32 @@ trait IwmsCreateDeliveryOrderService
             $phone = $clientPhone;  
         }
         return $phone;
+    }
+
+    private function _setWarehouseMessage($merchantId, $warehouseId)
+    {
+        if (! isset($this->message['warehouse'])) {
+            $this->message['warehouse'] = [];
+        }
+        if (isset($this->message['warehouse']) 
+            && ! isset($this->message['warehouse'][$merchantId])
+        ) {
+            $this->message['warehouse'][$merchantId] = [];
+        }
+        $this->message['warehouse'][$merchantId][] = $warehouseId;
+    }
+
+    private function _setCourierMessage($merchantId, $courierId)
+    {
+        if (! isset($this->message['courier'])) {
+            $this->message['courier'] = [];
+        }
+        if (isset($this->message['courier']) 
+            && ! isset($this->message['courier'][$merchantId])
+        ) {
+            $this->message['courier'][$merchantId] = [];
+        }
+        $this->message['courier'][$merchantId][$courierId] = $courierId;
     }
 
 }
