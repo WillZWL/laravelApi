@@ -50,7 +50,7 @@ trait IwmsCreateDeliveryOrderService
                     $warehouseId = $soAllocate->warehouse_id;
                 }
                 $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id,$warehouseId);
-                if ($deliveryCreationRequest) {
+                if ($deliveryCreationRequest !== false) {
                     $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
                 }
             }
