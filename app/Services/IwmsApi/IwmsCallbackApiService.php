@@ -153,10 +153,11 @@ class IwmsCallbackApiService
         }
         $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("reference_no",$esgOrder->platform_order_id)->first();
         if(!empty($iwmsDeliveryOrderLog)){
-            $iwmsDeliveryOrderLog->update(array("status" , "1"));
+            $iwmsDeliveryOrderLog->status = 1;
+            $iwmsDeliveryOrderLog->save();
         }
         BatchRequest::where("iwms_request_id", $value->request_id)
-                    ->update(array("status" , "C"));
+                    ->update(array("status" => "C"));
         IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
     }
 
