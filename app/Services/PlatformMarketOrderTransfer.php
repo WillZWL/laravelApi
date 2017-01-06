@@ -727,6 +727,9 @@ class PlatformMarketOrderTransfer
                 'id' => $item->mapping->id,
                 'selling_price' => $unit_price,
             ]);
+            $salesOrderStatistic->selling_price = $unit_price;
+            $salesOrderStatistic->esg_sku = $item->mapping->sku;
+            $salesOrderStatistic->qty = $item->quantity_ordered;
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
             if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
@@ -746,6 +749,8 @@ class PlatformMarketOrderTransfer
                 $salesOrderStatistic->warehouse_cost = $costDetails['warehouseCost'] * $item->quantity_ordered;
                 $salesOrderStatistic->fulfilment_by_marketplace_fee = $costDetails['fulfilmentByMarketplaceFee'] * $item->quantity_ordered;
                 $salesOrderStatistic->tuv_fee = $costDetails['tuvFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->profit = $costDetails['profit'] * $item->quantity_ordered;
+                $salesOrderStatistic->margin = $costDetails['margin'];
                 $salesOrderStatistic->to_usd_rate = $so->rate;
             }
             $salesOrderStatistic->save();
