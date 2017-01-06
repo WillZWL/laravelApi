@@ -53,15 +53,13 @@ class IwmsCallbackApiService
     {
         if($postMessage->action == "orderCreate"){
             foreach ($postMessage->responseMessage as $value) {
-                $esgOrder = So::where("so_no",$value->merchant_order_id)
-                        ->with("sellingPlatform")
-                        ->first();     
-                if(!empty($esgOrder)){
-                    $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
-                }
-                BatchRequest::where("iwms_request_id", $value->request_id)
-                    ->update(array("status" => "C"));
                 IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
+                $batchObject = BatchRequest::where("iwms_request_id", $value->request_id)->first();
+                if(!empty($batchObject)){
+                    $batchObject->status = "C";
+                    $batchObject->save();
+                    $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+                }
             }
             $this->sendMsgCreateDeliveryOrderReport($postMessage);
         }
@@ -135,8 +133,14 @@ class IwmsCallbackApiService
         return null;
     }
 
-    private function updateEsgToShipOrderStatusToDispatch($esgOrder)
+    private function updateEsgToShipOrderStatusToDispatch($esgSoNo, $batchId)
     {
+        $esgOrder = So::where("so_no", $esgSoNo)
+                        ->with("sellingPlatform")
+                        ->first(); 
+        if(empty($esgOrder)){
+            continue;
+        }
         $soShipment = $this->createEsgSoShipment($esgOrder);
         foreach ($esgOrder->soAllocate as $soAllocate) { 
             if($soAllocate->status != 1){
@@ -153,11 +157,9 @@ class IwmsCallbackApiService
                 $soAllocate->sh_no = $soShipment->sh_no;
                 $soAllocate->save();
             }
-        }
-        $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)->first();
-        if(!empty($iwmsDeliveryOrderLog)){
-            $iwmsDeliveryOrderLog->status = 1;
-            $iwmsDeliveryOrderLog->save();
+            IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)
+                    ->where("batch_id", $batchId)
+                    ->update(array("status" => 1));
         }
     }
 
