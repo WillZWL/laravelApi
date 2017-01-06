@@ -141,6 +141,10 @@ class IwmsCallbackApiService
         if(empty($esgOrder)){
             continue;
         }
+        IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)
+                    ->where("batch_id", $batchId)
+                    ->where("status", 0)
+                    ->update(array("status" => 1));
         $soShipment = $this->createEsgSoShipment($esgOrder);
         foreach ($esgOrder->soAllocate as $soAllocate) { 
             if($soAllocate->status != 1){
@@ -157,9 +161,6 @@ class IwmsCallbackApiService
                 $soAllocate->sh_no = $soShipment->sh_no;
                 $soAllocate->save();
             }
-            IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)
-                    ->where("batch_id", $batchId)
-                    ->update(array("status" => 1));
         }
     }
 
