@@ -146,6 +146,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     // quotation api (delivery charge)
 
     $api->get('shipping-options/{id}', 'DeliveryController@getDeliveryOptionForSku');
+    $api->get('accelerator-sales-report', 'SalesReport@getSalesReport');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['api.auth', 'cors']], function ($api) {

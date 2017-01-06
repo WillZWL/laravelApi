@@ -46,6 +46,11 @@ class So extends Model
         return $this->hasMany('App\Models\SoItemDetail', 'so_no', 'so_no');
     }
 
+    public function salesOrderStatistic()
+    {
+        return $this->hasMany('App\Models\SalesOrderStatistic', 'so_no', 'so_no');
+    }
+
     public function soAllocate()
     {
         return $this->hasMany('App\Models\SoAllocate', 'so_no', 'so_no');
