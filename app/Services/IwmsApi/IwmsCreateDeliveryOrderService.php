@@ -10,7 +10,7 @@ trait IwmsCreateDeliveryOrderService
     private $fromData = null;
     private $toDate = null;
     private $warehouseIds = null;
-    
+    private $message = null;
     use IwmsBaseService;
 
     public function getDeliveryCreationRequest($warehouseIds)
@@ -50,20 +50,66 @@ trait IwmsCreateDeliveryOrderService
                     $warehouseId = $soAllocate->warehouse_id;
                 }
                 $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id,$warehouseId);
-                $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
-            } 
+                if ($deliveryCreationRequest) {
+                    $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
+                }
+            }
+            if (null !== $this->message) {
+                $this->sendAlertEmail($this->message);
+            }
             return $batchRequest;
+        }
+    }
+
+    public function sendAlertEmail($message)
+    {
+        $subject = "Alert, Lack ESG with IWMS data mapping, It's blocked some order into the WMS, Please in time check it";
+        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $alertEmail = "privatelabel-log@eservicesgroup.com";
+        $msg = null;
+        if ($warehouseNotes = $this->message['warehouse']) {
+            $msg .= "Here ESG warehouse ID need with IWMS fisrt mapping\r\n";
+            foreach ($warehouseNotes as $merchantId => $warehouseNote) {
+                foreach ($warehouseNote as $key => $warehouseId) {
+                    $msg .= "Merchant ID: $merchantId, Warehouse ID: $warehouseId\r\n";
+                }
+            }
+        }
+        $msg .= "\r\n";
+        if ($courierNotes = $this->message['courier']) {
+            $msg .= "Here ESG Courier ID need with IWMS fisrt mapping\r\n";
+            foreach ($courierNotes as $merchantId => $courierNote) {
+                foreach ($courierNote as $key => $courierId) {
+                    $msg .= "Merchant ID: $merchantId, Courier ID: $courierId\r\n";
+                }
+            }
+        }
+        if($msg){
+            mail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
         }
     }
 
     private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
     {
+        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
+        $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
+
+        if ($iwmsWarehouseCode === null || $iwmsCourierCode === null) {
+            if ($iwmsWarehouseCode === null) {
+                $this->message['warehouse'][$merchantId][$warehouseId] = $warehouseId;
+            }
+            if ($iwmsCourierCode === null) {
+                $this->message['courier'][$merchantId][$courierId] = $courierId;
+            }
+            return false;
+        }
+
         $merchantId = "ESG";
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
-            "iwms_warehouse_code" => $this->getIwmsWarehouseCode($warehouseId,$merchantId),
+            "iwms_warehouse_code" => $iwmsWarehouseCode,
             "reference_no" => $esgOrder->so_no,
-            "iwms_courier_code" => $this->getIwmsCourierCode($courierId,$merchantId),
+            "iwms_courier_code" => $iwmsCourierCode,
             "marketplace_reference_no" => $esgOrder->platform_order_id,
             "marketplace_platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
             "merchant_id" => $merchantId,
@@ -141,7 +187,7 @@ trait IwmsCreateDeliveryOrderService
                 $query->whereIn('warehouse_id', $this->warehouseIds)
                     ->where("status", 1)
                     ->where("modify_on", ">=", $this->fromData)
-                    ->where("modify_on", "<", $this->toDate);
+                    ->where("modify_on", "<=", $this->toDate);
             })
             ->with("client")
             ->with("soItem")
