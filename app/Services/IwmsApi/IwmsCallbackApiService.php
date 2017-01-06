@@ -8,6 +8,7 @@ use App\Models\SoShipment;
 use App\Models\InvMovement;
 use App\Models\IwmsFeedRequest;
 use App\Models\BatchRequest;
+use App\Models\IwmsDeliveryOrderLog;
 
 class IwmsCallbackApiService
 {
@@ -51,6 +52,14 @@ class IwmsCallbackApiService
     public function responseMsgAction($postMessage)
     {
         if($postMessage->action == "orderCreate"){
+            foreach ($postMessage->responseMessage as $value) {
+                $esgOrder = So::where("so_no",$value->merchant_order_id)
+                        ->with("sellingPlatform")
+                        ->first();     
+                if(!empty($esgOrder)){
+                    $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
+                }
+            }
             $this->sendMsgCreateDeliveryOrderReport($postMessage);
         }
     }
@@ -94,7 +103,6 @@ class IwmsCallbackApiService
                         ->with("sellingPlatform")
                         ->first();     
                 if(!empty($esgOrder)){
-                    $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
                     $builtIn = $esgOrder->hasInternalBattery();
                     $external = $esgOrder->hasExternalBattery();
                     $batteryType = "No Battery";
@@ -117,9 +125,7 @@ class IwmsCallbackApiService
                     );
                     $cellData[] = $cellRow; 
                 }
-                BatchRequest::where("iwms_request_id", $value->request_id)
-                            ->update(array("status" , "C"));
-                IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
+               
             }
             return $cellData;
         }
@@ -145,6 +151,13 @@ class IwmsCallbackApiService
                 $soAllocate->save();
             }
         }
+        $iwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("reference_no",$esgOrder->platform_order_id)->first();
+        if(!empty($iwmsDeliveryOrderLog)){
+            $iwmsDeliveryOrderLog->update(array("status" , "1"));
+        }
+        BatchRequest::where("iwms_request_id", $value->request_id)
+                    ->update(array("status" , "C"));
+        IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
     }
 
     public function createEsgSoShipment($esgOrder)

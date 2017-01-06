@@ -46,7 +46,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         if(!empty($cellData)){
             $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
             if($excelFile){
-                $subject = "WMS Delivery Order Create Report!";
+                $subject = "OMS Delivery Order Create Report!";
                 $attachment = array("path" => $orderPath,"file_name"=>$fileName.".xlsx");
                 $this->sendAttachmentMail('fiona@etradegroup.net',$subject,$attachment);
             }
