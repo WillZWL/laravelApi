@@ -59,6 +59,9 @@ class IwmsCallbackApiService
                 if(!empty($esgOrder)){
                     $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
                 }
+                BatchRequest::where("iwms_request_id", $value->request_id)
+                    ->update(array("status" => "C"));
+                IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
             }
             $this->sendMsgCreateDeliveryOrderReport($postMessage);
         }
@@ -156,9 +159,6 @@ class IwmsCallbackApiService
             $iwmsDeliveryOrderLog->status = 1;
             $iwmsDeliveryOrderLog->save();
         }
-        BatchRequest::where("iwms_request_id", $value->request_id)
-                    ->update(array("status" => "C"));
-        IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
     }
 
     public function createEsgSoShipment($esgOrder)
