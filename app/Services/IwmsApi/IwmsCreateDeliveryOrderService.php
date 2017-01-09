@@ -201,11 +201,19 @@ trait IwmsCreateDeliveryOrderService
         $validEsgOrders = new Collection();
         if(!$esgOrders->isEmpty()){
             foreach($esgOrders as $esgOrder) {
-                $vaild = IwmsDeliveryOrderLog::where("merchant_id", "ESG")
-                            ->where("reference_no",$esgOrder->reference_no)
-                            ->where("status", 1)
-                            ->first();
-                if(!empty($vaild)){
+                $valid = null;
+                $iwmsDeliveryOrderLogs = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
+                        ->get();
+                if(!$iwmsDeliveryOrderLogs->isEmpty()){
+                    foreach ($iwmsDeliveryOrderLogs as $iwmsDeliveryOrderLog) {
+                        if($iwmsDeliveryOrderLog->status == 1 || $iwmsDeliveryOrderLog->repeat_request != 1){
+                            if($valid == null){ $valid = "-1"; }
+                        }
+                    }
+                    if($valid == "-1"){
+                        $validEsgOrders[] = $esgOrder;
+                    }
+                }else{
                     $validEsgOrders[] = $esgOrder;
                 }
             }
