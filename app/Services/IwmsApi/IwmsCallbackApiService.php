@@ -57,15 +57,15 @@ class IwmsCallbackApiService
             if(!empty($batchObject)){
                 $batchObject->status = "C";
                 $batchObject->save();
-                foreach ($postMessage->responseMessage as $responseMessage) {
-                    if(isset($responseMessage->success) && !empty($responseMessage->success)){
-                        foreach ($responseMessage->success as $value) {
+                foreach ($postMessage->responseMessage as $key => $responseMessage) {
+                    if($key === "success"){
+                        foreach ($responseMessage as $value) {
                             $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
                         }
-                        $this->sendMsgCreateDeliveryOrderReport($responseMessage->success);
+                        $this->sendMsgCreateDeliveryOrderReport($responseMessage);
                     }
-                   if(isset($responseMessage->failed) && !empty($responseMessage->failed)){
-                        $this->sendMsgCreateDeliveryErrorEmail($responseMessage->failed);
+                   if($key === "failed"){
+                        $this->sendMsgCreateDeliveryErrorEmail($responseMessage);
                     }
                 }
             }
