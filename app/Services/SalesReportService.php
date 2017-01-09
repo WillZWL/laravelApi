@@ -37,6 +37,8 @@ class SalesReportService
                     'Profit' => $item->profit,
                     'Profit in USD' => round($item->profit * $item->to_usd_rate, 2),
                     'Margin' => $item->margin / 100,
+                    'buyer' => $item->buyer,
+                    'operator' => $item->operator,
                 ];
             });
         })->collapse();

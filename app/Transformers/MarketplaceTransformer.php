@@ -11,6 +11,7 @@ class MarketplaceTransformer extends TransformerAbstract
     {
         return [
             'marketplace_id' => $marketplace->id,
+            'marketplace_short_id' => $marketplace->short_id,
             'marketplace_name' => $marketplace->description,
         ];
     }
