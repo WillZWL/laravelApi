@@ -4,6 +4,7 @@ namespace App\Services\IwmsApi;
 
 use App\Models\So;
 use App\Models\IwmsDeliveryOrderLog;
+use Illuminate\Database\Eloquent\Collection;
 
 trait IwmsCreateDeliveryOrderService
 {
@@ -157,27 +158,20 @@ trait IwmsCreateDeliveryOrderService
 
     public function _saveIwmsDeliveryOrderRequestData($batchId,$requestData)
     {
-        $validIwmsDeliveryOrderLog = IwmsDeliveryOrderLog::where("reference_no",$requestData['reference_no'])
-            ->whereHas('batchRequest', function ($query) {
-                $query->whereIn('status', ['C','N']);
-            })
-            ->get();
-        if($validIwmsDeliveryOrderLog->isEmpty()){
-            $iwmsDeliveryOrderLog = new IwmsDeliveryOrderLog();
-            $iwmsDeliveryOrderLog->batch_id = $batchId;
-            $iwmsDeliveryOrderLog->wms_platform = $requestData["wms_platform"];
-            $iwmsDeliveryOrderLog->merchant_id = $requestData["merchant_id"];
-            $iwmsDeliveryOrderLog->reference_no = $requestData["reference_no"];
-            $iwmsDeliveryOrderLog->iwms_warehouse_code = $requestData["iwms_warehouse_code"];
-            $iwmsDeliveryOrderLog->marketplace_platform_id = $requestData["marketplace_platform_id"];
-            $iwmsDeliveryOrderLog->iwms_courier_code = $requestData["iwms_courier_code"];
-            $iwmsDeliveryOrderLog->platform_order_id = $requestData["marketplace_reference_no"];
-            $iwmsDeliveryOrderLog->request_log = json_encode($requestData);
-            $iwmsDeliveryOrderLog->status = "0";
-            $iwmsDeliveryOrderLog->repeat_request = "0";
-            $iwmsDeliveryOrderLog->save();
-            return $iwmsDeliveryOrderLog;
-        }
+        $iwmsDeliveryOrderLog = new IwmsDeliveryOrderLog();
+        $iwmsDeliveryOrderLog->batch_id = $batchId;
+        $iwmsDeliveryOrderLog->wms_platform = $requestData["wms_platform"];
+        $iwmsDeliveryOrderLog->merchant_id = $requestData["merchant_id"];
+        $iwmsDeliveryOrderLog->reference_no = $requestData["reference_no"];
+        $iwmsDeliveryOrderLog->iwms_warehouse_code = $requestData["iwms_warehouse_code"];
+        $iwmsDeliveryOrderLog->marketplace_platform_id = $requestData["marketplace_platform_id"];
+        $iwmsDeliveryOrderLog->iwms_courier_code = $requestData["iwms_courier_code"];
+        $iwmsDeliveryOrderLog->platform_order_id = $requestData["marketplace_reference_no"];
+        $iwmsDeliveryOrderLog->request_log = json_encode($requestData);
+        $iwmsDeliveryOrderLog->status = "0";
+        $iwmsDeliveryOrderLog->repeat_request = "0";
+        $iwmsDeliveryOrderLog->save();
+        return $iwmsDeliveryOrderLog;
     } 
 
     public function getEsgAllocateOrders($warehouseToIwms)
@@ -185,7 +179,7 @@ trait IwmsCreateDeliveryOrderService
         $this->fromData = date("Y-m-d 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
-        return $esgOrders = So::where("status",5)
+        $esgOrders = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
@@ -199,6 +193,24 @@ trait IwmsCreateDeliveryOrderService
             ->with("client")
             ->with("soItem")
             ->get();
+        return $this->checkEsgAllocateOrders($esgOrders);
+    }
+
+    private function checkEsgAllocateOrders($esgOrders)
+    {
+        $validEsgOrders = new Collection();
+        if(!$esgOrders->isEmpty()){
+            foreach($esgOrders as $esgOrder) {
+                $vaild = IwmsDeliveryOrderLog::where("merchant_id", "ESG")
+                            ->where("reference_no",$esgOrder->reference_no)
+                            ->where("status", 1)
+                            ->first();
+                if(!empty($vaild)){
+                    $validEsgOrders[] = $esgOrder;
+                }
+            }
+            return $validEsgOrders;
+        }
     }
 
     public function getDeliveryOrderReportRequest($warehouseIds)
