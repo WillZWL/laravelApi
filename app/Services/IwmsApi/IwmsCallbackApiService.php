@@ -52,16 +52,23 @@ class IwmsCallbackApiService
     public function responseMsgAction($postMessage)
     {
         if($postMessage->action == "orderCreate"){
-            foreach ($postMessage->responseMessage as $value) {
-                IwmsFeedRequest::where("iwms_request_id", $value->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
-                $batchObject = BatchRequest::where("iwms_request_id", $value->request_id)->first();
-                if(!empty($batchObject)){
-                    $batchObject->status = "C";
-                    $batchObject->save();
-                    $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+            IwmsFeedRequest::where("iwms_request_id", $postMessage->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
+             $batchObject = BatchRequest::where("iwms_request_id", $value->request_id)->first();
+             if(!empty($batchObject)){
+                $batchObject->status = "C";
+                $batchObject->save();
+            }
+            foreach ($postMessage->responseMessage as $responseMessage) {
+                if(isset($responseMessage["success"]) && !empty($responseMessage["success"])){
+                    foreach ($responseMessage["success"] as $value) {
+                        $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+                    }
+                    $this->sendMsgCreateDeliveryOrderReport($responseMessage["success"]);
+                }
+               if(isset($responseMessage["failed"]) && !empty($responseMessage["failed"])){
+                    $this->sendMsgCreateDeliveryErrorEmail($responseMessage["success"]);
                 }
             }
-            $this->sendMsgCreateDeliveryOrderReport($postMessage);
         }
     }
         
@@ -79,9 +86,9 @@ class IwmsCallbackApiService
         return base64_encode($this->callbackToken.$signature.$echoStr);
     }
 
-    public function sendMsgCreateDeliveryOrderReport($postMessage)
+    public function sendMsgCreateDeliveryOrderReport($successResponseMessage)
     {
-        $cellData = $this->getMsgCreateDeliveryOrderReport($postMessage);
+        $cellData = $this->getMsgCreateDeliveryOrderReport($successResponseMessage);
         $filePath = \Storage::disk('iwms')->getDriver()->getAdapter()->getPathPrefix();
         $orderPath = $filePath."orderCreate/";
         $fileName = "deliveryOrderDetail-".time();
@@ -95,11 +102,11 @@ class IwmsCallbackApiService
         }
     }   
 
-    public function getMsgCreateDeliveryOrderReport($postMessage)
+    public function getMsgCreateDeliveryOrderReport($successResponseMessage)
     {
-        if(!empty($postMessage->responseMessage)){
+        if(!empty($successResponseMessage)){
             $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
-            foreach ($postMessage->responseMessage as $value) {
+            foreach ($successResponseMessage as $value) {
                 $esgOrder = So::where("so_no",$value->merchant_order_id)
                         ->with("sellingPlatform")
                         ->first();     
@@ -181,6 +188,21 @@ class IwmsCallbackApiService
             $object['status'] = 1;
             $soShipment = SoShipment::updateOrCreate(['sh_no' => $object['sh_no']],$object);
             return $soShipment;
+        }
+    }
+
+    public function sendMsgCreateDeliveryErrorEmail($faildResponseMessage)
+    {
+        $subject = "Create OMS Delivery Order Failed,Please Check Error";
+        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $alertEmail = "privatelabel-log@eservicesgroup.com";
+        $msg = null;
+        foreach ($faildResponseMessage as $value) {
+            $msg .= "Order ID: $value->merchant_order_id, Error Message: $value->error_remark\r\n";
+        }
+        if($msg){
+            $msg .= "\r\n";
+            mail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
         }
     }
 }
