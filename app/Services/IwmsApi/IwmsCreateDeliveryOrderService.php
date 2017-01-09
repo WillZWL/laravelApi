@@ -202,23 +202,21 @@ trait IwmsCreateDeliveryOrderService
         if(!$esgOrders->isEmpty()){
             foreach($esgOrders as $esgOrder) {
                 $valid = null;
-                $iwmsDeliveryOrderLogs = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
-                        ->get();
-                if(!$iwmsDeliveryOrderLogs->isEmpty()){
-                    foreach ($iwmsDeliveryOrderLogs as $iwmsDeliveryOrderLog) {
-                        if($iwmsDeliveryOrderLog->status == 1 || $iwmsDeliveryOrderLog->repeat_request != 1){
-                            if($valid == null){ $valid = "-1"; }
-                        }
-                    }
-                    if($valid == "-1"){
+                $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
+                        ->where("status", 1)
+                        ->first();
+                if(empty($requestOrderLog)){
+                    $repeatRequestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
+                        ->where("status", 0)
+                        ->where("repeat_request", "!=", 1)
+                        ->first();
+                    if(empty($repeatRequestOrderLog)){
                         $validEsgOrders[] = $esgOrder;
                     }
-                }else{
-                    $validEsgOrders[] = $esgOrder;
                 }
             }
-            return $validEsgOrders;
         }
+        return $validEsgOrders;
     }
 
     public function getDeliveryOrderReportRequest($warehouseIds)
