@@ -151,6 +151,16 @@ class ApiLazadaService implements ApiPlatformInterface
         }
     }
 
+    public function setEsgOrderGroupsReadyToShip($esgOrderGroups, $pdfFilePath)
+    {
+        $result = "";$returnData = "";
+        $returnData = $this->esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath);
+        if(isset($returnData["documentLabel"])){
+            $returnData["document"] = $this->getESGOrderDocumentLabel($returnData["documentLabel"],$pdfFilePath);
+        }
+        return $result = array("status" => "success","message" => $returnData);
+    }
+
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
     {
         $returnData = array();$warehouseInventory = null;
