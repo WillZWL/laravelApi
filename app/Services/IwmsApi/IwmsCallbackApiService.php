@@ -53,20 +53,20 @@ class IwmsCallbackApiService
     {
         if($postMessage->action == "orderCreate"){
             IwmsFeedRequest::where("iwms_request_id", $postMessage->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
-             $batchObject = BatchRequest::where("iwms_request_id", $value->request_id)->first();
-             if(!empty($batchObject)){
+            $batchObject = BatchRequest::where("iwms_request_id", $postMessage->request_id)->first();
+            if(!empty($batchObject)){
                 $batchObject->status = "C";
                 $batchObject->save();
-            }
-            foreach ($postMessage->responseMessage as $responseMessage) {
-                if(isset($responseMessage["success"]) && !empty($responseMessage["success"])){
-                    foreach ($responseMessage["success"] as $value) {
-                        $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+                foreach ($postMessage->responseMessage as $responseMessage) {
+                    if(isset($responseMessage["success"]) && !empty($responseMessage["success"])){
+                        foreach ($responseMessage["success"] as $value) {
+                            $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+                        }
+                        $this->sendMsgCreateDeliveryOrderReport($responseMessage["success"]);
                     }
-                    $this->sendMsgCreateDeliveryOrderReport($responseMessage["success"]);
-                }
-               if(isset($responseMessage["failed"]) && !empty($responseMessage["failed"])){
-                    $this->sendMsgCreateDeliveryErrorEmail($responseMessage["success"]);
+                   if(isset($responseMessage["failed"]) && !empty($responseMessage["failed"])){
+                        $this->sendMsgCreateDeliveryErrorEmail($responseMessage["success"]);
+                    }
                 }
             }
         }
