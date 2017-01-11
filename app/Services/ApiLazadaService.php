@@ -45,6 +45,8 @@ class ApiLazadaService implements ApiPlatformInterface
 
 	public function retrieveOrder($storeName,$schedule)
     {
+        $lazadaShipments = $this->getShipmentProviders("BCLAZADATH");
+        print_r($lazadaShipments);exit();
         $this->setSchedule($schedule);
 		$originOrderList = $this->getOrderList($storeName);
         if($originOrderList){
@@ -164,21 +166,22 @@ class ApiLazadaService implements ApiPlatformInterface
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
-
         $lazadaShipments = $this->getShipmentProviders($storeName);
-
+        
         if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
             $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
             $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
             //Not allowed to change the preselected shipment provider
-            foreach ($orderList as $order) {
-                foreach ($order["OrderItems"] as $orderItem) {
-                    if(isset($orderItem["TrackingCode"])){
-                        $trackingNo = $orderItem["TrackingCode"];
-                    }else{
-                        $trackingNo = $orderItem["0"]["TrackingCode"];
+            if(!empty($orderList)){
+                foreach ($orderList as $order) {
+                    foreach ($order["OrderItems"] as $orderItem) {
+                        if(isset($orderItem["TrackingCode"])){
+                            $trackingNo = $orderItem["TrackingCode"];
+                        }else{
+                            $trackingNo = $orderItem["0"]["TrackingCode"];
+                        }
                     }
-                }
+                }   
             }
             $orderItemIds = array();
             foreach($esgOrder->soItem as $soItem){
@@ -903,6 +906,14 @@ class ApiLazadaService implements ApiPlatformInterface
                 break;
             case '4PX_B66':
             case '4PXDG_PL':
+            $shipmentProvider = array(
+                    "MY" => "AS-Poslaju",
+                    "SG" => "LGS-SG3",
+                    "TH" => "LGS-TH1",
+                    "ID" => "LGS-Tiki-ID",
+                    "PH" => "LGS-PH1"
+                    );
+                break;
             case 'ES_DGME':
                 $shipmentProvider = array(
                     "MY" => "AS-Poslaju",
