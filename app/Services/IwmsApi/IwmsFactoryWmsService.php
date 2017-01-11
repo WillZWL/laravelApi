@@ -4,12 +4,16 @@ namespace App\Services\IwmsApi;
 
 use App\Models\So;
 use App\Models\IwmsFeedRequest;
+use App\Models\IwmsDeliveryOrderLog;
 
 class IwmsFactoryWmsService extends IwmsCoreService
 {
-    use IwmsCreateDeliveryOrderService;
+    use IwmsBaseService;
     protected $wmsPlatform;
     protected $merchantId = "ESG";
+
+    private $iwmsCreateDeliveryOrderService = null;
+    private $iwmsCancelDeliveryOrderService = null;
 
     public function __construct($wmsPlatform = "4px",$debug = 0)
     {
@@ -20,20 +24,22 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function createDeliveryOrder()
     {
         $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
-        $request = $this->getDeliveryCreationRequest($warehouseToIwms);
-        if (! $request["requestBody"]) {
+        $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms);
+        if (!$request["requestBody"]) {
             return false;
         }
         $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
         $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
     }
 
-    public function cancelDeliveryOrder($iwmsOrderCode)
+    public function cancelDeliveryOrder($esgOrderNoList)
     {
-        $requestBody = array(
-            "order_code" => $iwmsOrderCode,
-            );
-        $responseData = $this->curlIwmsApi('wms/cancel-delivery-order', $requestBody);
+        $request = $this->getIwmsCancelOrderService()->getDeliveryCancelRequest($esgOrderNoList);
+        if (!$request["requestBody"]) {
+            return false;
+        }
+        $responseData = $this->curlIwmsApi('wms/cancel-delivery-order', $request["requestBody"]);
+        $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
     }
 
     public function sendCreateDeliveryOrderReport()
@@ -53,7 +59,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
-    public function getCreateDeliveryOrderReport($iwmsRequestIds)
+    private function getCreateDeliveryOrderReport($iwmsRequestIds)
     {
         $requestBody = array("request_id" => $iwmsRequestIds);
         $responseJson = $this->curlIwmsApi('wms/get-delivery-order-report', $requestBody);
@@ -109,14 +115,6 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $responseData;
     }
 
-    public function queryProduct()
-    {
-        $requestBody = array(
-            "sku" => "21695-AA-WH"
-            );
-        $this->curlIwmsApi('wms/query-product', $requestBody);
-    }
-
     public function getWarehouseToIwms($wmsPlatform)
     {
         $warehouseIdArr = array(
@@ -125,5 +123,45 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $warehouseIdArr[$wmsPlatform];
     }
 
+    public function cronSetIwmsLgsOrderReadytoShip()
+    {
+        $courier =  array("4PX-PL-LGS");
+        $iwmsDeliveryOrderLogs = IwmsDeliveryOrderLog::whereIn("iwms_coruier_code", $courier)
+                ->where("status", 1)
+                ->whereHas('iwmsLgsOrderStatusLog', function ($query) {
+                    $query->where('status', 0);
+                })
+                ->get();
+        if(!$iwmsDeliveryOrderLogs->isEmpty()){
+            foreach ($iwmsDeliveryOrderLogs as $iwmsDeliveryOrderLog) {
+                $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder);
+                if($result){
+                    $iwmsLgsOrderStatusLog = $iwmsDeliveryOrderLog->iwmsLgsOrderStatusLog;
+                    $iwmsLgsOrderStatusLog->status = 1;
+                    $iwmsLgsOrderStatusLog->save(); 
+                }
+            }
+        }
+    }
+
+    public function getIwmsCreateDeliveryOrderService()
+    {
+        if($this->iwmsCreateDeliveryOrderService == null)
+        return $this->iwmsCreateDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCreateDeliveryOrderService");
+    }
+
+    public function getIwmsCancelDeliveryOrderService()
+    {
+        if($this->iwmsCancelDeliveryOrderService == null)
+        return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService");
+    }
+
+    public function getApiLazadaService()
+    {
+        if ($this->apiLazadaService == null) {
+            $this->apiLazadaService = App::make("App\Services\ApiLazadaService");
+        }
+        return $this->apiLazadaService;
+    }
 
 }

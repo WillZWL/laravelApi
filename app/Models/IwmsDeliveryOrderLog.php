@@ -14,4 +14,9 @@ class IwmsDeliveryOrderLog extends Model
     {
         return $this->belongsTo('App\Models\BatchRequest', 'batch_id');
     }
+
+    public function iwmsLgsOrderStatusLog()
+    {
+        return $this->hasOne('App\Models\IwmsLgsOrderStatusLog', 'reference_no', "reference_no");
+    }
 }

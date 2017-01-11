@@ -155,10 +155,40 @@ class ApiLazadaService implements ApiPlatformInterface
     {
         $result = "";$returnData = "";
         $returnData = $this->esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath);
-        if(isset($returnData["documentLabel"])){
-            $returnData["document"] = $this->getESGOrderDocumentLabel($returnData["documentLabel"],$pdfFilePath);
+        
+    }
+    //run request to lazada api set order ready to ship one by one
+    public function IwmsSetLgsOrderReadyToShip($esgOrder)
+    {
+        $ordersIdList = null;
+        $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
+        $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
+        $storeName = $prefix."LAZADA".$countryCode;
+        $lazadaShipments = $this->getShipmentProviders($storeName);
+
+        if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
+            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+            //$orderItemIds = $this->checkEsgOrderInventory($warehouseId,$esgOrder);
+            if($orderItemIds){
+                $updateWarehouseObject[] = $esgOrder;
+                $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
+                if($shipmentProvider){
+                    $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
+                    if($result){
+                        $ordersIdList[] = $esgOrder->txn_id;
+                        //$this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
+                        //$this->updateEsgWarehouseInventory($updateWarehouseObject);
+                        return true;
+                    }
+                }else{
+                    $subject = "lazada shipmentProvider need mapping";
+                    $msg = print_r($lazadaShipments, true);
+                    $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                    mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+                    return false;
+                }
+            }
         }
-        return $result = array("status" => "success","message" => $returnData);
     }
 
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
@@ -245,7 +275,7 @@ class ApiLazadaService implements ApiPlatformInterface
             {
                 if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
                     $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-                    $orderItemIds = $this->checkEsgOrderIventory($warehouseId,$esgOrder);
+                    $orderItemIds = $this->checkEsgOrderInventory($warehouseId,$esgOrder);
                     if($orderItemIds){
                         $updateWarehouseObject[] = $esgOrder;
                         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
@@ -328,7 +358,7 @@ class ApiLazadaService implements ApiPlatformInterface
         }
     }
 
-    private function checkEsgOrderIventory($warehouseId,$esgOrder)
+    private function checkEsgOrderInventory($warehouseId,$esgOrder)
     {
         $orderItemIds = array();
         foreach($esgOrder->soItem as $soItem){
