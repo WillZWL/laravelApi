@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class IwmsLgsOrderStatusLog extends Model
 {
     //
+    protected $guarded = ["id"];
 }

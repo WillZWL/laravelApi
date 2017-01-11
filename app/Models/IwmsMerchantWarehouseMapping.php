@@ -7,4 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class IwmsMerchantWarehouseMapping extends Model
 {
     //
+    protected $guarded = ["id"];
 }
