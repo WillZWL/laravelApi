@@ -304,7 +304,7 @@ class IwmsCreateDeliveryOrderService
     {
         $courier =  array("4PX-PL-LGS"); 
         $result = null;
-        $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
+        $iwmsCourierCode = $this->getIwmsCourierCode($esgOrder->esg_quotation_courier_id,$merchantId);
         if(in_array( $iwmsCourierCode, $courier)){
             $iwmsLgsOrderStatusLog = IwmsLgsOrderStatusLog::where("platform_order_id",$esgOrder->platform_order_id)
                             ->first();
