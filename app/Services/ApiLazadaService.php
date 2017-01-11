@@ -396,7 +396,7 @@ class ApiLazadaService implements ApiPlatformInterface
     private function setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
     {
         $responseResult = null;
-        $itemObject = array("orderItemIds" => $orderItemIds, "ShippingProvider" => $shipmentProvider);
+        $itemObject = array("orderItemIds" => $orderItemIds, "ShipmentProvider" => $shipmentProvider);
         $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
         $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
         if($responseResult){
@@ -922,14 +922,18 @@ class ApiLazadaService implements ApiPlatformInterface
                     );
                 break;
         }
-        if($shipmentProvider && isset($shipmentProvider[$countryCode])){
-           foreach ($lazadaShipments as $lazadaShipment) {
-               if($shipmentProvider[$countryCode] == $lazadaShipment["Name"]){
-                    return $shipmentProvider[$countryCode];
-               }
-           }
+        if(empty($lazadaShipments)){
+            return $shipmentProvider[$countryCode];
         }else{
-            return null;
+           if($shipmentProvider && isset($shipmentProvider[$countryCode])){
+               foreach ($lazadaShipments as $lazadaShipment) {
+                   if($shipmentProvider[$countryCode] == $lazadaShipment["Name"]){
+                        return $shipmentProvider[$countryCode];
+                   }
+               }
+            }else{
+                return null;
+            } 
         }
     }
 
