@@ -160,7 +160,7 @@ class ApiLazadaService implements ApiPlatformInterface
     //run request to lazada api set order ready to ship one by one
     public function IwmsSetLgsOrderReadyToShip($esgOrder)
     {
-        $ordersIdList = null; $valid = null; $$trackingNo = null;
+        $ordersIdList = null; $valid = null; $trackingNo = null;
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
