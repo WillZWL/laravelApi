@@ -395,7 +395,7 @@ class ApiLazadaService implements ApiPlatformInterface
     private function setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
     {
         $responseResult = null;
-        $itemObject = array("orderItemIds" => $orderItemIds);
+        $itemObject = array("orderItemIds" => $orderItemIds, "ShippingProvider" => $shipmentProvider);
         $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
         $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
         if($responseResult){
