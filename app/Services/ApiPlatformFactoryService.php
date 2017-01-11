@@ -168,7 +168,7 @@ class ApiPlatformFactoryService
             $item = null;$sellerSkuList = null;
             foreach ($orderItems as $orderItem) {
                 if(isset($item[$orderItem->seller_sku]["qty"])){
-                    $item[$orderItem->seller_sku]["qty"] .= $orderItem->quantity_ordered;
+                    $item[$orderItem->seller_sku]["qty"] += $orderItem->quantity_ordered;
                 }else{
                     $sellerSkuList[] = $orderItem->seller_sku;
                     $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$orderItem->seller_sku)

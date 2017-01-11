@@ -119,7 +119,7 @@ class IwmsCallbackApiService
                     }else if($external){
                         $batteryType = "External";
                     }
-                   $cellRow = array(
+                    $cellRow = array(
                         'business_type' => $esgOrder->sellingPlatform->type,
                         'merchant' => $esgOrder->sellingPlatform->merchant_id,
                         'platform' => $esgOrder->platform_id,

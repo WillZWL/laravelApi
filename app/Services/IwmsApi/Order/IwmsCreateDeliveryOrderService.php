@@ -1,18 +1,20 @@
 <?php
 
-namespace App\Services\IwmsApi;
+namespace App\Services\IwmsApi\Order;
 
 use App\Models\So;
 use App\Models\IwmsDeliveryOrderLog;
+use App\Models\IwmsLgsOrderStatusLog;
+
 use Illuminate\Database\Eloquent\Collection;
 
-trait IwmsCreateDeliveryOrderService
+class IwmsCreateDeliveryOrderService
 {
     private $fromData = null;
     private $toDate = null;
     private $warehouseIds = null;
     private $message = null;
-    use IwmsBaseService;
+    use \App\Services\IwmsApi\IwmsBaseService;
 
     public function getDeliveryCreationRequest($warehouseIds)
     {
@@ -37,7 +39,6 @@ trait IwmsCreateDeliveryOrderService
                 $batchRequest->save();
             }
         }
-        
     }
 
     public function getDeliveryCreationRequestBatch($warehouseIds)
@@ -50,6 +51,7 @@ trait IwmsCreateDeliveryOrderService
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     $warehouseId = $soAllocate->warehouse_id;
                 }
+                $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId);
                 $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id,$warehouseId);
                 if ($deliveryCreationRequest) {
                     $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
@@ -112,7 +114,10 @@ trait IwmsCreateDeliveryOrderService
             $this->_setSoNoMessage($esgOrder->so_no);
             return false;
         }
-
+        $extra_instruction = "";
+        if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
+            $extra_instruction = $esgOrder->courierInfo->courier_name;
+        }
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $iwmsWarehouseCode,
@@ -132,6 +137,7 @@ trait IwmsCreateDeliveryOrderService
             "phone" => $this->getEsgOrderPhone($esgOrder),
             "amount_in_hkd" => '0',
             "amount_in_usd" => '0',
+            "extra_instruction" => $extra_instruction,
             //"doorplate" => $esgOrder->doorplate,
         );
         foreach ($esgOrder->soItem as $esgOrderItem) {
@@ -283,6 +289,38 @@ trait IwmsCreateDeliveryOrderService
             $this->message['so_no'] = [];
         }
         $this->message['so_no'][] = $so_no;
+    }
+
+    public function setIwmsLgsOrderStatusToShip($esgOrder, $merchantId)
+    {
+        $courier =  array("4PX-PL-LGS"); 
+        $result = null;
+        $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
+        if(in_array( $iwmsCourierCode, $courier)){
+            $iwmsLgsOrderStatusLog = IwmsLgsOrderStatusLog::where("platform_order_id",$esgOrder->platform_order_id)
+                            ->first();
+            if(!empty($iwmsLgsOrderStatusLog) && $iwmsLgsOrderStatusLog->status != 1){
+                $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder);
+            }else{
+                $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder);
+            }
+            $object['iwms_platform'] = $this->wmsPlatform;
+            $object['esg_courier_id'] = $esgOrder->esg_quotation_courier_id;
+            $object['so_no'] = $esgOrder->so_no;
+            $object['platform_order_no'] = $esgOrder->platform_order_no;
+            if($result){
+                $object['status'] = 1;   
+            }
+            return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $object['so_no']],$object);
+        }
+    }
+
+    public function getApiLazadaService()
+    {
+        if ($this->apiLazadaService == null) {
+            $this->apiLazadaService = App::make("App\Services\ApiLazadaService");
+        }
+        return $this->apiLazadaService;
     }
 
 }
