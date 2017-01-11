@@ -160,7 +160,7 @@ class ApiLazadaService implements ApiPlatformInterface
     //run request to lazada api set order ready to ship one by one
     public function IwmsSetLgsOrderReadyToShip($esgOrder)
     {
-        $ordersIdList = null; $valid = null;
+        $ordersIdList = null; $valid = null; $$trackingNo = null;
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
@@ -188,7 +188,8 @@ class ApiLazadaService implements ApiPlatformInterface
                     $orderItemIds[] = $itemId;
                 }
             }
-            if(!empty($orderItemIds)){
+            $platformMarketOrder = PlatformMarketOrder::where("platform_id","")->first();
+            if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" !empty($orderItemIds)){
                 $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
                 if(!empty($shipmentProvider)){
                     $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
