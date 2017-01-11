@@ -326,7 +326,7 @@ class IwmsCreateDeliveryOrderService
             if(isset($result["valid"]) && $result["valid"]){
                 $object['status'] = 1;   
             }
-            return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $object['so_no']],$object); 
+            return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object); 
         } 
     }
 
