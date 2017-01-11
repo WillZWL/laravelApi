@@ -164,6 +164,7 @@ class ApiLazadaService implements ApiPlatformInterface
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
+
         $lazadaShipments = $this->getShipmentProviders($storeName);
 
         if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
@@ -189,7 +190,7 @@ class ApiLazadaService implements ApiPlatformInterface
             if(!empty($orderItemIds)){
                 $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
                 if(!empty($shipmentProvider)){
-                    $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
+                    $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
                     if($result){
                         $valid = true;
                     }
@@ -389,6 +390,27 @@ class ApiLazadaService implements ApiPlatformInterface
             }
         }
         return $orderItemIds;
+    }
+
+    private function setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
+    {
+        $responseResult = null;
+        $itemObject = array("orderItemIds" => $orderItemIds);
+        $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
+        $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
+        if($responseResult){
+            if(isset($responseResult["PurchaseOrderId"])){
+                return true;
+            }else{
+                $result = true;
+                foreach ($responseResult as $response) {
+                   if(!isset($response["PurchaseOrderId"])){
+                        $result = false;
+                   }
+                }
+                return $result;
+            }
+        }
     }
 
     private function setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
