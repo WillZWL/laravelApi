@@ -6,6 +6,8 @@ use App\Models\So;
 use App\Models\IwmsDeliveryOrderLog;
 use App\Models\IwmsLgsOrderStatusLog;
 
+use App;
+
 use Illuminate\Database\Eloquent\Collection;
 
 class IwmsCreateDeliveryOrderService
@@ -14,7 +16,14 @@ class IwmsCreateDeliveryOrderService
     private $toDate = null;
     private $warehouseIds = null;
     private $message = null;
+    private $wmsPlatform = null;
+
     use \App\Services\IwmsApi\IwmsBaseService;
+
+    public function __construct($wmsPlatform)
+    {
+        $this->wmsPlatform = $wmsPlatform;
+    }
 
     public function getDeliveryCreationRequest($warehouseIds)
     {

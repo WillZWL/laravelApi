@@ -5,6 +5,7 @@ namespace App\Services\IwmsApi;
 use App\Models\So;
 use App\Models\IwmsFeedRequest;
 use App\Models\IwmsDeliveryOrderLog;
+use App;
 
 class IwmsFactoryWmsService extends IwmsCoreService
 {
@@ -147,7 +148,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getIwmsCreateDeliveryOrderService()
     {
         if($this->iwmsCreateDeliveryOrderService == null)
-        return $this->iwmsCreateDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCreateDeliveryOrderService");
+        return $this->iwmsCreateDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCreateDeliveryOrderService", $this->wmsPlatform);
     }
 
     public function getIwmsCancelDeliveryOrderService()
