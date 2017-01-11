@@ -189,7 +189,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 }
             }
             $platformMarketOrder = PlatformMarketOrder::where("platform_id","")->first();
-            if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" !empty($orderItemIds)){
+            if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
                 $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
                 if(!empty($shipmentProvider)){
                     $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
