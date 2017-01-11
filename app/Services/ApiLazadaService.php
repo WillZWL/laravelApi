@@ -160,7 +160,7 @@ class ApiLazadaService implements ApiPlatformInterface
     //run request to lazada api set order ready to ship one by one
     public function IwmsSetLgsOrderReadyToShip($esgOrder)
     {
-        $ordersIdList = null;
+        $ordersIdList = null; $valid = null;
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
@@ -168,26 +168,40 @@ class ApiLazadaService implements ApiPlatformInterface
 
         if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
             $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-            //$orderItemIds = $this->checkEsgOrderInventory($warehouseId,$esgOrder);
-            if($orderItemIds){
-                $updateWarehouseObject[] = $esgOrder;
+            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+            //Not allowed to change the preselected shipment provider
+            foreach ($orderList as $order) {
+                foreach ($order["OrderItems"] as $orderItem) {
+                    if(isset($orderItem["TrackingCode"])){
+                        $trackingNo = $orderItem["TrackingCode"];
+                    }else{
+                        $trackingNo = $orderItem["0"]["TrackingCode"];
+                    }
+                }
+            }
+            $orderItemIds = array();
+            foreach($esgOrder->soItem as $soItem){
+                $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
+                foreach($itemIds as $itemId){
+                    $orderItemIds[] = $itemId;
+                }
+            }
+            if(!empty($orderItemIds)){
                 $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
-                if($shipmentProvider){
+                if(!empty($shipmentProvider)){
                     $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
                     if($result){
-                        $ordersIdList[] = $esgOrder->txn_id;
-                        //$this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
-                        //$this->updateEsgWarehouseInventory($updateWarehouseObject);
-                        return true;
+                        $valid = true;
                     }
                 }else{
                     $subject = "lazada shipmentProvider need mapping";
                     $msg = print_r($lazadaShipments, true);
                     $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
                     mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
-                    return false;
+                    $valid = false;
                 }
             }
+            return array("tracking_no" => $trackingNo, "valid" => $valid);
         }
     }
 
