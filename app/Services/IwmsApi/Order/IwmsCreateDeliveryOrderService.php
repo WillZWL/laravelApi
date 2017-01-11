@@ -30,6 +30,7 @@ class IwmsCreateDeliveryOrderService
     {
         $deliveryCreationRequest = null;
         $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
+        
         if(!empty($batchRequest)){
             $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
             if(!empty($requestLogs)){
@@ -73,9 +74,6 @@ class IwmsCreateDeliveryOrderService
                 if ($deliveryCreationRequest) {
                     $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
                 }
-            }
-            if (null !== $this->message) {
-                $this->sendAlertEmail($this->message);
             }
             return $batchRequest;
         }
