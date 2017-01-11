@@ -45,8 +45,6 @@ class ApiLazadaService implements ApiPlatformInterface
 
 	public function retrieveOrder($storeName,$schedule)
     {
-        $lazadaShipments = $this->getShipmentProviders("BCLAZADATH");
-        print_r($lazadaShipments);exit();
         $this->setSchedule($schedule);
 		$originOrderList = $this->getOrderList($storeName);
         if($originOrderList){
