@@ -17,6 +17,6 @@ class IwmsDeliveryOrderLog extends Model
 
     public function iwmsLgsOrderStatusLog()
     {
-        return $this->hasOne('App\Models\IwmsLgsOrderStatusLog', 'reference_no', "reference_no");
+        return $this->belongsTo('App\Models\IwmsLgsOrderStatusLog', "so_no", 'reference_no');
     }
 }
