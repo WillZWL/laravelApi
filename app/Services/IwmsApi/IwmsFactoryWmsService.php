@@ -148,7 +148,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getIwmsCreateDeliveryOrderService()
     {
         if($this->iwmsCreateDeliveryOrderService == null)
-        return $this->iwmsCreateDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCreateDeliveryOrderService", $this->wmsPlatform);
+        return $this->iwmsCreateDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCreateDeliveryOrderService", [$this->wmsPlatform]);
     }
 
     public function getIwmsCancelDeliveryOrderService()
