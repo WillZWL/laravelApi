@@ -18,6 +18,7 @@ class IwmsCreateDeliveryOrderService
     private $message = null;
     private $wmsPlatform = null;
     private $apiLazadaService = null;
+    private $lgsCourier = array("4PX-PL-LGS"); 
 
     use \App\Services\IwmsApi\IwmsBaseService;
 
@@ -30,6 +31,7 @@ class IwmsCreateDeliveryOrderService
     {
         $deliveryCreationRequest = null;
         $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
+        
         if(!empty($batchRequest)){
             $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
             if(!empty($requestLogs)){
@@ -54,7 +56,6 @@ class IwmsCreateDeliveryOrderService
     public function getDeliveryCreationRequestBatch($warehouseIds)
     {
         $esgAllocateOrder = null; $merchantId = "ESG"; 
-        $courier =  array("4PX-PL-LGS"); 
         $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
         if(!$esgOrders->isEmpty()){
             $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
@@ -63,8 +64,8 @@ class IwmsCreateDeliveryOrderService
                     $warehouseId = $soAllocate->warehouse_id;
                 }
                 $iwmsCourierCode = $this->getIwmsCourierCode($esgOrder->esg_quotation_courier_id,$merchantId);
-                if(in_array( $iwmsCourierCode, $courier)){
-                    $IwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId);
+                if(in_array( $iwmsCourierCode, $this->lgsCourier)){
+                    $IwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId);
                     if(!empty($IwmsLgsOrderStatusLog)) {
                         continue;
                     }
@@ -73,9 +74,9 @@ class IwmsCreateDeliveryOrderService
                 if ($deliveryCreationRequest) {
                     $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
                 }
-            }
-            if (null !== $this->message) {
-                $this->sendAlertEmail($this->message);
+                if(!empty($this->message)){
+                    $this->sendAlertEmail($this->message);
+                }
             }
             return $batchRequest;
         }
@@ -131,9 +132,15 @@ class IwmsCreateDeliveryOrderService
             $this->_setSoNoMessage($esgOrder->so_no);
             return false;
         }
-        $extra_instruction = "";
+        //send remark for depx and fedx for 4px
+        $extra_instruction = ""; 
         if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
             $extra_instruction = $esgOrder->courierInfo->courier_name;
+        }
+        if(in_array($iwmsCourierCode, $this->lgsCourier)){
+            $address = substr($esgOrder->delivery_address, 0, 120);
+        }else{
+            $address = $esgOrder->delivery_address;
         }
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
@@ -149,7 +156,7 @@ class IwmsCreateDeliveryOrderService
             "country" => $esgOrder->delivery_country_id,
             "city" => $esgOrder->delivery_city,
             "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x",
-            "address" => $esgOrder->delivery_address,
+            "address" => $address,
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $this->getEsgOrderPhone($esgOrder),
             "amount_in_hkd" => '0',
@@ -199,7 +206,8 @@ class IwmsCreateDeliveryOrderService
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {
-        $this->fromData = date("Y-m-d 00:00:00");
+        //$this->fromData = date("Y-m-d 00:00:00");
+        $this->fromData = date("2017-01-10 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         $esgOrders = So::where("status",5)
@@ -308,14 +316,14 @@ class IwmsCreateDeliveryOrderService
         $this->message['so_no'][] = $so_no;
     }
 
-    public function setIwmsLgsOrderStatusToShip($esgOrder, $merchantId)
+    public function setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId)
     {
         $result = null;
         $iwmsLgsOrderStatusLog = IwmsLgsOrderStatusLog::where("platform_order_no",$esgOrder->platform_order_id)
                         ->first();
         if((!empty($iwmsLgsOrderStatusLog) && $iwmsLgsOrderStatusLog->status != 1) 
             ||empty($iwmsLgsOrderStatusLog)) {
-            $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder);
+            $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId);
         }
         if(isset($result["tracking_no"]) && $result["tracking_no"]){
             $object['iwms_platform'] = $this->wmsPlatform;
