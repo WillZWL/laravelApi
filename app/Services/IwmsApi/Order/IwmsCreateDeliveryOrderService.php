@@ -213,8 +213,8 @@ class IwmsCreateDeliveryOrderService
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {
-        //$this->fromData = date("Y-m-d 00:00:00");
-        $this->fromData = date("2017-01-10 00:00:00");
+        $this->fromData = date("Y-m-d 00:00:00");
+        //$this->fromData = date("2017-01-10 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         $esgOrders = So::where("status",5)
@@ -243,7 +243,7 @@ class IwmsCreateDeliveryOrderService
                 $valid = null;
                 if(empty($esgOrder->delivery_postcode)){
                     $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                    $subject = "OMS create order failed."
+                    $subject = "OMS create order failed.";
                     $msg = "Order ID".$esgOrder->so_no." postal is null";
                     mail("privatelabel-log@eservicesgroup.com,  jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
                     continue;
@@ -350,7 +350,7 @@ class IwmsCreateDeliveryOrderService
                 $object['status'] = 1;   
             }
             return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object); 
-        } 
+        }
     }
 
     public function getApiLazadaService()
