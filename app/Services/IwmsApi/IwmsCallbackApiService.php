@@ -65,7 +65,7 @@ class IwmsCallbackApiService
                         $this->sendMsgCreateDeliveryOrderReport($responseMessage);
                     }
                    if($key === "failed"){
-                        $this->sendMsgCreateDeliveryErrorEmail($responseMessage);
+                        $this->sendMsgCreateDeliveryErrorEmail($responseMessage, $batchObject->id);
                     }
                 }
             }
@@ -191,7 +191,7 @@ class IwmsCallbackApiService
         }
     }
 
-    public function sendMsgCreateDeliveryErrorEmail($faildResponseMessage)
+    public function sendMsgCreateDeliveryErrorEmail($faildResponseMessage,$batchId)
     {
         $subject = "Create OMS Delivery Order Failed,Please Check Error";
         $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
@@ -199,11 +199,16 @@ class IwmsCallbackApiService
         $msg = null;
         foreach ($faildResponseMessage as $value) {
             $msg .= "Order ID: $value->merchant_order_id, Error Message: $value->error_remark\r\n";
+            IwmsDeliveryOrderLog::where("platform_order_id",$value->merchant_order_id)
+                    ->where("batch_id", $batchId)
+                    ->update(array("response_message" => $value->error_remark));
         }
         if($msg){
             $msg .= "\r\n";
             mail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
         }
     }
+
+
 }
 

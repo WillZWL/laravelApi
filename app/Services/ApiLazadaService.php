@@ -158,19 +158,17 @@ class ApiLazadaService implements ApiPlatformInterface
         
     }
     //run request to lazada api set order ready to ship one by one
-    public function IwmsSetLgsOrderReadyToShip($esgOrder)
+    public function IwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId)
     {
-        $ordersIdList = null; $valid = null;
+        $ordersIdList = null; $valid = null; $trackingNo = null;
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
-
         $lazadaShipments = $this->getShipmentProviders($storeName);
-
-        if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
-            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
-            //Not allowed to change the preselected shipment provider
+        
+        $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+        //Not allowed to change the preselected shipment provider
+        if(!empty($orderList)){
             foreach ($orderList as $order) {
                 foreach ($order["OrderItems"] as $orderItem) {
                     if(isset($orderItem["TrackingCode"])){
@@ -179,31 +177,32 @@ class ApiLazadaService implements ApiPlatformInterface
                         $trackingNo = $orderItem["0"]["TrackingCode"];
                     }
                 }
-            }
-            $orderItemIds = array();
-            foreach($esgOrder->soItem as $soItem){
-                $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
-                foreach($itemIds as $itemId){
-                    $orderItemIds[] = $itemId;
-                }
-            }
-            if(!empty($orderItemIds)){
-                $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
-                if(!empty($shipmentProvider)){
-                    $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
-                    if($result){
-                        $valid = true;
-                    }
-                }else{
-                    $subject = "lazada shipmentProvider need mapping";
-                    $msg = print_r($lazadaShipments, true);
-                    $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                    mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
-                    $valid = false;
-                }
-            }
-            return array("tracking_no" => $trackingNo, "valid" => $valid);
+            }   
         }
+        $orderItemIds = array();
+        foreach($esgOrder->soItem as $soItem){
+            $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
+            foreach($itemIds as $itemId){
+                $orderItemIds[] = $itemId;
+            }
+        }
+        $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
+        if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
+            $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
+            if(!empty($shipmentProvider)){
+                $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
+                if($result){
+                    $valid = true;
+                }
+            }else{
+                $subject = "lazada shipmentProvider need mapping";
+                $msg = print_r($lazadaShipments, true);
+                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+                $valid = false;
+            }
+        }
+        return array("tracking_no" => $trackingNo, "valid" => $valid);
     }
 
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
@@ -395,7 +394,7 @@ class ApiLazadaService implements ApiPlatformInterface
     private function setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
     {
         $responseResult = null;
-        $itemObject = array("orderItemIds" => $orderItemIds, "ShippingProvider" => $shipmentProvider);
+        $itemObject = array("orderItemIds" => $orderItemIds, "ShipmentProvider" => $shipmentProvider);
         $marketplacePacked = $this->setStatusToPackedByMarketplace($storeName,$orderItemIds,$shipmentProvider);
         $responseResult = $this->setStatusToReadyToShip($storeName,$itemObject);
         if($responseResult){
@@ -903,6 +902,14 @@ class ApiLazadaService implements ApiPlatformInterface
                 break;
             case '4PX_B66':
             case '4PXDG_PL':
+            $shipmentProvider = array(
+                    "MY" => "AS-Poslaju",
+                    "SG" => "LGS-SG3",
+                    "TH" => "LGS-TH1",
+                    "ID" => "LGS-Tiki-ID",
+                    "PH" => "LGS-PH1"
+                    );
+                break;
             case 'ES_DGME':
                 $shipmentProvider = array(
                     "MY" => "AS-Poslaju",
@@ -913,14 +920,18 @@ class ApiLazadaService implements ApiPlatformInterface
                     );
                 break;
         }
-        if($shipmentProvider && isset($shipmentProvider[$countryCode])){
-           foreach ($lazadaShipments as $lazadaShipment) {
-               if($shipmentProvider[$countryCode] == $lazadaShipment["Name"]){
-                    return $shipmentProvider[$countryCode];
-               }
-           }
+        if(empty($lazadaShipments)){
+            return $shipmentProvider[$countryCode];
         }else{
-            return null;
+           if($shipmentProvider && isset($shipmentProvider[$countryCode])){
+               foreach ($lazadaShipments as $lazadaShipment) {
+                   if($shipmentProvider[$countryCode] == $lazadaShipment["Name"]){
+                        return $shipmentProvider[$countryCode];
+                   }
+               }
+            }else{
+                return null;
+            } 
         }
     }
 
