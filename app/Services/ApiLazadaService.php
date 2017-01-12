@@ -158,7 +158,7 @@ class ApiLazadaService implements ApiPlatformInterface
         
     }
     //run request to lazada api set order ready to ship one by one
-    public function IwmsSetLgsOrderReadyToShip($esgOrder)
+    public function IwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId)
     {
         $ordersIdList = null; $valid = null; $trackingNo = null;
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
@@ -166,46 +166,43 @@ class ApiLazadaService implements ApiPlatformInterface
         $storeName = $prefix."LAZADA".$countryCode;
         $lazadaShipments = $this->getShipmentProviders($storeName);
         
-        if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
-            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
-            //Not allowed to change the preselected shipment provider
-            if(!empty($orderList)){
-                foreach ($orderList as $order) {
-                    foreach ($order["OrderItems"] as $orderItem) {
-                        if(isset($orderItem["TrackingCode"])){
-                            $trackingNo = $orderItem["TrackingCode"];
-                        }else{
-                            $trackingNo = $orderItem["0"]["TrackingCode"];
-                        }
+        $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+        //Not allowed to change the preselected shipment provider
+        if(!empty($orderList)){
+            foreach ($orderList as $order) {
+                foreach ($order["OrderItems"] as $orderItem) {
+                    if(isset($orderItem["TrackingCode"])){
+                        $trackingNo = $orderItem["TrackingCode"];
+                    }else{
+                        $trackingNo = $orderItem["0"]["TrackingCode"];
                     }
-                }   
-            }
-            $orderItemIds = array();
-            foreach($esgOrder->soItem as $soItem){
-                $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
-                foreach($itemIds as $itemId){
-                    $orderItemIds[] = $itemId;
                 }
-            }
-            $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
-            if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
-                $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
-                if(!empty($shipmentProvider)){
-                    $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
-                    if($result){
-                        $valid = true;
-                    }
-                }else{
-                    $subject = "lazada shipmentProvider need mapping";
-                    $msg = print_r($lazadaShipments, true);
-                    $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                    mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
-                    $valid = false;
-                }
-            }
-            return array("tracking_no" => $trackingNo, "valid" => $valid);
+            }   
         }
+        $orderItemIds = array();
+        foreach($esgOrder->soItem as $soItem){
+            $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
+            foreach($itemIds as $itemId){
+                $orderItemIds[] = $itemId;
+            }
+        }
+        $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
+        if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
+            $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
+            if(!empty($shipmentProvider)){
+                $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
+                if($result){
+                    $valid = true;
+                }
+            }else{
+                $subject = "lazada shipmentProvider need mapping";
+                $msg = print_r($lazadaShipments, true);
+                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+                $valid = false;
+            }
+        }
+        return array("tracking_no" => $trackingNo, "valid" => $valid);
     }
 
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
