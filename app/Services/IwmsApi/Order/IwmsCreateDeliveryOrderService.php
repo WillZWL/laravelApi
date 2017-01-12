@@ -18,6 +18,7 @@ class IwmsCreateDeliveryOrderService
     private $message = null;
     private $wmsPlatform = null;
     private $apiLazadaService = null;
+    private $lgsCourier = array("4PX-PL-LGS"); 
 
     use \App\Services\IwmsApi\IwmsBaseService;
 
@@ -55,7 +56,6 @@ class IwmsCreateDeliveryOrderService
     public function getDeliveryCreationRequestBatch($warehouseIds)
     {
         $esgAllocateOrder = null; $merchantId = "ESG"; 
-        $courier =  array("4PX-PL-LGS"); 
         $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
         if(!$esgOrders->isEmpty()){
             $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
@@ -64,7 +64,7 @@ class IwmsCreateDeliveryOrderService
                     $warehouseId = $soAllocate->warehouse_id;
                 }
                 $iwmsCourierCode = $this->getIwmsCourierCode($esgOrder->esg_quotation_courier_id,$merchantId);
-                if(in_array( $iwmsCourierCode, $courier)){
+                if(in_array( $iwmsCourierCode, $this->lgsCourier)){
                     $IwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId);
                     if(!empty($IwmsLgsOrderStatusLog)) {
                         continue;
@@ -129,9 +129,15 @@ class IwmsCreateDeliveryOrderService
             $this->_setSoNoMessage($esgOrder->so_no);
             return false;
         }
-        $extra_instruction = "";
+        //send remark for depx and fedx for 4px
+        $extra_instruction = ""; 
         if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
             $extra_instruction = $esgOrder->courierInfo->courier_name;
+        }
+        if(in_array($iwmsCourierCode, $this->lgsCourier)){
+            $address = substr($esgOrder->delivery_address, 0, 120);
+        }else{
+            $address = $esgOrder->delivery_address;
         }
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
@@ -147,7 +153,7 @@ class IwmsCreateDeliveryOrderService
             "country" => $esgOrder->delivery_country_id,
             "city" => $esgOrder->delivery_city,
             "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x",
-            "address" => $esgOrder->delivery_address,
+            "address" => $address,
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $this->getEsgOrderPhone($esgOrder),
             "amount_in_hkd" => '0',
