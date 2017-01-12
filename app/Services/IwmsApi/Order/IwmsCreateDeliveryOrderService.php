@@ -241,6 +241,13 @@ class IwmsCreateDeliveryOrderService
         if(!$esgOrders->isEmpty()){
             foreach($esgOrders as $esgOrder) {
                 $valid = null;
+                if(empty($esgOrder->delivery_postcode)){
+                    $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                    $subject = "OMS create order failed."
+                    $msg = "Order ID".$esgOrder->so_no." postal is null";
+                    mail("privatelabel-log@eservicesgroup.com,  jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+                    continue;
+                }
                 $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
                         ->where("status", 1)
                         ->first();
