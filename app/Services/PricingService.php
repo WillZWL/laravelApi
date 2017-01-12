@@ -87,6 +87,8 @@ class PricingService
         $totalCharged = $marketplaceProduct->price + $costDetails['deliveryCharge'];
 
         $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->keyBy('deliveryType');
+        // SBF 10879
+        $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->forget('STD');
 
         $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use (
             $sellingPrice,

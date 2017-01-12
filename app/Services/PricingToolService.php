@@ -75,6 +75,10 @@ class PricingToolService
         $priceInfo = [];
 
         foreach ($shippingOptions as $shippingOption) {
+            #SBF 10878
+            if ($shippingOption['deliveryType'] === 'STD') {
+                continue;
+            }
             $bookInCost = $warehouseCostDetails['book_in_cost'];
             $pnpCost = $warehouseCostDetails['pnp_cost'];
             $bookOutCost = $warehouseCostDetails['book_out_cost'];
