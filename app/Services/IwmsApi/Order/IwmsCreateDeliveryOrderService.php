@@ -198,7 +198,7 @@ class IwmsCreateDeliveryOrderService
     public function getEsgAllocateOrders($warehouseToIwms)
     {
         //$this->fromData = date("Y-m-d 00:00:00");
-        $this->fromData = date("2017-01-11 00:00:00");
+        $this->fromData = date("2017-01-10 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         $esgOrders = So::where("status",5)
@@ -316,7 +316,6 @@ class IwmsCreateDeliveryOrderService
             ||empty($iwmsLgsOrderStatusLog)) {
             $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId);
         }
-        print_r($esgOrder); print_r($result); exit();
         if(isset($result["tracking_no"]) && $result["tracking_no"]){
             $object['iwms_platform'] = $this->wmsPlatform;
             $object['esg_courier_id'] = $esgOrder->esg_quotation_courier_id;
