@@ -732,7 +732,7 @@ class PlatformMarketOrderTransfer
             $salesOrderStatistic->qty = $item->quantity_ordered;
 
             $marginAndProfit = $this->pricingService->availableShippingWithProfit($request);
-            if ($costDetails = $marginAndProfit->get($item->mapping->delivery_type)) {
+            if ($costDetails = $marginAndProfit->get($so->delivery_type_id)) {
                 $salesOrderStatistic->supplier_cost = $costDetails['supplierCost'] * $item->quantity_ordered;
                 $salesOrderStatistic->accessory_cost = $costDetails['accessoryCost'] * $item->quantity_ordered;
                 $salesOrderStatistic->marketplace_list_fee = $costDetails['marketplaceListingFee'] * $item->quantity_ordered;
@@ -745,6 +745,7 @@ class PlatformMarketOrderTransfer
                 $salesOrderStatistic->duty = $costDetails['duty'] * $item->quantity_ordered;
                 $salesOrderStatistic->payment_gateway_fee = $costDetails['paymentGatewayFee'] * $item->quantity_ordered;
                 $salesOrderStatistic->psp_admin_fee = $costDetails['paymentGatewayAdminFee'] * $item->quantity_ordered;
+                $salesOrderStatistic->delivery_type = $so->delivery_type_id;
                 $salesOrderStatistic->shipping_cost = $costDetails['deliveryCost'] * $item->quantity_ordered;
                 $salesOrderStatistic->warehouse_cost = $costDetails['warehouseCost'] * $item->quantity_ordered;
                 $salesOrderStatistic->fulfilment_by_marketplace_fee = $costDetails['fulfilmentByMarketplaceFee'] * $item->quantity_ordered;
