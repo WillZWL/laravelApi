@@ -70,7 +70,7 @@ class IwmsCreateDeliveryOrderService
                         continue;
                     }
                 }
-                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id,$warehouseId);
+                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id, $warehouseId, $IwmsLgsOrderStatusLog->tracking_no);
                 if ($deliveryCreationRequest) {
                     $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
                 }
@@ -116,7 +116,7 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function getDeliveryCreationObject($esgOrder,$courierId,$warehouseId)
+    private function getDeliveryCreationObject($esgOrder, $courierId, $warehouseId, $trackingNo)
     {
         $merchantId = "ESG";
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
@@ -139,6 +139,7 @@ class IwmsCreateDeliveryOrderService
         }
         if(in_array($iwmsCourierCode, $this->lgsCourier)){
             $address = substr($esgOrder->delivery_address, 0, 120);
+            $address = (preg_replace( "/\r|\n/", "", $address));
         }else{
             $address = $esgOrder->delivery_address;
         }
@@ -150,6 +151,9 @@ class IwmsCreateDeliveryOrderService
             "marketplace_reference_no" => $esgOrder->platform_order_id,
             "marketplace_platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
             "merchant_id" => $merchantId,
+            "sub_merchant_id" => $esgOrder->sellingPlatform->merchant_id,
+            "tracking_no" => $trackingNo,
+            "store_name" => $esgOrder->sellingPlatform->store_name,
             "delivery_name" => $esgOrder->delivery_name,
             "company" => $esgOrder->delivery_company,
             "email" => $esgOrder->client->email,
@@ -192,6 +196,9 @@ class IwmsCreateDeliveryOrderService
         $iwmsDeliveryOrderLog->batch_id = $batchId;
         $iwmsDeliveryOrderLog->wms_platform = $requestData["wms_platform"];
         $iwmsDeliveryOrderLog->merchant_id = $requestData["merchant_id"];
+        $iwmsDeliveryOrderLog->sub_merchant_id = $requestData["sub_merchant_id"];
+        $iwmsDeliveryOrderLog->tracking_no = $requestData["tracking_no"];
+        $iwmsDeliveryOrderLog->store_name = $requestData["store_name"];
         $iwmsDeliveryOrderLog->reference_no = $requestData["reference_no"];
         $iwmsDeliveryOrderLog->iwms_warehouse_code = $requestData["iwms_warehouse_code"];
         $iwmsDeliveryOrderLog->marketplace_platform_id = $requestData["marketplace_platform_id"];
@@ -223,6 +230,7 @@ class IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
+            ->with("sellingPlatform")
             ->get();
         return $this->checkEsgAllocateOrders($esgOrders);
     }
