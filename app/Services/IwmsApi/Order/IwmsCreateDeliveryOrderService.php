@@ -65,7 +65,7 @@ class IwmsCreateDeliveryOrderService
                 }
                 $iwmsCourierCode = $this->getIwmsCourierCode($esgOrder->esg_quotation_courier_id,$merchantId);
                 if(in_array( $iwmsCourierCode, $courier)){
-                    $IwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId);
+                    $IwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId);
                     if(!empty($IwmsLgsOrderStatusLog)) {
                         continue;
                     }
@@ -197,7 +197,8 @@ class IwmsCreateDeliveryOrderService
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {
-        $this->fromData = date("Y-m-d 00:00:00");
+        //$this->fromData = date("Y-m-d 00:00:00");
+        $this->fromData = date("2017-01-11 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         $esgOrders = So::where("status",5)
@@ -306,15 +307,16 @@ class IwmsCreateDeliveryOrderService
         $this->message['so_no'][] = $so_no;
     }
 
-    public function setIwmsLgsOrderStatusToShip($esgOrder, $merchantId)
+    public function setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId)
     {
         $result = null;
         $iwmsLgsOrderStatusLog = IwmsLgsOrderStatusLog::where("platform_order_no",$esgOrder->platform_order_id)
                         ->first();
         if((!empty($iwmsLgsOrderStatusLog) && $iwmsLgsOrderStatusLog->status != 1) 
             ||empty($iwmsLgsOrderStatusLog)) {
-            $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder);
+            $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId);
         }
+        print_r($esgOrder); print_r($result); exit();
         if(isset($result["tracking_no"]) && $result["tracking_no"]){
             $object['iwms_platform'] = $this->wmsPlatform;
             $object['esg_courier_id'] = $esgOrder->esg_quotation_courier_id;
