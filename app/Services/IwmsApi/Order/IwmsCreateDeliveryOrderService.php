@@ -74,6 +74,9 @@ class IwmsCreateDeliveryOrderService
                 if ($deliveryCreationRequest) {
                     $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
                 }
+                if(!empty($this->message)){
+                    $this->sendAlertEmail($this->message);
+                }
             }
             return $batchRequest;
         }
