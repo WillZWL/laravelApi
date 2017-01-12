@@ -64,7 +64,7 @@ class IwmsCreateDeliveryOrderService
                     $warehouseId = $soAllocate->warehouse_id;
                 }
                 $iwmsCourierCode = $this->getIwmsCourierCode($esgOrder->esg_quotation_courier_id,$merchantId);
-                if(in_array( $iwmsCourierCode, $this->lgsCourier)){
+                if(!empty($esgOrder->txn_id) && in_array( $iwmsCourierCode, $this->lgsCourier)){
                     $IwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId);
                     if(!empty($IwmsLgsOrderStatusLog)) {
                         continue;
