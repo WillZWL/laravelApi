@@ -356,6 +356,11 @@ class IwmsCreateDeliveryOrderService
                     $object['status'] = 1;  
                 }
                 return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object); 
+            }else{
+                $subject = "LGS order get trackingNo failed.";
+                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                $msg = "Order ID: ".$esgOrder->so_no." can not get trackingNO.\r\n";
+                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
             }
         } else {
             if($iwmsLgsOrderStatusLog->status != 1){
