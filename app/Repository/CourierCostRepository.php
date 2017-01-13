@@ -33,7 +33,9 @@ class CourierCostRepository
             $allowBuiltInBattery = $shippingOption->courierInfo->allow_builtin_battery;
             $allowExternalBattery = $shippingOption->courierInfo->allow_external_battery;
             $courierName = $shippingOption->courierInfo->courier_name;
-            return compact('courierId', 'freightCost', 'fuelSurchargeInPercent', 'currency', 'type', 'allowBuiltInBattery', 'allowExternalBattery', 'courierName');
+            $allowDdp = $shippingOption->courierInfo->incoterms_ddp;
+            $allowDdu = $shippingOption->courierInfo->incoterms_ddu;
+            return compact('courierId', 'freightCost', 'fuelSurchargeInPercent', 'currency', 'type', 'allowBuiltInBattery', 'allowExternalBattery', 'courierName', 'allowDdp', 'allowDdu');
         });
 
         return $freightCost;
