@@ -90,4 +90,13 @@ class So extends Model
     {
         return $this->hasOne('App\Models\SoPriorityScore', 'so_no', 'so_no');
     }
+
+    public function scopeUnshippedOrder($query)
+    {
+        return $query->where('so.status', 5)
+                ->where('so.hold_status', 0)
+                ->where('so.refund_status', 0)
+                ->where('so.prepay_hold_status', 0);
+    }
+
 }
