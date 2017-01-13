@@ -178,7 +178,7 @@ class ApiLazadaService implements ApiPlatformInterface
             if(!empty($msg)){
                 $subject = "lazada Order Ready to ship failed";
                 $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                mail("jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
             }
             if(!empty($document)){
                 $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
@@ -250,12 +250,12 @@ class ApiLazadaService implements ApiPlatformInterface
             }
             $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
             if(!empty($platformMarketOrder)){
-                if($platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
+                if($platformMarketOrder->order_status == "Pending" && !empty($orderItemIds)){
                     $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
                     if($result){
                         $valid = true;
                     }
-                } else if(in_array($platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
+                } else if(in_array($platformMarketOrder->order_status, ["Shipped","ReadyToShip","Delivered"])){
                     $valid = true;
                 }
             }
