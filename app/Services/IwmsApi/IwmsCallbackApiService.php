@@ -227,7 +227,7 @@ class IwmsCallbackApiService
                     $this->sendMsgCreateDeliveryOrderReport($responseMessage);
                 }
                if($key === "failed"){
-                    $this->sendMsgCreateDeliveryErrorEmail($responseMessage, $batchId);
+                    $this->sendMsgCreateDeliveryErrorEmail($responseMessage, $batchObject->id);
                 }
             }
         }
