@@ -17,8 +17,8 @@ class CreateEsgLgsOrderDocumentLog extends Migration
             $table->increments('id');
             $table->string("store_name", 64);
             $table->string("order_item_ids", 256);
-            $table->string("doucment_type", 64);
-            $table->string("doucment_url", 256)->nullable();
+            $table->string("document_type", 64);
+            $table->string("document_url", 256)->nullable();
             $table->integer("status")->default(0);
             $table->timestamps();
         });
