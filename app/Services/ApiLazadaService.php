@@ -200,7 +200,7 @@ class ApiLazadaService implements ApiPlatformInterface
         $esgLgsOrderDocumentLogs= EsgLgsOrderDocumentLog::where("status",0)
             ->get();
         foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
-             $document[$esgLgsOrderDocumentLogs->store_name][] = $esgLgsOrderDocumentLogs->order_item_ids;
+             $document[$esgLgsOrderDocumentLog->store_name][] = $esgLgsOrderDocumentLog->order_item_ids;
             if(!empty($document)){
                 $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
                 foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
@@ -393,12 +393,13 @@ class ApiLazadaService implements ApiPlatformInterface
         //
         $pdfHrDom ='<hr style="page-break-after: always;border-top: 3px dashed;">';
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
+        $documentUrl = null;
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
                 $esgLgsOrderDocumentLog["store_name"] = $storeName;
                 $esgLgsOrderDocumentLog["order_item_ids"] = $orderItemId;
                 $esgLgsOrderDocumentLog["doucment_type"] = $doucmentType;
-                $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
+                $fileHtml = $this->getDocument($storeName, json_encode($orderItemId), $doucmentType);
                 if($fileHtml){
                     if($doucmentType == "invoice"){
                     $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
@@ -409,13 +410,16 @@ class ApiLazadaService implements ApiPlatformInterface
                         $document[$doucmentType] = $fileHtml;
                     }
                     $esgLgsOrderDocumentLog["status"] = 1;
+                }else{
+                    $esgLgsOrderDocumentLog["status"] = 0;
                 }
             }
             $esgLgsOrderLog["DocumentLogs"][] = $esgLgsOrderDocumentLog;
         }
         if($document){
-          $esgLgsOrderLog["documentUrl"] = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+          $documentUrl = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
         }
+        $esgLgsOrderLog["documentUrl"] = $documentUrl;
         return $esgLgsOrderLog;
     }
 
