@@ -139,14 +139,14 @@ class IwmsFactoryWmsService extends IwmsCoreService
                     $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)
                         ->first();
                     if(!empty($platformMarketOrder)){
-                        if($platformMarketOrder->status == "Pending"){
+                        if($platformMarketOrder->order_status == "Pending"){
                             $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
                             $result = $this->getApiLazadaService()->wmsSetLgsOrderReadyToShip($esgOrder, $warehouseId, false);
                             if(isset($result["valid"]) && $result["valid"]){
                                 $iwmsLgsOrderStatusLog->status = 1;
                                 $iwmsLgsOrderStatusLog->save();
                             }
-                        }else if(in_array($platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
+                        }else if(in_array($platformMarketOrder->order_status, ["Shipped","ReadyToShip","Delivered"])){
                             $iwmsLgsOrderStatusLog->status = 1;
                             $iwmsLgsOrderStatusLog->save();
                         }
