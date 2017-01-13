@@ -4,7 +4,9 @@ namespace App\Services\IwmsApi;
 
 use App\Models\So;
 use App\Models\IwmsFeedRequest;
-use App\Models\IwmsDeliveryOrderLog;
+use App\Models\IwmsLgsOrderStatusLog;
+use App\Models\PlatformMarketOrder;
+
 use App;
 
 class IwmsFactoryWmsService extends IwmsCoreService
@@ -126,20 +128,29 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function cronSetIwmsLgsOrderReadytoShip()
     {
-        $courier =  array("4PX-PL-LGS");
-        $iwmsDeliveryOrderLogs = IwmsDeliveryOrderLog::whereIn("iwms_coruier_code", $courier)
-                ->where("status", 1)
-                ->whereHas('iwmsLgsOrderStatusLog', function ($query) {
-                    $query->where('status', 0);
-                })
+        $iwmsLgsOrderStatusLogs = IwmsLgsOrderStatusLog::where("status", 0)
                 ->get();
-        if(!$iwmsDeliveryOrderLogs->isEmpty()){
-            foreach ($iwmsDeliveryOrderLogs as $iwmsDeliveryOrderLog) {
-                $result = $this->getApiLazadaService()->IwmsSetLgsOrderReadyToShip($esgOrder);
-                if($result){
-                    $iwmsLgsOrderStatusLog = $iwmsDeliveryOrderLog->iwmsLgsOrderStatusLog;
-                    $iwmsLgsOrderStatusLog->status = 1;
-                    $iwmsLgsOrderStatusLog->save(); 
+        if(!$iwmsLgsOrderStatusLogs->isEmpty()){
+            foreach ($iwmsLgsOrderStatusLogs as $iwmsLgsOrderStatusLog) {
+                $esgOrder = So::where("so_no", $iwmsLgsOrderStatusLog->so_no)
+                            ->with('soAllocate')
+                            ->first();
+                if(!empty($esgOrder)){
+                    $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)
+                        ->first();
+                    if(!empty($platformMarketOrder)){
+                        if($platformMarketOrder->status == "Pending"){
+                            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+                            $result = $this->getApiLazadaService()->wmsSetLgsOrderReadyToShip($esgOrder, $warehouseId, false);
+                            if(isset($result["valid"]) && $result["valid"]){
+                                $iwmsLgsOrderStatusLog->status = 1;
+                                $iwmsLgsOrderStatusLog->save();
+                            }
+                        }else if($platformMarketOrder->status == "Pending"){
+                            $iwmsLgsOrderStatusLog->status = 1;
+                            $iwmsLgsOrderStatusLog->save();
+                        }
+                    }  
                 }
             }
         }

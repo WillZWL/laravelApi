@@ -68,18 +68,24 @@ class IwmsCreateDeliveryOrderService
                 if(!empty($esgOrder->txn_id) && in_array( $iwmsCourierCode, $this->lgsCourier)){
                     $iwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId);
                     if(!empty($iwmsLgsOrderStatusLog)) {
-                        $trackingNo = $iwmsLgsOrderStatusLog->tracking_no;
+                        $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId, $iwmsLgsOrderStatusLog->tracking_no);
                     }
-                }
-                $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder,$esgOrder->esg_quotation_courier_id, $warehouseId, $trackingNo);
-                if ($deliveryCreationRequest) {
-                    $this->_saveIwmsDeliveryOrderRequestData($batchRequest->id,$deliveryCreationRequest);
+                }else{
+                    $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId);
                 }
                 if(!empty($this->message)){
                     $this->sendAlertEmail($this->message);
                 }
             }
             return $batchRequest;
+        }
+    }
+
+    private function deliveryOrderCreationRequest($batchId , $esgOrder, $warehouseId, $trackingNo = null)
+    {
+        $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder, $warehouseId, $trackingNo);
+        if ($deliveryCreationRequest) {
+            $this->_saveIwmsDeliveryOrderRequestData($batchId,$deliveryCreationRequest);
         }
     }
 
@@ -117,9 +123,10 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function getDeliveryCreationObject($esgOrder, $courierId, $warehouseId, $trackingNo)
+    private function getDeliveryCreationObject($esgOrder, $warehouseId, $trackingNo = null)
     {
-        $merchantId = "ESG";
+        $merchantId = "ESG"; 
+        $courierId = $esgOrder->esg_quotation_courier_id;
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
         $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
 

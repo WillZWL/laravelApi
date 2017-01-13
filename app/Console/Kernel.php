@@ -152,8 +152,8 @@ class Kernel extends ConsoleKernel
                     array('--platform' => 'DISPATCH', '--merchant' => 'RING', '--score' => '2000'))
             ->dailyAt('09:30');
 
-         $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
+        /*$schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
             ->everyTenMinutes();
-            //->dailyAt('01:20');
+        */
     }
 }
