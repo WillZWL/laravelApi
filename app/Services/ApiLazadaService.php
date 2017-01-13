@@ -200,7 +200,7 @@ class ApiLazadaService implements ApiPlatformInterface
         $esgLgsOrderDocumentLogs= EsgLgsOrderDocumentLog::where("status",0)
             ->get();
         foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
-             $document[$esgLgsOrderDocumentLog->store_name][] = $esgLgsOrderDocumentLog->order_item_ids;
+             $document[$esgLgsOrderDocumentLog->store_name][] = json_encode($esgLgsOrderDocumentLog->order_item_ids);
             if(!empty($document)){
                 $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
                 foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
@@ -399,7 +399,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $esgLgsOrderDocumentLog["store_name"] = $storeName;
                 $esgLgsOrderDocumentLog["order_item_ids"] = $orderItemId;
                 $esgLgsOrderDocumentLog["doucment_type"] = $doucmentType;
-                $fileHtml = $this->getDocument($storeName, json_encode($orderItemId), $doucmentType);
+                $fileHtml = $this->getDocument($storeName, $orderItemId, $doucmentType);
                 if($fileHtml){
                     if($doucmentType == "invoice"){
                     $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
