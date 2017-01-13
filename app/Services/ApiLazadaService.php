@@ -134,26 +134,28 @@ class ApiLazadaService implements ApiPlatformInterface
 	}
 
     //run request 4px to lazada api set order ready to ship one by one
-    public function iwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId)
+    public function iwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId, $getTrackingNo = true)
     {
-        $ordersIdList = null; $valid = null; $trackingNo = null;
+        $orderList = null; $valid = null; $trackingNo = null;
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
-        $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
-        //Not allowed to change the preselected shipment provider
-        if(!empty($orderList)){
-            foreach ($orderList as $order) {
-                foreach ($order["OrderItems"] as $orderItem) {
-                    if(isset($orderItem["TrackingCode"])){
-                        $trackingNo = $orderItem["TrackingCode"];
-                    }else{
-                        $trackingNo = $orderItem["0"]["TrackingCode"];
-                    }
-                }
-            }   
-        }
         $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+        if($getTrackingNo){
+            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+            //Not allowed to change the preselected shipment provider
+            if(!empty($orderList)){
+                foreach ($orderList as $order) {
+                    foreach ($order["OrderItems"] as $orderItem) {
+                        if(isset($orderItem["TrackingCode"])){
+                            $trackingNo = $orderItem["TrackingCode"];
+                        }else{
+                            $trackingNo = $orderItem["0"]["TrackingCode"];
+                        }
+                    }
+                }   
+            }  
+        }
         return array("tracking_no" => $trackingNo, "valid" => $result["valid"]);
     }
 
