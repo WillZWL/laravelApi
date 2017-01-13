@@ -5,10 +5,16 @@ namespace App\Services\IwmsApi;
 use Illuminate\Http\Request;
 use App\Models\So;
 use App\Models\SoShipment;
+use App\Models\SoItemDetail;
 use App\Models\InvMovement;
 use App\Models\IwmsFeedRequest;
 use App\Models\BatchRequest;
 use App\Models\IwmsDeliveryOrderLog;
+
+use App\Services\ShippingService;
+use App\Repository\AcceleratorShippingRepository;
+use App\Repository\MarketplaceProductRepository;
+use App\Models\ExchangeRate;
 
 class IwmsCallbackApiService
 {
@@ -43,7 +49,10 @@ class IwmsCallbackApiService
         if (!empty($postContent)){
             $postMessage = json_decode($postContent);
             //run the own program jobs
-            $this->responseMsgAction($postMessage);
+            $responseData = $this->responseMsgAction($postMessage);
+            if (isset($responseData)) {
+                $responseMsg["responseData"] = $responseData;
+            }
             $responseMsg["signature"] = $this->checkSignature($postMessage,$echoStr);
             return $responseMsg;
         }
@@ -51,22 +60,174 @@ class IwmsCallbackApiService
 
     public function responseMsgAction($postMessage)
     {
-        if($postMessage->action == "orderCreate"){
-            IwmsFeedRequest::where("iwms_request_id", $postMessage->request_id)->update(array("status"=> "1","response_log" => json_encode($postMessage->responseMessage)));
-            $batchObject = BatchRequest::where("iwms_request_id", $postMessage->request_id)->first();
-            if(!empty($batchObject)){
-                $batchObject->status = "C";
-                $batchObject->save();
-                foreach ($postMessage->responseMessage as $key => $responseMessage) {
-                    if($key === "success"){
-                        foreach ($responseMessage as $value) {
-                            $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+        switch ($postMessage->action) {
+            case 'orderCreate':
+                return $this->deliveryOrderCreate($postMessage);
+                break;
+
+            case 'confirmShipped':
+                return $this->deliveryConfirmShipped($postMessage);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    public function deliveryConfirmShipped($postMessage)
+    {
+        $shippedCollection = [];
+        $responseMessage = $postMessage->responseMessage;
+        if (isset($responseMessage)) {
+            foreach ($responseMessage as $shippedOrder) {
+                $shipped = $this->confirmShippedEsgOrder($shippedOrder);
+                $shippedCollection[$shippedOrder->reference_no] = $shipped;
+            }
+            $this->sendDeliveryOrderShippedReport($responseMessage, $shippedCollection);
+        }
+
+        return $shippedCollection;
+    }
+
+    public function sendDeliveryOrderShippedReport($responseMessage, $shippedCollection)
+    {
+        $cellData = $this->geMsgShippedReport($responseMessage, $shippedCollection);
+        $filePath = \Storage::disk('iwms')->getDriver()->getAdapter()->getPathPrefix();
+        $orderPath = $filePath."ConfirmDispatch/";
+        $fileName = "deliveryShipment-".time();
+        if(!empty($cellData)){
+            $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
+            if($excelFile){
+                $subject = "[ESG]By IWMS Confirm Dispatch Collection Report!";
+                $attachment = array("path" => $orderPath,"file_name"=>$fileName.".xlsx");
+                $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com',$subject,$attachment);
+            }
+        }
+    }
+
+    public function geMsgShippedReport($responseMessage, $shippedCollection)
+    {
+        if(!empty($responseMessage)){
+            $cellData[] = [
+                'Request Id', 
+                'Order No.', 
+                'Platform Order No.', 
+                'Ship Date', 
+                'Tracking No.', 
+                'Weight Predict', 
+                'Weight Actual', 
+                'Billing Weight Actual', 
+                'Confirm Dispatch', 
+            ];
+            foreach ($responseMessage as $shippedOrder) {
+                $esgSoNo = $shippedOrder->reference_no;
+                if (isset($shippedCollection[$esgSoNo])
+                    && isset($shippedOrder->tracking_no)
+                    && $shippedCollection[$esgSoNo] === true
+                ) {
+                    $confirmDispatch = "Success";
+                } else {
+                    if (empty($shippedOrder->tracking_no)) {
+                        $confirmDispatch = "Failed, No tracking No.";
+                    } else {
+                        $confirmDispatch = "Failed";
+                    }
+                }
+                $cellData[] = array(
+                    'request_id' => $shippedOrder->request_id,
+                    'reference_no' => $esgSoNo,
+                    'marketplace_reference_no' => $shippedOrder->marketplace_reference_no,
+                    'ship_date' => $shippedOrder->ship_date,
+                    'tracking_no' => $shippedOrder->tracking_no,
+                    'weight_predict' => $shippedOrder->weight_predict,
+                    'weight_actual' => $shippedOrder->weight_actual,
+                    'weight_charge' => $shippedOrder->weight_charge,
+                    'confirm_dispatch' => $confirmDispatch,
+                );
+            }
+            return $cellData;
+        }
+        return null;
+    }
+
+    public function confirmShippedEsgOrder($shippedOrder)
+    {
+
+        try {
+            if ($shippedOrder->tracking_no 
+                && $esgOrder = So::UnshippedOrder()->where("so_no", $shippedOrder->reference_no)->first()
+            ) {
+                if ($firstSoAllocate =  $esgOrder->soAllocate->where('status', 2)->first()) {
+                    $soShipment = $firstSoAllocate->soShipment;
+                    $soShipment->status = 2;
+                    $soShipment->tracking_no = $shippedOrder->tracking_no;
+                    $soShipment->save();
+
+                    if ($soAllocates = $esgOrder->soAllocate) {
+                        foreach ($soAllocates as $soAllocate) {
+                            $soAllocate->status = 3;
+                            $soAllocate->save();
+                            SoItemDetail::where('so_no', $soAllocate->so_no)
+                                ->where('line_no', $soAllocate->line_no)
+                                ->update(['status' => 1]);
                         }
-                        $this->sendMsgCreateDeliveryOrderReport($responseMessage);
                     }
-                   if($key === "failed"){
-                        $this->sendMsgCreateDeliveryErrorEmail($responseMessage, $batchObject->id);
+
+                    $esgOrder->status = 6;
+                    $esgOrder->actual_weight = $shippedOrder->weight_charge;
+                    $esgOrder->dispatch_date = $shippedOrder->ship_date ? $shippedOrder->ship_date : date("Y-m-d H:i:s");
+                    $esgOrder->save();
+                    $this->setRealDeliveryCost($esgOrder);
+                    return true;
+                }
+            }
+        } catch (Exception $e) {
+            $to = "privatelabel-log@eservicesgroup.com";
+            $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+            $subject = "[ESG] Alert, Confirm Shipped Exception, ESG so_no: ". $shippedOrder->reference_no;
+            $message = "Error: ". $e->getMessage();
+            $this->_sendEmail($to, $subject, $message, $header);
+        }
+
+        return false;
+    }
+
+    public function setRealDeliveryCost($esgOrder)
+    {
+        $this->shippingService = new ShippingService(
+            new AcceleratorShippingRepository, 
+            new MarketplaceProductRepository
+        );
+        $deliveryInfo = $this->shippingService->orderDeliveryCost($esgOrder->so_no);
+        if (!isset($deliveryInfo['error']) 
+            && isset($deliveryInfo['delivery_cost'])
+        ) {
+            $rate = ExchangeRate::getRate($deliveryInfo['currency_id'], $esgOrder->currency_id);
+            $esgOrder->real_delivery_cost = $deliveryInfo['delivery_cost'] * $rate;
+            $esgOrder->final_surcharge = $deliveryInfo['surcharge'];
+            $esgOrder->save();
+        }
+    }
+
+    public function deliveryOrderCreate($postMessage)
+    {
+        IwmsFeedRequest::where("iwms_request_id", $postMessage->request_id)->update([
+            "status"=> "1",
+            "response_log" => json_encode($postMessage->responseMessage)
+        ]);
+        $batchObject = BatchRequest::where("iwms_request_id", $postMessage->request_id)->first();
+        if(!empty($batchObject)){
+            $batchObject->status = "C";
+            $batchObject->save();
+            foreach ($postMessage->responseMessage as $key => $responseMessage) {
+                if($key === "success"){
+                    foreach ($responseMessage as $value) {
+                        $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
                     }
+                    $this->sendMsgCreateDeliveryOrderReport($responseMessage);
+                }
+               if($key === "failed"){
+                    $this->sendMsgCreateDeliveryErrorEmail($responseMessage);
                 }
             }
         }
@@ -205,10 +366,14 @@ class IwmsCallbackApiService
         }
         if($msg){
             $msg .= "\r\n";
-            mail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+            $this->_sendEmail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
         }
     }
 
+    private function _sendEmail($to, $subject, $message, $header)
+    {
+        mail("{$to}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+    }
 
 }
 
