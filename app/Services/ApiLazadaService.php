@@ -234,14 +234,14 @@ class ApiLazadaService implements ApiPlatformInterface
 
     private function setEsgLgsOrderReadyToShip($esgOrder)
     {
-        $valid = null; 
+        $valid = null; $orderItemIds = array();
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
         $lazadaShipments = $this->getShipmentProviders($storeName);
-        
+        $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+        $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
         if(!empty($shipmentProvider)){
-            $orderItemIds = array();
             foreach($esgOrder->soItem as $soItem){
                 $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
                 foreach($itemIds as $itemId){
