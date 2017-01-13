@@ -170,7 +170,8 @@ class ApiLazadaService implements ApiPlatformInterface
                 $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
                 if($result["valid"]){
                     $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
-                    $document[$result["storeName"]][] = $result["orderItemIds"];
+                    $documentArr[$result["storeName"]][] = $result["orderItemIds"];
+                    $document = $this->getGroupStoreNameDocument($documentArr);
                 } else {
                     $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
                 }
@@ -197,10 +198,13 @@ class ApiLazadaService implements ApiPlatformInterface
 
     public function cornGetEsgLgsOrderDocument()
     {
-        $esgLgsOrderDocumentLogs= EsgLgsOrderDocumentLog::where("status",0)
+        $esgLgsOrderDocumentLogs = EsgLgsOrderDocumentLog::where("status",0)
             ->get();
-        foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
-             $document[$esgLgsOrderDocumentLog->store_name][] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
+        if(!$esgLgsOrderDocumentLogs->isEmpty()){
+            foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
+             $documentArr[$esgLgsOrderDocumentLog->store_name][] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
+            }
+            $document = $this->getGroupStoreNameDocument($documentArr);
             if(!empty($document)){
                 $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
                 foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
@@ -210,6 +214,20 @@ class ApiLazadaService implements ApiPlatformInterface
                 }
             }
         }
+    }
+
+    private function getGroupStoreNameDocument($documentArr)
+    {
+        $$document = null;
+        if(!empty($documentArr)){
+            foreach ($documentArr as $storeName => $documentValue) {
+                foreach ($documentValue as $value) {
+                    $documentLabel[]= $value;
+                }
+                $document[$storeName] = array_unique($documentLabel);
+            }
+        }
+        return $document;
     }
 
     private function getEsgLgsAllocateOrders()
@@ -397,7 +415,7 @@ class ApiLazadaService implements ApiPlatformInterface
         foreach($doucmentTypeArr as $doucmentType ){
             foreach ($documentLabels as $storeName => $orderItemId) {
                 $esgLgsOrderDocumentLog["store_name"] = $storeName;
-                $esgLgsOrderDocumentLog["order_item_ids"] = $orderItemId;
+                $esgLgsOrderDocumentLog["order_item_ids"] = json_encode($orderItemId);
                 $esgLgsOrderDocumentLog["document_type"] = $doucmentType;
                 $fileHtml = $this->getDocument($storeName, $orderItemId, $doucmentType);
                 if($fileHtml){
