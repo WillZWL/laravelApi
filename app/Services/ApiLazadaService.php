@@ -171,7 +171,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 if($result["valid"]){
                     $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
                     $document[$result["storeName"]][] = $result["orderItemIds"];
-                }else {
+                } else {
                     $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
                 }
             }
@@ -249,9 +249,13 @@ class ApiLazadaService implements ApiPlatformInterface
                 }
             }
             $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
-            if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
-                $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                if($result){
+            if(!empty($platformMarketOrder)){
+                if($platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
+                    $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                    if($result){
+                        $valid = true;
+                    }
+                } else if(in_array($platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
                     $valid = true;
                 }
             }
