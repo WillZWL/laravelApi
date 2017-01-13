@@ -16,7 +16,7 @@ class IwmsCancelDeliveryOrderService
     {
         $deliveryCancelRequest = null;
         $batchRequest = $this->getDeliveryCancelRequestBatch($esgOrderSoList);
-        return (!empty($batchRequest) ? $batchRequest : null;
+        return (!empty($batchRequest)）? $batchRequest : null;
     }
 
     public function getDeliveryCancelRequestBatch($esgOrderSoList)

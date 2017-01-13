@@ -10,6 +10,8 @@ use App\Models\Inventory;
 use App\Models\Schedule;
 use App\Models\InvMovement;
 use App\Models\So;
+use App\Models\SoShipment;
+use App\Models\EsgLgsOrderDocumentLog;
 use App\Models\PlatformMarketReasons;
 use App\Models\StoreWarehouse;
 use PDF;
@@ -131,78 +133,204 @@ class ApiLazadaService implements ApiPlatformInterface
         return $orginOrderItemList;
 	}
 
-    //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
-    public function esgOrderReadyToShip($soNoList)
+    //run request 4px to lazada api set order ready to ship one by one
+    public function iwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId, $getTrackingNo = true)
     {
-        $pdfFilePath = "/var/data/shop.eservicesgroup.com/marketplace/".date("Y")."/".date("m")."/".date("d")."/lazada/label/";
-        $result = "";$returnData = "";
-        $esgOrders = So::whereIn('so_no', $soNoList)
-                ->where("biz_type","like","%Lazada")
-                ->get();
+        $orderList = null; $valid = null; $trackingNo = null;
+        $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
+        $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
+        $storeName = $prefix."LAZADA".$countryCode;
+        $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+        if($getTrackingNo){
+            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+            //Not allowed to change the preselected shipment provider
+            if(!empty($orderList)){
+                foreach ($orderList as $order) {
+                    foreach ($order["OrderItems"] as $orderItem) {
+                        if(isset($orderItem["TrackingCode"])){
+                            $trackingNo = $orderItem["TrackingCode"];
+                        }else{
+                            $trackingNo = $orderItem["0"]["TrackingCode"];
+                        }
+                    }
+                }   
+            }  
+        }
+        return array("tracking_no" => $trackingNo, "valid" => $result["valid"]);
+    }
+
+    //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
+    public function cronSetEsgLgsOrderToReadyToShip()
+    {
+        $document = null; $msg = null;
+        $esgOrders = $this->getEsgLgsAllocateOrders();
         if(!$esgOrders->isEmpty()) {
-            $esgOrderGroups = $esgOrders->groupBy("platform_id");
-            $returnData = $this->esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath);
-            if(isset($returnData["documentLabel"])){
-                $returnData["document"] = $this->getESGOrderDocumentLabel($returnData["documentLabel"],$pdfFilePath);
+            foreach ($esgOrders as $esgOrder) {
+                $result = null;
+                $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+                if($result["valid"]){
+                    $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
+                    $document[$result["storeName"]][] = $result["orderItemId"];
+                } else {
+                    $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
+                }
             }
-            return $result = array("status" => "success","message" => $returnData);
-        }else{
-            return $result = array("status" => "failed","message" => "Invalid Order");
+            if(!empty($msg)){
+                $subject = "lazada Order Ready to ship failed";
+                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+            }
+            if(!empty($document)){
+                $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
+                foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
+                   $esgLgsOrderDocumentLog = new EsgLgsOrderDocumentLog();
+                   $esgLgsOrderDocumentLog->store_name = $documentLog["store_name"];
+                   $esgLgsOrderDocumentLog->order_item_ids = json_encode($documentLog["order_item_ids"]);
+                   $esgLgsOrderDocumentLog->document_type = $documentLog["document_type"];
+                   $esgLgsOrderDocumentLog->status = $documentLog["status"];
+                   $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
+                   $esgLgsOrderDocumentLog->save();
+                }
+            }
         }
     }
 
-    public function setEsgOrderGroupsReadyToShip($esgOrderGroups, $pdfFilePath)
+    public function cornGetEsgLgsOrderDocument()
     {
-        $result = "";$returnData = "";
-        $returnData = $this->esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath);
-        
+        $esgLgsOrderDocumentLogs = EsgLgsOrderDocumentLog::where("status",0)
+            ->get();
+        if(!$esgLgsOrderDocumentLogs->isEmpty()){
+            foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
+            $document[$esgLgsOrderDocumentLog->store_name] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
+                if(!empty($document)){
+                    $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
+                    foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
+                       $esgLgsOrderDocumentLog->status = $documentLog["status"];
+                       $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
+                       $esgLgsOrderDocumentLog->save();
+                    }
+                }
+            }
+        }
     }
-    //run request to lazada api set order ready to ship one by one
-    public function IwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId)
+
+    private function getGroupStoreNameDocument($documentArr)
     {
-        $ordersIdList = null; $valid = null; $trackingNo = null;
+        $document = null;
+        if(!empty($documentArr)){
+            foreach ($documentArr as $storeName => $documentValue) {
+                foreach ($documentValue as $value) {
+                    $documentLabel[]= $value;
+                }
+                $document[$storeName] = array_unique($documentLabel);
+            }
+        }
+        return $document;
+    }
+
+    private function getEsgLgsAllocateOrders()
+    {
+        $this->fromData = date("Y-m-d 00:00:00");
+        $this->toDate = date("Y-m-d 23:59:59");
+        return $esgOrders = So::where("status",5)
+            ->where("refund_status", "0")
+            ->where("hold_status", "0")
+            ->where("prepay_hold_status", "0")
+            ->where("esg_quotation_courier_id", "93")
+            ->whereHas('soAllocate', function ($query) {
+                $query->whereIn('warehouse_id', ["ES_HK"])
+                    ->where("status", 1)
+                    ->where("modify_on", ">=", $this->fromData)
+                    ->where("modify_on", "<=", $this->toDate);
+            })
+            ->with("soItem")
+            ->limit("2")
+            ->get();
+    }
+
+    private function setEsgLgsOrderReadyToShip($esgOrder)
+    {
+        $valid = null; $orderItemIds = array();
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
         $lazadaShipments = $this->getShipmentProviders($storeName);
-        
-        $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
-        //Not allowed to change the preselected shipment provider
-        if(!empty($orderList)){
-            foreach ($orderList as $order) {
-                foreach ($order["OrderItems"] as $orderItem) {
-                    if(isset($orderItem["TrackingCode"])){
-                        $trackingNo = $orderItem["TrackingCode"];
-                    }else{
-                        $trackingNo = $orderItem["0"]["TrackingCode"];
-                    }
+        $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
+        $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
+        if(!empty($shipmentProvider)){
+            foreach($esgOrder->soItem as $soItem){
+                $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
+                foreach($itemIds as $itemId){
+                    $orderItemIds[] = $itemId;
                 }
-            }   
-        }
-        $orderItemIds = array();
-        foreach($esgOrder->soItem as $soItem){
-            $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
-            foreach($itemIds as $itemId){
-                $orderItemIds[] = $itemId;
             }
-        }
-        $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
-        if(!empty($platformMarketOrder) && $platformMarketOrder->status == "Pending" && !empty($orderItemIds)){
-            $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
-            if(!empty($shipmentProvider)){
-                $result = $this->setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
-                if($result){
+            $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
+            if(!empty($platformMarketOrder)){
+                if($platformMarketOrder->order_status == "Pending" && !empty($orderItemIds)){
+                    $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                    if($result){
+                        $valid = true;
+                    }
+                } else if(in_array($platformMarketOrder->order_status, ["Shipped","ReadyToShip","Delivered"])){
                     $valid = true;
                 }
-            }else{
-                $subject = "lazada shipmentProvider need mapping";
-                $msg = print_r($lazadaShipments, true);
-                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
-                $valid = false;
+            }
+        }else{
+            $subject = "lazada shipmentProvider need mapping";
+            $msg = print_r($lazadaShipments, true);
+            $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+            mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+            $valid = false;
+        }
+        return [
+            "storeName" => $storeName, 
+            "orderItemId" => $orderItemIds[0],
+            "valid" => $valid,
+            ];
+    }
+
+    private function alertEsgOrderReadyToShipEmail($subject, $message)
+    {
+        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        mail("jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+        $valid = false;
+    }
+
+    private function updateEsgToShipOrderStatusToDispatch($esgOrder)
+    {
+        $soShipment = $this->createEsgSoShipment($esgOrder);
+        if(!empty($soShipment)){
+            foreach ($esgOrder->soAllocate as $soAllocate) { 
+                if($soAllocate->status != 1){
+                    continue;
+                }
+                $invMovement = InvMovement::where("ship_ref", $soAllocate->id)
+                    ->where("status", "AL")
+                    ->first();
+                if(!empty($invMovement)){
+                    $invMovement->ship_ref = $soShipment->sh_no;
+                    $invMovement->status = "OT";
+                    $invMovement->save();
+                    $soAllocate->status = 2;
+                    $soAllocate->sh_no = $soShipment->sh_no;
+                    $soAllocate->save();
+                }
             }
         }
-        return array("tracking_no" => $trackingNo, "valid" => $valid);
+    }
+
+    private function createEsgSoShipment($esgOrder)
+    {
+        $soShipment = SoShipment::where("sh_no", $esgOrder->so_no."-01")->first();
+        if(!empty($soShipment)){
+            return null;
+        }else{
+            $object['sh_no'] = $esgOrder->so_no."-01";
+            $object['courier_id'] = $esgOrder->esg_quotation_courier_id;
+            $object['status'] = 1;
+            $soShipment = SoShipment::updateOrCreate(['sh_no' => $object['sh_no']],$object);
+            return $soShipment;
+        }
     }
 
     public function orderFufillmentReadyToShip($orderGroup,$warehouse)
@@ -249,7 +377,6 @@ class ApiLazadaService implements ApiPlatformInterface
 
     public function merchantOrderFufillmentGetDocument($orderGroups,$doucmentType)
     {
-
         $orderItemIds = array();$fileDate = date("h-i-s");
         $filePath = \Storage::disk('merchant')->getDriver()->getAdapter()->getPathPrefix();
         $pdfFilePath = $filePath.date("Y")."/".date("m")."/".date("d")."/label/";
@@ -274,61 +401,22 @@ class ApiLazadaService implements ApiPlatformInterface
         }
     }
 
-    //run request to lazada api set order ready to ship one by one
-    private function esgOrderApiReadyToShip($esgOrderGroups,$pdfFilePath)
+    private function getEsgLgsOrderDocumentLabel($documentLabels)
     {
-        $returnData = null;
-        foreach($esgOrderGroups as $platformId => $esgOrderGroup)
-        {
-            $ordersIdList = null; $doucumentOrderItemIds = null;
-            $prefix = strtoupper(substr($platformId,3,2));
-            $countryCode = strtoupper(substr($platformId, -2));
-            $storeName = $prefix."LAZADA".$countryCode;
-            $lazadaShipments = $this->getShipmentProviders($storeName);
-            foreach($esgOrderGroup as $esgOrder)
-            {
-                if(!$esgOrder->soAllocate->isEmpty() && $esgOrder->status != 6){
-                    $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-                    $orderItemIds = $this->checkEsgOrderInventory($warehouseId,$esgOrder);
-                    if($orderItemIds){
-                        $updateWarehouseObject[] = $esgOrder;
-                        $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
-                        if($shipmentProvider){
-                            $result = $this->setApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$esgOrder->txn_id);
-                            if($result){
-                                $returnData[$esgOrder->so_no] = " Set Ready To Ship Success\r\n";
-                                $doucumentOrderItemIds[] = $orderItemIds[0];
-                                $ordersIdList[] = $esgOrder->txn_id;
-                            }else{
-                                $returnData[$esgOrder->so_no] = " Set Ready To Ship Failed\r\n";
-                            }
-                        }else{
-                            $returnData[$esgOrder->so_no] = "Shipment Provider is not exit in lazada admin system.";
-                        }
-                    }
-                }
-            }
-            if($doucumentOrderItemIds){
-                $returnData["documentLabel"][$storeName] = $doucumentOrderItemIds;
-            }
-            if($ordersIdList){
-                $this->updateOrderStatusReadyToShip($storeName,$ordersIdList);
-                $this->updateEsgWarehouseInventory($updateWarehouseObject);
-            }
-        }
-        return $returnData;
-    }
-
-    private function getESGOrderDocumentLabel($documentLabels,$pdfFilePath)
-    {
-        $document = array();
+        $pdfFilePath = "/var/data/vanguard/courier/LGS/".date("Y")."/".date("m")."/";
+        $document = array(); $esgLgsOrderLog = null;
         //$style ='<style type="text/css">.page {overflow: hidden;page-break-inside: avoid;}}</style>';
         //
         $pdfHrDom ='<hr style="page-break-after: always;border-top: 3px dashed;">';
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
-        foreach($doucmentTypeArr as $doucmentType ){
-            foreach ($documentLabels as $storeName => $orderItemId) {
-                $fileHtml = $this->getDocument($storeName,$orderItemId,$doucmentType);
+        $documentUrl = null;
+        foreach ($documentLabels as $storeName => $orderItemId) {    
+            $esgLgsOrderDocumentLog["document_type"] = json_encode($doucmentTypeArr);
+            $esgLgsOrderDocumentLog["store_name"] = $storeName;
+            $esgLgsOrderDocumentLog["order_item_ids"] = json_encode($orderItemId);
+            $status = 1;
+            foreach($doucmentTypeArr as $doucmentType ){
+                $fileHtml = $this->getDocument($storeName, $orderItemId, $doucmentType);
                 if($fileHtml){
                     if($doucmentType == "invoice"){
                     $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
@@ -338,13 +426,18 @@ class ApiLazadaService implements ApiPlatformInterface
                     }else{
                         $document[$doucmentType] = $fileHtml;
                     }
+                }else{
+                    $status = 0;
                 }
             }
+            $esgLgsOrderDocumentLog["status"] = $status;
+            $esgLgsOrderLog["DocumentLogs"][] = $esgLgsOrderDocumentLog;
         }
         if($document){
-           return $this->getDocumentSaveToDirectory($document,$pdfFilePath);
+          $documentUrl = $this->getDocumentSaveToDirectory($document,$pdfFilePath);
         }
-        return null;
+        $esgLgsOrderLog["documentUrl"] = $documentUrl;
+        return $esgLgsOrderLog;
     }
 
     private function updateEsgWarehouseInventory($updateWarehouseObject)
@@ -391,7 +484,7 @@ class ApiLazadaService implements ApiPlatformInterface
         return $orderItemIds;
     }
 
-    private function setIwmsApiOrderReadyToShip($storeName,$orderItemIds,$shipmentProvider,$orderId)
+    private function setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider)
     {
         $responseResult = null;
         $itemObject = array("orderItemIds" => $orderItemIds, "ShipmentProvider" => $shipmentProvider);
