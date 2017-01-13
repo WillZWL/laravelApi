@@ -146,7 +146,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                                 $iwmsLgsOrderStatusLog->status = 1;
                                 $iwmsLgsOrderStatusLog->save();
                             }
-                        }else if($platformMarketOrder->status == "Pending"){
+                        }else if(in_array($platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
                             $iwmsLgsOrderStatusLog->status = 1;
                             $iwmsLgsOrderStatusLog->save();
                         }
