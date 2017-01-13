@@ -186,7 +186,7 @@ class ApiLazadaService implements ApiPlatformInterface
                    $esgLgsOrderDocumentLog = new EsgLgsOrderDocumentLog();
                    $esgLgsOrderDocumentLog->store_name = $documentLog["store_name"];
                    $esgLgsOrderDocumentLog->order_item_ids = json_encode($documentLog["order_item_ids"]);
-                   $esgLgsOrderDocumentLog->doucment_type = $documentLog["doucment_type"];
+                   $esgLgsOrderDocumentLog->document_type = $documentLog["document_type"];
                    $esgLgsOrderDocumentLog->status = $documentLog["status"];
                    $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
                    $esgLgsOrderDocumentLog->save();
@@ -200,7 +200,7 @@ class ApiLazadaService implements ApiPlatformInterface
         $esgLgsOrderDocumentLogs= EsgLgsOrderDocumentLog::where("status",0)
             ->get();
         foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
-             $document[$esgLgsOrderDocumentLog->store_name][] = json_encode($esgLgsOrderDocumentLog->order_item_ids);
+             $document[$esgLgsOrderDocumentLog->store_name][] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
             if(!empty($document)){
                 $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
                 foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
@@ -398,7 +398,7 @@ class ApiLazadaService implements ApiPlatformInterface
             foreach ($documentLabels as $storeName => $orderItemId) {
                 $esgLgsOrderDocumentLog["store_name"] = $storeName;
                 $esgLgsOrderDocumentLog["order_item_ids"] = $orderItemId;
-                $esgLgsOrderDocumentLog["doucment_type"] = $doucmentType;
+                $esgLgsOrderDocumentLog["document_type"] = $doucmentType;
                 $fileHtml = $this->getDocument($storeName, $orderItemId, $doucmentType);
                 if($fileHtml){
                     if($doucmentType == "invoice"){
