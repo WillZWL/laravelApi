@@ -26,13 +26,18 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function createDeliveryOrder()
     {
-        $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
-        $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms);
-        if (!$request["requestBody"]) {
-            return false;
+        try {
+            $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
+            $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms);
+            if (!$request["requestBody"]) {
+                return false;
+            }
+            $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
+            $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Delivery Failed', $msg, 'From: admin@shop.eservciesgroup.com');
         }
-        $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
-        $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
     }
 
     public function cancelDeliveryOrder($esgOrderNoList)
