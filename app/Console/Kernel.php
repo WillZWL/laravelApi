@@ -39,6 +39,7 @@ class Kernel extends ConsoleKernel
         Commands\LazadaSGOrderRetrieve::class,
         Commands\PlatformMarketOrderUpdate::class,
         Commands\IwmsDeliveryOrder::class,
+        Commands\LgsOrderReadyToship::class,
     ];
 
     /**
