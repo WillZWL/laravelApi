@@ -73,9 +73,9 @@ class IwmsCreateDeliveryOrderService
                 }else{
                     $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId);
                 }
-                if(!empty($this->message)){
-                    $this->sendAlertEmail($this->message);
-                }
+            }
+            if(!empty($this->message)){
+                $this->sendAlertEmail($this->message);
             }
             return $batchRequest;
         }
@@ -146,7 +146,7 @@ class IwmsCreateDeliveryOrderService
             $extra_instruction = $esgOrder->courierInfo->courier_name;
         }
         if(in_array($iwmsCourierCode, $this->lgsCourier)){
-            $address = substr($esgOrder->delivery_address, 0, 120);
+            $address = mb_substr($esgOrder->delivery_address, 0, 120, "utf-8");
             $address = (preg_replace( "/\r|\n/", "", $address));
         }else{
             $address = $esgOrder->delivery_address;
@@ -184,7 +184,7 @@ class IwmsCreateDeliveryOrderService
             }
             $deliveryOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
-                "product_name" => $esgOrderItem->prod_name,
+                "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
                 "quantity" => $esgOrderItem->qty,
                 "hscode" => $hscode,
                 "hsDescription" => $hsDescription,
