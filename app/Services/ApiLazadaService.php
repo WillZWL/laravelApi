@@ -170,8 +170,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
                 if($result["valid"]){
                     $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
-                    $documentArr[$result["storeName"]][] = $result["orderItemIds"];
-                    $document = $this->getGroupStoreNameDocument($documentArr);
+                    $document[$result["storeName"]][] = $result["orderItemId"];
                 } else {
                     $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
                 }
@@ -202,15 +201,14 @@ class ApiLazadaService implements ApiPlatformInterface
             ->get();
         if(!$esgLgsOrderDocumentLogs->isEmpty()){
             foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
-             $documentArr[$esgLgsOrderDocumentLog->store_name][] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
-            }
-            $document = $this->getGroupStoreNameDocument($documentArr);
-            if(!empty($document)){
-                $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
-                foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
-                   $esgLgsOrderDocumentLog->status = $documentLog["status"];
-                   $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
-                   $esgLgsOrderDocumentLog->save();
+            $document[$esgLgsOrderDocumentLog->store_name] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
+                if(!empty($document)){
+                    $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
+                    foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
+                       $esgLgsOrderDocumentLog->status = $documentLog["status"];
+                       $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
+                       $esgLgsOrderDocumentLog->save();
+                    }
                 }
             }
         }
@@ -218,7 +216,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     private function getGroupStoreNameDocument($documentArr)
     {
-        $$document = null;
+        $document = null;
         if(!empty($documentArr)){
             foreach ($documentArr as $storeName => $documentValue) {
                 foreach ($documentValue as $value) {
@@ -286,7 +284,7 @@ class ApiLazadaService implements ApiPlatformInterface
         }
         return [
             "storeName" => $storeName, 
-            "orderItemIds" => $orderItemIds,
+            "orderItemId" => $orderItemIds[0],
             "valid" => $valid,
             ];
     }
@@ -412,11 +410,12 @@ class ApiLazadaService implements ApiPlatformInterface
         $pdfHrDom ='<hr style="page-break-after: always;border-top: 3px dashed;">';
         $doucmentTypeArr = ["invoice","carrierManifest","shippingLabel"];
         $documentUrl = null;
-        foreach($doucmentTypeArr as $doucmentType ){
-            foreach ($documentLabels as $storeName => $orderItemId) {
-                $esgLgsOrderDocumentLog["store_name"] = $storeName;
-                $esgLgsOrderDocumentLog["order_item_ids"] = json_encode($orderItemId);
-                $esgLgsOrderDocumentLog["document_type"] = $doucmentType;
+        foreach ($documentLabels as $storeName => $orderItemId) {    
+            $esgLgsOrderDocumentLog["document_type"] = json_encode($doucmentTypeArr);
+            $esgLgsOrderDocumentLog["store_name"] = $storeName;
+            $esgLgsOrderDocumentLog["order_item_ids"] = json_encode($orderItemId);
+            $status = 1;
+            foreach($doucmentTypeArr as $doucmentType ){
                 $fileHtml = $this->getDocument($storeName, $orderItemId, $doucmentType);
                 if($fileHtml){
                     if($doucmentType == "invoice"){
@@ -427,11 +426,11 @@ class ApiLazadaService implements ApiPlatformInterface
                     }else{
                         $document[$doucmentType] = $fileHtml;
                     }
-                    $esgLgsOrderDocumentLog["status"] = 1;
                 }else{
-                    $esgLgsOrderDocumentLog["status"] = 0;
+                    $status = 0;
                 }
             }
+            $esgLgsOrderDocumentLog["status"] = $status;
             $esgLgsOrderLog["DocumentLogs"][] = $esgLgsOrderDocumentLog;
         }
         if($document){
