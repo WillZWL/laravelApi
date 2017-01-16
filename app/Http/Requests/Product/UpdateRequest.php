@@ -26,7 +26,7 @@ class UpdateRequest extends Request
         return [
             'sku' => 'required',
             'name' => 'required',
-            'brand_id' => 'required',
+            //'brand_id' => 'required',
             'cat_id' => 'required',
         ];
     }
@@ -41,7 +41,7 @@ class UpdateRequest extends Request
         return [
             'sku.required' => 'Product sku must is required',
             'name.required' => 'Product name must is required',
-            'brand_id.required' => 'Brand ID must is required',
+            //'brand_id.required' => 'Brand ID must is required',
             'cat_id.email' => 'Category ID must is required',
         ];
     }
