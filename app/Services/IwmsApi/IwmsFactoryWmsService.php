@@ -42,12 +42,12 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function cancelDeliveryOrder($esgOrderNoList)
     {
-        $request = $this->getIwmsCancelOrderService()->getDeliveryCancelRequest($esgOrderNoList);
+        $request = $this->getIwmsCancelDeliveryOrderService()->getDeliveryCancelRequest($esgOrderNoList);
         if (!$request["requestBody"]) {
             return false;
         }
         $responseData = $this->curlIwmsApi('wms/cancel-delivery-order', $request["requestBody"]);
-        $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+        return $this->getIwmsCancelDeliveryOrderService()->responseMsgCancelAction($request["batchRequest"], $responseData);
     }
 
     public function sendCreateDeliveryOrderReport()
@@ -170,7 +170,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getIwmsCancelDeliveryOrderService()
     {
         if($this->iwmsCancelDeliveryOrderService == null)
-        return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService");
+        return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService", [$this->wmsPlatform]);
     }
 
     public function getApiLazadaService()
