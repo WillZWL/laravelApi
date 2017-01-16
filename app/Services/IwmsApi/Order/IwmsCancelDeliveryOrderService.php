@@ -46,11 +46,26 @@ class IwmsCancelDeliveryOrderService
         }
     }
 
-    public function responseMsgCancelAction($batchRequest, $postMessage)
+    public function responseMsgCancelAction($batchRequest, $postContent)
     {
+        $postMessage = json_decode($postContent); 
+        $msg = null;
         if(isset($postMessage->request_id) && !empty($batchObject)){
             $batchObject->iwms_request_id = $postMessage->request_id;
-                $batchObject->save();
+            $batchObject->response_log = $postMessage->response_log;
+            $batchObject->save();
+            foreach ($batchObject->response_log as $responseLog) {
+                if(isset($responseLog->error)){
+                    $msg .= "Order ID:".$responseLog->merchant_order_id."
+                    error:".$responseLog->error."\r\n";
+                }
+                if($msg){
+                    $subject = "Cancel OMS Delivery Order Failed,Please Check Error";
+                    $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                    $alertEmail = "privatelabel-log@eservicesgroup.com";
+                    mail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+                }
+            }
         }
     }
 
