@@ -158,10 +158,10 @@ class PlatformMarketOrderTransfer
         $this->saveSoItemDetail($so, $_orderItem);
         $this->saveSoPaymentStatus($so, $order);
         $this->saveSoExtend($so, $order);
-        $this->saveSalesOrderStatistic($so, $_orderItem);
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
         $this->setGroupOrderRecommendCourierAndCharge($so);
+        $this->saveSalesOrderStatistic($so, $_orderItem);
         return $so->so_no;
     }
 
@@ -753,6 +753,14 @@ class PlatformMarketOrderTransfer
                 $salesOrderStatistic->profit = $costDetails['profit'] * $item->quantity_ordered;
                 $salesOrderStatistic->margin = $costDetails['margin'];
                 $salesOrderStatistic->to_usd_rate = $so->rate;
+                if ($item->mapping->operator) {
+                    $salesOrderStatistic->operator = $item->mapping->operator;
+                }
+                if ($item->mapping->product->buyer) {
+                    $salesOrderStatistic->buyer = $item->mapping->product->buyer;
+                }
+            } else {
+                mail('handy.hon@eservicesgroup.com', '[Accelerator] Save cost and profit failed', $item->mapping->id);
             }
             $salesOrderStatistic->save();
         }
