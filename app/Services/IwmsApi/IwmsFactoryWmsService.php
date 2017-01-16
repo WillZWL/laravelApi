@@ -170,7 +170,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getIwmsCancelDeliveryOrderService()
     {
         if($this->iwmsCancelDeliveryOrderService == null)
-        return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService");
+        return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService", [$this->wmsPlatform]);
     }
 
     public function getApiLazadaService()
