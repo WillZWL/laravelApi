@@ -9,8 +9,15 @@ class IwmsCancelDeliveryOrderService
 {
     private $warehouseIds = null;
     private $message = null;
+    private $wmsPlatform = null;
+
     use \App\Services\IwmsApi\IwmsBaseService;
     
+    public function __construct($wmsPlatform)
+    {
+        $this->wmsPlatform = $wmsPlatform;
+    }
+
     public function getDeliveryCancelRequest($esgOrderSoList)
     {
         $deliveryCancelRequest = null;
@@ -23,7 +30,7 @@ class IwmsCancelDeliveryOrderService
         $esgAllocateOrder = null; $merchantId = "ESG";
         $iwmsDeliveryOrderLogs = $this->getIwmsDeliveryEsgOrderLogs($esgOrderSoList);
         if(!$iwmsDeliveryOrderLogs->isEmpty()){
-            $batchRequest = $this->get("CANCEL_DELIVERY",$this->wmsPlatform,$merchantId);
+            $batchRequest = $this->getNewBatchId("CANCEL_DELIVERY",$this->wmsPlatform,$merchantId);
             foreach ($iwmsDeliveryOrderLogs as $iwmsDeliveryOrderLog) {
                 $deliveryOrderObj = array(
                     "wms_platform" => $iwmsDeliveryOrderLog->wms_platform,
