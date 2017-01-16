@@ -759,6 +759,8 @@ class PlatformMarketOrderTransfer
                 if ($item->mapping->product->buyer) {
                     $salesOrderStatistic->buyer = $item->mapping->product->buyer;
                 }
+            } else {
+                mail('handy.hon@eservicesgroup.com', '[Accelerator] Save cost and profit failed', $item->mapping->id);
             }
             $salesOrderStatistic->save();
         }

@@ -792,6 +792,8 @@ class OrderTransfer extends Command
                 if ($item->mapping->product->buyer) {
                     $salesOrderStatistic->buyer = $item->mapping->product->buyer;
                 }
+            } else {
+                mail('handy.hon@eservicesgroup.com', '[Accelerator - AMAZON] Save cost and profit failed', $item->mapping->id);
             }
             $salesOrderStatistic->save();
         }
