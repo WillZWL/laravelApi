@@ -75,6 +75,10 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('order-delivery-options/{soNo}', 'Api\DeliveryController@getOrderDeliveryOptionsBySoNo');
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
     Route::get('amazon-commission-charge-report/{flexBatchId}', 'Api\CommissionChargeController@getAmazonCommissionChargeReport');
+    Route::get('iwms-order', 'IwmsOrderController@index');
+    Route::post('iwms-order/cancel-delivery-Order', 'IwmsOrderController@cancelDeliveryOrder');
+    Route::post('iwms-order/cancel-courier-Order', 'IwmsOrderController@cancelCourierOrder');
+
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
@@ -164,3 +168,4 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'mid
 
 Route::get('platform/test', 'InterfacePlatformOrder@index');
 Route::resource('iwms-callback', 'IwmsCallBackApiController');
+
