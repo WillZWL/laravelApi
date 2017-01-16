@@ -64,9 +64,11 @@ class IwmsCallbackApiService
             case 'orderCreate':
                 return $this->deliveryOrderCreate($postMessage);
                 break;
-
             case 'confirmShipped':
                 return $this->deliveryConfirmShipped($postMessage);
+                break;
+            case 'confirmShipped':
+                return $this->cancelDeliveryOrder($postMessage);
                 break;
 
             default:
@@ -87,6 +89,76 @@ class IwmsCallbackApiService
         }
 
         return $shippedCollection;
+    }
+
+    public function cancelDeliveryOrder($postMessage)
+    {
+        $batchObject = BatchRequest::where("iwms_request_id", $postMessage->request_id)->first();
+        if(!empty($batchObject)){
+            $batchObject->status = "C";
+            $batchObject->save();
+            foreach ($postMessage->responseMessage as $key => $responseMessage) {
+                if($key === "success"){
+                    foreach ($responseMessage as $value) {
+                        $this->updateEsgDispatchOrderStatusToToShip($value->merchant_order_id);
+                    }
+                    $subject = "Cancel OMS Delivery Order Success,Please Check Error";
+                    $this->sendMsgCancelDeliveryOrderEmail($subject, $responseMessage);
+                    return true;
+                }
+                if($key === "failed"){
+                    $subject = "Cancel OMS Delivery Order Failed,Please Check Error";
+                    $this->sendMsgCancelDeliveryOrderEmail($subject, $responseMessage);
+                }
+            }
+        }
+    }
+
+    private function updateEsgDispatchOrderStatusToToShip($esgSoNo)
+    {
+        $esgOrder = So::where("so_no", $esgSoNo)
+                        ->with("sellingPlatform")
+                        ->with("soAllocate")
+                        ->first(); 
+        if(empty($esgOrder)){
+            return false;
+        }
+        IwmsDeliveryOrderLog::where("reference_no",$esgOrder->so_no)
+                    ->where("status", 1)
+                    ->update(array("status" => -1));
+        if(!empty($soShipment)){
+            foreach ($esgOrder->soAllocate as $soAllocate) { 
+                if($soAllocate->status != 2){
+                    continue;
+                }
+                $soShipment = $soAllocate->soShipment;
+                $invMovement = InvMovement::where("ship_ref", $soShipment->sh_no)
+                    ->where("status", "OT")
+                    ->first();
+                if(!empty($invMovement)){
+                    $invMovement->ship_ref = $soAllocate->id;
+                    $invMovement->status = "AL";
+                    $invMovement->save();
+                    $soAllocate->status = 1;
+                    $soAllocate->sh_no = "";
+                    $soAllocate->save();
+                }
+                $soShipment->delete();
+            }
+        }
+    }
+
+    private function sendMsgCancelDeliveryOrderEmail($subject, $responseMessage)
+    {
+        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $alertEmail = "privatelabel-log@eservicesgroup.com";
+        $msg = null;
+        foreach ($responseMessage as $value) {
+            $msg .= "Order ID:".$value->merchant_order_id."\r\n";
+        }
+        if($msg){
+            mail("{$alertEmail}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+        }
     }
 
     public function sendDeliveryOrderShippedReport($responseMessage, $shippedCollection)
@@ -152,7 +224,6 @@ class IwmsCallbackApiService
 
     public function confirmShippedEsgOrder($shippedOrder)
     {
-
         try {
             if ($shippedOrder->tracking_no 
                 && $esgOrder = So::UnshippedOrder()->where("so_no", $shippedOrder->reference_no)->first()
