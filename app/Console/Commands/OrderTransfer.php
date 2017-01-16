@@ -238,11 +238,11 @@ class OrderTransfer extends Command
         $this->saveSoItemDetail($so, $order->amazonOrderItem);
         $this->saveSoPaymentStatus($so);
         $this->saveSoExtend($so, $order);
-        $this->saveSalesOrderStatistic($so, $order->amazonOrderItem);
 
         $this->addAssemblyProduct($so);
         $this->addComplementaryAccessory($so);
         $this->setGroupOrderRecommendCourierAndCharge($so);
+        $this->saveSalesOrderStatistic($so, $order->amazonOrderItem);
     }
 
     public function createSplitOrder(AmazonOrder $order)
@@ -786,6 +786,12 @@ class OrderTransfer extends Command
                 $salesOrderStatistic->profit = $costDetails['profit'] * $item->quantity_ordered;
                 $salesOrderStatistic->margin = $costDetails['margin'];
                 $salesOrderStatistic->to_usd_rate = $so->rate;
+                if ($item->mapping->operator) {
+                    $salesOrderStatistic->operator = $item->mapping->operator;
+                }
+                if ($item->mapping->product->buyer) {
+                    $salesOrderStatistic->buyer = $item->mapping->product->buyer;
+                }
             }
             $salesOrderStatistic->save();
         }
