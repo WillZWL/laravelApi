@@ -101,9 +101,9 @@ class IwmsCallbackApiService
             foreach ($postMessage->responseMessage as $key => $responseMessage) {
                 if($key === "success"){
                     foreach ($responseMessage as $value) {
-                        $this->updateEsgDispatchOrderStatusToToShip($value->merchant_order_id);
+                        $this->updateEsgDispatchOrderStatusToToShip($value->merchant_order_id, $value->order_code);
                     }
-                    $subject = "Cancel OMS Delivery Order Success,Please Check Error";
+                    $subject = "Cancel OMS Delivery Order Success.";
                     $this->sendMsgCancelDeliveryOrderEmail($subject, $responseMessage);
                     return true;
                 }
@@ -115,7 +115,7 @@ class IwmsCallbackApiService
         }
     }
 
-    private function updateEsgDispatchOrderStatusToToShip($esgSoNo)
+    private function updateEsgDispatchOrderStatusToToShip($esgSoNo, $wmsOrderCode)
     {
         $esgOrder = So::where("so_no", $esgSoNo)
                         ->with("sellingPlatform")
@@ -125,7 +125,7 @@ class IwmsCallbackApiService
             return false;
         }
         IwmsDeliveryOrderLog::where("reference_no",$esgOrder->so_no)
-                    ->where("status", 1)
+                    ->where("reference_no",$wmsOrderCode)
                     ->update(array("status" => -1));
         if(!empty($esgOrder->soAllocate)){
             foreach ($esgOrder->soAllocate as $soAllocate) {
@@ -349,7 +349,7 @@ class IwmsCallbackApiService
     public function getMsgCreateDeliveryOrderReport($successResponseMessage)
     {
         if(!empty($successResponseMessage)){
-            $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
+            $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Platform Order No', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
             foreach ($successResponseMessage as $value) {
                 $esgOrder = So::where("so_no",$value->merchant_order_id)
                         ->with("sellingPlatform")
@@ -367,6 +367,7 @@ class IwmsCallbackApiService
                         'business_type' => $esgOrder->sellingPlatform->type,
                         'merchant' => $esgOrder->sellingPlatform->merchant_id,
                         'platform' => $esgOrder->platform_id,
+                        'platform_order_no' => $esgOrder->platform_order_id,
                         'order_id' => $value->merchant_order_id,
                         'delivery_type_id' => $esgOrder->delivery_type_id,
                         'country' => $value->country,
