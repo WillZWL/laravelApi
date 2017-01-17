@@ -30,6 +30,7 @@ class IwmsCancelDeliveryOrderService
                     "merchant_id" => $iwmsDeliveryOrderLog->merchant_id,
                     "sub_merchant_id" => $iwmsDeliveryOrderLog->sub_merchant_id,
                     "reference_no" => $iwmsDeliveryOrderLog->reference_no,
+                    "order_code" => $iwmsDeliveryOrderLog->wms_order_code,
                 );
                 $cancelDeliveryOrderObj[] = $deliveryOrderObj;
             }

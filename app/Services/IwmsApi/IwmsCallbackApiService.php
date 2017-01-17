@@ -305,7 +305,7 @@ class IwmsCallbackApiService
             foreach ($postMessage->responseMessage as $key => $responseMessage) {
                 if($key === "success"){
                     foreach ($responseMessage as $value) {
-                        $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $batchObject->id);
+                        $this->updateEsgToShipOrderStatusToDispatch($value->merchant_order_id, $value->order_code, $batchObject->id);
                     }
                     $this->sendMsgCreateDeliveryOrderReport($responseMessage);
                 }
@@ -384,7 +384,7 @@ class IwmsCallbackApiService
         return null;
     }
 
-    private function updateEsgToShipOrderStatusToDispatch($esgSoNo, $batchId)
+    private function updateEsgToShipOrderStatusToDispatch($esgSoNo, $wmsOrderCode, $batchId)
     {
         $esgOrder = So::where("so_no", $esgSoNo)
                         ->with("sellingPlatform")
@@ -392,11 +392,10 @@ class IwmsCallbackApiService
         if(empty($esgOrder)){
             return false;
         }
-
         IwmsDeliveryOrderLog::where("platform_order_id",$esgOrder->platform_order_id)
                     ->where("batch_id", $batchId)
                     ->where("status", 0)
-                    ->update(array("status" => 1));
+                    ->update(array("wms_order_code" => $wmsOrderCode, "status" => 1));
         $soShipment = $this->createEsgSoShipment($esgOrder);
         if(!empty($soShipment)){
             foreach ($esgOrder->soAllocate as $soAllocate) { 
