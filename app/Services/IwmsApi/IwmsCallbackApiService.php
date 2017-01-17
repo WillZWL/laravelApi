@@ -135,24 +135,24 @@ class IwmsCallbackApiService
                 $invMovement = InvMovement::where("ship_ref", $soAllocate->sh_no)
                     ->where("status", "OT")
                     ->first();
-                //need remove soAllocate can delete shipment
-                $newSoAllocate = new SoAllocate();
-                $newSoAllocate->so_no = $soAllocate->so_no;
-                $newSoAllocate->line_no = $soAllocate->line_no;
-                $newSoAllocate->item_sku = $soAllocate->item_sku;
-                $newSoAllocate->qty = $soAllocate->qty;
-                $newSoAllocate->warehouse_id = $soAllocate->warehouse_id;
-                $newSoAllocate->status = 1;
-                $result = $newSoAllocate->save();
-                if($result){
-                    if(!empty($invMovement)){
+                if(!empty($invMovement)){
+                    //need remove soAllocate can delete shipment
+                    $object = array();
+                    $object["so_no"] = $soAllocate->so_no;
+                    $object["line_no"] = $soAllocate->line_no;
+                    $object["item_sku"] = $soAllocate->item_sku;
+                    $object["qty"] = $soAllocate->qty;
+                    $object["warehouse_id"] = $soAllocate->warehouse_id;
+                    $object["status"] = 1;
+                    $newSoAllocate = SoAllocate::firstOrCreate($object);
+                    if(!empty($newSoAllocate)){
                         $invMovement->ship_ref = $newSoAllocate->id;
                         $invMovement->status = "AL";
                         $invMovement->save();
+                        $soShipment = $soAllocate->soShipment;
+                        $soAllocate->delete();
+                        $soShipment->delete();
                     }
-                    $soShipment = $soAllocate->soShipment;
-                    $soAllocate->delete();
-                    $soShipment->delete();
                 }
             }
             $esgOrder->modify_on = date("Y-m-d H:i:s");
