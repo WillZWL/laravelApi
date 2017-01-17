@@ -4,6 +4,7 @@ namespace App\Services\IwmsApi;
 
 use Illuminate\Http\Request;
 use App\Models\So;
+use App\Models\SoAllocate;
 use App\Models\SoShipment;
 use App\Models\SoItemDetail;
 use App\Models\InvMovement;
@@ -131,19 +132,28 @@ class IwmsCallbackApiService
                 if($soAllocate->status != 2){
                     continue;
                 }
-                $soShipment = $soAllocate->soShipment;
-                $invMovement = InvMovement::where("ship_ref", $soShipment->sh_no)
+                $invMovement = InvMovement::where("ship_ref", $soAllocate->sh_no)
                     ->where("status", "OT")
                     ->first();
-                if(!empty($invMovement)){
-                    $invMovement->ship_ref = $soAllocate->id;
-                    $invMovement->status = "AL";
-                    $invMovement->save();
-                    $soAllocate->status = 1;
-                    $soAllocate->sh_no = "";
-                    $soAllocate->save();
+                //need remove soAllocate can delete shipment
+                $newSoAllocate = new SoAllocate();
+                $newSoAllocate->so_no = $soAllocate->so_no;
+                $newSoAllocate->line_no = $soAllocate->line_no;
+                $newSoAllocate->item_sku = $soAllocate->item_sku;
+                $newSoAllocate->qty = $soAllocate->qty;
+                $newSoAllocate->warehouse_id = $soAllocate->warehouse_id;
+                $newSoAllocate->status = 1;
+                $result = $newSoAllocate->save();
+                if($result){
+                    if(!empty($invMovement)){
+                        $invMovement->ship_ref = $newSoAllocate->id;
+                        $invMovement->status = "AL";
+                        $invMovement->save();
+                    }
+                    $soShipment = $soAllocate->soShipment;
+                    $soAllocate->delete();
+                    $soShipment->delete();
                 }
-                $soShipment->delete();
             }
             $esgOrder->modify_on = date("Y-m-d H:i:s");
             $esgOrder->save();
