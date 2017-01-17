@@ -67,7 +67,7 @@ class IwmsCallbackApiService
             case 'confirmShipped':
                 return $this->deliveryConfirmShipped($postMessage);
                 break;
-            case 'confirmShipped':
+            case 'cancelDelivery':
                 return $this->cancelDeliveryOrder($postMessage);
                 break;
 
@@ -145,6 +145,8 @@ class IwmsCallbackApiService
                 }
                 $soShipment->delete();
             }
+            $esgOrder->modify_on = date("Y-m-d H:i:s");
+            $esgOrder->save();
         }
     }
 
