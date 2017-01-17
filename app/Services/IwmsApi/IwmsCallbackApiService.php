@@ -67,7 +67,7 @@ class IwmsCallbackApiService
             case 'confirmShipped':
                 return $this->deliveryConfirmShipped($postMessage);
                 break;
-            case 'confirmShipped':
+            case 'cancelDelivery':
                 return $this->cancelDeliveryOrder($postMessage);
                 break;
 
@@ -126,8 +126,8 @@ class IwmsCallbackApiService
         IwmsDeliveryOrderLog::where("reference_no",$esgOrder->so_no)
                     ->where("status", 1)
                     ->update(array("status" => -1));
-        if(!empty($soShipment)){
-            foreach ($esgOrder->soAllocate as $soAllocate) { 
+        if(!empty($esgOrder->soAllocate)){
+            foreach ($esgOrder->soAllocate as $soAllocate) {
                 if($soAllocate->status != 2){
                     continue;
                 }
@@ -145,6 +145,8 @@ class IwmsCallbackApiService
                 }
                 $soShipment->delete();
             }
+            $esgOrder->modify_on = date("Y-m-d H:i:s");
+            $esgOrder->save();
         }
     }
 
