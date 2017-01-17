@@ -261,7 +261,7 @@ class IwmsCreateDeliveryOrderService
                         ->first();
                 if(empty($requestOrderLog)){
                     $repeatRequestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
-                        ->where("status", 0)
+                        ->whereIn("status", array("0","-1"))
                         ->where("repeat_request", "!=", 1)
                         ->first();
                     if(empty($repeatRequestOrderLog)){
