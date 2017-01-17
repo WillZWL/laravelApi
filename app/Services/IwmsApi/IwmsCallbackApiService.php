@@ -126,8 +126,8 @@ class IwmsCallbackApiService
         IwmsDeliveryOrderLog::where("reference_no",$esgOrder->so_no)
                     ->where("status", 1)
                     ->update(array("status" => -1));
-        if(!empty($soShipment)){
-            foreach ($esgOrder->soAllocate as $soAllocate) { 
+        if(!empty($esgOrder->soAllocate)){
+            foreach ($esgOrder->soAllocate as $soAllocate) {
                 if($soAllocate->status != 2){
                     continue;
                 }
