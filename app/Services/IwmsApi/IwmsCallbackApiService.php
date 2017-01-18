@@ -126,7 +126,7 @@ class IwmsCallbackApiService
             return false;
         }
         IwmsDeliveryOrderLog::where("reference_no",$esgOrder->so_no)
-                    ->where("reference_no",$wmsOrderCode)
+                    ->where("wms_order_code",$wmsOrderCode)
                     ->update(array("status" => -1));
         if(!empty($esgOrder->soAllocate)){
             foreach ($esgOrder->soAllocate as $soAllocate) {
