@@ -51,7 +51,7 @@ trait IwmsBaseService
     }
 
     public function validIwmsCallBackApiToken()
-    {   
+    {
         $iwmsCallbackApiService = App::make("App\Services\IwmsCallbackApiService");
         return $iwmsCallbackApiService->valid();
     }
@@ -69,7 +69,7 @@ trait IwmsBaseService
         }
     }
 
-    public function sendAttachmentMail($alertEmail,$subject,$attachment)
+    public function sendAttachmentMail($alertEmail,$subject,$attachment, $cc = "")
     {
         /* Attachment File */
         $fileName = $attachment["file_name"];
@@ -89,6 +89,9 @@ trait IwmsBaseService
 
         // Email header
         $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        if ($cc) {
+            $header .= "Cc: ". $cc .PHP_EOL;
+        }
         $header .= "MIME-Version: 1.0".PHP_EOL;
 
         // Multipart wraps the Email Content and Attachment
