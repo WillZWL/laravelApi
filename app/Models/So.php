@@ -99,4 +99,12 @@ class So extends Model
                 ->where('so.prepay_hold_status', 0);
     }
 
+    public function scopeShippedOrder($query)
+    {
+        return $query->where('so.status', 6)
+                ->where('so.hold_status', 0)
+                ->where('so.refund_status', 0)
+                ->where('so.prepay_hold_status', 0);
+    }
+
 }
