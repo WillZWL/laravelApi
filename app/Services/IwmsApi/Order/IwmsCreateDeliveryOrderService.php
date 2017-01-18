@@ -19,6 +19,7 @@ class IwmsCreateDeliveryOrderService
     private $wmsPlatform = null;
     private $apiLazadaService = null;
     private $lgsCourier = array("4PX-PL-LGS"); 
+    private $excludeMerchant = array("PREPD");
 
     use \App\Services\IwmsApi\IwmsBaseService;
 
@@ -230,6 +231,9 @@ class IwmsCreateDeliveryOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereNotNull("esg_quotation_courier_id")
+            ->whereHas('sellingPlatform', function ($query) {
+                $query->whereNotIn('merchant_id', $this->excludeMerchant);
+            })
             ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
                     ->where("status", 1)
@@ -238,7 +242,6 @@ class IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
-            ->with("sellingPlatform")
             ->get();
         return $this->checkEsgAllocateOrders($esgOrders);
     }
