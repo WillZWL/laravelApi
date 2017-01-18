@@ -11,6 +11,7 @@ use App\Models\InvMovement;
 use App\Models\IwmsFeedRequest;
 use App\Models\BatchRequest;
 use App\Models\IwmsDeliveryOrderLog;
+use App\Models\IwmsMerchantCourierMapping;
 
 use App\Services\ShippingService;
 use App\Repository\AcceleratorShippingRepository;
@@ -120,7 +121,7 @@ class IwmsCallbackApiService
         $esgOrder = So::where("so_no", $esgSoNo)
                         ->with("sellingPlatform")
                         ->with("soAllocate")
-                        ->first(); 
+                        ->first();
         if(empty($esgOrder)){
             return false;
         }
@@ -193,15 +194,19 @@ class IwmsCallbackApiService
     {
         if(!empty($responseMessage)){
             $cellData[] = [
-                'Request Id', 
-                'Order No.', 
-                'Platform Order No.', 
-                'Ship Date', 
-                'Tracking No.', 
-                'Weight Predict', 
-                'Weight Actual', 
-                'Billing Weight Actual', 
-                'Confirm Dispatch', 
+                'Request Id',
+                'Merchant Id',
+                'Sub Merchant Id',
+                'Order No.',
+                'Platform Order No.',
+                'Iwms Courier Code',
+                'Merchant Courier ID',
+                'Ship Date',
+                'Tracking No.',
+                'Weight Predict',
+                'Weight Actual',
+                'Finacl Weight Actual',
+                'Confirm Dispatch',
             ];
             foreach ($responseMessage as $shippedOrder) {
                 $esgSoNo = $shippedOrder->reference_no;
@@ -209,18 +214,31 @@ class IwmsCallbackApiService
                     && isset($shippedOrder->tracking_no)
                     && $shippedCollection[$esgSoNo] === true
                 ) {
-                    $confirmDispatch = "Success";
+                    $confirmDispatch = "Shipped Success";
                 } else {
                     if (empty($shippedOrder->tracking_no)) {
-                        $confirmDispatch = "Failed, No tracking No.";
+                        $confirmDispatch = "Skipped, No tracking No.";
                     } else {
-                        $confirmDispatch = "Failed";
+                        if (So::ShippedOrder()->where("so_no", $esgSoNo)->first()) {
+                            $confirmDispatch = "Skipped, Has been shipped";
+                        } else {
+                            $confirmDispatch = "Shipped Failed";
+                        }
                     }
                 }
+
+                $iwmsMerchantCourierMapping = IwmsMerchantCourierMapping::where("iwms_courier_code", $shippedOrder->iwms_courier_code)
+                ->where("merchant_id", $shippedOrder->merchant_id)
+                ->first();
+                $merchantCourierId = $iwmsMerchantCourierMapping ? $iwmsMerchantCourierMapping->merchant_courier_id : "";
                 $cellData[] = array(
                     'request_id' => $shippedOrder->request_id,
+                    'merchant_id' => $shippedOrder->merchant_id,
+                    'sub_merchant_id' => $shippedOrder->sub_merchant_id,
                     'reference_no' => $esgSoNo,
                     'marketplace_reference_no' => $shippedOrder->marketplace_reference_no,
+                    'iwms_courier_code' => $shippedOrder->iwms_courier_code,
+                    'merchant_courier_id' => $merchantCourierId,
                     'ship_date' => $shippedOrder->ship_date,
                     'tracking_no' => $shippedOrder->tracking_no,
                     'weight_predict' => $shippedOrder->weight_predict,
@@ -237,7 +255,7 @@ class IwmsCallbackApiService
     public function confirmShippedEsgOrder($shippedOrder)
     {
         try {
-            if ($shippedOrder->tracking_no 
+            if ($shippedOrder->tracking_no
                 && $esgOrder = So::UnshippedOrder()->where("so_no", $shippedOrder->reference_no)->first()
             ) {
                 if ($firstSoAllocate =  $esgOrder->soAllocate->where('status', 2)->first()) {
@@ -278,11 +296,11 @@ class IwmsCallbackApiService
     public function setRealDeliveryCost($esgOrder)
     {
         $this->shippingService = new ShippingService(
-            new AcceleratorShippingRepository, 
+            new AcceleratorShippingRepository,
             new MarketplaceProductRepository
         );
         $deliveryInfo = $this->shippingService->orderDeliveryCost($esgOrder->so_no);
-        if (!isset($deliveryInfo['error']) 
+        if (!isset($deliveryInfo['error'])
             && isset($deliveryInfo['delivery_cost'])
         ) {
             $rate = ExchangeRate::getRate($deliveryInfo['currency_id'], $esgOrder->currency_id);
@@ -315,7 +333,7 @@ class IwmsCallbackApiService
             }
         }
     }
-        
+
     public function checkSignature($postMessage,$echoStr)
     {
         $signatureArr = array();
@@ -344,7 +362,7 @@ class IwmsCallbackApiService
                 $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com',$subject,$attachment);
             }
         }
-    }   
+    }
 
     public function getMsgCreateDeliveryOrderReport($successResponseMessage)
     {
@@ -353,7 +371,7 @@ class IwmsCallbackApiService
             foreach ($successResponseMessage as $value) {
                 $esgOrder = So::where("so_no",$value->merchant_order_id)
                         ->with("sellingPlatform")
-                        ->first();     
+                        ->first();
                 if(!empty($esgOrder)){
                     $builtIn = $esgOrder->hasInternalBattery();
                     $external = $esgOrder->hasExternalBattery();
@@ -376,9 +394,9 @@ class IwmsCallbackApiService
                         'wms_order_code' => $value->order_code,
                         'wms_courier' => $value->iwms_courier,
                     );
-                    $cellData[] = $cellRow; 
+                    $cellData[] = $cellRow;
                 }
-               
+
             }
             return $cellData;
         }
@@ -389,7 +407,7 @@ class IwmsCallbackApiService
     {
         $esgOrder = So::where("so_no", $esgSoNo)
                         ->with("sellingPlatform")
-                        ->first(); 
+                        ->first();
         if(empty($esgOrder)){
             return false;
         }
@@ -399,7 +417,7 @@ class IwmsCallbackApiService
                     ->update(array("wms_order_code" => $wmsOrderCode, "status" => 1));
         $soShipment = $this->createEsgSoShipment($esgOrder);
         if(!empty($soShipment)){
-            foreach ($esgOrder->soAllocate as $soAllocate) { 
+            foreach ($esgOrder->soAllocate as $soAllocate) {
                 if($soAllocate->status != 1){
                     continue;
                 }
