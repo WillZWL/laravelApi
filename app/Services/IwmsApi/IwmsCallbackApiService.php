@@ -266,11 +266,13 @@ class IwmsCallbackApiService
                     $soShipment = $firstSoAllocate->soShipment;
                     $soShipment->status = 2;
                     $soShipment->tracking_no = $shippedOrder->tracking_no;
+                    $soShipment->modify_by = 'system';
                     $soShipment->save();
 
                     if ($soAllocates = $esgOrder->soAllocate) {
                         foreach ($soAllocates as $soAllocate) {
                             $soAllocate->status = 3;
+                            $soAllocate->modify_by = 'system';
                             $soAllocate->save();
                             SoItemDetail::where('so_no', $soAllocate->so_no)
                                 ->where('line_no', $soAllocate->line_no)
@@ -281,6 +283,7 @@ class IwmsCallbackApiService
                     $esgOrder->status = 6;
                     $esgOrder->actual_weight = $shippedOrder->weight_charge;
                     $esgOrder->dispatch_date = $shippedOrder->ship_date ? $shippedOrder->ship_date : date("Y-m-d H:i:s");
+                    $esgOrder->modify_by = 'system';
                     $esgOrder->save();
                     $this->setRealDeliveryCost($esgOrder);
                     return true;
@@ -310,6 +313,7 @@ class IwmsCallbackApiService
             $rate = ExchangeRate::getRate($deliveryInfo['currency_id'], $esgOrder->currency_id);
             $esgOrder->real_delivery_cost = $deliveryInfo['delivery_cost'] * $rate;
             $esgOrder->final_surcharge = $deliveryInfo['surcharge'];
+            $esgOrder->modify_by = 'system';
             $esgOrder->save();
         }
     }
