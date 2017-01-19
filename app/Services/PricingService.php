@@ -88,7 +88,9 @@ class PricingService
 
         $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->keyBy('deliveryType');
         // SBF 10879
-        $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->forget('STD');
+        if (substr($marketplaceProduct->marketplace_id, 2) === 'AMAZON') {
+            $availableDeliveryTypeWithCost = $availableDeliveryTypeWithCost->forget('STD');
+        }
 
         $availableShippingWithProfit = $availableDeliveryTypeWithCost->map(function ($shippingOption) use (
             $sellingPrice,
