@@ -76,7 +76,9 @@ class PricingToolService
 
         foreach ($shippingOptions as $shippingOption) {
             #SBF 10878
-            if ($shippingOption['deliveryType'] === 'STD') {
+            if ($shippingOption['deliveryType'] === 'STD'
+                && substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON'
+            ) {
                 continue;
             }
             $bookInCost = $warehouseCostDetails['book_in_cost'];
