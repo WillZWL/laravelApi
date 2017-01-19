@@ -153,37 +153,9 @@ class FnacCore
     */
     private function postXmlFileToApi($xmlFeed)
     {
-        $error = [];
-        $request = $this->urlbase . $this->getFnacAction();
-        try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_URL, $request);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $xmlFeed);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-
-            $data = curl_exec($ch);
-            $info = curl_getinfo($ch);
-            curl_close($ch);
-        } catch (\Exception  $e) {
-            $error[] = $e->getFile(). " ".__LINE__." other error. ";
-            $error[] = "Request: {$request}";
-            $error[] = "message: {$e->getMessage()}. ";
-        }
-        if ($error) {
-            $error['request'] = $request;
-            $error['requestBody'] = $xmlFeed;
-            $errorMessage = serialize($error);
-            mail('brave.liu@eservicesgroup.com', 'Calling Fnac API Failed', $errorMessage, 'From: admin@eservciesgroup.com');
-            return false;
-        }
-
-        return $data;
-
         $request = $this->urlbase . $this->getFnacAction();
         $error = [];
-        $client = new \GuzzleHttp\Client();
+        $client = new \GuzzleHttp\Client(['base_uri' => $this->urlbase,'verify' => false]);
         try {
             $response = $client->request('POST', $request, ['body' => $xmlFeed]);
             $responseXml = $response->getBody()->getContents();
