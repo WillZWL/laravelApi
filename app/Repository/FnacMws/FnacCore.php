@@ -68,6 +68,7 @@ class FnacCore
 
     public function xmlSchemaValidation($requestXml, $fnacAction)
     {
+        return true;
         try {
             switch($fnacAction) {
                 case 'auth':
