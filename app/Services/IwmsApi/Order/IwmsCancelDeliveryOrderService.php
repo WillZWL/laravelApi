@@ -46,6 +46,7 @@ class IwmsCancelDeliveryOrderService
         $msg = null;
         if(isset($postMessage->request_id) && !empty($batchObject)){
             $batchObject->iwms_request_id = $postMessage->request_id;
+            $batchObject->status = "R";
             $batchObject->response_log = $postContent;
             $batchObject->save();
             foreach ($postMessage->response_log as $responseLog) {
