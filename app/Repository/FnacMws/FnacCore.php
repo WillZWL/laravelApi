@@ -298,6 +298,7 @@ class FnacCore
 
     public function initFnacAuthToken()
     {
+        $data = null;
         if (!$this->fnacToken) {
             $this->setFnacAction('auth');
             $this->setAuthRequestXml();
@@ -312,6 +313,13 @@ class FnacCore
 
         if (isset($this->fnacToken)) {
             $this->setAuthKeyWithToken();
+        } else {
+            $msgData = $this->getRequestXml() . "\r\n";
+            if ($data) {
+                $msgData .= print_r($data, true);
+            }
+            mail('brave.liu@eservicesgroup.com', 'Cannot take fnac Token', $msgData, 'From: admin@eservciesgroup.com');
+            exit('Cannot take fnac Token');
         }
     }
 
@@ -327,7 +335,7 @@ class FnacCore
         $this->requestXml = $xmlData;
     }
 
-    protected function getRequestXml()
+    public function getRequestXml()
     {
         return $this->requestXml;
     }
