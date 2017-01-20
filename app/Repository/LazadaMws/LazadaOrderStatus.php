@@ -78,6 +78,11 @@ class LazadaOrderStatus extends LazadaOrderCore
         if (isset($data['Body']) && isset($data['Body']['OrderItems']) && isset($data['Body']['OrderItems']['OrderItem'])) {
             return $data['Body']['OrderItems']['OrderItem'];
         }
+        if($this->_requestParams['Action'] == 'SetStatusToCanceled'){
+            if (isset($data['Head']) && isset($data['Head']['RequestId'])) {
+                return $data['Head'];
+            }
+        }
         return null;
     }
 
