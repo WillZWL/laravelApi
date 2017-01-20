@@ -97,14 +97,6 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                     $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
                     $this->updatePlatformMarketProductStatus($processStatusProduct,$errorSku,$processStatus);
                 }
-            }else{
-                $xmlData = $this->getUpdatePriceQuantityXmlData($processStatusProduct);
-                $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
-                if($feedId){
-                    foreach ($processStatusProduct as $pendingSku) {
-                        $this->createOrUpdatePlatformMarketFeedBatch("update_inventory_and_price",$feedId,$pendingSku->id,$pendingSku->marketplace_sku,$processStatus);
-                    }
-                }
             }
         }
     }
@@ -202,7 +194,9 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
     {
         $processStatus = PlatformMarketConstService::PENDING_INVENTORY;
         //the lazada maximum of SellerSku
-        $inventorys = PlatformMarketInventory::where("update_status","1")->with("merchantProductMapping")->get();
+        $inventorys = PlatformMarketInventory::where("update_status","1")
+                    ->where("failed_times", "<=", "5")
+                    ->with("merchantProductMapping")->get();
         if(!$inventorys->isEmpty()){
             $inventoryGroups = $inventorys->groupBy("store_id");
             foreach ($inventoryGroups as $storeId => $inventoryGroup) {
@@ -214,15 +208,7 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                         foreach ($xmlDataArr as $xmlData) {
                             $result = $this->fetchNewApiLazadaUpdatePriceQuantity($storeName,$xmlData);
                             $errorSku = isset($result["errorSku"]) ? $result["errorSku"] : null;
-                            $this->updatePlatformMarketProductStatus($inventoryGroup,$errorSku);
-                        }
-                    }else{
-                        $xmlData = $this->getMattleUpdateQuantityXmlData($inventoryGroup);
-                        $feedId = $this->fetchLazadaUpdatePriceQuantity($storeName,$xmlData);
-                        if($feedId){
-                            foreach ($inventoryGroup as $platformMarketInventory) {
-                               $this->createOrUpdatePlatformMarketFeedBatch("mattle_update_inventory",$feedId,$platformMarketInventory->id,$platformMarketInventory->marketplace_sku,$processStatus);
-                            }
+                            $this->updateMattelProductInventoryStatus($inventoryGroup,$errorSku);
                         }
                     }
                 }
@@ -252,20 +238,6 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
                 $result["feedId"] = $responseData->Head->RequestId;
            }
            return $result;
-        }
-    }
-
-    public function fetchLazadaUpdatePriceQuantity($storeName,$xmlData)
-    {
-        $this->lazadaProductUpdate = new LazadaProductUpdate($storeName);
-        $responseXml = $this->lazadaProductUpdate->submitXmlData($xmlData);
-        if($responseXml){
-            $responseData = new \SimpleXMLElement($responseXml);
-            $requestId = (string) $responseData->Head->RequestId;
-            if($requestId){
-                $platformMarketProductFeed = $this->createOrUpdatePlatformMarketProductFeed($storeName,$requestId);
-                return $platformMarketProductFeed->id;
-            }
         }
     }
 
@@ -304,25 +276,6 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         }
     }
 
-    private function getUpdatePriceQuantityXmlData($processStatusProduct)
-    {
-        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-        $xmlData .= '<Request>';
-        foreach ($processStatusProduct as $pendingSku) {
-            $messageDom = '<Product>';
-            $messageDom .= '<SellerSku>'.$pendingSku->marketplace_sku.'</SellerSku>';
-            $messageDom .= '<Price>'.round($pendingSku->price * 1.3, 2).'</Price>';
-            $messageDom .= '<SalePrice>'.$pendingSku->price.'</SalePrice>';
-            $messageDom .= '<SaleStartDate>'.date('Y-m-d').'</SaleStartDate>';
-            $messageDom .= '<SaleEndDate>'.date('Y-m-d', strtotime('+4 year')).'</SaleEndDate>';
-            $messageDom .= '<Quantity>'.$pendingSku->inventory.'</Quantity>';
-            $messageDom .= '</Product>';
-            $xmlData .= $messageDom;
-        }
-        $xmlData .= '</Request>';
-        return $xmlData;
-    }
-
     private function getNewApiMattleUpdateQuantityXmlData($inventoryGroup,$limitMaxNumber)
     {
         $messageXmlArr = array();
@@ -354,32 +307,28 @@ class ApiLazadaProductService implements ApiPlatformProductInterface
         }
     }
 
-    private function getMattleUpdateQuantityXmlData($inventoryGroup)
-    {
-        $xmlData = '<?xml version="1.0" encoding="UTF-8" ?>';
-        $xmlData .= '<Request>';
-        foreach ($inventoryGroup as $platformMarketInventory) {
-            $messageDom = '<Product>';
-            $messageDom .= '<SellerSku>'.$platformMarketInventory->marketplace_sku.'</SellerSku>';
-            $messageDom .= '<Quantity>'.$platformMarketInventory->inventory.'</Quantity>';
-            $messageDom .= '</Product>';
-            $xmlData .= $messageDom;
-        }
-        $xmlData .= '</Request>';
-        return $xmlData;
-    }
-
     public function updatePlatformMarketProductStatus($pendingProducts,$errorSku = array(),$processStatus = null)
     {
         foreach ($pendingProducts as $pendingProduct) {
             if(empty($errorSku) || !in_array($pendingProduct->marketplace_sku,$errorSku)){
-                if($processStatus){
-                    $this->updatePendingProductProcessStatusBySku($pendingProduct,$processStatus);
-                }else{
-                    $pendingProduct->update_status = 2;
-                    $pendingProduct->save();
-                }
+                $this->updatePendingProductProcessStatusBySku($pendingProduct,$processStatus);
+            }else{
+                $pendingProduct->failed_times += 1;
+                $pendingProduct->save();
             }
+        }
+    }
+
+    public function updateMattelProductInventoryStatus($pendingProducts,$errorSku = array())
+    {
+        foreach ($pendingProducts as $pendingProduct) {
+            if(empty($errorSku) || !in_array($pendingProduct->marketplace_sku,$errorSku)){
+                $pendingProduct->failed_times = 0;
+                $pendingProduct->update_status = 2;
+            }else{
+                $pendingProduct->failed_times += 1;
+            }
+            $pendingProduct->save();
         }
     }
 

@@ -135,7 +135,7 @@ class ApiPlatformFactoryService
                 if($warehouse){
                     $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
                 }else{
-                    $returnData["error"][$platform] = $platform." warehouse not find, please to check";
+                    $returnData["error"][$platform] = " warehouse not find, please to check";
                 }
             }
             return $result = array("status" => "success","message" => $returnData);
