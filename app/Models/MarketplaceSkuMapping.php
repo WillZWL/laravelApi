@@ -144,6 +144,7 @@ class MarketplaceSkuMapping extends Model
         return $pendingSkuGroup = $query->where('process_status', '&', $processStatus)
             ->join('product', 'product.sku', '=', 'marketplace_sku_mapping.sku')
             ->join('country', 'country.id', '=', 'marketplace_sku_mapping.country_id')
+            ->where('failed_times', '<=', '5')
             ->where('listing_status', '=', 'Y')
             ->where('marketplace_id', '=', $marketplaceId)
             ->where('country_id', '=', $countryCode)

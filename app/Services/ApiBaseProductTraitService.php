@@ -32,6 +32,7 @@ trait ApiBaseProductTraitService
                 if($pendingSku){
                    $pendingSku->process_status ^= PlatformMarketConstService::PENDING_PRICE;
                     $pendingSku->process_status |= PlatformMarketConstService::COMPLETE_PRICE;
+                    $pendingSku->failed_times = 0;
                     $pendingSku->save(); 
                 }
             });
@@ -41,6 +42,7 @@ trait ApiBaseProductTraitService
                 if($pendingSku){
                     $pendingSku->process_status ^= PlatformMarketConstService::PENDING_INVENTORY;
                     $pendingSku->process_status |= PlatformMarketConstService::COMPLETE_INVENTORY;
+                    $pendingSku->failed_times = 0;
                     $pendingSku->save();
                 }
             });
@@ -54,6 +56,7 @@ trait ApiBaseProductTraitService
                     $pendingSku->process_status |= PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
                     $pendingSku->process_status ^= PlatformMarketConstService::PENDING_PRICE ^ PlatformMarketConstService::PENDING_INVENTORY;
                     $pendingSku->process_status |= PlatformMarketConstService::COMPLETE_PRICE | PlatformMarketConstService::COMPLETE_INVENTORY;
+                    $pendingSku->failed_times = 0;
                     $pendingSku->save();
                 }
             });
@@ -65,11 +68,13 @@ trait ApiBaseProductTraitService
         if ($processStatus == PlatformMarketConstService::PENDING_PRICE) {
             $pendingSku->process_status ^= PlatformMarketConstService::PENDING_PRICE;
             $pendingSku->process_status |= PlatformMarketConstService::COMPLETE_PRICE;
+            $pendingSku->failed_times = 0;
             $pendingSku->save();
         }
         if ($processStatus == PlatformMarketConstService::PENDING_INVENTORY) {
             $pendingSku->process_status ^= PlatformMarketConstService::PENDING_INVENTORY;
             $pendingSku->process_status |= PlatformMarketConstService::COMPLETE_INVENTORY;
+            $pendingSku->failed_times = 0;
             $pendingSku->save();
         }
         $pendingPriceAndInventory = PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
@@ -77,6 +82,7 @@ trait ApiBaseProductTraitService
             $pendingSku->process_status |= PlatformMarketConstService::PENDING_PRICE | PlatformMarketConstService::PENDING_INVENTORY;
             $pendingSku->process_status ^= PlatformMarketConstService::PENDING_PRICE ^ PlatformMarketConstService::PENDING_INVENTORY;
             $pendingSku->process_status |= PlatformMarketConstService::COMPLETE_PRICE | PlatformMarketConstService::COMPLETE_INVENTORY;
+            $pendingSku->failed_times = 0;
             $pendingSku->save();
         }
     }
