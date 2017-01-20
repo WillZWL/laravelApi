@@ -42,7 +42,7 @@ class MerchantApiController extends Controller
         }else if($action == "allocate") {
             $result = $this->apiPlatformFactoryService->merchantOrderAllocatedReadyToShip();
         }else if($action == "cancelOrder"){
-            $orderParam["reasonDetail"] = $request->input("reason_detail");
+            $orderParam["reason"] = $request->input("reason");
             $result = $this->apiPlatformFactoryService->setMerchantOrderCanceled($orderIds,$orderParam);
         }else if($action == "getDocument"){
             $doucmentType = $request->input("document_type");

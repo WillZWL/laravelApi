@@ -646,9 +646,9 @@ class ApiLazadaService implements ApiPlatformInterface
 	{
 		$this->lazadaOrderStatus = new LazadaOrderStatus($storeName);
 		$this->lazadaOrderStatus->setOrderItemId($orderParam["orderItemId"]);
-        if($orderParam["reason"])
+        if(isset($orderParam["reason"]))
 		$this->lazadaOrderStatus->setReason($orderParam["reason"]);
-        if($orderParam["reasonDetail"])
+        if(isset($orderParam["reasonDetail"]))
 		$this->lazadaOrderStatus->setReasonDetail($orderParam["reasonDetail"]);
 		$result = $this->lazadaOrderStatus->setStatusToCanceled();
 		return $this->checkResultData($result,$this->lazadaOrderStatus);
