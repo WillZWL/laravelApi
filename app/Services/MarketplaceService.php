@@ -13,10 +13,8 @@ class MarketplaceService
         $this->marketplaceRepository = $marketplaceRepository;
     }
 
-    public function getAllMarketplace()
+    public function getAllMarketplace($requestData = [])
     {
-        $marketplaces = $this->marketplaceRepository->all();
-
-        return $marketplaces;
+        return $this->marketplaceRepository->all($requestData);
     }
 }
