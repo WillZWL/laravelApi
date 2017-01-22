@@ -12,6 +12,7 @@ class MarketplaceContentExportTransformer extends TransformerAbstract
         return [
             'marketplace' => $marketplaceContentExport->marketplace,
             'field_value' => $marketplaceContentExport->field_value,
+            'field_name' => $marketplaceContentExport->marketplaceContentField->name,
             'sort' => $marketplaceContentExport->sort,
         ];
     }

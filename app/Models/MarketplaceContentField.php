@@ -15,6 +15,11 @@ class MarketplaceContentField extends Model
 
     public $incrementing = false;
 
-    protected $guarded = ['create_at'];
+    protected $guarded = [];
+
+    public function marketplaceContentExport()
+    {
+        return $this->hasMany('App\Models\MarketplaceContentExport', 'value', 'field_value');
+    }
 
 }
