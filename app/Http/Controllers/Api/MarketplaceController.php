@@ -26,9 +26,9 @@ class MarketplaceController extends Controller
 
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $marketplaces = $this->marketplaceService->getAllMarketplace();
+        $marketplaces = $this->marketplaceService->getAllMarketplace($request->all());
 
         return $this->collection($marketplaces, new MarketplaceTransformer());
     }
