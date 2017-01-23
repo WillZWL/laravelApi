@@ -63,6 +63,11 @@ class GetAmazonFeedResult extends Command
                             $alertEmail = 'amazoneu@productxpress.com';
                             break;
 
+                        case 'IG':
+                            $amazonAccountName = 'Innovation Gadget';
+                            $alertEmail = 'amazoneu@buholoco.com';
+                            break;
+
                         case 'CV':
                             $amazonAccountName = 'ChatAndVision';
                             $alertEmail = 'amazonus@chatandvision.com';
