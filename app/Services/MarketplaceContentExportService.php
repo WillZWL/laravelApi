@@ -77,10 +77,11 @@ class MarketplaceContentExportService
 
     public function getMarketplaceContentData($requestData) {
         if ($contentExportCollection = $this->getContentExportCollection($requestData['marketplace'])) {
-            if ($marketplaceProducts = $this->getMarketplaceProducts($requestData)) {
+            $marketplaceProducts = $this->getMarketplaceProducts($requestData);
+            if ($marketplaceProducts->count()) {
                 $fieldCollection = $contentExportCollection['fields'];
                 $fieldNameCollection = $contentExportCollection['fieldNames'];
-                $prodCollection[] = $this->arraySort($fieldNameCollection, $fieldCollection);;
+                $prodCollection[] = $this->arraySort($fieldNameCollection, $fieldCollection);
                 foreach ($marketplaceProducts as $marketplaceProduct) {
                     $prodItem = [];
                     if (in_array('marketplace_sku', $fieldCollection)) {
