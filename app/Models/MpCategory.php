@@ -15,4 +15,9 @@ class MpCategory extends Model
     public $incrementing = false;
 
     protected $guarded = ['create_at'];
+
+    public function marketplaceSkuMapping()
+    {
+        return $this->belongsTo('App\Models\MarketplaceSkuMapping');
+    }
 }

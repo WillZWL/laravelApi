@@ -48,4 +48,16 @@ class MarketplaceProductRepository
     {
         return MarketplaceSkuMapping::findOrFail($id);
     }
+
+    public function getMarketplaceProducts($marketplaceId='', $countryId='')
+    {
+        return MarketplaceSkuMapping::whereMarketplaceId($marketplaceId)
+            ->whereCountryId($countryId)
+            ->with('Product')
+            ->with('SkuMapping')
+            ->with('MerchantProductMapping')
+            ->groupBy('marketplace_sku', 'sku')
+            ->whereStatus(1)
+            ->get();
+    }
 }
