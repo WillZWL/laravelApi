@@ -106,9 +106,8 @@ class MarketplaceContentExportController extends Controller
         return response()->json($result);
     }
 
-    public function download(Request $request)
+    public function download(Requests\MarketplaceContentExport\DownloadRequest $request)
     {
-        echo "string";
-        dd($request->all());
+        $this->marketplaceContentExportService->download($request->all());
     }
 }
