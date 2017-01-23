@@ -152,6 +152,7 @@ class IwmsCreateDeliveryOrderService
         }else{
             $address = $esgOrder->delivery_address;
         }
+        $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode); 
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $iwmsWarehouseCode,
@@ -242,7 +243,7 @@ class IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
-            ->limit(50)
+            ->limit(100)
             ->get();
         return $this->checkEsgAllocateOrders($esgOrders);
     }
