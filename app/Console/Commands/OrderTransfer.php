@@ -120,6 +120,15 @@ class OrderTransfer extends Command
                 }
                 break;
 
+            case 'IG':
+                $amazonAccountName = 'Innovation Gadget';
+                if (in_array($countryCode, $usCountries)) {
+                    $alertEmail = 'amazonglobal@buholoco.com';
+                } else {
+                    $alertEmail = 'amazoneu@buholoco.com';
+                }
+                break;
+
             case 'CV':
                 $amazonAccountName = 'ChatAndVision';
                 $alertEmail = 'amazonus-group@chatandvision.com';
