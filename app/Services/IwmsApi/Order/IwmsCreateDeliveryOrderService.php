@@ -223,7 +223,7 @@ class IwmsCreateDeliveryOrderService
     public function getEsgAllocateOrders($warehouseToIwms)
     {
         $this->fromData = date("Y-m-d 00:00:00");
-        //$this->fromData = date("2017-01-10 00:00:00");
+        //$this->fromData = date("2017-01-21 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         $esgOrders = So::where("status",5)
@@ -242,6 +242,7 @@ class IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
+            ->limit(50)
             ->get();
         return $this->checkEsgAllocateOrders($esgOrders);
     }
