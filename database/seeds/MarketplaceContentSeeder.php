@@ -226,19 +226,19 @@ class MarketplaceContentSeeder extends Seeder
             'updated_at' => date("Y-m-d H:i:s")
         ]);
         DB::table("marketplace_content_field")->insert([
-            'value'=>'length',
+            'value'=>'prod_length',
             'name'=>'Length (cm)',
             'created_at' => date("Y-m-d H:i:s"),
             'updated_at' => date("Y-m-d H:i:s")
         ]);
         DB::table("marketplace_content_field")->insert([
-            'value'=>'width',
+            'value'=>'prod_width',
             'name'=>'Width (cm)',
             'created_at' => date("Y-m-d H:i:s"),
             'updated_at' => date("Y-m-d H:i:s")
         ]);
         DB::table("marketplace_content_field")->insert([
-            'value'=>'height',
+            'value'=>'prod_height',
             'name'=>'Height (cm)',
             'created_at' => date("Y-m-d H:i:s"),
             'updated_at' => date("Y-m-d H:i:s")
