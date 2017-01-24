@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Seeder;
 
 class MarketplaceContentSeeder extends Seeder
@@ -328,7 +329,7 @@ class MarketplaceContentSeeder extends Seeder
         ]);
         DB::table("marketplace_content_field")->insert([
             'value'=>'contents',
-            'name'=>'Contents',
+            'name'=>'Box Contents',
             'created_at' => date("Y-m-d H:i:s"),
             'updated_at' => date("Y-m-d H:i:s")
         ]);
@@ -340,7 +341,7 @@ class MarketplaceContentSeeder extends Seeder
         ]);
         DB::table("marketplace_content_field")->insert([
             'value'=>'detail_desc',
-            'name'=>'Description',
+            'name'=>'Product Description',
             'created_at' => date("Y-m-d H:i:s"),
             'updated_at' => date("Y-m-d H:i:s")
         ]);
