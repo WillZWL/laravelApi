@@ -65,11 +65,12 @@ class MarketplaceContentExportService
         if (! $cellData) {
             $cellData[][] = "No data available for ".$requestData['marketplace_id']." (".$requestData['country_id'].")";
         }
+        $extend = $requestData['extend'] ?: 'xlsx';
         \Excel::create($fileName, function ($excel) use ($cellData, $sheetName) {
             $excel->sheet($sheetName, function ($sheet) use ($cellData) {
                 $sheet->rows($cellData);
             });
-        })->export('xlsx');
+        })->export($extend);
     }
 
     public function getMarketplaceContentData($requestData) {
