@@ -53,6 +53,26 @@ class Product extends Model
         return $this->hasOne('App\Models\SupplierProd', 'prod_sku', 'sku')->where('order_default', '=', 1);
     }
 
+    public function category()
+    {
+        return $this->hasOne('App\Models\Category', 'id', 'cat_id');
+    }
+
+    public function subCategory()
+    {
+        return $this->hasOne('App\Models\Category', 'id', 'sub_cat_id');
+    }
+
+    public function subSubCategory()
+    {
+        return $this->hasOne('App\Models\Category', 'id', 'sub_sub_cat_id');
+    }
+
+    public function hscodeCategory()
+    {
+        return $this->hasOne('App\Models\HscodeCategory', 'id', 'hscode_cat_id');
+    }
+
     public function brand()
     {
         return $this->belongsTo('App\Models\Brand');
