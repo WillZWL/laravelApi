@@ -18,4 +18,8 @@ class Category extends Model
 
     protected $guarded = ['create_at'];
 
+    public function product()
+    {
+        return $this->belongsTo('App\Models\Product');
+    }
 }
