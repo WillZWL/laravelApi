@@ -236,14 +236,14 @@ class MarketplaceContentExportService
         if ($this->inArray('weight', $fieldSortCollection)) {
             $prodInfo['weight'] = $product->weight;
         }
-        if ($this->inArray('length', $fieldSortCollection)) {
-            $prodInfo['length'] = $product->length;
+        if ($this->inArray('prod_length', $fieldSortCollection)) {
+            $prodInfo['prod_length'] = $product->length;
         }
-        if ($this->inArray('width', $fieldSortCollection)) {
-            $prodInfo['width'] = $product->width;
+        if ($this->inArray('prod_width', $fieldSortCollection)) {
+            $prodInfo['prod_width'] = $product->width;
         }
-        if ($this->inArray('height', $fieldSortCollection)) {
-            $prodInfo['height'] = $product->height;
+        if ($this->inArray('prod_height', $fieldSortCollection)) {
+            $prodInfo['prod_height'] = $product->height;
         }
         if ($this->inArray('default_ship_to_warehouse', $fieldSortCollection)) {
             $prodInfo['default_ship_to_warehouse'] = $product->default_ship_to_warehouse;
