@@ -78,6 +78,16 @@ class Product extends Model
         return $this->belongsTo('App\Models\Brand');
     }
 
+    public function version()
+    {
+        return $this->hasOne('App\Models\Version', 'id', 'version_id');
+    }
+
+    public function colour()
+    {
+        return $this->hasOne('App\Models\Colour', 'id', 'colour_id');
+    }
+
     public function productFeatures()
     {
         return $this->hasMany('App\Models\ProductFeatures', 'esg_sku', 'sku');

@@ -121,11 +121,11 @@ class MarketplaceContentExportService
         if ($this->inArray('price', $fieldSortCollection)) {
             $prodItem['price'] = $marketplaceProduct->price;
         }
-        if ($this->inArray('delivery_type_id', $fieldSortCollection)) {
-            $prodItem['delivery_type_id'] = $marketplaceProduct->delivery_type;
+        if ($this->inArray('delivery_type', $fieldSortCollection)) {
+            $prodItem['delivery_type'] = $marketplaceProduct->delivery_type;
         }
-        if ($this->inArray('currency_id', $fieldSortCollection)) {
-            $prodItem['currency_id'] = $marketplaceProduct->currency;
+        if ($this->inArray('currency', $fieldSortCollection)) {
+            $prodItem['currency'] = $marketplaceProduct->currency;
         }
         if ($this->inArray('hs_code', $fieldSortCollection)) {
             $prodItem['hs_code'] = $this->getCustomClassCode($marketplaceProduct, $requestData);
@@ -155,8 +155,14 @@ class MarketplaceContentExportService
         if ($this->inArray('version_id', $fieldSortCollection)) {
             $prodInfo['version_id'] = $product->version_id;
         }
+        if ($this->inArray('version_name', $fieldSortCollection)) {
+            $prodInfo['version_name'] = $product->version->desc;
+        }
         if ($this->inArray('colour_id', $fieldSortCollection)) {
             $prodInfo['colour_id'] = $product->colour_id;
+        }
+        if ($this->inArray('colour_name', $fieldSortCollection)) {
+            $prodInfo['colour_name'] = $product->colour->name;
         }
         if ($this->inArray('brand_id', $fieldSortCollection)) {
             $prodInfo['brand_id'] = $product->brand_id;
@@ -322,8 +328,8 @@ class MarketplaceContentExportService
         if ($this->inArray('declared_value', $suppProdCollection)) {
             $suppProdInfo['declared_value'] = $supplierProduct ? $supplierProduct->declared_value : null;
         }
-        if ($this->inArray('declared_value_currency_id', $suppProdCollection)) {
-            $suppProdInfo['declared_value_currency_id'] = $supplierProduct ? $supplierProduct->declared_value_currency_id : null;
+        if ($this->inArray('declared_value_currency', $suppProdCollection)) {
+            $suppProdInfo['declared_value_currency'] = $supplierProduct ? $supplierProduct->declared_value_currency_id : null;
         }
         if ($this->inArray('supplier_status', $suppProdCollection)) {
             if ($supplierProduct && isset($this->suppStatus[$supplierProduct->supplier_status])) {
@@ -347,7 +353,7 @@ class MarketplaceContentExportService
             'keywords',
             'contents',
             'short_desc',
-            'prod_desc',
+            'detail_desc',
         ];
 
         $prodContCollection = array_intersect($prodCont, array_flip($fieldSortCollection));
@@ -383,8 +389,8 @@ class MarketplaceContentExportService
         if ($this->inArray('short_desc', $prodContCollection)) {
             $prodContInfo['short_desc'] = $productContent ? $productContent->short_desc : null;
         }
-        if ($this->inArray('prod_desc', $prodContCollection)) {
-            $prodContInfo['prod_desc'] = $productContent ? $productContent->detail_desc : null;
+        if ($this->inArray('detail_desc', $prodContCollection)) {
+            $prodContInfo['detail_desc'] = $productContent ? $productContent->detail_desc : null;
         }
         return $prodContInfo;
     }
