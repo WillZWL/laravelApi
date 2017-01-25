@@ -55,31 +55,31 @@ class MarketplaceProductRepository
             ->join('product AS p', 'p.sku', '=', 'marketplace_sku_mapping.sku')
             ->where('marketplace_sku_mapping.country_id', $requestData['country_id'])
             ->where('marketplace_sku_mapping.status', 1);
-        if ($requestData['marketplace_skus']) {
+        if (isset($requestData['marketplace_skus']) && $requestData['marketplace_skus']) {
             $query->whereIn('marketplace_sku_mapping.marketplace_sku', $requestData['marketplace_skus']);
         }
-        if ($requestData['skus']) {
+        if (isset($requestData['skus']) && $requestData['skus']) {
             $query->whereIn('p.sku', $requestData['skus']);
         }
-        if ($requestData['colour_id']) {
+        if (isset($requestData['colour_id']) && $requestData['colour_id']) {
             $query->where('p.colour_id', $requestData['colour_id']);
         }
-        if ($requestData['version_id']) {
+        if (isset($requestData['version_id']) && $requestData['version_id']) {
             $query->where('p.version_id', $requestData['version_id']);
         }
-        if ($requestData['brand_id']) {
+        if (isset($requestData['brand_id']) && $requestData['brand_id']) {
             $query->where('p.brand_id', $requestData['brand_id']);
         }
-        if ($requestData['cat_id']) {
+        if (isset($requestData['cat_id']) && $requestData['cat_id']) {
             $query->where('p.cat_id', $requestData['cat_id']);
         }
-        if ($requestData['sub_cat_id']) {
+        if (isset($requestData['sub_cat_id']) && $requestData['sub_cat_id']) {
             $query->where('p.sub_cat_id', $requestData['sub_cat_id']);
         }
-        if ($requestData['sub_sub_cat_id']) {
+        if (isset($requestData['sub_sub_cat_id']) && $requestData['sub_sub_cat_id']) {
             $query->where('p.sub_sub_cat_id', $requestData['sub_sub_cat_id']);
         }
-        if ($requestData['hscode_cat_id']) {
+        if (isset($requestData['hscode_cat_id']) && $requestData['hscode_cat_id']) {
             $query->where('p.hscode_cat_id', $requestData['hscode_cat_id']);
         }
         return $query->groupBy('marketplace_sku', 'marketplace_sku_mapping.sku')

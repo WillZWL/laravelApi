@@ -98,6 +98,7 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('marketplace-content-field', 'MarketplaceContentFieldController');
     $api->post('marketplace-content-export/setting', 'MarketplaceContentExportController@setting');
     $api->get('marketplace-content-export/download', 'MarketplaceContentExportController@download');
+    $api->get('marketplace-content-export/query-content', 'MarketplaceContentExportController@queryContentData');
     $api->resource('marketplace-content-export', 'MarketplaceContentExportController');
     $api->get('product/sku-mapping-list', 'ProductController@skuMappingList');
     $api->post('product/product-mapping', 'ProductController@productMapping');
