@@ -75,7 +75,7 @@ class MarketplaceContentExportService
 
     public function getMarketplaceContentData($requestData) {
         if ($contentExportCollection = $this->getContentExportCollection($requestData['marketplace'])) {
-            $marketplaceProducts = $this->getMarketplaceProducts($requestData);
+            $marketplaceProducts = $this->getMarketProdRepos()->getMarketplaceProducts($requestData);
             if ($marketplaceProducts->count()) {
                 $fieldSortCollection = $contentExportCollection['fields'];
                 $fieldNameCollection = $contentExportCollection['fieldNames'];
@@ -134,7 +134,6 @@ class MarketplaceContentExportService
 
         $prodInfo = $this->prodInfo($marketplaceProduct->product, $fieldSortCollection);
         $prodItem = array_merge($prodItem, $prodInfo);
-
         $merchantProdMapInfo = $this->getMerchantProdMapInfo($marketplaceProduct, $fieldSortCollection);
         $prodItem = array_merge($prodItem, $merchantProdMapInfo);
 
@@ -157,13 +156,13 @@ class MarketplaceContentExportService
             $prodInfo['version_id'] = $product->version_id;
         }
         if ($this->inArray('version_name', $fieldSortCollection)) {
-            $prodInfo['version_name'] = $product->version->desc;
+            $prodInfo['version_name'] = $product->version ? $product->version->desc : null;
         }
         if ($this->inArray('colour_id', $fieldSortCollection)) {
             $prodInfo['colour_id'] = $product->colour_id;
         }
         if ($this->inArray('colour_name', $fieldSortCollection)) {
-            $prodInfo['colour_name'] = $product->colour->name;
+            $prodInfo['colour_name'] = $product->colour ? $product->colour->name : null;
         }
         if ($this->inArray('brand_id', $fieldSortCollection)) {
             $prodInfo['brand_id'] = $product->brand_id;
@@ -175,25 +174,25 @@ class MarketplaceContentExportService
             $prodInfo['cat_id'] = $product->cat_id;
         }
         if ($this->inArray('cat_name', $fieldSortCollection)) {
-            $prodInfo['cat_name'] = $product->category->name;
+            $prodInfo['cat_name'] = $product->category ? $product->category->name : null;
         }
         if ($this->inArray('sub_cat_id', $fieldSortCollection)) {
             $prodInfo['sub_cat_id'] = $product->sub_cat_id;
         }
         if ($this->inArray('sub_cat_name', $fieldSortCollection)) {
-            $prodInfo['sub_cat_name'] = $product->subCategory->name;
+            $prodInfo['sub_cat_name'] = $product->subCategory ? $product->subCategory->name : null;
         }
         if ($this->inArray('sub_sub_cat_id', $fieldSortCollection)) {
             $prodInfo['sub_sub_cat_id'] = $product->sub_sub_cat_id;
         }
         if ($this->inArray('sub_sub_cat_name', $fieldSortCollection)) {
-            $prodInfo['sub_sub_cat_name'] = $product->subSubCategory->name;
+            $prodInfo['sub_sub_cat_name'] = $product->subSubCategory ? $product->subSubCategory->name : null;
         }
         if ($this->inArray('hscode_cat_id', $fieldSortCollection)) {
             $prodInfo['hscode_cat_id'] = $product->hscode_cat_id;
         }
         if ($this->inArray('hscode_cat_name', $fieldSortCollection)) {
-            $prodInfo['hscode_cat_name'] = $product->hscodeCategory->name;
+            $prodInfo['hscode_cat_name'] = $product->hscodeCategory ? $product->hscodeCategory->name : null;
         }
         if ($this->inArray('declared_desc', $fieldSortCollection)) {
             $prodInfo['declared_desc'] = $product->declared_desc;
@@ -258,7 +257,6 @@ class MarketplaceContentExportService
 
         $prodFeaturInfo = $this->getProductFeatures($product, $fieldSortCollection);
         $prodInfo = array_merge($prodInfo, $prodFeaturInfo);
-
         $prodContInfo = $this->prodContInfo($product, $fieldSortCollection);
         $prodInfo = array_merge($prodInfo, $prodContInfo);
 
@@ -274,17 +272,16 @@ class MarketplaceContentExportService
             'merchant_name',
 
         ];
-        $prodMapContCollection = array_intersect($merchantProdMap, array_flip($fieldSortCollection));
-        if ($prodMapContCollection) {
+        if (array_intersect($merchantProdMap, array_flip($fieldSortCollection))) {
             $merchantProductMapping = $marketplaceProduct->merchantProductMapping;
         }
-        if ($this->inArray('merchant_id', $prodMapContCollection)) {
+        if ($this->inArray('merchant_id', $fieldSortCollection)) {
             $merchantProdMapInfo['merchant_id'] = $merchantProductMapping ? $merchantProductMapping->merchant_id : null;
         }
-        if ($this->inArray('merchant_sku', $prodMapContCollection)) {
+        if ($this->inArray('merchant_sku', $fieldSortCollection)) {
             $merchantProdMapInfo['merchant_sku'] = $merchantProductMapping ? $merchantProductMapping->merchant_sku : null;
         }
-        if ($this->inArray('merchant_name', $prodMapContCollection)) {
+        if ($this->inArray('merchant_name', $fieldSortCollection)) {
             $merchantProdMapInfo['merchant_name'] = $merchantProductMapping ? $merchantProductMapping->merchant->merchant_name : null;
         }
         return $merchantProdMapInfo;
@@ -304,18 +301,17 @@ class MarketplaceContentExportService
             'declared_value_currency_id',
             'supplier_status',
         ];
-        $suppProdCollection = array_intersect($suppProd, array_flip($fieldSortCollection));
-        if ($suppProdCollection) {
+        if (array_intersect($suppProd, array_flip($fieldSortCollection))) {
             $supplierProduct = $marketplaceProduct->supplierProduct;
         }
-        if ($this->inArray('supplier_id', $suppProdCollection)) {
+        if ($this->inArray('supplier_id', $fieldSortCollection)) {
             $suppProdInfo['supplier_id'] = $supplierProduct ? $supplierProduct->supplier_id : null;
         }
-        if ($this->inArray('supplier_name', $suppProdCollection)) {
+        if ($this->inArray('supplier_name', $fieldSortCollection)) {
 
             $suppProdInfo['supplier_name'] = $supplierProduct->Supplier ? $supplierProduct->Supplier->name: null;
         }
-        if ($this->inArray('cost', $suppProdCollection)) {
+        if ($this->inArray('cost', $fieldSortCollection)) {
             if ($supplierProduct->currency_id <> $marketplaceProduct->currency) {
                 $rate = ExchangeRate::getRate($supplierProduct->currency_id, $marketplaceProduct->currency);
             } else {
@@ -323,16 +319,16 @@ class MarketplaceContentExportService
             }
             $suppProdInfo['cost'] = $supplierProduct ? $supplierProduct->cost * $rate : null;
         }
-        if ($this->inArray('product_cost_hkd', $suppProdCollection)) {
+        if ($this->inArray('product_cost_hkd', $fieldSortCollection)) {
             $suppProdInfo['product_cost_hkd'] = $supplierProduct ? $supplierProduct->pricehkd : null;
         }
-        if ($this->inArray('declared_value', $suppProdCollection)) {
+        if ($this->inArray('declared_value', $fieldSortCollection)) {
             $suppProdInfo['declared_value'] = $supplierProduct ? $supplierProduct->declared_value : null;
         }
-        if ($this->inArray('declared_value_currency', $suppProdCollection)) {
+        if ($this->inArray('declared_value_currency', $fieldSortCollection)) {
             $suppProdInfo['declared_value_currency'] = $supplierProduct ? $supplierProduct->declared_value_currency_id : null;
         }
-        if ($this->inArray('supplier_status', $suppProdCollection)) {
+        if ($this->inArray('supplier_status', $fieldSortCollection)) {
             if ($supplierProduct && isset($this->suppStatus[$supplierProduct->supplier_status])) {
                 $supplierStatus = $this->suppStatus[$supplierProduct->supplier_status];
             }
@@ -356,41 +352,39 @@ class MarketplaceContentExportService
             'short_desc',
             'detail_desc',
         ];
-
-        $prodContCollection = array_intersect($prodCont, array_flip($fieldSortCollection));
-        if ($prodContCollection) {
+        if (array_intersect($prodCont, array_flip($fieldSortCollection))) {
             $productContent = $product->productContents()
                 ->whereLangId($lang)
                 ->first();
         }
-        if ($this->inArray('model_1', $prodContCollection)) {
+        if ($this->inArray('model_1', $fieldSortCollection)) {
             $prodContInfo['model_1'] = $productContent ? $productContent->model_1 : null;
         }
-        if ($this->inArray('model_2', $prodContCollection)) {
+        if ($this->inArray('model_2', $fieldSortCollection)) {
             $prodContInfo['model_2'] = $productContent ? $productContent->model_2 : null;
         }
-        if ($this->inArray('model_3', $prodContCollection)) {
+        if ($this->inArray('model_3', $fieldSortCollection)) {
             $prodContInfo['model_3'] = $productContent ? $productContent->model_3 : null;
         }
-        if ($this->inArray('model_4', $prodContCollection)) {
+        if ($this->inArray('model_4', $fieldSortCollection)) {
             $prodContInfo['model_4'] = $productContent ? $productContent->model_4 : null;
         }
-        if ($this->inArray('model_5', $prodContCollection)) {
+        if ($this->inArray('model_5', $fieldSortCollection)) {
             $prodContInfo['model_5'] = $productContent ? $productContent->model_5 : null;
         }
-        if ($this->inArray('prod_name', $prodContCollection)) {
+        if ($this->inArray('prod_name', $fieldSortCollection)) {
             $prodContInfo['prod_name'] = $productContent ? $productContent->prod_name : null;
         }
-        if ($this->inArray('keywords', $prodContCollection)) {
+        if ($this->inArray('keywords', $fieldSortCollection)) {
             $prodContInfo['keywords'] = $productContent ? $productContent->keywords : null;
         }
-        if ($this->inArray('contents', $prodContCollection)) {
+        if ($this->inArray('contents', $fieldSortCollection)) {
             $prodContInfo['contents'] = $productContent ? $productContent->contents : null;
         }
-        if ($this->inArray('short_desc', $prodContCollection)) {
+        if ($this->inArray('short_desc', $fieldSortCollection)) {
             $prodContInfo['short_desc'] = $productContent ? $productContent->short_desc : null;
         }
-        if ($this->inArray('detail_desc', $prodContCollection)) {
+        if ($this->inArray('detail_desc', $fieldSortCollection)) {
             $prodContInfo['detail_desc'] = $productContent ? $productContent->detail_desc : null;
         }
         return $prodContInfo;
@@ -407,9 +401,8 @@ class MarketplaceContentExportService
             'prod_features_point_5',
             'prod_features_point_6'
         ];
-        $featuresCollection = array_intersect($features, array_flip($fieldSortCollection));
         $featureArr = [];
-        if ($featuresCollection) {
+        if (array_intersect($features, array_flip($fieldSortCollection))) {
             $prodFeatures = $product->productFeatures()
                 ->whereEsgSku($product->sku)
                 ->whereStatus(1)
@@ -420,23 +413,23 @@ class MarketplaceContentExportService
                 $i++;
             }
         }
-        if ($this->inArray('prod_features_point_1', $featuresCollection)) {
-            $prodFeaturInfo['prod_features_point_1'] = $featureArr[1] ?: null;
+        if ($this->inArray('prod_features_point_1', $fieldSortCollection)) {
+            $prodFeaturInfo['prod_features_point_1'] = isset($featureArr[1]) ? $featureArr[1] : null;
         }
-        if ($this->inArray('prod_features_point_2', $featuresCollection)) {
-            $prodFeaturInfo['prod_features_point_2'] = $featureArr[2] ?: null;
+        if ($this->inArray('prod_features_point_2', $fieldSortCollection)) {
+            $prodFeaturInfo['prod_features_point_2'] = isset($featureArr[2]) ? $featureArr[2] : null;
         }
-        if ($this->inArray('prod_features_point_3', $featuresCollection)) {
-            $prodFeaturInfo['prod_features_point_3'] = $featureArr[3] ?: null;
+        if ($this->inArray('prod_features_point_3', $fieldSortCollection)) {
+            $prodFeaturInfo['prod_features_point_3'] = isset($featureArr[3]) ? $featureArr[3] : null;
         }
-        if ($this->inArray('prod_features_point_4', $featuresCollection)) {
-            $prodFeaturInfo['prod_features_point_4'] = $featureArr[4] ?: null;
+        if ($this->inArray('prod_features_point_4', $fieldSortCollection)) {
+            $prodFeaturInfo['prod_features_point_4'] = isset($featureArr[4]) ? $featureArr[4] : null;
         }
-        if ($this->inArray('prod_features_point_5', $featuresCollection)) {
-            $prodFeaturInfo['prod_features_point_5'] = $featureArr[5] ?: null;
+        if ($this->inArray('prod_features_point_5', $fieldSortCollection)) {
+            $prodFeaturInfo['prod_features_point_5'] = isset($featureArr[5]) ? $featureArr[5] : null;
         }
-        if ($this->inArray('prod_features_point_6', $featuresCollection)) {
-            $prodFeaturInfo['prod_features_point_6'] = $featureArr[6] ?: null;
+        if ($this->inArray('prod_features_point_6', $fieldSortCollection)) {
+            $prodFeaturInfo['prod_features_point_6'] = isset($featureArr[6]) ? $featureArr[6] : null;
         }
         return $prodFeaturInfo;
     }
@@ -464,20 +457,12 @@ class MarketplaceContentExportService
         return $newProdItem;
     }
 
-    public function getMarketplaceProducts($requestData)
-    {
-        return $this->getMarketProdRepos()->getMarketplaceProducts(
-            $requestData['marketplace_id'],
-            $requestData['country_id']
-        );
-    }
-
     public function getContentExportCollection($marketplace)
     {
         if ($exportFields = $this->getMarketplaceContentExport($marketplace)) {
             $fieldSortCollection = $fieldNameCollection = [];
             foreach ($exportFields as $exportField) {
-                $fieldNameCollection[$exportField->field_value] = $exportField->marketplaceContentField->name;
+                $fieldNameCollection[$exportField->field_value] = $exportField->marketplaceContentField ? $exportField->marketplaceContentField->name : $exportField->field_value;
                 $fieldSortCollection[$exportField->field_value] = $exportField->sort;
             }
             return [
