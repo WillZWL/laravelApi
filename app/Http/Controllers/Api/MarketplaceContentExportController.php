@@ -110,4 +110,10 @@ class MarketplaceContentExportController extends Controller
     {
         $this->marketplaceContentExportService->download($request->all());
     }
+
+    public function queryContentData(Requests\MarketplaceContentExport\ContentDataRequest $request)
+    {
+        $marketplaceContentData = $this->marketplaceContentExportService->getMarketplaceContentData($request->all());
+        return response()->json($marketplaceContentData);
+    }
 }
