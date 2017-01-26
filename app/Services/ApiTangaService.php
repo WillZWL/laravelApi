@@ -73,30 +73,72 @@ class ApiTangaService implements ApiPlatformInterface
         $platform_order_id = $esgOrder->platform_order_id;
         $tracking_no = $esgOrderShipment->tracking_no;
 
+        $tangaCarrier = $this->getTangaCarrier($esgOrderShipment->courierInfo);
+        if ($tangaCarrier) {
+            $this->tangaOrderUpdate = new TangaOrderUpdate($storeName);
+            $this->tangaOrderUpdate->setOrderId($platform_order_id);
+            $this->tangaOrderUpdate->setTrackingNumber($tracking_no);
+            $this->tangaOrderUpdate->setCarrier($tangaCarrier);
+            $requestData = $this->tangaOrderUpdate->getRequestTrackingData();
+            $this->saveDataToFile(serialize($requestData),"requestTangaOrderTracking");
 
-        $this->tangaOrderUpdate = new TangaOrderUpdate($storeName);
-        $this->tangaOrderUpdate->setOrderId($platform_order_id);
-        $this->tangaOrderUpdate->setTrackingNumber($tracking_no);
-        $requestData = $this->tangaOrderUpdate->getRequestTrackingData();
-        $this->saveDataToFile(serialize($requestData),"requestTangaOrderTracking");
+            $responseData = $this->tangaOrderUpdate->updateTrackingNumber($requestData);
+            $this->saveDataToFile(serialize($responseData),"responseTangaOrderTracking");
 
-        $responseData = $this->tangaOrderUpdate->updateTrackingNumber($requestData);
-        $this->saveDataToFile(serialize($responseData),"responseTangaOrderTracking");
+            if ( isset($responseData['shipment']) && $responseData['shipment']['tracking_number'] == $tracking_no) {
+                return true;
+            }
 
-        if ( isset($responseData['shipment']) && $responseData['shipment']['tracking_number'] == $tracking_no) {
-            return true;
-        }
+            if ( isset($responseData['error']) ) {
+                $email = 'brave.liu@eservicesgroup.com';
+                $subject = "Error, import tracking to tanga";
+                $msg = $responseData['error'] . "\r\n\r\nplatform_order_id: $platform_order_id, tracking_no: $tracking_no";
+                $this->sendMailMessage($email, $subject, $msg);
 
-        if ( isset($responseData['error']) ) {
-            $email = 'brave.liu@eservicesgroup.com';
-            $subject = "Error, import tracking to tanga";
-            $msg = $responseData['error'] . "\r\n\r\nplatform_order_id: $platform_order_id, tracking_no: $tracking_no";
-            $this->sendMailMessage($email, $subject, $msg);
-
-            return false;
+                return false;
+            }
         }
 
         return false;
+    }
+
+    public function getTangaCarrier($courierInfo)
+    {
+        $courierId = $courierInfo->courier_id;
+        $tangaCourier = [];
+        if ($courierId) {
+            switch ($courierId) {
+                case '5':
+                    $tangaCourier = 'DHL';
+                    break;
+                case '33':
+                    $tangaCourier = 'UPS';
+                    break;
+                case '34':
+                    $tangaCourier = 'USPS';
+                    break;
+                default:
+                    // code...
+                    break;
+            }
+        }
+
+        if ($tangaCourier) {
+            return $tangaCourier;
+        } else {
+
+            $courierId = $courierInfo->courier_id;
+            $courierName = $courierInfo->courier_name;
+            $message = "courierId: $courierId, courierName: $courierName Lack with Tanga courier Mapping, Please Contact IT Support";
+
+            $to = 'tanga@brandsconnect.net, celine@eservicesgroup.net';
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
+
+            mail($to, "Alert, Courier: {$courierName} Lack Mapping", $message, $header);
+
+            return false;
+        }
     }
 
     public function getShipedOrderState()
