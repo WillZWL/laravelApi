@@ -5,6 +5,7 @@ namespace App\Repository\TangaMws;
 class TangaOrderUpdate extends TangaOrderCore
 {
     private $orderId;
+    private $carrier;
     private $trackingNumber;
 
     public function __construct($store)
@@ -23,6 +24,7 @@ class TangaOrderUpdate extends TangaOrderCore
     {
         $requestData = [];
         $requestData['package_id'] = $this->getOrderId();
+        $requestData['carrier'] = $this->getCarrier();
         $requestData['tracking_number'] = $this->getTrackingNumber();
 
         return $requestData;
@@ -52,5 +54,15 @@ class TangaOrderUpdate extends TangaOrderCore
     public function setTrackingNumber($trackingNumber)
     {
         $this->trackingNumber = $trackingNumber;
+    }
+
+    public function getCarrier()
+    {
+        return $this->carrier;
+    }
+
+    public function setCarrier($carrier)
+    {
+        $this->carrier = $carrier;
     }
 }
