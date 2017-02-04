@@ -10,136 +10,74 @@ class AccOrderNotFulfilledService
 
     public function sendAccOrderNotFulfilledAlert()
     {
-        $this->sendAccOrderNotAllocatedAlert();
-
-        $this->sendAccOrderNotShippedAlert();
+        $cellDatas = $this->getAccOrderNotFulfilledReport();
+        if ($cellDatas) {
+            foreach ($cellDatas as $email => $cellData) {
+                $this->sendNotFulfilledEmail($email, $cellData);
+            }
+        }
     }
 
-    public function sendAccOrderNotAllocatedAlert($value='')
+    private function sendNotFulfilledEmail($toMail, $cellData)
     {
-        $cellData = $this->getAccOrderNotAllocatedReport();
         $filePath = \Storage::disk('local')->getDriver()->getAdapter()->getPathPrefix();
-        $orderPath = $filePath."notAllocated/";
-        $fileName = "AccOrderNotAllocated-".time();
+        $orderPath = $filePath."NotFulfilled/";
+        $fileName = "Accelerator_Order_Not_Fulfilled_".time();
         if(!empty($cellData)){
             $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
             if($excelFile){
-                $subject = "[ESG] Alert, These accelerator order created more than 24 hours not allocated report!";
+                $subject = "[ESG] Alert, Accelerator orders are not fulfilled within 24 hours, Please cehck report!";
                 $attachment = [
                     "path" => $orderPath,
                     "file_name"=>$fileName .".xlsx"
                 ];
                 $this->sendAttachmentMail(
-                    "privatelabel-log@eservicesgroup.com, dispatcher@eservicesgroup.com",
+                    $toMail,
                     $subject,
                     $attachment,
-                    "brave.liu@eservicesgroup.com"
+                    "privatelabel-log@eservicesgroup.com, dispatcher@eservicesgroup.com"
                 );
             }
         }
     }
 
-    public function sendAccOrderNotShippedAlert()
+    public function getAccOrderNotFulfilledReport()
     {
-        $cellData = $this->getAccOrderNotShippedReport();
-        $filePath = \Storage::disk('local')->getDriver()->getAdapter()->getPathPrefix();
-        $orderPath = $filePath."notShipped/";
-        $fileName = "AccOrderNotShipped-".time();
-        if(!empty($cellData)){
-            $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
-            if($excelFile){
-                $subject = "[ESG] Alert, These accelerator order not shipped for not fulfilled within 24 hours report!";
-                $attachment = [
-                    "path" => $orderPath,
-                    "file_name"=>$fileName .".xlsx"
-                ];
-                $this->sendAttachmentMail(
-                    "privatelabel-log@eservicesgroup.com, dispatcher@eservicesgroup.com",
-                    $subject,
-                    $attachment,
-                    "brave.liu@eservicesgroup.com"
-                );
-            }
-        }
-    }
-
-    public function getAccOrderNotAllocatedReport()
-    {
-        $orders = $this->getAccOrderNotAllocatedData();
+        $orders = $this->getAccOrderNotFulfilledData();
         if (! $orders->isEmpty()) {
-            $cellData[] = [
-                'Order NO.',
-                'Order Create Date',
-                'Lack Inventory Records',
-            ];
+            $cellDatas = [];
             foreach ($orders as $order) {
-                $lack_records = $order->lack_inventory_records ? "Y" : "N";
-                $cellData[] = [
-                    'so_no' => $order->so_no,
-                    'order_create_date' => $order->order_create_date,
-                    'lack_records' => $lack_records,
-                ];
-            }
-            return $cellData;
-        }
-    }
-
-    public function getAccOrderNotShippedReport()
-    {
-        $orders = $this->getAccOrderNotShippedData();
-        if (! $orders->isEmpty()) {
-            $cellData[] = [
-                'Order NO.',
-                'Order Create Date',
-            ];
-            foreach ($orders as $order) {
-                $cellData[] = [
+                if (! isset($cellDatas[$order->email])) {
+                    $cellDatas[$order->email][] = [
+                        'Order NO.',
+                        'Order Create Date',
+                    ];
+                }
+                $cellDatas[$order->email][] = [
                     'so_no' => $order->so_no,
                     'order_create_date' => $order->order_create_date,
                 ];
             }
-            return $cellData;
+            return $cellDatas;
         }
     }
 
-    public function getAccOrderNotAllocatedData()
+    public function getAccOrderNotFulfilledData()
     {
         return SO::join("selling_platform AS sp", "so.platform_id", "=", "sp.id")
-        ->join("so_item AS soi", "soi.so_no", "=", "so.so_no")
-        ->leftJoin("inventory AS inv", function ($join) {
-            $join->on("soi.prod_sku", "=", "inv.prod_sku")
-            ->whereNotNull("inv.prod_sku");
-        })
+        ->Join("user AS u", "u.id", "=", "so.create_by")
         ->where("so.status", ">", '2')
-        ->where("so.status", "<", '5')
-        ->where("so.refund_status", '0')
-        ->where("so.hold_status", '0')
-        ->where("sp.type", 'ACCELERATOR')
-        ->where("so.platform_group_order", '1')
-        ->where("so.prepay_hold_status", '0')
-        ->where("so.merchant_hold_status", '0')
-        ->where("so.order_create_date", '<=', \DB::raw("(Now()-interval 1 day)"))
-        ->groupBy("so_no")
-        ->orderBy(\DB::raw("if(inv.prod_sku,0, 1), so_no, order_create_date"))
-        ->select(\DB::raw("so.so_no, so.order_create_date, if(inv.prod_sku,0, 1) lack_inventory_records"))
-        ->get();
-    }
-
-    public function getAccOrderNotShippedData()
-    {
-        return SO::join("selling_platform AS sp", "so.platform_id", "=", "sp.id")
-        ->join("so_allocate AS soal", "so.so_no", "=", "soal.so_no")
-        ->join("so_shipment AS sosh", "soal.sh_no", "=", "sosh.sh_no")
-        ->where("so.status", ">", '3')
         ->where("so.status", "<", '6')
-        ->where("soal.status", "=", '2')
         ->where("sp.type", 'ACCELERATOR')
         ->where("so.platform_group_order", '1')
-        ->where("so.prepay_hold_status", '0')
+        ->where("so.refund_status", '0')
+        ->where("so.hold_status", "!=", '10')
+        ->where("so.order_create_date", '>=', '2016-04-01')
         ->where("so.order_create_date", '<=', \DB::raw("(Now()-interval 1 day)"))
+        ->where("so.create_by", '!=', 'system')
         ->groupBy("so.so_no")
-        ->orderBy(\DB::raw("so.so_no, so.order_create_date"))
-        ->select(\DB::raw("so.so_no, so.order_create_date"))
+        ->orderBy(\DB::raw("u.email, so.order_create_date, so.so_no"))
+        ->select(\DB::raw("so.so_no, so.order_create_date, u.email"))
         ->get();
     }
 }
