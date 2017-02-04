@@ -40,6 +40,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketOrderUpdate::class,
         Commands\IwmsDeliveryOrder::class,
         Commands\LgsOrderReadyToship::class,
+        Commands\AccOrderNotFulfilledAlert::class,
     ];
 
     /**
@@ -66,10 +67,10 @@ class Kernel extends ConsoleKernel
             ->dailyAt('09:00');
 
         $schedule->command('lazadaSg:orderRetrieve')
-                ->cron('45 23,00-10 * * * *'); 
+                ->cron('45 23,00-10 * * * *');
 
         $schedule->command('platformMarket:orderRetrieve',array('--api' => 'hourlyAll'))
-            ->cron('50 23,00-10 * * * *');  
+            ->cron('50 23,00-10 * * * *');
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
             ->dailyAt('23:50');
         $schedule->command('platformMarket:orderRetrieve', array('--api' => 'all'))
@@ -150,6 +151,11 @@ class Kernel extends ConsoleKernel
             ->dailyAt('02:30');
         $schedule->command('platformMarket:setOrderScore',
                     array('--platform' => 'DISPATCH', '--merchant' => 'RING', '--score' => '2000'))
+            ->dailyAt('09:30');
+
+        $schedule->command('accNotFulfilled:Order')
+            ->dailyAt('02:30');
+        $schedule->command('accNotFulfilled:Order')
             ->dailyAt('09:30');
 
         $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))

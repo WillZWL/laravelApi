@@ -280,6 +280,7 @@ class IwmsCallbackApiService
                         }
                     }
 
+                    $esgOrder->auto_stockout = 2;
                     $esgOrder->status = 6;
                     $esgOrder->actual_weight = $shippedOrder->weight_charge;
                     $esgOrder->dispatch_date = $shippedOrder->ship_date ? $shippedOrder->ship_date : date("Y-m-d H:i:s");
