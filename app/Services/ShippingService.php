@@ -47,11 +47,11 @@ class ShippingService
         $courierOptions = $this->shippingRepository->shippingOptions($merchant, $fromWarehouse, $deliveryCountry);
         $couriers = $courierOptions->pluck('courier_id', 'courier_type');
 
-        // Lazada only use EXP
+        // sbf 10953
         $marketplace = substr($marketplaceProduct->mpControl->marketplace_id, 2);
         if ($marketplace === 'LAZADA') {
             $couriers = $couriers->filter(function ($item, $key) {
-                return ($key === 'acc_courier_exp');
+                return ($key === 'acc_courier_exp') || ($key === 'acc_courier');
             });
         }
 
