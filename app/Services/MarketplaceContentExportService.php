@@ -101,7 +101,6 @@ class MarketplaceContentExportService
         $prodItem = array_merge($prodItem, $merchantProdMapInfo);
         $suppProdInfo = $this->supplierProdInfo($product, $fieldSortCollection);
         $prodItem = array_merge($prodItem, $suppProdInfo);
-
         return $prodItem;
     }
 

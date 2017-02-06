@@ -36,6 +36,7 @@ class ProductRepository
         }
 
         return $query->groupBy('sku')
+            ->limit(5000)
             ->get();
     }
 }
