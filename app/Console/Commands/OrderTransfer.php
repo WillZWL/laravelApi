@@ -602,7 +602,11 @@ class OrderTransfer extends Command
             }
         }
 
-        $weightId = WeightCourier::where('weight', '>=', $shippingWeight)->first()->id;
+        if ($shippingWeight > 30) {
+            $weightId = 1;
+        } else {
+            $weightId = WeightCourier::where('weight', '>=', $shippingWeight)->first()->id;
+        }
         $courierCost = $courier->courierCost()->where('dest_country_id', $deliveryCountry)
             ->where('dest_state_id', $deliveryStateId)
             ->where('weight_id', $weightId)
@@ -611,7 +615,11 @@ class OrderTransfer extends Command
 
         if ($courierCost) {
             $currencyRate = ExchangeRate::getRate('HKD', $order->currency_id);
-            $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
+            if ($shippingWeight <= 30) {
+                $order->esg_delivery_cost = $courierCost->delivery_cost * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
+            } else {
+                $order->esg_delivery_cost = $courierCost->cost_per_kg * ceil($shippingWeight) * (1 + $courier->surcharge / 100) * $currencyRate / 0.9725;
+            }
         } else {
             $message = "Courier: {$courier->courier_id} \r\n Country: {$order->delivery_country_id} \r\n State: {$order->delivery_state} \r\n WeightId: {$weightId} \r\n ";
             mail('handy.hon@eservicesgroup.com', 'Missing Delivery Cost', $message);
