@@ -35,7 +35,8 @@ class ProductRepository
         }
 
         return $query->groupBy('sku')
-            ->limit(500)
+            ->orderBy('create_on', "DESC")
+            ->limit(5000)
             ->get();
     }
 }

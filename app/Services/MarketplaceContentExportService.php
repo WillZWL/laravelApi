@@ -123,15 +123,11 @@ class MarketplaceContentExportService
         ];
         $mSkuProd = null;
         if (array_intersect($marketplaceSkuMapField, array_flip($fieldSortCollection))) {
-            $mSkuProdQuery = MarketplaceSkuMapping::whereSku($product->sku)
-                ->whereStatus(1);
-            if (isset($requestData['marketplace_id'])) {
-                $mSkuProdQuery->where("marketplace_id", $requestData['marketplace_id']);
-            }
-            if (isset($requestData['country_id'])) {
-                $mSkuProdQuery->where("country_id", $requestData['country_id']);
-            }
-            $mSkuProd = $mSkuProdQuery->first();
+            $mSkuProd = MarketplaceSkuMapping::whereSku($product->sku)
+                ->where("marketplace_id", $requestData['marketplace_id'])
+                ->where("country_id", $requestData['country_id'])
+                ->whereStatus(1)
+                ->first();
         }
         if ($this->inArray('marketplace_sku', $fieldSortCollection)) {
             $marketplaceProdInfo['marketplace_sku'] = $mSkuProd ? $mSkuProd->marketplace_sku : null;
