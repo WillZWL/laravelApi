@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\MarketplaceContentField;
 use App\Models\MarketplaceContentExport;
 use App\Models\ExchangeRate;
+use App\Models\MarketplaceSkuMapping;
 use App\Repository\ProductRepository;
 
 class MarketplaceContentExportService
@@ -111,15 +112,17 @@ class MarketplaceContentExportService
             'marketplace_id',
             'country_id',
         ];
+        $mSkuProd = null;
         if (array_intersect($marketplaceSkuMapField, array_flip($fieldSortCollection))) {
-            $mSkuProd = $product->marketplaceSkuMapping;
+            $mSkuProdQuery = MarketplaceSkuMapping::whereSku($product->sku)
+                ->whereStatus(1);
             if (isset($requestData['marketplace_id'])) {
-                $mSkuProd->where("marketplace_id", $requestData['marketplace_id']);
+                $mSkuProdQuery->where("marketplace_id", $requestData['marketplace_id']);
             }
             if (isset($requestData['country_id'])) {
-                $mSkuProd->where("country_id", $requestData['country_id']);
+                $mSkuProdQuery->where("country_id", $requestData['country_id']);
             }
-            $mSkuProd = $mSkuProd->first();
+            $mSkuProd = $mSkuProdQuery->first();
         }
         if ($this->inArray('marketplace_sku', $fieldSortCollection)) {
             $marketplaceProdInfo['marketplace_sku'] = $mSkuProd ? $mSkuProd->marketplace_sku : null;
