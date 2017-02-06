@@ -79,7 +79,7 @@ class AccOrderNotFulfilledService
                 'Create By User',
             ];
             foreach ($orders as $order) {
-                $cellDatas[$order->email][] = [
+                $cellDatas[] = [
                     'so_no' => $order->so_no,
                     'order_create_date' => $order->order_create_date,
                     'username' => $order->username,
