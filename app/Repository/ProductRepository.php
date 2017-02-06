@@ -8,8 +8,7 @@ class ProductRepository
 {
     public function getProductList($requestData)
     {
-        $query = Product::where('status', ">=", 1)
-            ->with("marketplaceSkuMapping");
+        $query = Product::where('status', "=", 2);
         if (isset($requestData['skus']) && $requestData['skus']) {
             $query->whereIn('sku', $requestData['skus']);
         }
@@ -36,7 +35,7 @@ class ProductRepository
         }
 
         return $query->groupBy('sku')
-            ->limit(5000)
+            ->limit(500)
             ->get();
     }
 }
