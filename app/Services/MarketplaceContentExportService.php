@@ -109,8 +109,17 @@ class MarketplaceContentExportService
     {
         $marketplaceProdInfo = [];
         $marketplaceSkuMapField = [
+            'marketplace_sku',
             'marketplace_id',
             'country_id',
+            'mp_category_id',
+            'mp_category_name',
+            'mp_sub_category_id',
+            'mp_sub_category_name',
+            'inventory',
+            'price',
+            'delivery_type',
+            'currency',
         ];
         $mSkuProd = null;
         if (array_intersect($marketplaceSkuMapField, array_flip($fieldSortCollection))) {
