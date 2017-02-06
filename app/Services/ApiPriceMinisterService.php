@@ -175,6 +175,8 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
                 default:
                     // code...
+                    $priceMinisterCourier = array(
+                        'transporter_name' => 'Other');
                     break;
             }
         }
