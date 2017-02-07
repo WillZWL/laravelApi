@@ -22,11 +22,7 @@ class ProductRepository
             } else if ($requestData['msku_map'] == "N") {
                 $mjoin = "leftJoin";
             }
-            $query->$mjoin("marketplace_sku_mapping AS msm", function($msm) use ($marketplaceId, $countryId) {
-                $msm->on("msm.sku", "=", "product.sku")
-                ->on("msm.marketplace_id", "=", $marketplaceId)
-                ->on("msm.country_id", "=", $countryId);
-            });
+            $query->$mjoin("marketplace_sku_mapping AS msm", "msm.sku", "=", \DB::raw("product.sku AND msm.marketplace_id = '{$marketplaceId}' AND msm.country_id = '{$countryId}'"));
             if ($requestData['msku_map'] == "N") {
                 $query->whereNull("msm.id");
             }
@@ -83,7 +79,8 @@ class ProductRepository
         if (! $search) {
             $query->limit(2500);
         }
-        return $query->get();
+        return $query->select("product.*")
+            ->get();
     }
 }
 
