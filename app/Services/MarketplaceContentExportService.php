@@ -122,7 +122,7 @@ class MarketplaceContentExportService
             'currency',
         ];
         $mSkuProd = null;
-        if (array_intersect($marketplaceSkuMapField, array_flip($fieldSortCollection))) {
+        if ($requestData['msku_map'] != "N" && array_intersect($marketplaceSkuMapField, array_flip($fieldSortCollection))) {
             $mSkuProd = $product->marketplaceSkuMapping->where("marketplace_id", $requestData['marketplace_id'])
                 ->where("country_id", $requestData['country_id'])
                 ->where("status", 1)
