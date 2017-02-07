@@ -56,13 +56,27 @@ class AccOrderNotFulfilledService
             foreach ($orders as $order) {
                 if (! isset($cellDatas[$order->email])) {
                     $cellDatas[$order->email][] = [
+                        'Business Type',
+                        'Platform ID',
                         'Order NO.',
-                        'Order Create Date',
+                        'Order Status',
+                        'Hold Status',
+                        'Order Created Date',
+                        'Created By User',
+                        'Last Updated Date',
+                        'Last Updated By User',
                     ];
                 }
                 $cellDatas[$order->email][] = [
+                    'type' => $order->type,
+                    'platform_id' => $order->platform_id,
                     'so_no' => $order->so_no,
-                    'order_create_date' => $order->order_create_date,
+                    'status' => $order->status,
+                    'hold_status' => $order->hold_status,
+                    'order_create_date' => $order->create_date,
+                    'username' => $order->c_username,
+                    'modify_on' => $order->modify_on,
+                    'm_username' => $order->m_username,
                 ];
             }
             return $cellDatas;
@@ -74,15 +88,27 @@ class AccOrderNotFulfilledService
         if (! $orders->isEmpty()) {
             $cellDatas = [];
             $cellDatas[] = [
+                'Business Type',
+                'Platform ID',
                 'Order NO.',
-                'Order Create Date',
-                'Create By User',
+                'Order Status',
+                'Hold Status',
+                'Order Created Date',
+                'Created By User',
+                'Last Updated Date',
+                'Last Updated By User',
             ];
             foreach ($orders as $order) {
                 $cellDatas[] = [
+                    'type' => $order->type,
+                    'platform_id' => $order->platform_id,
                     'so_no' => $order->so_no,
-                    'order_create_date' => $order->order_create_date,
-                    'username' => $order->username,
+                    'status' => $order->status,
+                    'hold_status' => $order->hold_status,
+                    'order_create_date' => $order->create_date,
+                    'username' => $order->c_username,
+                    'modify_on' => $order->modify_on,
+                    'm_username' => $order->m_username,
                 ];
             }
             return $cellDatas;
@@ -92,19 +118,34 @@ class AccOrderNotFulfilledService
     public function getAccOrderNotFulfilledData()
     {
         return SO::join("selling_platform AS sp", "so.platform_id", "=", "sp.id")
-        ->Join("user AS u", "u.id", "=", "so.create_by")
-        ->where("so.status", ">", '2')
-        ->where("so.status", "<", '6')
-        ->whereIn("sp.type", ['ACCELERATOR', 'TRANSFER'])
-        ->where("so.platform_group_order", '1')
-        ->where("so.refund_status", '0')
-        ->where("so.hold_status", "!=", '10')
-        ->where("so.order_create_date", '>=', '2016-04-01')
-        ->where("so.order_create_date", '<=', \DB::raw("(Now()-interval 1 day)"))
-        ->where("so.create_by", '!=', 'system')
-        ->groupBy("so.so_no")
-        ->orderBy(\DB::raw("u.email, so.order_create_date, so.so_no"))
-        ->select(\DB::raw("so.so_no, so.order_create_date, u.email, u.username"))
-        ->get();
+            ->Join("user AS u", "u.id", "=", "so.create_by")
+            ->leftJoin("user AS ur", "ur.id", "=", "so.modify_by")
+            ->where("so.status", ">", '2')
+            ->where("so.status", "<", '6')
+            ->where("sp.type", 'TRANSFER')
+            ->whereNotIn("so.so_no", ['276585, 276624, 276626, 276630'])
+            ->where("so.platform_group_order", '1')
+            ->where("so.refund_status", '0')
+            ->where("so.hold_status", "!=", '10')
+            ->where("so.order_create_date", '>=', '2016-04-01')
+            ->where("so.order_create_date", '<=', \DB::raw("(Now()-interval 1 day)"))
+            ->where("so.create_by", '!=', 'system')
+            ->groupBy("so.so_no")
+            ->orderBy(\DB::raw("u.email, so.order_create_date, so.so_no"))
+            ->select(
+                \DB::raw("
+                    so.platform_id,
+                    sp.type,
+                    so.so_no,
+                    ifnull(so.order_create_date, so.create_on) create_date,
+                    u.email,
+                    u.username c_username,
+                    so.status,
+                    so.hold_status,
+                    so.modify_on,
+                    ur.username m_username
+                ")
+            )
+            ->get();
     }
 }
