@@ -275,10 +275,10 @@ class MarketplaceContentExportService
             $prodInfo['default_ship_to_warehouse'] = $product->default_ship_to_warehouse;
         }
         if ($this->inArray('website_status', $fieldSortCollection)) {
-            $prodInfo['website_status'] = $this->webState[$product->website_status] ?: null;
+            $prodInfo['website_status'] = isset($this->webState[$product->website_status]) ? $this->webState[$product->website_status] : null;
         }
         if ($this->inArray('status', $fieldSortCollection)) {
-            $prodInfo['status'] = $this->status[$product->status] ?: null;
+            $prodInfo['status'] = isset($this->status[$product->status]) ? $this->status[$product->status] : null;
         }
 
         $prodFeaturInfo = $this->getProductFeatures($product, $fieldSortCollection);
@@ -355,7 +355,7 @@ class MarketplaceContentExportService
                 if ($supplierProduct->supplier_status)
                     $supplierStatus = $this->suppStatus[$supplierProduct->supplier_status];
             }
-            $suppProdInfo['supplier_status'] = $supplierStatus ?: null;
+            $suppProdInfo['supplier_status'] = isset($supplierStatus) ? $supplierStatus : null;
         }
         return $suppProdInfo;
     }
