@@ -23,6 +23,11 @@ class Product extends Model
         return $this->hasMany('App\Models\SoItem', 'sku', 'prod_sku');
     }
 
+    public function soItemDetail()
+    {
+        return $this->hasMany('App\Models\SoItem', 'sku', 'item_sku');
+    }
+
     public function productComplementaryAcc()
     {
         return $this->hasMany('App\Models\ProductComplementaryAcc', 'sku', 'accessory_sku');

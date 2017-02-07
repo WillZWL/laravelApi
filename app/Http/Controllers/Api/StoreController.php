@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Services\ColourService;
-use App\Transformers\ColourTransformer;
+use App\Services\StoreService;
+use App\Transformers\StoreTransformer;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-class ColourController extends Controller
+class StoreController extends Controller
 {
     use Helpers;
 
-    private $colourService;
+    private $storeService;
 
-    public function __construct(ColourService $colourService)
+    public function __construct(StoreService $storeService)
     {
-        $this->colourService = $colourService;
+        $this->storeService = $storeService;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -27,9 +28,9 @@ class ColourController extends Controller
      */
     public function index()
     {
-        $colours = $this->colourService->all();
+        $stores = $this->storeService->all();
 
-        return $this->collection($colours, new ColourTransformer());
+        return $this->response->collection($stores, new StoreTransformer());
     }
 
     /**
