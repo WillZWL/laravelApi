@@ -123,10 +123,9 @@ class MarketplaceContentExportService
         ];
         $mSkuProd = null;
         if (array_intersect($marketplaceSkuMapField, array_flip($fieldSortCollection))) {
-            $mSkuProd = MarketplaceSkuMapping::whereSku($product->sku)
-                ->where("marketplace_id", $requestData['marketplace_id'])
+            $mSkuProd = $product->marketplaceSkuMapping->where("marketplace_id", $requestData['marketplace_id'])
                 ->where("country_id", $requestData['country_id'])
-                ->whereStatus(1)
+                ->where("status", 1)
                 ->first();
         }
         if ($this->inArray('marketplace_sku', $fieldSortCollection)) {
