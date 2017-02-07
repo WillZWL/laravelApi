@@ -8,10 +8,12 @@ class ProductRepository
 {
     public function getProductList($requestData)
     {
-        $query = Product::where('product.status', "=", 2);
+        $query = Product::where('product.status e', "=", 2);
         $search = false;
-        if (isset($requestData['marketplace_id'])
-            && $requestData['marketplace_id']
+        $marketplaceId = $requestData['marketplace_id'];
+        $countryId = $requestData['country_id'];
+        if (isset($marketplaceId)
+            && $marketplaceId
             && isset($requestData['msku_map'])
             && $requestData['msku_map'] != "P"
         ) {
@@ -20,9 +22,14 @@ class ProductRepository
             } else if ($requestData['msku_map'] == "N") {
                 $mjoin = "leftJoin";
             }
-            $query->$mjoin("marketplace_sku_mapping AS msm", "msm.sku", "!=", "product.sku")
-                ->where("msm.marketplace_id", $requestData['marketplace_id'])
-                ->where("msm.country_id", $requestData['country_id']);
+            $query->$mjoin("marketplace_sku_mapping AS msm", function($msm) use ($marketplaceId, $countryId) {
+                $msm->on("msm.sku", "=", "product.sku")
+                ->on("msm.marketplace_id", "=", $marketplaceId)
+                ->on("msm.country_id", "=", $countryId);
+            });
+            if ($requestData['msku_map'] == "N") {
+                $query->whereNull("msm.id");
+            }
             $search = true;
         }
         if (isset($requestData['merchant_id']) && $requestData['merchant_id']) {
