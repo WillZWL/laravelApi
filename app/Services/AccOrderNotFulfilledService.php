@@ -30,7 +30,7 @@ class AccOrderNotFulfilledService
         if(!empty($cellData)){
             $excelFile = $this->createExcelFile($fileName, $orderPath, $cellData);
             if($excelFile){
-                $subject = "[ESG] Alert, Accelerator & TRANSFER orders are not fulfilled within 24 hours, Please cehck report!";
+                $subject = "[ESG] Alert, TRANSFER orders are not fulfilled within 24 hours, Please cehck report!";
                 $attachment = [
                     "path" => $orderPath,
                     "file_name"=>$fileName .".xlsx"
