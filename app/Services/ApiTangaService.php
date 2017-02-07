@@ -114,8 +114,14 @@ class ApiTangaService implements ApiPlatformInterface
                 case '33':
                     $tangaCourier = 'UPS';
                     break;
-                case '34':
+                case '144':
                     $tangaCourier = 'USPS';
+                    break;
+                case '135':
+                    $tangaCourier = 'PostNL';
+                    break;
+                case '21':
+                    $tangaCourier = 'QUANTIUM';
                     break;
                 default:
                     // code...
@@ -131,9 +137,9 @@ class ApiTangaService implements ApiPlatformInterface
             $courierName = $courierInfo->courier_name;
             $message = "courierId: $courierId, courierName: $courierName Lack with Tanga courier Mapping, Please Contact IT Support";
 
-            $to = 'tanga@brandsconnect.net, celine@eservicesgroup.net';
+            $to = 'tanga@brandsconnect.net';
             $header = "From: admin@eservicesgroup.com\r\n";
-            $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
+            $header .= "Cc: celine@eservicesgroup.net, brave.liu@eservicesgroup.com\r\n";
 
             mail($to, "Alert, Courier: {$courierName} Lack Mapping", $message, $header);
 
