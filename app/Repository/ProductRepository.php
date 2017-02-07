@@ -10,8 +10,17 @@ class ProductRepository
     {
         $query = Product::where('product.status', "=", 2);
         $search = false;
-        if (isset($requestData['marketplace_id']) && $requestData['marketplace_id']) {
-            $query->join("marketplace_sku_mapping AS msm", "msm.sku", "=", "product.sku")
+        if (isset($requestData['marketplace_id'])
+            && $requestData['marketplace_id']
+            && isset($requestData['msku_map'])
+            && $requestData['msku_map'] != "P"
+        ) {
+            if ($requestData['msku_map'] == "C") {
+                $mjoin = "join";
+            } else if ($requestData['msku_map'] == "N") {
+                $mjoin = "leftJoin";
+            }
+            $query->$mjoin("marketplace_sku_mapping AS msm", "msm.sku", "!=", "product.sku")
                 ->where("msm.marketplace_id", $requestData['marketplace_id'])
                 ->where("msm.country_id", $requestData['country_id']);
             $search = true;
