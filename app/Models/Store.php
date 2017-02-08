@@ -8,6 +8,10 @@ class Store extends Model
 {
     protected $guarded = ['id'];
 
+    protected $hidden = [
+        'credentials',
+    ];
+
     public function users()
     {
         return $this->belongsToMany('App\User');

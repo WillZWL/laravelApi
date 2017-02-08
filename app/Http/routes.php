@@ -83,6 +83,7 @@ Route::group(['middleware' => ['cors']], function () {
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
     $api->resource('marketplace', 'MarketplaceController');
+    $api->resource('stores', 'StoreController');
     $api->resource('brand', 'BrandController');
     $api->resource('merchant', 'MerchantController');
     $api->resource('supplier', 'SupplierController');

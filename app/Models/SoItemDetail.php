@@ -18,4 +18,9 @@ class SoItemDetail extends Model
     {
         return $this->belongsTo('App\Models\So', 'so_no', 'so_no');
     }
+
+    public function product()
+    {
+        return $this->belongsTo('App\Models\Product', 'item_sku', 'sku');
+    }
 }

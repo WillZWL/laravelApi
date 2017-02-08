@@ -24,7 +24,7 @@ class SalesReportRequest extends Request
     public function rules()
     {
         return [
-            'date_type' => 'required|in:dispatch_date,settlement_date',
+            'date_type' => 'required|in:order_create_date,create_on,dispatch_date',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
         ];
