@@ -205,8 +205,6 @@ class PlatformMarketOrderTransfer
                 $so->delivery_type_id = 'SBN';
                 $so->esg_quotation_courier_id = '132';
                 $so->dispatch_date = date('Y-m-d H:i:s');
-            } elseif ($order->biz_type == "Lazada") {
-                $so->delivery_type_id = 'EXP';
             } else {
                 $marketplaceProduct = MarketplaceSkuMapping::whereIn('sku', $items->pluck('seller_sku'))
                     ->whereMpControlId($items->first()->mapping->mp_control_id)
