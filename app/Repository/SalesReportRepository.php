@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Http\Requests\SalesReportRequest;
 use App\Models\So;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 class SalesReportRepository
@@ -65,8 +66,10 @@ class SalesReportRepository
         if (stripos($platformIdString, '%') === false) {
             $query->whereIn('platform_id', $platformIds);
         } else {
-            $query = array_reduce($platformIds, function ($q, $platform) use ($query) {
-                return $query = $query->orWhere('platform_id', 'LIKE', $platform);
+            $query = $query->where(function ($query) use ($platformIds) {
+                array_reduce($platformIds, function ($q, $platform) use ($query) {
+                    return $query = $query->orWhere('platform_id', 'LIKE', $platform);
+                });
             });
         }
 
