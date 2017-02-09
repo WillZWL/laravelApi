@@ -14,7 +14,7 @@ class SalesReportRepository
         $query = So::where('platform_group_order', '=', 1);
         $startDate = Date('Y-m-d', strtotime($filter->get('start_date')));
         $endDate = Date('Y-m-d', strtotime($filter->get('end_date')));
-        $query = $query->whereBetween($filter->get('date_type'), [$startDate, $endDate]);
+        $query = $query->whereBetween($filter->get('date_type'), [$startDate.' 00:00:00', $endDate.' 23:59:59']);
 
         if ($currency = $filter->get('currency')) {
             $query = $query->where('currency_id', $currency);
