@@ -109,6 +109,7 @@ class ApiTangaService implements ApiPlatformInterface
         if ($courierId) {
             switch ($courierId) {
                 case '5':
+                case '133':
                     $tangaCourier = 'DHL';
                     break;
                 case '33':
