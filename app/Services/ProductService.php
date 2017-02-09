@@ -419,6 +419,7 @@ class ProductService
                         $prodGrpCd = $this->generateProdGrpCd();
                         $item['prod_grp_cd'] = $prodGrpCd;
                         $item['sku'] = $item['prod_grp_cd'] .'-'. $item['versionid'] .'-'. $item['colourid'];
+                        $item['create_on'] = date('Y-m-d H:i:s');
                     }
                     if ($product or (empty(trim($item['esg_sku'])) && $item['sku'])) {
                         \DB::beginTransaction();
@@ -449,6 +450,9 @@ class ProductService
         $object['sku'] = (string) $item['sku'];
         if (isset($item['prod_grp_cd'])) {
             $object['prod_grp_cd'] = (int) $item['prod_grp_cd'];
+        }
+        if (isset($item['create_on'])) {
+            $object['create_on'] = $item['create_on'];
         }
         $object['prod_grp_cd_name'] = (string) trim($item['productgrpname']);
         $object['colour_id'] = (string) trim($item['colourid']);
