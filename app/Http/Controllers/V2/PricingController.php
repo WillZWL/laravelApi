@@ -7,6 +7,7 @@ use App\Models\Marketplace;
 use App\Models\MarketplaceSkuMapping;
 use App\Models\MpControl;
 use App\Models\Product;
+use App\Models\HscodeCategory;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
@@ -74,6 +75,8 @@ class PricingController extends Controller
             ]);
 
             $productObj = Product::where('sku', '=', $mappingItem->sku)->first();
+            $hscodeCategoryObj = HscodeCategory::where('id', '=', $productObj->hscode_cat_id)->first();
+
             $result[$request->input('marketplace').$request->input('country')]['deliveryOptions'] = $this->pricingToolService->getPricingInfo($request);
 
             $result[$request->input('marketplace').$request->input('country')]['listingStatus'] = $mappingItem->listing_status;
@@ -90,6 +93,7 @@ class PricingController extends Controller
             $result[$request->input('marketplace').$request->input('country')]['weight'] = $productObj->weight;
             $result[$request->input('marketplace').$request->input('country')]['vol_weight'] = $productObj->vol_weight;
             $result[$request->input('marketplace').$request->input('country')]['link'] = $mappingItem->link.$mappingItem->asin;
+            $result[$request->input('marketplace').$request->input('country')]['hscode_category'] = $hscodeCategoryObj->name;
         }
 
         return $result;
