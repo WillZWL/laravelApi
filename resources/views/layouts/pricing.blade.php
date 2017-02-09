@@ -52,8 +52,9 @@
     var profit = trElement.find('td[data-name=profit]').text();
     var margin = trElement.find('td[data-name=margin]').text();
     var targetMargin = trElement.find('td[data-name=target_margin]').text();
+    var platformId = $(this).data('platform');
 
-    if (parseFloat(targetMargin) > parseFloat(margin)) {
+    if (parseFloat(targetMargin) > parseFloat(margin) && (platformId.substring(0, 15) != 'BCPRICEMINISTER')) {
       alert("margin is less than target margin")
       return;
     }
