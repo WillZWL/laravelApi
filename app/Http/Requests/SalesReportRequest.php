@@ -26,7 +26,7 @@ class SalesReportRequest extends Request
         return [
             'date_type' => 'required|in:order_create_date,create_on,dispatch_date',
             'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'end_date' => 'required|date',
         ];
     }
 }
