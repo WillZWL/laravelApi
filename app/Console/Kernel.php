@@ -41,6 +41,7 @@ class Kernel extends ConsoleKernel
         Commands\IwmsDeliveryOrder::class,
         Commands\LgsOrderReadyToship::class,
         Commands\AccOrderNotFulfilledAlert::class,
+        Commands\SkuCreatedAlert::class,
     ];
 
     /**
