@@ -23,6 +23,10 @@ class AmazonProductSizeTierService
     const STANDARD_OVERSIZE_IN_EU = 12;
     const LARGE_OVERSIZE_IN_EU = 13;
 
+    const ENVELOPE_IN_CA = 20;
+    const STANDARD_IN_CA = 21;
+    const OVERSIZE_IN_CA = 22;
+
     const SMALL_STANDARD_SIZE_IN_NEWEGG_US = 14;
     const LARGE_STANDARD_SIZE_IN_NEWEGG_US = 15;
     const SMALL_OVERSIZE_IN_NEWEGG_US = 16;
@@ -46,7 +50,6 @@ class AmazonProductSizeTierService
     public function updateProductSizeTier($id)
     {
         $marketplaceProduct = $this->marketplaceProductRepository->find($id);
-
         $productSize = $this->getProductSize($marketplaceProduct);
 
         $marketplaceProduct->amazonProductSizeTier->product_size = $productSize;
@@ -80,6 +83,8 @@ class AmazonProductSizeTierService
             } elseif ($country === 'US') {
                 // cm / inch = 2.54, lb * 0.4535924 = kg, 166 is const
                 $productSizeTier = $this->calculateProductSizeTierInAmazonUs($media, $unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
+            } elseif ($country === 'CA') {
+                $productSizeTier = $this->calculateProductSizeTierInAmazonCA($media, $unitWeight, $longestSide, $medianSide, $shortestSide);
             }
         } elseif ($marketplace === 'NEWEGG') {
             $productSizeTier = $this->calculateProductSizeTierInNeweggUs($unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
@@ -233,6 +238,33 @@ class AmazonProductSizeTierService
 
         // default return Large oversize
         return self::LARGE_OVERSIZE_IN_EU;
+    }
+
+    public function calculateProductSizeTierInAmazonCA($media, $unitWeight, $longestSide, $medianSide, $shortestSide)
+    {
+        $envelope = [
+            'weight' => 0.5,
+            'longestSide' => 38,
+            'medianSide' => 27,
+            'shortestSide' => 2,
+        ];
+
+        $standard = [
+            'weight' => 9,
+            'longestSide' => 45,
+            'medianSide' => 35,
+            'shortestSide' => 20,
+        ];
+
+        if ($this->checkProductSizeRulesInEu($envelope, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::ENVELOPE_IN_CA;
+        }
+
+        if ($this->checkProductSizeRulesInEu($standard, $unitWeight, $longestSide, $medianSide, $shortestSide)) {
+            return self::STANDARD_IN_CA;
+        }
+
+        return self::OVERSIZE_IN_CA;
     }
 
     public function checkProductSizeRulesInEu($rules, $weight, $longestSide, $medianSide, $shortestSide)
