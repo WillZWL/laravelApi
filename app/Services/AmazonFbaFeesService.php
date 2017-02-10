@@ -43,6 +43,8 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
             } else {
                 $pricePerCubicFoot = 1.15;  // oversize
             }
+        } elseif ($country === 'CA') {
+            return round($volumeInCubicMetre * 16, 2);   // CDN $16 per cubic metre
         } else {
             $pricePerCubicFoot = 0.4;
         }
@@ -126,6 +128,13 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
                 case 6:
                     $pickAndPackFee = 10.53;
                     break;
+            }
+        } elseif ($country === 'CA') {
+            $productSize = $marketplaceProduct->amazonProductSizeTier->product_size;
+            if (in_array($productSize, [20, 21])) {
+                $pickAndPackFee = 1.55;
+            } else {
+                $pickAndPackFee = 2.65;
             }
         }
 
