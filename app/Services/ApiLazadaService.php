@@ -403,7 +403,7 @@ class ApiLazadaService implements ApiPlatformInterface
 
     private function getEsgLgsOrderDocumentLabel($documentLabels)
     {
-        $pdfFilePath = "/var/data/vanguard/courier/LGS/".date("Y")."/".date("m")."/";
+        $pdfFilePath = "/var/data/vanguard/courier/LGS/".date("Y")."/".date("m")."/".date("d")."/";
         $document = array(); $esgLgsOrderLog = null;
         //$style ='<style type="text/css">.page {overflow: hidden;page-break-inside: avoid;}}</style>';
         //
