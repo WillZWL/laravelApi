@@ -27,6 +27,13 @@ class AmazonProductSizeTierService
     const STANDARD_IN_CA = 21;
     const OVERSIZE_IN_CA = 22;
 
+    const SMALL_IN_JP = 23;
+    const STANDARD_IN_JP = 24;
+    const OVERSIZE_CATEGORY_ONE_IN_JP = 25;
+    const OVERSIZE_CATEGORY_TWO_IN_JP = 26;
+    const OVERSIZE_CATEGORY_THREE_IN_JP = 27;
+    const OVERSIZE_CATEGORY_SPECIAL_IN_JP = 28;
+
     const SMALL_STANDARD_SIZE_IN_NEWEGG_US = 14;
     const LARGE_STANDARD_SIZE_IN_NEWEGG_US = 15;
     const SMALL_OVERSIZE_IN_NEWEGG_US = 16;
@@ -85,6 +92,8 @@ class AmazonProductSizeTierService
                 $productSizeTier = $this->calculateProductSizeTierInAmazonUs($media, $unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
             } elseif ($country === 'CA') {
                 $productSizeTier = $this->calculateProductSizeTierInAmazonCA($media, $unitWeight, $longestSide, $medianSide, $shortestSide);
+            } elseif ($country === 'JP') {
+                $productSizeTier = $this->calculateProductSizeTierInAmazonJP($media, $unitWeight, $longestSide, $medianSide, $shortestSide);
             }
         } elseif ($marketplace === 'NEWEGG') {
             $productSizeTier = $this->calculateProductSizeTierInNeweggUs($unitWeight, $dimensionalWeight, $longestSide, $medianSide, $shortestSide);
@@ -165,6 +174,43 @@ class AmazonProductSizeTierService
 
         // default return special oversize
         return self::SPECIAL_OVERSIZE_IN_US;
+    }
+
+    public function calculateProductSizeTierInAmazonJP($media, $weight, $longestSide, $medianSide, $shortestSide)
+    {
+        $small = [
+            'weight' => 0.25,
+            'longestSide' => 25,
+            'medianSide' => 18,
+            'shortestSide' => 2,
+        ];
+
+        $standard = [
+            'weight' => 9,
+            'longestSide' => 45,
+            'medianSide' => 35,
+            'shortestSide' => 20,
+        ];
+
+        if ($this->checkProductSizeRulesInEu($small, $weight, $longestSide, $medianSide, $shortestSide)) {
+            return self::SMALL_IN_JP;
+        }
+
+        if ($this->checkProductSizeRulesInEu($standard, $weight, $longestSide, $medianSide, $shortestSide)) {
+            return self::STANDARD_IN_JP;
+        }
+
+        // if go to here, product size should be oversize.
+        $allSideLength = $longestSide + $medianSide + $shortestSide;
+        if ($allSideLength < 100) {
+            return self::OVERSIZE_CATEGORY_ONE_IN_JP;
+        } elseif ($allSideLength < 140) {
+            return self::OVERSIZE_CATEGORY_TWO_IN_JP;
+        } elseif ($allSideLength < 170) {
+            return self::OVERSIZE_CATEGORY_THREE_IN_JP;
+        }
+
+        return self::OVERSIZE_CATEGORY_SPECIAL_IN_JP;
     }
 
     public function calculateProductSizeTierInAmazonEu($unitWeight, $longestSide, $medianSide, $shortestSide)
