@@ -136,6 +136,28 @@ class AmazonFbaFeesService extends FulfilmentByMarketplaceFeesService
             } else {
                 $pickAndPackFee = 2.65;
             }
+        } elseif ($country === 'JP') {
+            $productSize = $marketplaceProduct->amazonProductSizeTier->product_size;
+            switch ($productSize) {
+                case 23:
+                    $pickAndPackFee = 78;
+                    break;
+                case 24:
+                    $pickAndPackFee = 100;
+                    break;
+                case 25:
+                    $pickAndPackFee = 530;
+                    break;
+                case 26:
+                    $pickAndPackFee = 572;
+                    break;
+                case 27:
+                    $pickAndPackFee = 609;
+                    break;
+                case 28:
+                    $pickAndPackFee = 1258;
+                    break;
+            }
         }
 
         return $pickAndPackFee;
