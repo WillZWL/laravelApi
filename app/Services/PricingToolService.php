@@ -109,6 +109,12 @@ class PricingToolService
                     $fulfilmentByMarketplaceFee = 0;
                 }
 
+                if (substr($this->marketplaceControl->marketplace_id, 2) === 'AMAZON'
+                    && $request->input('country') == 'JP' && $request->input('price') >= 45000
+                ) {
+                    $fulfilmentByMarketplaceFee = 0;
+                }
+
                 if (substr($this->marketplaceControl->marketplace_id, 2) === 'NEWEGG'
                     && $request->input('price') >= 300
                     && in_array($marketplaceProduct->amazonProductSizeTier->product_size, [14, 15])
