@@ -122,6 +122,8 @@ class PricingController extends Controller
             'sku' => $marketplaceMapping->product->sku,
             'selectedDeliveryType' => $marketplaceMapping->delivery_type,
         ]);
+        $hscodeCategoryObj = HscodeCategory::where('id', '=', $marketplaceMapping->product->hscode_cat_id)->first();
+
         $result[$request->input('sellingPlatform')]['deliveryOptions'] = $this->pricingToolService->getPricingInfo($request);
         $result[$request->input('sellingPlatform')]['listingStatus'] = $marketplaceMapping->listing_status;
         $result[$request->input('sellingPlatform')]['inventory'] = $marketplaceMapping->inventory;
@@ -137,6 +139,7 @@ class PricingController extends Controller
         $result[$request->input('sellingPlatform')]['weight'] = $marketplaceMapping->product->weight;
         $result[$request->input('sellingPlatform')]['vol_weight'] = $marketplaceMapping->product->vol_weight;
         $result[$request->input('sellingPlatform')]['link'] = $mpControl->link.$marketplaceMapping->asin;
+        $result[$request->input('sellingPlatform')]['hscode_category'] = $hscodeCategoryObj->name;
 
         return response()->view('v2.pricing.platform-pricing-info', ['data' => $result]);
     }
