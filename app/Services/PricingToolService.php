@@ -122,7 +122,6 @@ class PricingToolService
             $priceInfo[$deliveryType] = [];
             $priceInfo[$deliveryType]['tax'] = $tax;
             $priceInfo[$deliveryType]['duty'] = $duty;
-            $priceInfo[$deliveryType]['dutyRate'] = $this->getDutyRateByDelivery($request, $deliveryType);
             $priceInfo[$deliveryType]['marketplaceCommission'] = $marketplaceCommission;
             $priceInfo[$deliveryType]['marketplaceListingFee'] = $marketplaceListingFee;
             $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
@@ -136,6 +135,7 @@ class PricingToolService
             $priceInfo[$deliveryType]['fulfilmentByMarketplaceFee'] = $fulfilmentByMarketplaceFee;
             $priceInfo[$deliveryType]['tuvFee'] = $tuvFee;
             $priceInfo[$deliveryType]['totalCost'] = array_sum($priceInfo[$deliveryType]);
+            $priceInfo[$deliveryType]['dutyRate'] = $this->getDutyRateByDelivery($request, $deliveryType);
             $priceInfo[$deliveryType]['targetMargin'] = $targetMargin;
 
             $priceInfo[$deliveryType]['price'] = $request->input('price');
