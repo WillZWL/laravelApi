@@ -122,7 +122,6 @@ class PricingToolService
             $priceInfo[$deliveryType] = [];
             $priceInfo[$deliveryType]['tax'] = $tax;
             $priceInfo[$deliveryType]['duty'] = $duty;
-            $priceInfo[$deliveryType]['dutyRate'] = $this->getDutyRateByDelivery($request, $deliveryType);
             $priceInfo[$deliveryType]['marketplaceCommission'] = $marketplaceCommission;
             $priceInfo[$deliveryType]['marketplaceListingFee'] = $marketplaceListingFee;
             $priceInfo[$deliveryType]['marketplaceFixedFee'] = $marketplaceFixedFee;
@@ -247,28 +246,6 @@ class PricingToolService
             ->firstOrFail();
 
         return round($declaredValue * $dutyInfo->duty_in_percent / 100, 2);
-    }
-
-    public function getDutyRateByDelivery(Request $request, $deliveryType)
-    {
-        $euCountryList = ['AT','BE','BG','CH','CY','CZ','DE','DK','EE','ES','FI','FR','GB','GR','HR','HU','IE','IS','IT','LT','LU','LV','MT','NL','NO','PL','PT','RO','SE','SI','SK','UK'];
-
-        if (in_array($deliveryType,["MCF", "FBA"])) {
-            if (in_array($this->destination->country_id,$euCountryList)) {
-                $country_id = 'UK';
-            } else {
-                $country_id = $this->destination->country_id;
-            }
-        } else {
-            $country_id = $this->destination->country_id;
-        }
-        $dutyInfo = HscodeDutyCountry::join('product', 'product.hscode_cat_id', '=', 'hscode_duty_country.hscode_cat_id')
-            ->select(['hscode_duty_country.duty_in_percent'])
-            ->where('sku', '=', $request->sku)
-            ->where('hscode_duty_country.country_id', '=', $country_id)
-            ->firstOrFail();
-
-        return $dutyInfo->duty_in_percent;
     }
 
     public function getMarketplaceCommission(Request $request)

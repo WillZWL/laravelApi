@@ -34,7 +34,6 @@
               <col width="8%" class="hidden">
               <col width="4%" class="hidden">
               <col width="4%" class="hidden">
-              <col width="4%">
               <col width="8%">
               <col width="5%">
               <col width="5%">
@@ -62,7 +61,6 @@
               <th class="hidden">Decl.</th>
               <th class="hidden">Tax</th>
               <th class="hidden">Duty</th>
-              <th>HS duty rate(%)</th>
               <th>MP. COMM.</th>
               <th>Listing Fee</th>
               <th>Fixed Fee</th>
@@ -94,7 +92,7 @@
                 <td class="hidden">{{ $item['declaredValue'] }}</td>
                 <td class="hidden">{{ $item['tax'] }}</td>
                 <td class="hidden">{{ $item['duty'] }}</td>
-                <td>{{ $item['dutyRate'] }}</td>
+
                 <td>{{ $item['marketplaceCommission'] }}</td>
                 <td>{{ $item['marketplaceListingFee'] }}</td>
                 <td>{{ $item['marketplaceFixedFee'] }}</td>
@@ -124,7 +122,7 @@
                   <option value="N" {{ ($platformInfo['listingStatus'] == 'N') ? 'selected' : '' }}>Not listed</option>
                 </select>
               </td>
-              <td colspan="4">Inventory</td>
+              <td colspan="3">Inventory</td>
               <td colspan="6">
                 <input type="text" name="inventory" id="inputInventory" value="{{ $platformInfo['inventory'] }}" required="required">
               </td>
@@ -134,7 +132,7 @@
               <td colspan="6">
                 <input type="text" name="latency" id="inputLatency" value="{{ $platformInfo['fulfillmentLatency'] }}" required="required">
               </td>
-              <td colspan="4">Brand</td>
+              <td colspan="3">Brand</td>
               <td colspan="6">
                 <input type="text" name="platformBrand" id="inputPlatformBrand" value="{{ $platformInfo['platformBrand'] }}">
               </td>
@@ -156,7 +154,7 @@
                   <option value="Club" {{ ($platformInfo['condition'] == 'Club') ? 'selected' : '' }}>Club</option>
                 </select>
               </td>
-              <td colspan="4"> Condition Note </td>
+              <td colspan="3"> Condition Note </td>
               <td colspan="6">
                 <input type="text" name="conditionNote" id="conditionNote" value="{{ $platformInfo['conditionNote'] }}">
               </td>
@@ -166,19 +164,11 @@
               <td colspan="6">
                 {{ $platformInfo['weight'] }} kg
               </td>
-              <td colspan="4">Volumetric Weight</td>
+              <td colspan="3">Volumetric Weight</td>
               <td colspan="6">
                 {{ $platformInfo['vol_weight'] }} kg
               </td>
             </tr>
-            <tr>
-              <td colspan="4">Hscode Category</td>
-              <td colspan="6">
-                {{ $platformInfo['hscode_category'] }}
-              </td>
-
-            </tr>
-
             <tr>
               <td colspan="19" align="center">
                 <button type="button" data-platform="{{ $platform }}" class="btn btn-danger save_price_info"> Save</button>
