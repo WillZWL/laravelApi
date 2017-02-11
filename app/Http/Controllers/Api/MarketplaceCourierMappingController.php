@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use Dingo\Api\Routing\Helpers;
 use App\Http\Controllers\Controller;
 use App\Services\MarketplaceCourierMappingService;
 use App\Transformers\MarketplaceCourierMappingTransformer;
@@ -25,7 +26,6 @@ class MarketplaceCourierMappingController extends Controller
         $mappings = $this->marketplaceCourierMappingService->getAllMappings($request->all());
         return $this->collection($mappings, new MarketplaceCourierMappingTransformer());
     }
-
 
 
     public function store(Request\MarketplaceCourierMappingRequest $request)

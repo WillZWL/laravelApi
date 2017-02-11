@@ -54,6 +54,13 @@ class MarketplaceCourierMappingService
 
     public function getAllMappings($requestData = [])
     {
-        return MarketplaceCourierMapping::all();
+        $query = MarketplaceCourierMapping::where('status', 1);
+        if ($requestData['marketplace']) {
+            $query->where('marketplace', $requestData['marketplace']);
+        }
+        if ($requestData['courier_id']) {
+            $query->where('courier_id', $requestData['courier_id']);
+        }
+        return $query->get();
     }
 }

@@ -154,6 +154,9 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->get('shipping-options/{id}', 'DeliveryController@getDeliveryOptionForSku');
     $api->get('accelerator-sales-report', 'SalesReport@getSalesReport');
+
+    $api->get('couriers', 'CourierInfoController@index');
+    $api->get('marketplace-courier-mapping-list', 'MarketplaceCourierMappingController@index');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['api.auth', 'cors']], function ($api) {
