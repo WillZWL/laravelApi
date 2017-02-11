@@ -42,4 +42,9 @@ class CourierInfo extends Model
     {
         return $this->hasMany('App\Models\CourierCost', 'courier_id');
     }
+
+    public function marketplaceCourierMappings()
+    {
+        return $this->hasMany('App\Models\MarketplaceCourierMapping', 'courier_id', 'courier_id');
+    }
 }
