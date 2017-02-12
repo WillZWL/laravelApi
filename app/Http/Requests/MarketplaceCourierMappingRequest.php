@@ -7,7 +7,7 @@ use App\Http\Requests\Request;
 /**
 *
 */
-class MarketplaceCourierMappingRequest extends AnotherClass
+class MarketplaceCourierMappingRequest extends Request
 {
 
     /**

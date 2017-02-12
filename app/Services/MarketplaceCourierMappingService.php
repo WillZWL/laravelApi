@@ -26,11 +26,12 @@ class MarketplaceCourierMappingService
             if ($courierInfo) {
                 $mapping = New MarketplaceCourierMapping;
                 $mapping->courier_id = $data['courier_id'];
+                $mapping->courier_code = $courierInfo->courier_name;
                 $mapping->marketplace = $data['marketplace'];
                 $mapping->marketplace_courier_name = trim($data['marketplace_courier_name']);
                 $result = $mapping->save();
                 if ($result) {
-                    return ['status' => true, 'message' => ''];
+                    return ['status' => true, 'message' => 'Add Successfully'];
                 } else {
                     return ['status' => false, 'message' => 'Create Failed'];
                 }

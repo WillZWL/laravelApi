@@ -28,17 +28,15 @@ class MarketplaceCourierMappingController extends Controller
     }
 
 
-    public function store(Request\MarketplaceCourierMappingRequest $request)
+    public function store(Requests\MarketplaceCourierMappingRequest $request)
     {
-        $request = $this->marketplaceCourierMappingService->store($request->all());
-
+        $result = $this->marketplaceCourierMappingService->store($request->all());
         return response()->json($result);
     }
 
-    public function update(Request\MarketplaceCourierMappingRequest $request)
+    public function update(Requests\MarketplaceCourierMappingRequest $request)
     {
         $result = $this->marketplaceCourierMappingService->update($request);
-
         return response()->json($result);
     }
 }
