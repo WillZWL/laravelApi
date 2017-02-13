@@ -16,12 +16,13 @@ class SkuListingAlertService
 
         $subject = "[Accelerator] Email Alert For Accelerator SKU Listing";
         $this->sendAttachmentMail(
-            'will.zhang@eservicesgroup.com',
+            'storemanager@brandsconnect.net, celine@eservicesgroup.com',
             $subject,
             [
                 'path' => $path,
                 'file_name' => $fileName. '.xlsx'
-            ]
+            ],
+            'will.zhang@eservicesgroup.com'
         );
     }
 

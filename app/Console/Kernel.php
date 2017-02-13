@@ -166,5 +166,9 @@ class Kernel extends ConsoleKernel
         $schedule->command('sku:SendNewSkuAlert',
                     array('--sku_type' => '1'))
             ->dailyAt('01:00');
+
+        $schedule->command('sku:SendSkuListingAlert',
+                    array('--sku_type' => '1'))
+            ->dailyAt('01:00');
     }
 }
