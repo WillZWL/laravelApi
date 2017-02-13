@@ -31,33 +31,22 @@ class IwmsCreateDeliveryOrderService
     public function getDeliveryCreationRequest($warehouseIds)
     {
         $deliveryCreationRequest = null;
-        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
-        
-        if(!empty($batchRequest)){
-            $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
-            if(!empty($requestLogs)){
-                foreach ($requestLogs as $requestLog) {
-                    $deliveryCreationRequest[] = json_decode($requestLog);
-                }
-                $request = array(
-                    "batchRequest" => $batchRequest,
-                    "requestBody" => $deliveryCreationRequest
-                );
-                $batchRequest->request_log = json_encode($deliveryCreationRequest);
-                $batchRequest->save();
-                return $request;
-            } else {
-                $batchRequest->remark = "No delivery order request need send to wms";
-                $batchRequest->status = "CE";
-                $batchRequest->save();
-            }
-        }
+        $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
+        $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
+        return $this->getDeliveryCreationBatchRequest($batchRequest);
     }
 
-    public function getDeliveryCreationRequestBatch($warehouseIds)
+    public function getDeliveryCreationRequestByOrderNo($esgOrderNoList)
+    {
+        $deliveryCreationRequest = null;
+        $esgOrders = $this->getEsgAllocateOrdersByOrderNo($esgOrderNoList);
+        $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
+        return $this->getDeliveryCreationBatchRequest($batchRequest);
+    }
+
+    public function getDeliveryCreationRequestBatch($esgOrders)
     {
         $esgAllocateOrder = null; $merchantId = "ESG"; 
-        $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
         if(!$esgOrders->isEmpty()){
             $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
             foreach ($esgOrders as $esgOrder) {
@@ -79,6 +68,29 @@ class IwmsCreateDeliveryOrderService
                 $this->sendAlertEmail($this->message);
             }
             return $batchRequest;
+        }
+    }
+
+    public function getDeliveryCreationBatchRequest($batchRequest)
+    {
+        if(!empty($batchRequest)){
+            $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+            if(!empty($requestLogs)){
+                foreach ($requestLogs as $requestLog) {
+                    $deliveryCreationRequest[] = json_decode($requestLog);
+                }
+                $request = array(
+                    "batchRequest" => $batchRequest,
+                    "requestBody" => $deliveryCreationRequest
+                );
+                $batchRequest->request_log = json_encode($deliveryCreationRequest);
+                $batchRequest->save();
+                return $request;
+            } else {
+                $batchRequest->remark = "No delivery order request need send to wms";
+                $batchRequest->status = "CE";
+                $batchRequest->save();
+            }
         }
     }
 
@@ -246,6 +258,21 @@ class IwmsCreateDeliveryOrderService
             ->limit(100)
             ->get();
         return $this->checkEsgAllocateOrders($esgOrders);
+    }
+
+    private function getEsgAllocateOrdersByOrderNo($esgOrderNoList)
+    {
+        $esgOrders = So::where("status",5)
+            ->where("refund_status", "0")
+            ->where("hold_status", "0")
+            ->where("prepay_hold_status", "0")
+            ->whereIn("so_no", $esgOrderNoList)
+            ->with("sellingPlatform")
+            ->with("soAllocate")
+            ->with("client")
+            ->with("soItem")
+            ->get();
+        return $esgOrders;
     }
 
     private function checkEsgAllocateOrders($esgOrders)

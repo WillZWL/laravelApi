@@ -53,7 +53,7 @@ class ApiLazadaService implements ApiPlatformInterface
         	foreach($originOrderList as $order){
                 if(isset($order["OrderItems"])){
     				if (isset($order['AddressShipping'])) {
-    					$addressId=$this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
+    					$addressId = $this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
     				}
 				    $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 					foreach($order["OrderItems"] as $orderItems){
@@ -167,12 +167,18 @@ class ApiLazadaService implements ApiPlatformInterface
         if(!$esgOrders->isEmpty()) {
             foreach ($esgOrders as $esgOrder) {
                 $result = null;
-                $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
-                if($result["valid"]){
-                    $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
-                    $document[$result["storeName"]][] = $result["orderItemId"];
-                } else {
-                    $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
+                if(!empty($esgOrder->platformMarketOrder)){
+                    if(in_array($esgOrder->platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
+                        $document[$esgOrder->platformMarketOrder->platform][$esgOrder->so_no] = $esgOrder->txn_id;
+                    }else{
+                        $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+                        if($result["valid"]){
+                            $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
+                            $document[$result["storeName"]][$esgOrder->so_no] = $result["orderItemId"];
+                        } else {
+                            $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
+                        }
+                    }
                 }
             }
             if(!empty($msg)){
@@ -181,6 +187,7 @@ class ApiLazadaService implements ApiPlatformInterface
                 mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
             }
             if(!empty($document)){
+                //$this->backupEsgOrderDocument($document,$batchId);
                 $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
                 foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
                    $esgLgsOrderDocumentLog = new EsgLgsOrderDocumentLog();
@@ -236,7 +243,7 @@ class ApiLazadaService implements ApiPlatformInterface
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
-            ->where("esg_quotation_courier_id", "93")
+            ->whereIn("esg_quotation_courier_id", ["93","130"])
             ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', ["ES_HK"])
                     ->where("status", 1)
@@ -244,7 +251,6 @@ class ApiLazadaService implements ApiPlatformInterface
                     ->where("modify_on", "<=", $this->toDate);
             })
             ->with("soItem")
-            ->limit("2")
             ->get();
     }
 
@@ -398,6 +404,21 @@ class ApiLazadaService implements ApiPlatformInterface
             PDF::loadHTML($documentFile)->setOption('margin-top', 5)->setOption('margin-bottom', 5)->setOption("encoding","UTF-8")->save($pdfFilePath.$file);
             $pdfFile = url("api/merchant-api/download-label/".$file);
             return $pdfFile;
+        }
+    }
+
+    private function backupEsgLgsOrderDocument($document, $batchId)
+    {
+        $document[$result["storeName"]][$esgOrder->so_no] = $result["orderItemId"];
+        foreach ($document as $storeName => $orderDocument) {
+           foreach ($orderDocument as $soNo => $value) {
+              $esgLgsOrderDocumentLog = new EsgLgsOrderDocumentLog();
+              $esgLgsOrderDocumentLog->batch_id = $batchId;
+              $esgLgsOrderDocumentLog->store_name = $storeName;
+              $esgLgsOrderDocumentLog->so_no = $soNo;
+              $esgLgsOrderDocumentLog->order_item_ids = json_encode($value);
+              $esgLgsOrderDocumentLog->save();
+           }
         }
     }
 
@@ -613,7 +634,7 @@ class ApiLazadaService implements ApiPlatformInterface
         })->store('csv',$filePath);
     }
 
-    private function getDocumentSaveToDirectory($document,$pdfFilePath)
+    private function getDocumentSaveToDirectory($document, $pdfFilePath)
     {
         $documentPdf = array();
         $fileDate = date("h-i-s");

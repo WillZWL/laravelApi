@@ -76,9 +76,8 @@ Route::group(['middleware' => ['cors']], function () {
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
     Route::get('amazon-commission-charge-report/{flexBatchId}', 'Api\CommissionChargeController@getAmazonCommissionChargeReport');
     Route::get('iwms-order', 'IwmsOrderController@index');
-    Route::post('iwms-order/cancel-delivery-Order', 'IwmsOrderController@cancelDeliveryOrder');
-    Route::post('iwms-order/cancel-courier-Order', 'IwmsOrderController@cancelCourierOrder');
-
+    Route::resource('iwms-order/create-or-update', 'IwmsOrderController@createOrUpdateIwmsOrder');
+    Route::resource('iwms-order/cancel', 'IwmsOrderController@cancelIwmsOrder');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
@@ -157,6 +156,10 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->get('couriers', 'CourierInfoController@index');
     $api->resource('marketplace-courier-mapping', 'MarketplaceCourierMappingController');
+
+    $api->get('iwms-order', 'IwmsOrderController@index');
+    $api->post('iwms-order/create', 'IwmsOrderController@createIwmsOrder');
+    $api->post('iwms-order/cancel/', 'IwmsOrderController@cancelIwmsOrder');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['api.auth', 'cors']], function ($api) {

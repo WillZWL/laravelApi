@@ -23,6 +23,15 @@ class BatchRequestService
         return $batch;
     }
 
+    public function getDeliveryOrderLogBatch($batchRequestId = null)
+    {
+        $batchRequestQuery = BatchRequest::where("status", "C");
+        if(!empty(batchRequestId)){
+            $batchRequestQuery->where("id", $batchRequestId);
+        }
+        return $batchRequestQuery->with('iwmsDeliveryOrderLog')->get();
+    }
+
     public function saveBatchIwmsResponseData($batchObject,$responseJson)
     {
         $responseData = json_decode($responseJson);
