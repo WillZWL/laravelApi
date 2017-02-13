@@ -5,7 +5,9 @@ namespace App\Services\IwmsApi;
 use App\Models\So;
 use App\Models\IwmsFeedRequest;
 use App\Models\IwmsLgsOrderStatusLog;
+use App\Models\IwmsDeliveryOrderLog;
 use App\Models\PlatformMarketOrder;
+use App\Models\IwmsMerchantCourierMapping;
 
 use App;
 
@@ -14,17 +16,18 @@ class IwmsFactoryWmsService extends IwmsCoreService
     use IwmsBaseService;
     protected $wmsPlatform;
     protected $merchantId = "ESG";
+    private $excludeMerchant = array("PREPD");
 
     private $iwmsCreateDeliveryOrderService = null;
     private $iwmsCancelDeliveryOrderService = null;
 
-    public function __construct($wmsPlatform = "4px",$debug = 0)
+    public function __construct($wmsPlatform = "4px", $debug = 0)
     {
         $this->wmsPlatform = $wmsPlatform;
         parent::__construct($wmsPlatform,$debug);
     }
 
-    public function createDeliveryOrder()
+    public function cronCreateDeliveryOrder()
     {
         try {
             $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
@@ -40,13 +43,42 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
+    public function createDeliveryOrder($esgOrderNoList)
+    {
+        try {
+            $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList);
+            if (!$request["requestBody"]) {
+                return false;
+            }
+            $responseData = $this->curlIwmsApi('create-ship-order', $request["requestBody"]);
+            $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+        } catch (Exception $e) {
+            $msg = $e->getMessage();
+            mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Delivery Failed', $msg, 'From: admin@shop.eservciesgroup.com');
+        }
+    }
+
     public function cancelDeliveryOrder($esgOrderNoList)
     {
         $batchRequest = $this->getIwmsCancelDeliveryOrderService()->getDeliveryCancelRequest($esgOrderNoList);
         if(!empty($batchRequest->request_log)){
             $requestBody = json_decode($batchRequest->request_log);
-            $responseData = $this->curlIwmsApi('wms/cancel-delivery-order',$requestBody);
+            $responseData = $this->curlIwmsApi('cancel-ship-order',$requestBody);
             $this->getIwmsCancelDeliveryOrderService()->responseMsgCancelAction($batchRequest, $responseData);
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    public function getDeliveryOrderDocument($esgOrderNoList, $documentType)
+    {
+        $batchRequest = $this->getIwmsOrderDocumentService()->getOrderDocumentRequest($esgOrderNoList);
+        if(!empty($batchRequest->request_log)){
+            $requestBody = json_decode($batchRequest->request_log);
+            $responseData = $this->curlIwmsApi('order-document/'.$documentType.
+                "/",$requestBody);
+            $document = $this->getIwmsOrderDocumentService()->downloadDocument($batchRequest, $responseData);
             return true;
         }else{
             return false;
@@ -162,6 +194,50 @@ class IwmsFactoryWmsService extends IwmsCoreService
                 }
             }
         }
+    }
+
+    public function getCourierMappingList($wmsPlatform)
+    {
+        $courierList = IwmsMerchantCourierMapping::where("status", 1)
+            ->where("wms_platform", $wmsPlatform)
+            ->get();
+        return $courierList;
+    }
+
+    public function getReadyToDispatchOrder($courierList, $courier = null)
+    {
+        $esgOrderQuery = So::where("status",5)
+            ->where("refund_status", "0")
+            ->where("hold_status", "0")
+            ->where("prepay_hold_status", "0")
+            ->whereHas('soAllocate', function ($query) {
+                $query->where("status", 1);
+            })
+            ->whereHas('sellingPlatform', function ($query) {
+                $query->whereNotIn('merchant_id', $this->excludeMerchant);
+            })
+            ->with("client")
+            ->with("soItem")
+            ->with("sellingPlatform");
+          if(!empty($courier)){
+            $esgOrder = $esgOrderQuery->where("esg_quotation_courier_id", $courier)->paginate(20);
+          }else{
+            //$esgOrder = $esgOrderQuery->whereIn("esg_quotation_courier_id",$courierList)->paginate(20);
+            $esgOrder = $esgOrderQuery->whereNotNull("esg_quotation_courier_id")->paginate(20);
+          }
+          return $esgOrder;
+    }
+
+    public function getIwmsDeliveryOrderLogList()
+    {
+        return IwmsDeliveryOrderLog::where("status", 1)
+            ->whereNotNull("wms_order_code")
+            ->paginate(20);
+    }
+
+    public function getIwmsOrderDocumentService()
+    {
+        return $this->iwmsOrderDocumentService = App::make("App\Services\IwmsApi\Order\IwmsOrderDocumentService", [$this->wmsPlatform]);
     }
 
     public function getIwmsCreateDeliveryOrderService()

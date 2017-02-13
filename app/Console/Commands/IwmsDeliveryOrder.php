@@ -44,7 +44,7 @@ class IwmsDeliveryOrder extends Command
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform,$debug);
         $action = $this->argument('action');
         if($action == "create"){
-            $this->iwmsFactoryWmsService->createDeliveryOrder();
+            $this->iwmsFactoryWmsService->cronCreateDeliveryOrder();
         }else if($action == "query"){
             $this->iwmsFactoryWmsService->queryDeliveryOrder();
         }else if($action == "report"){

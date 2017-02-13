@@ -18,6 +18,12 @@ trait IwmsBaseService
         return $batchRequestService->getNewBatch($name,$wmsPlatform, $merchantId, $requestLog);
     }
 
+    public function getDeliveryOrderLogBatch($batchRequestId = null)
+    {
+        $batchRequestService = App::make("App\Services\BatchRequestService");
+        return $batchRequestService->getDeliveryOrderLogBatch($batchRequestId);
+    }
+
     public function getIwmsWarehouseCode($warehouseId,$merchantId)
     {
         $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("merchant_warehouse_id",$warehouseId)
