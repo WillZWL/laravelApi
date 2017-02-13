@@ -8,7 +8,7 @@ class ProductRepository
 {
     public function getProductList($requestData)
     {
-        $query = Product::where('product.status', "=", 2);
+        $query = Product::whereIn('product.status', [1, 2]);
         $search = false;
         $marketplaceId = $requestData['marketplace_id'];
         $countryId = $requestData['country_id'];
