@@ -41,12 +41,13 @@ class SkuCreatedAlertService
             $subject = "[Accelerator] Email alert for new Accelerator SKU created";
 
             $this->sendAttachmentMail(
-                'will.zhang@eservicesgroup.com',
+                'storemanager@brandsconnect.net, Chinasourcing@eservicesgroup.com',
                 $subject,
                 [
                     'path' => $path,
                     'file_name' => $fileName.'.xlsx'
-                ]
+                ],
+                'will.zhang@eservicesgroup.com'
             );
         }
     }
