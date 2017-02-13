@@ -416,7 +416,12 @@ class PlatformMarketOrderTransfer
     {
         $soPaymentStatus = new SoPaymentStatus();
         $soPaymentStatus->so_no = $so->so_no;
-        $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so, strtolower($order->biz_type));
+        // SBF 10942
+        if ($order->payment_method === 'CashOnDelivery') {
+            $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so, strtolower($order->biz_type)) . '_cod';
+        } else {
+            $soPaymentStatus->payment_gateway_id = $this->getPaymentGateway($so, strtolower($order->biz_type));
+        }
         $soPaymentStatus->payment_status = 'S';
         $soPaymentStatus->create_on = Carbon::now();
         $soPaymentStatus->modify_on = Carbon::now();
