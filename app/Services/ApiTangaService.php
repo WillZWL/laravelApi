@@ -104,36 +104,19 @@ class ApiTangaService implements ApiPlatformInterface
 
     public function getTangaCarrier($courierInfo)
     {
+        $marketplace = $this->getPlatformId();
         $courierId = $courierInfo->courier_id;
-        $tangaCourier = [];
-        if ($courierId) {
-            switch ($courierId) {
-                case '5':
-                case '133':
-                    $tangaCourier = 'DHL';
-                    break;
-                case '33':
-                    $tangaCourier = 'UPS';
-                    break;
-                case '144':
-                    $tangaCourier = 'USPS';
-                    break;
-                case '135':
-                    $tangaCourier = 'PostNL';
-                    break;
-                case '21':
-                    $tangaCourier = 'QUANTIUM';
-                    break;
-                default:
-                    // code...
-                    break;
-            }
+        $tangaCourierMapping = $courierInfo->marketplaceCourierMappings()
+                                    ->where('courier_id', $courierId)
+                                    ->where('marketplace', strtoupper($marketplace))
+                                    ->first();
+        $tangaCourier = '';
+        if ($tangaCourierMapping) {
+            $tangaCourier = $tangaCourierMapping->marketplace_courier_name;
         }
-
         if ($tangaCourier) {
             return $tangaCourier;
         } else {
-
             $courierId = $courierInfo->courier_id;
             $courierName = $courierInfo->courier_name;
             $message = "courierId: $courierId, courierName: $courierName Lack with Tanga courier Mapping, Please Contact IT Support";
