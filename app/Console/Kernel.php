@@ -162,5 +162,9 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
             ->everyThirtyMinutes();
+
+        $schedule->command('sku:SendNewSkuAlert',
+                    array('--sku_type' => '1'))
+            ->dailyAt('01:00');
     }
 }
