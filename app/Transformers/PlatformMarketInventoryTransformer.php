@@ -13,7 +13,7 @@ class PlatformMarketInventoryTransformer extends TransformerAbstract
             'id' => $inventory->id,
             'warehouse_id' => $inventory->warehouse_id,
             'mattel_sku' => $inventory->mattel_sku,
-            'dc_sku' =>$inventory->mattelSkuMapping->dc_sku,
+            'dc_sku' =>$inventory->dc_sku,
             'inventory' => $inventory->inventory,
             'threshold' => $inventory->threshold,
         ];
