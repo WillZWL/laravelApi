@@ -10,6 +10,7 @@ class FulfillmentOrderRepository
     public function getOrders(Request $request)
     {
         $query = So::with('soItem')
+                   ->with('sellingPlatform')
                    ->where('refund_status', 0)
                     ->where('hold_status', 0)
                    ->where('prepay_hold_status', 0)
@@ -34,8 +35,28 @@ class FulfillmentOrderRepository
                     break;
             }
         }
+
+        $query = $this->filterOrders($request, $query);
+
         $query->orderBy('expect_delivery_date', 'asc');
         $query->orderBy('so_no', 'asc');
         return $query->paginate(30);
+    }
+
+    public function filterOrders(Request $request, $query)
+    {
+        if ($request->get('order_no') !== NUll) {
+            $query = $query->where('so_no', $request->get('order_no'));
+        }
+
+        if ($request->get('platform_id') !== NUll) {
+            $query = $query->where('platform_id', $request->get('platform_id'));
+        }
+
+        if ($request->get('order_create_date') !== NUll) {
+            $query = $query->where('order_create_date', $request->get('order_create_date'));
+        }
+
+        return $query;
     }
 }

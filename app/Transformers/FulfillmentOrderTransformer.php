@@ -27,6 +27,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'order_no' => $order->so_no,
             'platform_id' => $order->platform_id,
             'retailer_name' => 'ESG',
+            'order_type' => $order->sellingPlatform->type,
             'biz_type' => $order->biz_type,
             'order_create_date' => $order->order_create_date,
             'delivery_info' => [
@@ -41,6 +42,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'currency' => $order->currency_id,
             'delivery_charge' => $order->delivery_charge,
             'amount' => $order->amount,
+            'status' => $order->status,
             'items' => $items
         ];
     }
