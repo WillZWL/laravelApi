@@ -118,4 +118,9 @@ class Product extends Model
         return $this->hasMany('App\Models\ProductCustomClassification', 'sku', 'sku');
     }
 
+    public function skuMapping()
+    {
+        return $this->hasOne('App\Models\SkuMapping', 'sku', 'sku');
+    }
+
 }

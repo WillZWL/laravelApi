@@ -160,6 +160,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->get('iwms-order', 'IwmsOrderController@index');
     $api->post('iwms-order/create', 'IwmsOrderController@createIwmsOrder');
     $api->post('iwms-order/cancel/', 'IwmsOrderController@cancelIwmsOrder');
+
+    $api->get('fulfillment-order', 'FulfillmentOrderController@index');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['api.auth', 'cors']], function ($api) {
