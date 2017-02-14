@@ -12,10 +12,12 @@ class FulfillmentOrderRepository
         $query = So::with('soItem')
                    ->with('sellingPlatform')
                    ->where('refund_status', 0)
-                    ->where('hold_status', 0)
+                   ->where('hold_status', 0)
                    ->where('prepay_hold_status', 0)
                    ->where('platform_group_order', 1)
                    ->where('merchant_hold_status', 0)
+                   ->where('platform_id', 'not like', 'EXCV%')
+                   ->whereNotIn('platform_id', ['DPMONUS'])
                    ->where('is_test', 0);
         $status = $request->get('status');
         if (is_int($status)) {
@@ -40,7 +42,7 @@ class FulfillmentOrderRepository
 
         $query->orderBy('expect_delivery_date', 'asc');
         $query->orderBy('so_no', 'asc');
-        return $query->paginate(30);
+        return $query->paginate(100);
     }
 
     public function filterOrders(Request $request, $query)

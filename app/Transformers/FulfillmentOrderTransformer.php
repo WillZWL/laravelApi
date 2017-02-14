@@ -38,7 +38,6 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                 'state' => $order->delivery_state,
                 'country' => $order->delivery_country_id
             ],
-            'order_score' => 100,
             'currency' => $order->currency_id,
             'delivery_charge' => $order->delivery_charge,
             'amount' => $order->amount,
