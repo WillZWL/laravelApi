@@ -78,7 +78,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('iwms-order', 'IwmsOrderController@index');
     Route::resource('iwms-order/create-or-update', 'IwmsOrderController@createOrUpdateIwmsOrder');
     Route::resource('iwms-order/cancel', 'IwmsOrderController@cancelIwmsOrder');
-    Route::get('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
+    Route::post('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {
