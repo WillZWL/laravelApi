@@ -18,7 +18,6 @@ class AllocationPlanController extends Controller
 
     public function allocation($warehouseId, Request $request)
     {
-        dd($request->all());
         return $this->allocationPlanService->getAllocationPlan($warehouseId, $request->all());
     }
 }
