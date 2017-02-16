@@ -30,4 +30,12 @@ class ProductAssemblyMapping extends Model
     {
         return $query->where('product_assembly_mapping.status', '=', 1);
     }
+
+    public function scopeInventoryQuantities($query, $skus, $warehouseId)
+    {
+        return $query->whereIn('prod_sku', $skus)
+                ->whereWarehouseId($warehouseId)
+                ->where('inventory', '>', 0)
+                ->get(['prod_sku', 'inventory']);
+    }
 }
