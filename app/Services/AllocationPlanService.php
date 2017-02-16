@@ -248,7 +248,7 @@ class AllocationPlanService
         $exceptionMessageContent = implode("\r\n", $this->exceptionMessages);
         $tansSoNo = $this->getOutTransferOrder($this->notAlloctionPlan);
         $message = "";
-        if ($soNoContent) {
+        if ($allocatedPlanOrderContent) {
             $message .= "================== Good, Allocated plan SUCCESS for under orders ==================\r\n";
             $message .= "Allocated, so_no: ". $allocatedPlanOrderContent . "\r\n\r\n";
         }
