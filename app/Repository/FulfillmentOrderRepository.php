@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use Illuminate\Http\Request;
 use App\Models\So;
+use App\Models\SellingPlatform;
 
 class FulfillmentOrderRepository
 {
@@ -17,8 +18,12 @@ class FulfillmentOrderRepository
                    ->where('platform_group_order', 1)
                    ->where('merchant_hold_status', 0)
                    ->where('platform_id', 'not like', 'EXCV%')
-                   ->whereNotIn('platform_id', ['DPMONUS'])
                    ->where('is_test', 0);
+        $excludePlatform = $this->getExcludePlatform();
+        $excludePlatform = array_flatten($excludePlatform);
+        if ($excludePlatform) {
+            $query = $query->whereNotIn('platform_id', $excludePlatform);
+        }
         $status = $request->get('status');
         if (is_int($status)) {
             $query = $query->where('status', $status);
@@ -60,5 +65,19 @@ class FulfillmentOrderRepository
         }
 
         return $query;
+    }
+
+    public function getExcludePlatform()
+    {
+        $lists = SellingPlatform::leftJoin('merchant AS m', 'selling_platform.merchant_id', '=', 'm.id')
+                                ->leftJoin('merchant_balance AS mb', 'mb.merchant_id', '=', 'm.id')
+                                ->where('type', 'DISPATCH')
+                                ->where('mb.balance', '<', 0)
+                                ->where('m.can_do_prepayment', 1)
+                                ->select('selling_platform.id')
+                                ->get()
+                                ->toArray();
+        return $lists;
+
     }
 }
