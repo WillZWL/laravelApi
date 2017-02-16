@@ -19,6 +19,7 @@ class AllocationPlanService
     protected $notAlloctionPlan = [];
     protected $errorMessages = [];
     protected $exceptionMessages = [];
+    protected $allocatedPlanOrder = [];
     protected $newSoAllocation = null;
     protected $newInvMovement = null;
 
@@ -157,6 +158,7 @@ class AllocationPlanService
                     $this->allocation($order, $warehouseId);
                     $order->status = 5;
                     $order->save();
+                    $this->allocatedPlanOrder[] = $soNo;
                     \DB::connection('mysql_esg')->commit();
                     \DB::commit();
                 } catch (\Exception $e) {
@@ -235,6 +237,7 @@ class AllocationPlanService
         } else {
             $toMail = "brave.liu@eservicesgroup.com";
         }
+        $allocatedPlanOrderContent = implode(", ", $this->allocatedPlanOrder);
         $soNoContent = implode(", ", $this->notAlloctionPlan);
         $errorMessageContent = implode("\r\n", $this->errorMessages);
         $exceptionMessageContent = implode("\r\n", $this->exceptionMessages);
@@ -260,7 +263,13 @@ class AllocationPlanService
             $header = "From: admin@eservicesgroup.com\r\n";
             $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
             mail($toMail, $subject, $message, $header);
-            print_r(str_replace("\r\n", "<br/>", $message));
+        }
+
+        if ($allocatedPlanOrderContent) {
+            $subject = "[ESG] Good, Allocated plan done for these orders, Please note it";
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
+            mail($toMail, $subject, "Allocated plan done for so_no: \r\n". $allocatedPlanOrderContent, $header);
         }
     }
 
