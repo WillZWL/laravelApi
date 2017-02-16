@@ -42,4 +42,9 @@ class Merchant extends Model
     {
         return $this->hasMany('App\Models\MerchantClientType');
     }
+
+    public function merchantBalance()
+    {
+        return $this->hasOne('App\Models\MerchantBalance', 'merchant_id', 'id');
+    }
 }
