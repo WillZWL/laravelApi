@@ -244,6 +244,13 @@ class AllocationPlanService
         $tansSoNo = $this->getOutTransferOrder($this->notAlloctionPlan);
         $message = "";
         if ($soNoContent) {
+            $message .= "================== Good, Allocated plan SUCCESS for under orders ==================\r\n";
+            $message .= "Allocated, so_no: ". $allocatedPlanOrderContent . "\r\n\r\n";
+        }
+        if ($soNoContent || $tansSoNo || $errorMessageContent || $exceptionMessageContent) {
+            $message .= "\r\n\r\n================== Very bad, Allocated Failed for under orders ==================\r\n";
+        }
+        if ($soNoContent) {
             $message .= "These orders alloction Failed, so_no: " . $soNoContent. "\r\n\r\n";
         }
         if ($tansSoNo) {
@@ -259,17 +266,10 @@ class AllocationPlanService
         }
 
         if ($message) {
-            $subject = "[ESG] Alert, By WMS allocation plan contains some questions, Please check it";
+            $subject = "[ESG] Alert, By WMS allocation plan execution processing ends, Please check it";
             $header = "From: admin@eservicesgroup.com\r\n";
             $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
             mail($toMail, $subject, $message, $header);
-        }
-
-        if ($allocatedPlanOrderContent) {
-            $subject = "[ESG] Good, Allocated plan done for these orders, Please note it";
-            $header = "From: admin@eservicesgroup.com\r\n";
-            $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
-            mail($toMail, $subject, "Allocated plan done for so_no: \r\n". $allocatedPlanOrderContent, $header);
         }
     }
 
