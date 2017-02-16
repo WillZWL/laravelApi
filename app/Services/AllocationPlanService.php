@@ -348,6 +348,7 @@ class AllocationPlanService
 
     private function getRequestUrl($action)
     {
+        $date = null;
         if (isset($this->requestData['date'])) {
             $date = $this->requestData['date'];
         }
