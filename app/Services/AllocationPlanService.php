@@ -35,7 +35,7 @@ class AllocationPlanService
 
         $this->processAllocationPlan($validatePassOrders, $warehouseId);
 
-        $this->processEmailAlert();
+        $this->processEmailAlert($warehouseId);
     }
 
     public function readyAllocateOrders($wmsOrders = [])
@@ -230,7 +230,7 @@ class AllocationPlanService
         }
     }
 
-    public function processEmailAlert()
+    public function processEmailAlert($warehouseId="")
     {
         if (isset($this->requestData['email']) && $this->requestData['email']) {
             $toMail = $this->requestData['email'];
@@ -266,6 +266,7 @@ class AllocationPlanService
         }
 
         if ($message) {
+            $message .= "Selected Warehouse ID: ". $warehouseId;
             $subject = "[ESG] Alert, By WMS allocation plan execution processing ends, Please check it";
             $header = "From: admin@eservicesgroup.com\r\n";
             $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
