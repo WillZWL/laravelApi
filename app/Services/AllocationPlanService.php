@@ -196,6 +196,7 @@ class AllocationPlanService
                 $soal->item_sku = $itemSku;
                 $soal->qty = $outstandingQty;
                 $soal->warehouse_id = $warehouseId;
+                $soal->status = 1;
                 $soal->create_by = $this->getUserName();
                 $soal->modify_by = $this->getUserName();
                 $soal->save();
