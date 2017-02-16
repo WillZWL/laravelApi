@@ -119,7 +119,6 @@ class So extends Model
             ->whereMerchantHoldStatus('0')
             ->wherePrepayHoldStatus('0')
             ->whereIsTest('0')
-->limit(2)
             ->get();
     }
 
