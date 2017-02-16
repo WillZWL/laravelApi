@@ -20,4 +20,12 @@ class Inventory extends Model
     {
         return $this->belongsToMany('App\Models\MarketplaceSkuMapping', 'prod_sku', 'sku');
     }
+
+    public function scopeInventoryQuantities($query, $skus, $warehouseId)
+    {
+        return $query->whereIn('prod_sku', $skus)
+                ->whereWarehouseId($warehouseId)
+                ->where('inventory', '>', 0)
+                ->get(['prod_sku', 'inventory']);
+    }
 }

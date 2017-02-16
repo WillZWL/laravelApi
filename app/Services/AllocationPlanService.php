@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Repository\CommonMws;
 use App\Models\So;
 use App\Models\ProductAssemblyMapping;
 use App\Models\Inventory;
@@ -20,6 +19,9 @@ class AllocationPlanService
     protected $notAlloctionPlan = [];
     protected $errorMessages = [];
     protected $exceptionMessages = [];
+    protected $allocatedPlanOrder = [];
+    protected $newSoAllocation = null;
+    protected $newInvMovement = null;
 
     public function getAllocationPlan($warehouseId="ES_HK", $requestData = [])
     {
@@ -29,7 +31,7 @@ class AllocationPlanService
 
         $readyOrderData = $this->readyAllocateOrders($wmsOrders);
 
-        $validatePassOrders = $this->validateOrderItemWithInventory($readyOrderData, $wmsOrders, $warehouseId);
+        $validatePassOrders = $this->validateAllocationPlanOrders($readyOrderData, $wmsOrders, $warehouseId);
 
         $this->processAllocationPlan($validatePassOrders, $warehouseId);
 
@@ -44,17 +46,7 @@ class AllocationPlanService
         if ($wmsOrders) {
             $soNoCollection = array_keys($wmsOrders);
             if ($soNoCollection) {
-                $orders = So::whereIn('so_no', $soNoCollection)
-                    ->with('SoItemDetail')
-                    ->wherePlatformGroupOrder('1')
-                    ->where('status', '>', 2)
-                    ->where('status', '<', 5)
-                    ->whereHoldStatus('0')
-                    ->whereRefundStatus('0')
-                    ->whereMerchantHoldStatus('0')
-                    ->wherePrepayHoldStatus('0')
-                    ->whereIsTest('0')
-                    ->get();
+                $orders = So::AllocateOrders($soNoCollection);
                 if (! $orders->isEmpty()) {
                     $this->setProductAssemblyMapping();
                     foreach ($orders as $order) {
@@ -90,7 +82,7 @@ class AllocationPlanService
         ];
     }
 
-    public function validateOrderItemWithInventory($readyOrderData = [], $wmsOrders = [], $warehouseId)
+    public function validateAllocationPlanOrders($readyOrderData = [], $wmsOrders = [], $warehouseId)
     {
         $calculatedItems = [];
         $orderItemCollection = $readyOrderData['orderItemCollection'];
@@ -166,6 +158,7 @@ class AllocationPlanService
                     $this->allocation($order, $warehouseId);
                     $order->status = 5;
                     $order->save();
+                    $this->allocatedPlanOrder[] = $soNo;
                     \DB::connection('mysql_esg')->commit();
                     \DB::commit();
                 } catch (\Exception $e) {
@@ -195,7 +188,7 @@ class AllocationPlanService
                 ->whereItemSku($itemSku)
                 ->get();
             if ($soAllocation->isEmpty()) {
-                $newSoAllocation = new SoAllocate();
+                $newSoAllocation = $this->getNewSoAllocation();
                 $soal = clone $newSoAllocation;
                 $soal->so_no = $soNo;
                 $soal->line_no = $lineNo;
@@ -207,7 +200,7 @@ class AllocationPlanService
                 $invMovement = InvMovement::whereShipRef($soal->id)
                     ->get();
                 if ($invMovement->isEmpty()) {
-                    $newInvMovement = new InvMovement();
+                    $newInvMovement = $this->getNewInvMovement();
                     $invMv = clone $newInvMovement;
                     $invMv->ship_ref = $soal->id;
                     $invMv->sku = $soal->item_sku;
@@ -227,13 +220,13 @@ class AllocationPlanService
                 throw new \Exception("Order[{$soNo}] line_no[$lineNo] so_allocate[". $soAllocation->id ."] already has allocated record");
             }
         }
-        $totalOutstandingQty = SoItemDetail::whereSoNo($soNo)
+        $remainOutstandingQty = SoItemDetail::whereSoNo($soNo)
             ->select(\DB::raw("SUM(outstanding_qty) AS out_qty"))
             ->groupBy("so_no")
             ->first()
             ->out_qty;
-        if ($totalOutstandingQty != 0) {
-            throw new \Exception("Order[{$soNo}] item detail outstanding[{$totalOutstandingQty}] not fully allocated ");
+        if ($remainOutstandingQty != 0) {
+            throw new \Exception("Order[{$soNo}] item detail remain outstanding_qty[{$remainOutstandingQty}] not fully allocated ");
         }
     }
 
@@ -244,6 +237,7 @@ class AllocationPlanService
         } else {
             $toMail = "brave.liu@eservicesgroup.com";
         }
+        $allocatedPlanOrderContent = implode(", ", $this->allocatedPlanOrder);
         $soNoContent = implode(", ", $this->notAlloctionPlan);
         $errorMessageContent = implode("\r\n", $this->errorMessages);
         $exceptionMessageContent = implode("\r\n", $this->exceptionMessages);
@@ -269,7 +263,13 @@ class AllocationPlanService
             $header = "From: admin@eservicesgroup.com\r\n";
             $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
             mail($toMail, $subject, $message, $header);
-            print_r(str_replace("\r\n", "<br/>", $message));
+        }
+
+        if ($allocatedPlanOrderContent) {
+            $subject = "[ESG] Good, Allocated plan done for these orders, Please note it";
+            $header = "From: admin@eservicesgroup.com\r\n";
+            $header .= "Cc: brave.liu@eservicesgroup.com\r\n";
+            mail($toMail, $subject, "Allocated plan done for so_no: \r\n". $allocatedPlanOrderContent, $header);
         }
     }
 
@@ -308,11 +308,8 @@ class AllocationPlanService
     public function getInventoryQuantities($skus, $warehouseId)
     {
         $invQties = [];
-        if ($skus) {
-            $inventories = Inventory::whereIn('prod_sku', $skus)
-                ->whereWarehouseId($warehouseId)
-                ->where('inventory', '>', 0)
-                ->get(['prod_sku', 'inventory']);
+        if ($skus && $warehouseId) {
+            $inventories = Inventory::inventoryQuantities($skus, $warehouseId);
             if (! $inventories->isEmpty()) {
                 foreach ($inventories as $inv) {
                     $invQties[$inv->prod_sku] = $inv->inventory;
@@ -324,15 +321,6 @@ class AllocationPlanService
 
     public function getWmsAllocationPlanData()
     {
-
-                    $wmsOrders = array(
-                        '189193' => array('18617-AA-BK'=>1, '15681-AA-NA'=>4, '18620-AA-GR'=>1),
-                        '189198' => array('15681-AA-NA'=>4, '18620-AA-GR'=>1, '18696-AA-BK'=>1),
-                        '189196' => array('18365-US-GR'=>2, '18615-AA-BK'=>2, '18620-AA-GR'=>1),
-                        '198152' => array('18771-EU-WH'=>3, '18363-US-BK'=>1, '18442-AA-BK'=>1),
-                    );
-echo "<pre/>";
-return $wmsOrders;
         $xmlResponse = $this->curl("allocation");
         $data = $this->convert($xmlResponse);
         $wmsOrders = [];
@@ -345,7 +333,6 @@ return $wmsOrders;
                 }
             }
         }
-
         return $wmsOrders;
     }
 
@@ -401,5 +388,21 @@ return $wmsOrders;
             }
         }
         return $arr;
+    }
+
+    public function getNewSoAllocation()
+    {
+        if ($this->newSoAllocation === null) {
+            $this->newSoAllocation = new SoAllocate();
+        }
+        return $this->newSoAllocation;
+    }
+
+    public function getNewInvMovement()
+    {
+        if ($this->newInvMovement === null) {
+            $this->newInvMovement = new InvMovement();
+        }
+        return $this->newInvMovement;
     }
 }
