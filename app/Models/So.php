@@ -107,4 +107,19 @@ class So extends Model
                 ->where('so.prepay_hold_status', 0);
     }
 
+    public function scopeAllocateOrders($query, $soNoCollection = [])
+    {
+        return $query->whereIn('so_no', $soNoCollection)
+            ->with('SoItemDetail')
+            ->wherePlatformGroupOrder('1')
+            ->where('status', '>', 2)
+            ->where('status', '<', 5)
+            ->whereHoldStatus('0')
+            ->whereRefundStatus('0')
+            ->whereMerchantHoldStatus('0')
+            ->wherePrepayHoldStatus('0')
+            ->whereIsTest('0')
+            ->get();
+    }
+
 }

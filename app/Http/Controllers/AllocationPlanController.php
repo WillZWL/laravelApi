@@ -18,6 +18,12 @@ class AllocationPlanController extends Controller
 
     public function allocation($warehouseId, Request $request)
     {
-        return $this->allocationPlanService->getAllocationPlan($warehouseId, $request->all());
+        $requestData = $request->all();
+        $this->allocationPlanService->getAllocationPlan($warehouseId, $requestData);
+        if (isset($requestData['redirect_url']) && $requestData['redirect_url']) {
+            return redirect($requestData['redirect_url']);
+        } else {
+            return "Execution processing ends";
+        }
     }
 }
