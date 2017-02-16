@@ -245,7 +245,7 @@ class AllocationPlanService
         $message = "";
         if ($soNoContent) {
             $message .= "================== Good, Allocated plan SUCCESS for under orders ==================\r\n";
-            $message .= "Allocated, so_no: \r\n". $allocatedPlanOrderContent . "\r\n\r\n";
+            $message .= "Allocated, so_no: ". $allocatedPlanOrderContent . "\r\n\r\n";
         }
         if ($soNoContent || $tansSoNo || $errorMessageContent || $exceptionMessageContent) {
             $message .= "\r\n\r\n================== Very bad, Allocated Failed for under orders ==================\r\n";
