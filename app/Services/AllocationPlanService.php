@@ -157,6 +157,7 @@ class AllocationPlanService
                 try {
                     $this->allocation($order, $warehouseId);
                     $order->status = 5;
+                    $order->modify_by = $this->getUserName();
                     $order->save();
                     $this->allocatedPlanOrder[] = $soNo;
                     \DB::connection('mysql_esg')->commit();
@@ -195,6 +196,8 @@ class AllocationPlanService
                 $soal->item_sku = $itemSku;
                 $soal->qty = $outstandingQty;
                 $soal->warehouse_id = $warehouseId;
+                $soal->create_by = $this->getUserName();
+                $soal->modify_by = $this->getUserName();
                 $soal->save();
 
                 $invMovement = InvMovement::whereShipRef($soal->id)
@@ -208,6 +211,8 @@ class AllocationPlanService
                     $invMv->qty = $soal->qty;
                     $invMv->from_location = $soal->warehouse_id;
                     $invMv->status = "AL";
+                    $invMv->create_by = $this->getUserName();
+                    $invMv->modify_by = $this->getUserName();
                     $invMv->save();
                 } else {
                     throw new \Exception("This order[{$soNo}] ship_ref[$ship_ref] inv_movement already exist record");
@@ -215,7 +220,7 @@ class AllocationPlanService
                 SoItemDetail::whereSoNo($soNo)
                     ->whereLineNo($lineNo)
                     ->whereItemSku($soid->item_sku)
-                    ->update(['outstanding_qty' => 0]);
+                    ->update(['outstanding_qty' => 0, 'modify_by' => $this->getUserName()]);
             } else {
                 throw new \Exception("Order[{$soNo}] line_no[$lineNo] so_allocate[". $soAllocation->id ."] already has allocated record");
             }
@@ -406,5 +411,14 @@ class AllocationPlanService
             $this->newInvMovement = new InvMovement();
         }
         return $this->newInvMovement;
+    }
+
+    public function getUserName()
+    {
+        $userName = "system";
+        if (isset($this->requestData['user_name']) && $this->requestData['user_name']) {
+            $userName = $this->requestData['user_name'];
+        }
+        return $userName;
     }
 }
