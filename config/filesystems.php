@@ -96,6 +96,10 @@ return [
         'iwms' => [
             'driver' => 'local',
             'root' => storage_path('iwms'),
+        ],
+        'pickList' => [
+            'driver' => 'local',
+            'root' => storage_path('picklist'),
         ]
     ],
 
