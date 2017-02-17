@@ -4,28 +4,17 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>Dispatch Note</title>
 <style type="text/css">
-.pb
-{
-page-break-after : always  ;
-}
-
-
-body {
-margin:10;
--webkit-print-color-adjust: exact;
-}
 * {
 font-family:Helvetica,verdana,arial,sans-serif;
 font-size:8pt;
 }
 </style>
 </head>
-<body topmargin="5" leftmargin="5" rightmargin="5" bgcolor="#FFFFFF" style="overflow:none;">
+<body bgcolor="#FFFFFF" style="overflow:none;">
 
 <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#FFFFFF">
     <tr>
         <td align="left" colspan="2">
-            <p><img src="{{ $website }}/images/valuebasket_logo.png"></p>
         </td>
     </tr>
 
@@ -48,7 +37,7 @@ font-size:8pt;
             <b>Ship To:</b>
             <p>{{ $so->delivery_name }}</p>
             <p>&nbsp;</p>
-            <p>{{ $delivery_address }}</p>
+            <p>{!! $delivery_address !!}</p>
             <p>&nbsp;</p>
         </td>
 
@@ -56,7 +45,7 @@ font-size:8pt;
             <b>Bill To:</b>
             <p>{{ $so->bill_name }}</p>
             <p>&nbsp;</p>
-            <p>{{ $billing_address }}</p>
+            <p>{!! $billing_address !!}</p>
             <p>&nbsp;</p>
         </td>
     </tr>
@@ -82,24 +71,32 @@ font-size:8pt;
                 </tr>
             <!--item start-->
                 @foreach($soItem as $item)
-                <tr>
-                    <td align='center'>
-                        <img src="{{ $item->imagePath }}"><br>
-                        {{ $item->merchant_sku }}
+                <tr @if($item['assembly'] == 2) style="background:#CCC;" @endif>
+                    <td align="center">
+                        <img src="{{ $item['imagePath'] }}"><br>
+                        {{ $item['merchant_sku'] }}
                     </td>
-                    <td valign=top>
-                        {{ $item->item_sku }} - {{ $item->product->name }}
-
-                        @if(in_array($item->item_sku,['15768-AA-NA', '15767-AA-NA', '15766-AA-NA', '15765-AA-NA']))
-                        <br><img src='{{ $website }}/order/integrated_order_fulfillment/get_barcode2/{{ $item->item_sku }}' style='float:right'>
+                    <td valign="top">
+                        @if($item['assembly'] == 0)
+                        {{ $item['item_sku'] }} - {{ $item['name'] }}
+                        @else
+                        {{ $item['main_prod_sku'] }} - {{ $item['item_sku'] }} - {{ $item['prod_name'] }} - {{ $item['name'] }}
                         @endif
 
-                        @if($item->product->special_request)
-                        <p style='font-size: 11pt !important;font-weight:bold;font-style:italic;'>{{ $item->product->special_request }}</p>
+                        @if(in_array($item['item_sku'],['15768-AA-NA', '15767-AA-NA', '15766-AA-NA', '15765-AA-NA']))
+                        <br>
+                        <div style="text-align: center;vertical-align: middle;float:right; padding: 5px 8px;">
+                            <img src='data:image/png;base64,{{ DNS1D::getBarcodePNG($item["item_sku"], "C128", 1, 20) }}' alt='barcode'/><br/>
+                            <span style="font-size: 8px">{{ $item["item_sku"] }}</span>
+                        </div>
+                        @endif
+
+                        @if($item['special_request'])
+                        <p style='font-size: 11pt !important;font-weight:bold;font-style:italic;'>{{ $item['special_request'] }}</p>
                         @endif
                     </td>
-                    <td valign=top>{{ $item->battery_type }}</td>
-                    <td valign=top>{{ $item->qty }}</td>
+                    <td valign=top>{{ $item['battery_type'] }}</td>
+                    <td valign=top>@if($item['assembly'] != 2) {{ $item['qty'] }} @endif</td>
                 </tr>
                 @endforeach
             <!--item end-->
@@ -117,6 +114,5 @@ font-size:8pt;
         </td>
     </tr>
 </table>
-<p class="pb"></p>
 </body>
 </html>
