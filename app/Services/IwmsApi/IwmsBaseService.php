@@ -29,11 +29,9 @@ trait IwmsBaseService
         $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("merchant_warehouse_id",$warehouseId)
             ->where("merchant_id", $merchantId)
             ->first();
-
         if ($iwmsMerchantWarehouseMapping) {
             return $iwmsMerchantWarehouseMapping->iwms_warehouse_code;
         }
-
         return null;
     }
 
@@ -46,8 +44,16 @@ trait IwmsBaseService
         if ($iwmsMerchantCourierMapping) {
             return $iwmsMerchantCourierMapping->iwms_courier_code;
         }
-
         return null;
+    }
+
+    public function getIwmsCourierApiMappingList($wmsPlatform, $merchantId)
+    {
+        return IwmsMerchantCourierMapping::where("wms_platform", $wmsPlatform)
+            ->where("merchant_id", $merchantId)
+            ->where("status", 1)
+            ->pluck("merchant_courier_id")
+            ->all();
     }
 
     public function saveBatchIwmsResponseData($batchObject,$responseJson)

@@ -13,4 +13,9 @@ class BatchRequest extends Model
     {
         return $this->hasMany('App\Models\IwmsDeliveryOrderLog', 'batch_id', 'id');
     }
+
+    public function iwmsCourierOrderLog()
+    {
+        return $this->hasMany('App\Models\IwmsCourierOrderLog', 'batch_id', 'id');
+    }
 }

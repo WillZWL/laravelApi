@@ -21,7 +21,7 @@ class AllocationPlanController extends Controller
         $requestData = $request->all();
         $this->allocationPlanService->getAllocationPlan($warehouseId, $requestData);
         if (isset($requestData['redirect_url']) && $requestData['redirect_url']) {
-            return redirect($requestData['redirect_url']);
+            return redirect("http://admincentre.eservicesgroup.com/order/integrated_order_fulfillment");
         } else {
             return "Execution processing ends";
         }

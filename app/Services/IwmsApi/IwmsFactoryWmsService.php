@@ -6,6 +6,7 @@ use App\Models\So;
 use App\Models\IwmsFeedRequest;
 use App\Models\IwmsLgsOrderStatusLog;
 use App\Models\IwmsDeliveryOrderLog;
+use App\Models\IwmsCourierOrderLog;
 use App\Models\PlatformMarketOrder;
 use App\Models\IwmsMerchantCourierMapping;
 
@@ -20,6 +21,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     private $iwmsCreateDeliveryOrderService = null;
     private $iwmsCancelDeliveryOrderService = null;
+    private $iwmsCourierOrderService = null;
 
     public function __construct($wmsPlatform = "4px", $debug = 0)
     {
@@ -27,11 +29,16 @@ class IwmsFactoryWmsService extends IwmsCoreService
         parent::__construct($wmsPlatform,$debug);
     }
 
-    public function cronCreateDeliveryOrder()
+    public function createDeliveryOrder($esgOrderNoList = null)
     {
         try {
-            $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
-            $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms);
+            if(!empty($esgOrderNoList)){
+                $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList);
+            }else{
+                //cron job request
+                $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
+                $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms);
+            }
             if (!$request["requestBody"]) {
                 return false;
             }
@@ -43,18 +50,24 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
-    public function createDeliveryOrder($esgOrderNoList)
+    public function createCourierOrder($esgOrderNoList = null)
     {
         try {
-            $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList);
+            if(!empty($esgOrderNoList)){
+                $request = $this->getIwmsCourierOrderService()->getCourierCreationRequestByOrderNo($esgOrderNoList);
+            }else{
+                //cron job request
+                $request = $this->getIwmsCourierOrderService()->getCourierCreationRequest();
+            }
             if (!$request["requestBody"]) {
                 return false;
             }
-            $responseData = $this->curlIwmsApi('create-ship-order', $request["requestBody"]);
+            $responseData = $this->curlIwmsApi('courier/create-order', $request["requestBody"]);
             $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+            $this->updateSoWaybillStatus($request["batchRequest"], "1");
         } catch (Exception $e) {
             $msg = $e->getMessage();
-            mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Delivery Failed', $msg, 'From: admin@shop.eservciesgroup.com');
+            mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Courier order Failed', $msg, 'From: admin@shop.eservciesgroup.com');
         }
     }
 
@@ -204,7 +217,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $courierList;
     }
 
-    public function getReadyToDispatchOrder($courierList, $courier = null)
+    public function getReadyToIwmsDeliveryOrder($courierList, $courier = null)
     {
         $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
@@ -250,12 +263,26 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService", [$this->wmsPlatform]);
     }
 
+    public function getIwmsCourierOrderService()
+    {
+        return $this->iwmsCourierOrderService = App::make("App\Services\IwmsApi\Order\IwmsCourierOrderService", [$this->wmsPlatform]);
+    }
+
     public function getApiLazadaService()
     {
         if ($this->apiLazadaService == null) {
             $this->apiLazadaService = App::make("App\Services\ApiLazadaService");
         }
         return $this->apiLazadaService;
+    }
+
+    private function updateSoWaybillStatus($batchRequest, $status)
+    {
+        $referenceNoList = IwmsCourierOrderLog::where("batch_id", $batchRequest->id)
+                    ->pluck("reference_no")
+                    ->all();
+        So::whereIn("so_no", $referenceNoList)
+                ->update(array("waybill_status", $status));
     }
 
 }
