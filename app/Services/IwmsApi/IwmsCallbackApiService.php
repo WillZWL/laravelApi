@@ -21,6 +21,8 @@ use App\Models\ExchangeRate;
 class IwmsCallbackApiService
 {
     private $callbackToken = "esg-iwms-123456";
+    private $callbackIwmsCourierOrderService;
+
     use IwmsBaseService;
 
     public function __construct()
@@ -71,6 +73,12 @@ class IwmsCallbackApiService
                 break;
             case 'cancelDelivery':
                 return $this->cancelDeliveryOrder($postMessage);
+                break;
+            case 'createCourierOrder':
+                return $this->callbackIwmsCourierOrderService()->createCourierOrder($postMessage);
+                break;
+            case 'cancelCourierOrder':
+                return $this->callbackIwmsCourierOrderService()->cancelCourierOrder($postMessage);
                 break;
 
             default:
@@ -483,6 +491,11 @@ class IwmsCallbackApiService
     private function _sendEmail($to, $subject, $message, $header)
     {
         mail("{$to}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+    }
+
+    private function getCallBackCourierOrderService()
+    {
+        return $this->callbackIwmsCourierOrderService = App::make(" App\Services\IwmsApi\Callback\IwmsCourierOrderService");
     }
 
 }
