@@ -20,7 +20,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     public function getCourierCreationRequest()
     {
         $deliveryCreationRequest = null;
-        $esgOrders = $this->getEsgCourierOrders();
+        $esgOrders = $this->getReadyToIwmsCourierOrder(2);
         $batchRequest = $this->getCourierCreationRequestBatch($esgOrders);
         return $this->getCourierCreationBatchRequest($batchRequest);
     }
@@ -90,7 +90,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             return false;
         }
         //send remark for depx and fedx for 4px
-        return  $this->getCreationIwmsOrderObject($esgOrder, $iwmsCourierCode);
+        return  $this->getCreationIwmsCourierOrderObject($esgOrder, $iwmsCourierCode);
     }
 
     public function _saveIwmsCourierOrderRequestData($batchId,$requestData)
@@ -112,25 +112,34 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
         return $iwmsCourierOrderLog;
     }
 
-    public function getEsgCourierOrders()
+    public function getReadyToIwmsCourierOrder($limit = null, $courier = null, $pageNum = null)
     {
         $wmsPlatform = "iwms"; $merchantId ="ESG";
-        $courierApiList = $this->getIwmsCourierApiMappingList($wmsPlatform, $merchantId);
-        $esgOrders = So::where("status",3)
+        if($courier){
+            $courierList = array($courier);
+        }else{
+            $courierList = $this->getIwmsCourierApiMappingList($wmsPlatform, $merchantId);
+        }
+        $esgOrderQuery = So::where("status",3)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
-            ->whereIn("esg_quotation_courier_id", $courierApiList)
+            ->whereIn("esg_quotation_courier_id", $courierList)
            //->whereIn("waybill_status", 0)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
             ->with("client")
-            ->with("soItem")
-            //->limit(100)
-            ->limit(1)
-            ->get();
-        return $esgOrders;
+            ->with("soItem");
+        if(!empty($limit)){
+            $esgOrder = $esgOrderQuery->limit($limit);
+        }
+        if(!empty($pageNum)){
+            $esgOrder = $esgOrderQuery->paginate($pageNum);
+        }else{
+            $esgOrder = $esgOrderQuery->get();
+        }
+        return $esgOrder;
     }
 
     private function getEsgCourierOrdersByOrderNo($esgOrderNoList)

@@ -217,35 +217,45 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $courierList;
     }
 
-    public function getReadyToIwmsDeliveryOrder($courierList, $courier = null)
+   /* public function getReadyToIwmsDeliveryOrder($wmsPlatform, $pageNum)
     {
-        $esgOrderQuery = So::where("status",5)
+        $courierList = $this->getCourierMappingList($wmsPlatform);
+        $esgOrderQuery = So::where("status",3)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
-            ->whereHas('soAllocate', function ($query) {
-                $query->where("status", 1);
-            })
+            ->where("esg_quotation_courier_id", $courierList)
+            ->where("waybill_status", 2)
+            ->where("picklist_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
             ->with("client")
             ->with("soItem")
-            ->with("sellingPlatform");
-          if(!empty($courier)){
-            $esgOrder = $esgOrderQuery->where("esg_quotation_courier_id", $courier)->paginate(20);
-          }else{
-            //$esgOrder = $esgOrderQuery->whereIn("esg_quotation_courier_id",$courierList)->paginate(20);
-            $esgOrder = $esgOrderQuery->whereNotNull("esg_quotation_courier_id")->paginate(20);
-          }
-          return $esgOrder;
+            ->paginate(20);
+        return $esgOrder;
+        $esgOrder = $this->getIwmsCreateDeliveryOrderService()->getReadyToIwmsDeliveryOrder(null, $wmsPlatform, $pageNum);
+        return $esgOrder;
+    }*/
+
+    public function getReadyToIwmsCourierOrder($courier = null, $pageNum = null)
+    {
+        $esgOrder = $this->getIwmsCourierOrderService()->getReadyToIwmsCourierOrder(null, $courier, $pageNum);
+        return $esgOrder;
     }
 
-    public function getIwmsDeliveryOrderLogList()
+    public function getIwmsDeliveryOrderLogList($pageNum)
     {
         return IwmsDeliveryOrderLog::where("status", 1)
             ->whereNotNull("wms_order_code")
-            ->paginate(20);
+            ->paginate($pageNum);
+    }
+
+    public function getIwmsCourierOrderLogList($pageNum)
+    {
+        return IwmsCourierOrderLog::where("status", 1)
+            ->whereNotNull("wms_order_code")
+            ->paginate($pageNum);
     }
 
     public function getIwmsOrderDocumentService()

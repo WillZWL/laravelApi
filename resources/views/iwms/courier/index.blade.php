@@ -7,18 +7,13 @@
        <form name="courier_select" id="courier_select">
            <table>
                 <tr>
-                    <td>
-                     <select name="wms-platform" class="form-control" onchange="document.courier_select.submit();">
-                            <option value="">wmsPlatform</option>
-                            <option value="4px" @if( $currentWmsPlatform == "4px") selected="selected" @endif>4px</option>
-                            <option value="iwms" @if( $currentWmsPlatform == "iwms") selected="selected" @endif>iwms</option>
-                       </select>
-                   </td>
                    <td><select name="courier" class="form-control" onchange="document.courier_select.submit();">
                             <option value="">Courier</option>
                             @if(isset($courierList))
                                 @foreach($courierList as $courier)
-                                    <option value="{{ $courier->merchant_courier_id }} ">{{ $courier->merchant_courier_name }}</option>
+                                    <option value="{{ $courier->merchant_courier_id }} @if( $currentCourier == "dhl") selected="selected" @endif">
+                                        {{ $courier->merchant_courier_name }}
+                                    </option>
                                 @endforeach
                             @endif
                        </select></td>
@@ -92,11 +87,9 @@
                 {{ $orderList->links() }} 
             @endif
             <div>
-                <input type="hidden" value="{{ $currentWmsPlatform }}" name="wms-platform"  onclick=""/>
                 <input type="button" value="Ship Order" class="btn btn-primary"  onclick="
                 document.fm_edit.action = '/iwms-order/create';document.fm_edit.submit();"/>
-                <input type="button" value="Cancel Order" class="btn btn-primary"  onclick="document.fm_edit.action = '/iwms-order/cancel';document.fm_edit.submit();"/>
-                
+                <!--input type="button" value="Cancel Order" class="btn btn-primary"  onclick="document.fm_edit.action = '/iwms-order/cancel';document.fm_edit.submit();"/-->
             </div>
         </form>
     </div>  

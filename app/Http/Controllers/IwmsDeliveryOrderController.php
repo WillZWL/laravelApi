@@ -8,7 +8,7 @@ use App\Services\IwmsApi\IwmsFactoryWmsService;
 use App\Http\Requests;
 use Config;
 
-class IwmsOrderController extends Controller
+class IwmsDeliveryOrderController extends Controller
 {
     //
     private $iwmsFactoryWmsService;
@@ -23,7 +23,7 @@ class IwmsOrderController extends Controller
     public function index(Request $request)
     {   
         $data["courierList"] = $this->courierMappingList;
-        $data["currentWmsPlatform"] = $this->wmsPlatform;
+        $data["currentWmsPlatform"]= $this->wmsPlatform;
         if(!empty($this->iwmsFactoryWmsService)){
             $courier = $request->input("courier");
             $data["esgOrderList"] = $this->iwmsFactoryWmsService->getReadyToDispatchOrder($courier,$this->merchantCourierList);
