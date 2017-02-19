@@ -125,7 +125,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereIn("esg_quotation_courier_id", $courierList)
-           //->whereIn("waybill_status", 0)
+            ->whereIn("waybill_status", 0)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
