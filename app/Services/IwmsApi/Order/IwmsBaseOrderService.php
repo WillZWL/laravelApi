@@ -11,16 +11,15 @@ class IwmsBaseOrderService
     protected $message;
     protected $wmsPlatform = null;
     protected $lgsCourier = array("4PX-PL-LGS"); 
+    protected $bizType = array(
+        "ACCELERATOR" => "A",
+        "DISPATCH" => "D",
+        "EXPANDER" => "E",
+        );
 
-    public function getCreationIwmsOrderObject($esgOrder, $iwmsCourierCode, $iwmsWarehouseCode = null, $extraInstruction = null ,$trackingNo = null)
+    public function getCreationIwmsCourierOrderObject($esgOrder, $iwmsCourierCode, $iwmsWarehouseCode = null, $extraInstruction = null ,$trackingNo = null)
     {
         $merchantId = "ESG";
-        if(in_array($iwmsCourierCode, $this->lgsCourier)){
-            $address = mb_substr($esgOrder->delivery_address, 0, 120, "utf-8");
-            $address = (preg_replace( "/\r|\n/", "", $address));
-        }else{
-            $address = $esgOrder->delivery_address;
-        }
         $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $creationOrderObject = array(
             "wms_platform" => $this->wmsPlatform,
@@ -37,33 +36,45 @@ class IwmsBaseOrderService
             "company" => $esgOrder->delivery_company,
             "email" => $esgOrder->client->email,
             "country" => $esgOrder->delivery_country_id,
+            "country_name" => $esgOrder->country->name,
             "city" => $esgOrder->delivery_city,
             "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x",
-            "address" => $address,
+            "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
-            "phone" => $this->getEsgOrderPhone($esgOrder),
+            "phone" => $esgOrder->client->tel_3,
+            "courier_reference_id" => $esgOrder->so_no."-".$esgOrder->sellingPlatform->merchant_id."-".$this->bizType[$esgOrder->sellingPlatform->type],
             "amount_in_hkd" => '0',
             "amount_in_usd" => '0',
             "extra_instruction" => $extraInstruction,
         );
         foreach ($esgOrder->soItem as $esgOrderItem) {
-            $hscode = null; $hsDescription = null;
+            $hscode = null; 
+            $hsDescription = null;
+            $commodityCode = null;
+            $commodityName = null;
+            $hscodeCategoryName = null;
             if($esgOrderItem->hscodeCategory){
                 $hscode = $esgOrderItem->hscodeCategory->general_hscode;
                 $hsDescription = $esgOrderItem->hscodeCategory->description;
+                $commodityCode = $esgOrderItem->hsdutyCountry->optimized_hscode;
+                $commodityName = $esgOrderItem->hscodeCategory->name;
+                $hscodeCategoryName[] = $esgOrderItem->hscodeCategory->name;
             }
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
                 "quantity" => $esgOrderItem->qty,
                 "hscode" => $hscode,
-                "hsDescription" => $hsDescription,
+                "hsdescription" => $hsDescription,
+                "commodity_code" => $commodityCode,
+                "commodity_name" => $commodityName,
                 "unit_price_hkd" => '0',
                 "unit_price_usd" => '0',
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
             );
             $creationOrderObject["item"][] = $creationOrderItem;
         }
+        $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
         return $creationOrderObject;
     }
 

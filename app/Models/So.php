@@ -66,6 +66,11 @@ class So extends Model
         return $this->belongsTo('App\Models\CourierInfo', 'esg_quotation_courier_id', 'courier_id');
     }
 
+    public function country()
+    {
+        return $this->belongsTo('App\Models\Country', 'delivery_country_id', 'id');
+    }
+
     public function sellingPlatform()
     {
         return $this->belongsTo('App\Models\SellingPlatform', 'platform_id');

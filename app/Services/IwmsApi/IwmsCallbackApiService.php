@@ -18,10 +18,12 @@ use App\Repository\AcceleratorShippingRepository;
 use App\Repository\MarketplaceProductRepository;
 use App\Models\ExchangeRate;
 
+use App;
+
 class IwmsCallbackApiService
 {
     private $callbackToken = "esg-iwms-123456";
-    private $callbackIwmsCourierOrderService;
+    private $callbackIwmsCourierOrderService = null;
 
     use IwmsBaseService;
 
@@ -75,10 +77,10 @@ class IwmsCallbackApiService
                 return $this->cancelDeliveryOrder($postMessage);
                 break;
             case 'createCourierOrder':
-                return $this->callbackIwmsCourierOrderService()->createCourierOrder($postMessage);
+                return $this->getCallBackCourierOrderService()->createCourierOrder($postMessage);
                 break;
             case 'cancelCourierOrder':
-                return $this->callbackIwmsCourierOrderService()->cancelCourierOrder($postMessage);
+                return $this->getCallBackCourierOrderService()->cancelCourierOrder($postMessage);
                 break;
 
             default:
@@ -495,7 +497,10 @@ class IwmsCallbackApiService
 
     private function getCallBackCourierOrderService()
     {
-        return $this->callbackIwmsCourierOrderService = App::make(" App\Services\IwmsApi\Callback\IwmsCourierOrderService");
+        if ($this->callbackIwmsCourierOrderService == null) {
+            $this->callbackIwmsCourierOrderService = App::make("App\Services\IwmsApi\Callbacks\IwmsCourierOrderService");
+        }
+        return $this->callbackIwmsCourierOrderService;
     }
 
 }

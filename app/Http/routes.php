@@ -75,9 +75,11 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('order-delivery-options/{soNo}', 'Api\DeliveryController@getOrderDeliveryOptionsBySoNo');
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
     Route::get('amazon-commission-charge-report/{flexBatchId}', 'Api\CommissionChargeController@getAmazonCommissionChargeReport');
-    Route::get('iwms-order', 'IwmsOrderController@index');
-    Route::resource('iwms-order/create-or-update', 'IwmsOrderController@createOrUpdateIwmsOrder');
-    Route::resource('iwms-order/cancel', 'IwmsOrderController@cancelIwmsOrder');
+    Route::get('iwms/courier-order/', 'IwmsCourierOrderController@index');
+    Route::resource('iwms/courier-order/create-or-update', 'IwmsCourierOrderController@editIwmsDeliveryOrder');
+    Route::resource('iwms/courier-order/cancel', 'IwmsCourierOrderController@cancelIwmsOrder');
+    Route::get('iwms/courier-order/download/{pickListNo}/{documentType}','IwmsCourierOrderController@donwloadLabel');
+    Route::get('iwms/courier-order/download-picklist/{documentType}','IwmsCourierOrderController@donwloadPickListLabel');
     Route::get('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
 });
 
@@ -157,10 +159,6 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->get('couriers', 'CourierInfoController@index');
     $api->resource('marketplace-courier-mapping', 'MarketplaceCourierMappingController');
-
-    $api->get('iwms-order', 'IwmsOrderController@index');
-    $api->post('iwms-order/create', 'IwmsOrderController@createIwmsOrder');
-    $api->post('iwms-order/cancel/', 'IwmsOrderController@cancelIwmsOrder');
 
     $api->get('fulfillment-order', 'FulfillmentOrderController@index');
 });
