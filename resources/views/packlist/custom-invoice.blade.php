@@ -11,7 +11,7 @@
 
   .t1{border: 1px solid #000; border-width:1 0 0 1}
   .noborder{border-left: none;border-bottom: none}
-  .t1 td{border: 1px solid #000;border-width:1 0 0 1}
+  .t1 td{border: 1px solid #000;border-width:0 1 1 0}
   .t1 td.noborder{border-left: none;border-bottom: none}
 </style>
 </head>
