@@ -263,7 +263,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $requestBody = array(
             "operation" => "allowed",
         );
-        $responseData = $this->curlIwmsApi('create-allocation-plan', $requestBody);
+        $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $requestBody);
         return $responseData;
     }
 
