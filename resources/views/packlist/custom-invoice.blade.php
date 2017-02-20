@@ -7,8 +7,12 @@
    body {margin:0; text-align:center;}
    * {font-family:Helvetica,rial,verdana,sans-serif;font-size:11px;}
   .field{background-color:#e1e1e1; padding-left:5px; text-align:left; height:25px; font-size:12px;}
-  .value{background-color:#ffffff;  padding-left:5px; text-align:left; height:25px; font-size:12px;}
-  .tborder{background-color:#000000; width:1px; }
+  .value{  padding-left:5px; text-align:left; height:25px; font-size:12px;}
+
+  .t1{border: 1px solid #000; border-width:1 0 0 1}
+  .noborder{border-left: none;border-bottom: none}
+  .t1 td{border: 1px solid #000;border-width:1 0 0 1}
+  .t1 td.noborder{border-left: none;border-bottom: none}
 </style>
 </head>
 <body marginwidth='0' marginheight='0'>
@@ -18,7 +22,7 @@
         <tr>
             <td width='10%'>&nbsp;</td>
             <td width='80%'>
-            <table width='100%' cellpadding='0' cellspacing='1' border='0' bgcolor='#000000'>
+            <table class="t1" width='100%' cellpadding='0' cellspacing='0'>
                 <tr>
                     <td class='field' width='20%'>Date of Invoice</td>
                     <td class='value' width='30%'>{{ date("d/m/Y") }}</td>
@@ -82,80 +86,40 @@
             </div>
             <br/>
             <br/>
-        <table border='0' cellpadding='0' cellspacing='0' width='100%'>
-        <tr bgcolor='#000000'>
-            <td colspan='13' height='1'></td>
-        </tr>
+        <table cellpadding='0' cellspacing='0' width='100%' class="t1 noborder">
         <tr>
-            <td width='1' class='tborder'></td>
             <td class='field'>Product descriptions</td>
-            <td width='1' class='tborder'></td>
             <td class='field'>Country Of Origin</td>
-            <td width='1' class='tborder'></td>
             <td class='field'>HS Code</td>
-            <td width='1' class='tborder'></td>
             <td class='field'>Qty</td>
-            <td width='1' class='tborder'></td>
             <td width='15%' class='field'>Unit Value({{ $currency_courier_id }})</td>
-            <td width='1' class='tborder'></td>
             <td width='15%' class='field'>Total Value({{ $currency_courier_id }})</td>
-            <td width='1' class='tborder'></td>
-        </tr>
-        <tr bgcolor='#000000'>
-            <td colspan='13' height='1'></td>
         </tr>
         @foreach($soItem as $item)
             @if($item["is_show"])
-            <tr bgcolor='#000000'>
-                <td width='1' class='tborder'></td>
+            <tr>
                 <td class='value'>{{ $item['prod_desc'] }}</td>
-                <td width='1' class='tborder'></td>
                 <td class='value'>China</td>
-                <td width='1' class='tborder'></td>
                 <td class='value'>{{ $item['code'] }}</td>
-                <td width='1' class='tborder'></td>
                 <td class='value'>{{ $item['qty'] }}</td>
-                <td width='1' class='tborder'></td>
                 <td class='value'>{{ $item['unit_declared_value'] }}</td>
-                <td width='1' class='tborder'></td>
                 <td class='value'>{{ $item['item_declared_value'] }}</td>
-                <td width='1' class='tborder'></td>
             </tr>
-            <tr bgcolor='#000000'><td colspan='13' height='1'></td></tr>
             @endif
         @endforeach
         <tr>
-            <td colspan='8' rowspan='10' class='value'></td>
-            <td width='1' class='tborder'></td>
+            <td colspan='4' rowspan='3' class='value noborder'></td>
             <td class='field'>Original Cost of Items</td>
-            <td width='1' class='tborder'></td>
             <td class='value'>{{ $total_cost }}</td>
-            <td width='1' class='tborder'></td>
-        </tr>
-        <tr bgcolor='#000000'>
-            <td colspan='10' height='1'></td>
         </tr>
         <tr>
-            <td width='1' class='tborder'></td>
             <td class='field'>Total Discount Applied</td>
-            <td width='1' class='tborder'></td>
             <td class='value'>{{ $total_discount }}</td>
-            <td width='1' class='tborder'></td>
-        </tr>
-        <tr bgcolor='#000000'>
-            <td colspan='10' height='1'></td>
         </tr>
         <tr>
-            <td width='1' class='tborder'></td>
             <td class='field'>Total Amount Charged</td>
-            <td width='1' class='tborder'></td>
             <td class='value'>{{ $total_amount }}</td>
-            <td width='1' class='tborder'></td>
         </tr>
-        <tr bgcolor='#000000'>
-            <td colspan='5' height='1'></td>
-        </tr>
-
         </table>
         <br/><br/>
         <div style='width:100%; text-align:left; font-size:12px; position:relative'>
