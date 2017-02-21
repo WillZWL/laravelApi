@@ -81,6 +81,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('iwms/courier-order/download/{pickListNo}/{documentType}','IwmsCourierOrderController@donwloadLabel');
     Route::get('iwms/courier-order/download-picklist/{documentType}','IwmsCourierOrderController@donwloadPickListLabel');
     Route::get('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
+    Route::get('iwms-allocation-plan', 'AllocationPlanController@iwmsAllocation');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => ['api.auth', 'cors']], function ($api) {

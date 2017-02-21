@@ -42,12 +42,20 @@ class FulfillmentOrderRepository
                     break;
             }
         }
+        $filter = $request->get('filter');
+        if ($filter) {
+            $query = $query->where('so_no', $filter)->orWhere('platform_id', $filter);
+        }
 
         $query = $this->filterOrders($request, $query);
 
         $query->orderBy('expect_delivery_date', 'asc');
         $query->orderBy('so_no', 'asc');
-        return $query->paginate(100);
+        $per_page = 10;
+        if ($request->get('per_page')) {
+            $per_page = $request->get('per_page');
+        }
+        return $query->paginate($per_page);
     }
 
     public function filterOrders(Request $request, $query)
