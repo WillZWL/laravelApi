@@ -28,7 +28,7 @@ interface ApiPlatformInterface
     **  this will return order items
     ********************************************/
 
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem);
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName);
     /******************************************
     **  function updateOrCreatePlatformMarketOrderItem
     **  this will update or create order item

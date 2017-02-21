@@ -45,7 +45,7 @@ class ApiNeweggService implements ApiPlatformInterface
                     $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
                     if(isset($order["ItemInfoList"]) && !empty($order["ItemInfoList"])){
                         foreach($order["ItemInfoList"] as $orderItem){
-                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                            $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItem ,$storeName);
                         }
                     }                   
                 }else{
@@ -89,7 +89,7 @@ class ApiNeweggService implements ApiPlatformInterface
         }
         $platformStore = $this->getPlatformStore($storeName);
         $object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => "Newegg",
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['OrderNumber'],
@@ -132,15 +132,19 @@ class ApiNeweggService implements ApiPlatformInterface
         }
 
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
-            ['platform_order_id' => $order['OrderNumber']],
+            [
+                'platform_order_id' => $order['OrderNumber'],
+                'platform' => $storeName
+            ],
             $object
         );
         return $platformMarketOrder;
     }
 
-    public function updateOrCreatePlatformMarketOrderItem($order,$orderItem)
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId,$order, $orderItem, $storeName)
     {
         $object = [
+            'platform_market_order_id' => $platformMarketOrderId,
             'platform_order_id' => $order['OrderNumber'],
             'seller_sku' => $orderItem['SellerPartNumber'],
             'order_item_id' => $orderItem['NeweggItemNumber'],
@@ -189,7 +193,8 @@ class ApiNeweggService implements ApiPlatformInterface
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
             [
                 'platform_order_id' => $order['OrderNumber'],
-                'order_item_id' => $orderItem['NeweggItemNumber']
+                'order_item_id' => $orderItem['NeweggItemNumber'],
+                'platform' => $storeName
             ],
             $object
         );
@@ -235,7 +240,13 @@ class ApiNeweggService implements ApiPlatformInterface
         $object['bill_postal_code'] = $order['ShipToZipCode'];
         $object['bill_phone'] = $order['CustomerPhoneNumber'];
 
-        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['OrderNumber']],$object);
+        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
+            [
+                'platform_order_id' => $order['OrderNumber'],
+                'platform' => $storeName,
+            ],
+            $object
+        );
         return $platformMarketShippingAddress->id;
     }
 

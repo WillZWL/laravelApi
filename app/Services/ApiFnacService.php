@@ -33,14 +33,14 @@ class ApiFnacService implements ApiPlatformInterface
                     $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
                 }
 
-                $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
+                $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
 
                 if($originOrderItemList = $this->getOrderItemList($order, $order["order_id"])){
                     if (Arr::isAssoc($originOrderItemList)) {
-                        $this->updateOrCreatePlatformMarketOrderItem($order, $originOrderItemList);
+                        $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $originOrderItemList, $storeName);
                     } else {
                         foreach($originOrderItemList as $orderItem){
-                            $this->updateOrCreatePlatformMarketOrderItem($order, $orderItem);
+                            $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItem, $storeName);
                         }
                     }
                 }
@@ -264,7 +264,7 @@ class ApiFnacService implements ApiPlatformInterface
         $totalAmount = $itemCost;
         $platformStore = $this->getPlatformStore($storeName);
         $object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => "Fnac",
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['order_id'],
@@ -291,13 +291,20 @@ class ApiFnacService implements ApiPlatformInterface
         if (isset($order['nb_messages'])){
             $object['remarks'] = $order['nb_messages'];
         }
-        $platformMarketOrder = PlatformMarketOrder::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
+        $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
+            [
+                'platform_order_id' => $order['order_id'],
+                'platform' => $storeName
+            ],
+            $object
+        );
         return $platformMarketOrder;
     }
 
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem)
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName)
     {
         $object = [
+            'platform_market_order_id' => $platformMarketOrderId,
             'platform_order_id' => $order['order_id'],
             'seller_sku' => $orderItem['offer_seller_id'],
             'order_item_id' => $orderItem['order_detail_id'],
@@ -336,7 +343,8 @@ class ApiFnacService implements ApiPlatformInterface
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
             [
                 'platform_order_id' => $order['order_id'],
-                'order_item_id' => $orderItem['order_detail_id']
+                'order_item_id' => $orderItem['order_detail_id'],
+                'platform' => $storeName
             ],
             $object
         );
@@ -374,7 +382,13 @@ class ApiFnacService implements ApiPlatformInterface
                                 ? $order['billing_address']['phone'] 
                                 : $order['billing_address']['mobile'];
 
-        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
+        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
+            [
+                'platform_order_id' => $order['order_id'],
+                'platform' => $storeName,
+            ], 
+            $object
+        );
 
         return $platformMarketShippingAddress->id;
     }

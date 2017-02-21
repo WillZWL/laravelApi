@@ -38,11 +38,11 @@ class ApiQoo10Service  implements ApiPlatformInterface
                         }
 
                         if (isset($addressId)) {
-                            if ($this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName)) {
-                                $this->updateOrCreatePlatformMarketOrderItem($order);
+                           $platformMarketOrder =  $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+                            if ($platformMarketOrder) {
+                                $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, "", $storeName);
                             }
                         }
-
                     }
                 }
 
@@ -224,7 +224,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $platformStore = $this->getPlatformStore($storeName);
 
         $object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => "Qoo10",
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['packNo'],
@@ -249,6 +249,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
             [
                 'platform_order_id' => $order['packNo'],
+                'platform' => $storeName,
             ],
             $object
         );
@@ -256,7 +257,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         return $platformMarketOrder;
     }
 
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem="")
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem="", $storeName)
     {
         $sellerItemCode = $order['sellerItemCode'];
         if (!is_array($order['optionCode'])) {
@@ -269,6 +270,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
             $orderPrice = $order['discount'] + $order['total'];
         }
         $object = [
+            'platform_market_order_id' => $platformMarketOrderId,
             'platform_order_id' => $order['packNo'],
             'order_item_id' => $order['packNo'],
             'seller_sku' => trim($sellerItemCode),
@@ -283,6 +285,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
             [
                 'platform_order_id' => $order['packNo'],
+                'platform' => $storeName
             ],
             $object
         );
@@ -312,7 +315,13 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $object['bill_country_code'] = strtoupper(substr($storeName, -2));
         $object['bill_phone'] = (isset($order['buyerTel']) && $order['buyerTel']) ? $order['buyerTel'] : $order['buyerMobile'];
 
-        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['packNo']], $object);
+        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
+            [
+                'platform_order_id' => $order['packNo'],
+                'platform' => $storeName,
+            ], 
+            $object
+        );
 
         return $platformMarketShippingAddress->id;
     }
