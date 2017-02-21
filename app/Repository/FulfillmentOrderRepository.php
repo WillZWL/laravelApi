@@ -19,33 +19,6 @@ class FulfillmentOrderRepository
                    ->where('merchant_hold_status', 0)
                    ->where('platform_id', 'not like', 'EXCV%')
                    ->where('is_test', 0);
-        $excludePlatform = $this->getExcludePlatform();
-        $excludePlatform = array_flatten($excludePlatform);
-        if ($excludePlatform) {
-            $query = $query->whereNotIn('platform_id', $excludePlatform);
-        }
-        $status = $request->get('status');
-        if (in_array($status, [1, 2, 3, 4, 5, 6])) {
-            $query = $query->where('status', $status);
-        } else {
-            switch ($status) {
-                case 'paied':
-                    $query = $query->where('status', 3);
-                    break;
-                case 'allocated':
-                    $query = $query->whereIn('status', [4, 5]);
-                case 'dispatch':
-                    $query = $query->where('status', [4, 5]);
-                    break;
-                default:
-                    $query = $query->where('status', 3);
-                    break;
-            }
-        }
-        $filter = $request->get('filter');
-        if ($filter) {
-            $query = $query->where('so_no', $filter)->orWhere('platform_id', $filter);
-        }
 
         $query = $this->filterOrders($request, $query);
 
@@ -60,16 +33,45 @@ class FulfillmentOrderRepository
 
     public function filterOrders(Request $request, $query)
     {
+        $status = $request->get('status');
+        if (in_array($status, [1, 2, 3, 4, 5, 6])) {
+            $query->where('status', $status);
+        } else {
+            switch ($status) {
+                case 'paied':
+                    $query->where('status', 3);
+                    break;
+                case 'allocated':
+                    $query->whereIn('status', [4, 5]);
+                case 'dispatch':
+                    $query->where('status', [4, 5]);
+                    break;
+                default:
+                    $query->where('status', 3);
+                    break;
+            }
+        }
+
+        $excludePlatform = $this->getExcludePlatform();
+        $excludePlatform = array_flatten($excludePlatform);
+        if ($excludePlatform) {
+            $query->whereNotIn('platform_id', $excludePlatform);
+        }
+
         if ($request->get('order_no') !== NUll) {
-            $query = $query->where('so_no', $request->get('order_no'));
+            $query->where('so_no', $request->get('order_no'));
         }
 
         if ($request->get('platform_id') !== NUll) {
-            $query = $query->where('platform_id', $request->get('platform_id'));
+            $query->where('platform_id', $request->get('platform_id'));
         }
 
         if ($request->get('order_create_date') !== NUll) {
-            $query = $query->where('order_create_date', $request->get('order_create_date'));
+            $query->where('order_create_date', $request->get('order_create_date'));
+        }
+
+        if ($request->get('filter') !== NULL) {
+            $query->where('so_no', $filter)->orWhere('platform_id', $filter);
         }
 
         return $query;

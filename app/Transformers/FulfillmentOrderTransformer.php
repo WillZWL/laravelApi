@@ -49,6 +49,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'order_type' => $order->sellingPlatform->type,
             'biz_type' => $order->biz_type,
             'order_create_date' => $order->order_create_date,
+            'recommend_courier_id' => $order->recommend_courier_id,
             'delivery_info' => [
                 'name' => $order->delivery_name,
                 'address' => $order->delivery_address,
