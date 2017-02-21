@@ -25,7 +25,7 @@ class FulfillmentOrderRepository
             $query = $query->whereNotIn('platform_id', $excludePlatform);
         }
         $status = $request->get('status');
-        if (is_int($status)) {
+        if (in_array($status, [1, 2, 3, 4, 5, 6])) {
             $query = $query->where('status', $status);
         } else {
             switch ($status) {
