@@ -25,9 +25,14 @@ class PlatformMarketOrder extends Model
         return $this->hasOne('App\Models\PlatformMarketShippingAddress', 'id', 'shipping_address_id');
     }
 
-    public function platformMarketOrderItem()
+    /*public function platformMarketOrderItem()
     {
         return $this->hasMany('App\Models\PlatformMarketOrderItem', 'platform_order_id', 'platform_order_id');
+    }*/
+
+    public function platformMarketOrderItem()
+    {
+        return $this->hasMany('App\Models\PlatformMarketOrderItem', 'platform_market_order_id', 'id');
     }
 
     public function so()
@@ -60,17 +65,17 @@ class PlatformMarketOrder extends Model
             PlatformMarketConstService::ORDER_STATUS_UNCONFIRMED
         );
 
-        $platformOrderIds = self::join('platform_market_order_item AS item', 'item.platform_order_id', '=', 'platform_market_order.platform_order_id')
+        $platformMarketOrderIds = self::join('platform_market_order_item AS item', 'item.platform_market_order_id', '=', 'platform_market_order.id')
             ->where('acknowledge', '=', '0')
             ->where('item.seller_sku', '=', '')
             ->whereNotIn('esg_order_status',$notInStatus)
-            ->groupBy('item.platform_order_id')
-            ->pluck('item.platform_order_id')
+            ->groupBy('item.platform_market_order_id')
+            ->pluck('item.platform_market_order_id')
             ->toArray();
 
-        if ($platformOrderIds) {
+        if ($platformMarketOrderIds) {
             return $query->where('acknowledge', '=', '0')
-                ->whereNotIn('platform_order_id', $platformOrderIds)
+                ->whereNotIn('id', $platformMarketOrderIds)
                 ->whereNotIn('esg_order_status',$notInStatus);
         }
 

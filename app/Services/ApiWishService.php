@@ -89,7 +89,7 @@ class ApiWishService implements ApiPlatformInterface
         // default 1st order item status as order status
         $platformStore = $this->getPlatformStore($storeName);
         $object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => $this->getPlatformId(),
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['order_id'],
@@ -108,12 +108,15 @@ class ApiWishService implements ApiPlatformInterface
         ];
 
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
-            ['platform_order_id' => $order['order_id']],
+            [
+                'platform_order_id' => $order['order_id'],
+                'platform' => $storeName,
+            ],
             $object
         );
     }
 
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem)
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName)
     {
 
     }
@@ -134,7 +137,10 @@ class ApiWishService implements ApiPlatformInterface
         $object['postal_code'] = $deliveryInfo['zipcode'];
 
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
-            ['platform_order_id' => $order['order_id']],
+            [
+                'platform_order_id' => $order['order_id'],
+                'platform' => $storeName
+            ],
             $object
         );
         return $platformMarketShippingAddress->id;
