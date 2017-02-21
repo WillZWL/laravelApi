@@ -28,13 +28,13 @@ class ApiAmazonService implements ApiPlatformInterface
             foreach ($orginOrderList as $orderData) {
                 $order = $orderData->getData();
                 if (isset($order['ShippingAddress'])) {
-                    $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order);
+                    $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
                 }
-                $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
+                $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
                 $originOrderItemList = $this->getOrderItemList($storeName, $order['AmazonOrderId']);
                 if ($originOrderItemList) {
                     foreach ($originOrderItemList as $orderItem) {
-                        $this->updateOrCreatePlatformMarketOrderItem($order, $orderItem);
+                        $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItem, $storeName);
                     }
                 }
             }
@@ -123,7 +123,7 @@ class ApiAmazonService implements ApiPlatformInterface
     {
         $platformStore = $this->getPlatformStore($storeName);
         $object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => 'Amazon',
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['AmazonOrderId'],
@@ -176,16 +176,20 @@ class ApiAmazonService implements ApiPlatformInterface
             $object['latest_delivery_date'] = $order['LatestDeliveryDate'];
         }
         $amazonOrder = PlatformMarketOrder::updateOrCreate(
-            ['platform_order_id' => $order['AmazonOrderId']],
+            [
+                'platform_order_id' => $order['AmazonOrderId'],
+                'platform' => $storeName
+            ],
             $object
         );
 
         return $amazonOrder;
     }
 
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem)
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName)
     {
         $object = [
+            'platform_market_order_id' => $platformMarketOrderId,
             'platform_order_id' => $order['AmazonOrderId'],
             'asin' => $orderItem['ASIN'],
             'seller_sku' => $orderItem['SellerSKU'],
@@ -225,6 +229,7 @@ class ApiAmazonService implements ApiPlatformInterface
             [
                 'platform_order_id' => $order['AmazonOrderId'],
                 'order_item_id' => $orderItem['OrderItemId'],
+                'platform' => $storeName
             ],
             $object
         );
@@ -250,7 +255,13 @@ class ApiAmazonService implements ApiPlatformInterface
         $object['phone'] = $order['ShippingAddress']['Phone'];
         $object['bill_country_code'] = $order['ShippingAddress']['CountryCode'];
 
-        $amazonOrderShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['AmazonOrderId']], $object);
+        $amazonOrderShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
+            [
+                'platform_order_id' => $order['AmazonOrderId'],
+                'platform' => $storeName,
+            ], 
+            $object
+        );
 
         return $amazonOrderShippingAddress->id;
     }
