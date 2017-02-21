@@ -15,33 +15,30 @@ class FulfillmentOrderTransformer extends TransformerAbstract
         $prodAssemblyMainSkus = [];
         if (! $assemblyMappings->isEmpty() ) {
             foreach ($assemblyMappings as $assemblyMapping) {
-                $prodAssemblyMainSkus[] = $assemblyMapping->main_sku;
+                $prodAssemblyMainSkus[$assemblyMapping->main_sku] = [
+                    'sku' => $assemblyMapping->sku,
+                    'replace_qty' => $assemblyMapping->replace_qty,
+                ];
             }
         }
+
         $orderItems = [];
-        if (!$order->soItem->isEmpty()) {
-            $items = [];
-            foreach ($order->soItem as $soItem) {
-                if (in_array($soItem->prod_sku, $prodAssemblyMainSkus)) {
-                    $assemblySkus = ProductAssemblyMapping::active()->where('main_sku', $soItem->prod_sku)->get();
-                    foreach ($assemblySkus as $assemblySku) {
-                        if (isset($items[$assemblySku->sku])) {
-                            $items[$assemblySku->sku] += $soItem->qty * $assemblySku->replace_qty;
-                        } else {
-                            $items[$assemblySku->sku] = $soItem->qty * $assemblySku->replace_qty;
-                        }
-                    }
-                } else {
-                    if (isset($items[$soItem->prod_sku])) {
-                        $items[$soItem->prod_sku] += $soItem->qty;
-                    } else {
-                        $items[$soItem->prod_sku] = $soItem->qty;
-                    }
+        if (! $order->soItemDetail->isEmpty()) {
+            foreach ($order->soItemDetail as $soid) {
+                $lineNo = $soid->line_no;
+                $itemSku = $soid->item_sku;
+                $outstandingQty = $soid->outstanding_qty;
+                $qty = $soid->qty;
+                if (isset($prodAssemblyMainSkus[$itemSku])) {
+                    $prodAssemb = $prodAssemblyMainSkus[$itemSku];
+                    $itemSku = $prodAssemb['sku'];
+                    $outstandingQty = $soid->outstanding_qty * $prodAssemb['replace_qty'];
+                    $qty = $soid->qty * $prodAssemb['replace_qty'];
                 }
-            }
-            foreach ($items as $key => $value) {
-                $orderItem['sku'] = $key;
-                $orderItem['quantity'] = $value;
+                $orderItem['line_no'] = $lineNo;
+                $orderItem['sku'] = $itemSku;
+                $orderItem['quantity'] = $qty;
+                $orderItem['outstanding_qty'] = $outstandingQty;
                 $orderItems[] = $orderItem;
             }
         }
