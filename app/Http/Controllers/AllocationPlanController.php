@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\AllocationPlanService;
+use App\Services\IwmsApi\IwmsFactoryWmsService;
 
 use App\Http\Requests;
 
 class AllocationPlanController extends Controller
 {
+    private $iwmsFactoryWmsService = null;
     private $allocationPlanService;
 
     public function __construct(AllocationPlanService $allocationPlanService)
@@ -25,5 +27,23 @@ class AllocationPlanController extends Controller
         } else {
             return "Execution processing ends";
         }
+    }
+
+    public function iwmsAllocation(Requests\IwmsAllocationRequest $request)
+    {
+        $requestData = $request->all();
+        if (isset($requestData['wms_platform']) && $requestData['wms_platform']) {
+            $wmsPlatform = $requestData['wms_platform'];
+            return $this->getIwmsFactoryWmsService($wmsPlatform)->requestAllocationPlan();
+        }
+        return false;
+    }
+
+    public function getIwmsFactoryWmsService($wmsPlatform)
+    {
+        if ($this->iwmsFactoryWmsService === null) {
+            $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
+        }
+        return $this->iwmsFactoryWmsService;
     }
 }

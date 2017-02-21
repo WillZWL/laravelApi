@@ -83,7 +83,7 @@ class So extends Model
 
     public function platformMarketOrder()
     {
-        return $this->hasOne('App\Models\PlatformMarketOrder', 'platform_order_no', 'platform_order_id');
+        return $this->hasOne('App\Models\PlatformMarketOrder', 'so_no', 'so_no');
     }
 
     public function amazonOrder()

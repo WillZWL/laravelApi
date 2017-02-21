@@ -55,13 +55,13 @@ class ApiLazadaService implements ApiPlatformInterface
     				if (isset($order['AddressShipping'])) {
     					$addressId = $this->updateOrCreatePlatformMarketShippingAddress($order,$storeName);
     				}
-				    $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+				    $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 					foreach($order["OrderItems"] as $orderItems){
 						if(isset($orderItems["OrderItemId"])){
-                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItems);
+                            $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItems, $storeName);
                         }else{
                             foreach ($orderItems as $orderItem) {
-                                $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                                $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItem, $storeName);
                             }
                         }
 					}
@@ -795,7 +795,7 @@ class ApiLazadaService implements ApiPlatformInterface
 		}
         $platformStore = $this->getPlatformStore($storeName);
 		$object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => "Lazada",
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['OrderId'],
@@ -830,8 +830,10 @@ class ApiLazadaService implements ApiPlatformInterface
             $object['remarks'] = $order['Remarks'];
         }
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
-            ['platform_order_id' => $order['OrderId']],
-            $object
+            [   'platform_order_id' => $order['OrderId'], 
+                'platform' => $storeName
+            ],
+                $object
         );
         if($platformMarketOrder->acknowledge === "1"){
             $this->markSplitOrderShipped($platformMarketOrder);
@@ -839,9 +841,10 @@ class ApiLazadaService implements ApiPlatformInterface
         return $platformMarketOrder;
 	}
 
-	public function updateOrCreatePlatformMarketOrderItem($order,$orderItem)
+	public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName)
 	{
 		$object = [
+            'platform_market_order_id' => $platformMarketOrderId,
 	        'platform_order_id' => $order['OrderId'],
 	        'seller_sku' => $orderItem['Sku'],
 	        'order_item_id' => $orderItem['OrderItemId'],
@@ -891,7 +894,8 @@ class ApiLazadaService implements ApiPlatformInterface
 	    $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
 	        [
 	            'platform_order_id' => $order['OrderId'],
-	            'order_item_id' => $orderItem['OrderItemId']
+	            'order_item_id' => $orderItem['OrderItemId'],
+                'platform' => $storeName
 	        ],
 	        $object
 	    );
@@ -925,7 +929,12 @@ class ApiLazadaService implements ApiPlatformInterface
         $object['bill_postal_code'] = $order['AddressBilling']['PostCode'];
         $object['bill_phone'] = $order['AddressBilling']['Phone'];
 
-        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['OrderId']],$object
+        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
+            [   
+                'platform_order_id' => $order['OrderId'],
+                'platform' => $storeName,
+            ],
+            $object
         );
         return $platformMarketShippingAddress->id;
 	}
