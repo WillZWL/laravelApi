@@ -126,7 +126,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                 foreach ($deliveryOrders as $value) {
                     $esgOrder = So::where("so_no",$value->merchant_order_id)
                             ->with("sellingPlatform")
-                            ->first();     
+                            ->first();
                     if(!empty($esgOrder)){
                        $cellRow = array(
                             'business_type' => $value->business_type,
@@ -140,7 +140,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                             'wms_order_code' => $value->wms_order_code,
                             'wms_courier' => $value->iwms_courier,
                         );
-                        $cellData[] = $cellRow; 
+                        $cellData[] = $cellRow;
                     }
                 }
                 IwmsFeedRequest::where("iwms_request_id",$requestId)->update(array("status"=> "1"));
@@ -203,7 +203,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                             $iwmsLgsOrderStatusLog->status = 1;
                             $iwmsLgsOrderStatusLog->save();
                         }
-                    }  
+                    }
                 }
             }
         }
@@ -256,6 +256,15 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return IwmsCourierOrderLog::where("status", 1)
             ->whereNotNull("wms_order_code")
             ->paginate($pageNum);
+    }
+
+    public function requestAllocationPlan()
+    {
+        $requestBody = array(
+            "operation" => "allowed",
+        );
+        $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $requestBody);
+        return $responseData;
     }
 
     public function getIwmsOrderDocumentService()
