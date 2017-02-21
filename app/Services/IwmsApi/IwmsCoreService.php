@@ -10,9 +10,9 @@ class IwmsCoreService
     protected $accessToken;
     protected $wmsPlatform;
 
-    public function __construct($wmsPlatform,$debug)
+    public function __construct($wmsPlatform ="", $debug)
     {
-        $this->initIwmsConfig($wmsPlatform,$debug);
+        $this->initIwmsConfig($wmsPlatform, $debug);
     }
 
     public function curlIwmsApi($action, $requestBody = array())
@@ -29,7 +29,7 @@ class IwmsCoreService
         $requestUrl = $this->getRequestUrl($action);
         $response = $client->request('POST',$requestUrl,$requestOption);
         $returnContent = $response->getBody()->getContents();
-        // if error 
+        // if error
         return $this->prepare($returnContent);
     }
 
@@ -75,10 +75,11 @@ class IwmsCoreService
 
     public function getRequestUrl($action)
     {
-        return $this->urlbase.$action."/".$this->wmsPlatform."?debug=".$this->debug;
+        $wmsPlatform = $this->wmsPlatform ? $this->wmsPlatform : "";
+        return $this->urlbase . $action ."/". $wmsPlatform ."?debug=". $this->debug;
     }
 
-    public function initIwmsConfig($wmsPlatform,$debug)
+    public function initIwmsConfig($wmsPlatform = "", $debug)
     {
         $iwmsConfig = Config::get('iwms');
         $this->wmsPlatform = $wmsPlatform;

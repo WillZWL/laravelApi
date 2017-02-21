@@ -29,20 +29,22 @@ class AllocationPlanController extends Controller
         }
     }
 
-    public function iwmsAllocation(Requests\IwmsAllocationRequest $request)
+    public function wmsAllocationPlan(Requests\IwmsAllocationRequest $request)
     {
         $requestData = $request->all();
-        if (isset($requestData['wms_platform']) && $requestData['wms_platform']) {
-            $wmsPlatform = $requestData['wms_platform'];
-            return $this->getIwmsFactoryWmsService($wmsPlatform)->requestAllocationPlan();
+        if (isset($requestData['warehouse'])
+            && $requestData['warehouse']
+            && isset($requestData['soIds'])
+            && $requestData['soIds']
+        ) {
+            return $this->getIwmsFactoryWmsService()->requestAllocationPlan($requestData['warehouse'], $requestData['soIds']);
         }
-        return false;
     }
 
-    public function getIwmsFactoryWmsService($wmsPlatform)
+    public function getIwmsFactoryWmsService()
     {
         if ($this->iwmsFactoryWmsService === null) {
-            $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
+            $this->iwmsFactoryWmsService = new IwmsFactoryWmsService();
         }
         return $this->iwmsFactoryWmsService;
     }

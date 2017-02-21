@@ -23,7 +23,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     private $iwmsCancelDeliveryOrderService = null;
     private $iwmsCourierOrderService = null;
 
-    public function __construct($wmsPlatform = "4px", $debug = 0)
+    public function __construct($wmsPlatform = "", $debug = 0)
     {
         $this->wmsPlatform = $wmsPlatform;
         parent::__construct($wmsPlatform,$debug);
@@ -258,13 +258,19 @@ class IwmsFactoryWmsService extends IwmsCoreService
             ->paginate($pageNum);
     }
 
-    public function requestAllocationPlan()
+    public function requestAllocationPlan($warehouseId, $soIds = [])
     {
         $requestBody = array(
-            "operation" => "allowed",
+            "warehouse_id" => $warehouseId,
+            "so_ids" => $soIds,
         );
-        $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $requestBody);
-        return $responseData;
+        $response = $this->curlIwmsApi('allocation/allocation-plan-request', $requestBody);
+        $this->getIwmsAllocationPlanService()->saveAllocationPlanData($warehouseId, $soIds, $response);
+    }
+
+    public function getIwmsAllocationPlanService()
+    {
+        return $this->iwmsAllocationPlanService = App::make("App\Services\IwmsApi\Order\IwmsAllocationPlanService");
     }
 
     public function getIwmsOrderDocumentService()
