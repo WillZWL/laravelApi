@@ -33,12 +33,12 @@ class ApiTangaService implements ApiPlatformInterface
                         $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
                     }
 
-                    $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
+                    $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order,$addressId,$storeName);
 
                     $originOrderItemList=$this->getOrderItemList($order,$order["order_id"]);
                     if($originOrderItemList){
                         foreach($originOrderItemList as $orderItem){
-                            $this->updateOrCreatePlatformMarketOrderItem($order,$orderItem);
+                            $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItem, $storeName);
                         }
                     }
                 }
@@ -170,7 +170,7 @@ class ApiTangaService implements ApiPlatformInterface
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
             [
                 'platform_order_id' => $order['order_id'],
-                'platform_order_no' => $order['order_id']
+                'platform_order_no' => $order['order_id'],
             ],
             $object
         );
@@ -178,9 +178,10 @@ class ApiTangaService implements ApiPlatformInterface
         return $platformMarketOrder;
     }
 
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem)
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName)
     {
         $object = [
+            'platform_market_order_id' => $platformMarketOrderId,
             'platform_order_id' => $order['order_id'],
             'seller_sku' => $orderItem['sku_code'],
             'order_item_id' => $orderItem['line_item_id'],
@@ -199,7 +200,8 @@ class ApiTangaService implements ApiPlatformInterface
         $platformMarketOrderItem = PlatformMarketOrderItem::updateOrCreate(
             [
                 'platform_order_id' => $order['order_id'],
-                'order_item_id' => $orderItem['line_item_id']
+                'order_item_id' => $orderItem['line_item_id'],
+                'platform' => $storeName
             ],
             $object
         );
@@ -221,7 +223,13 @@ class ApiTangaService implements ApiPlatformInterface
         $object['postal_code'] = $order['shipping_zip'];
         $object['phone'] = $order['shipping_phone'];
 
-        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(['platform_order_id' => $order['order_id']], $object);
+        $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
+            [
+                'platform_order_id' => $order['order_id'],
+                'platform' => $storeName,
+            ], 
+            $object
+        );
 
         return $platformMarketShippingAddress->id;
     }

@@ -34,15 +34,15 @@ class ApiPriceMinisterService implements ApiPlatformInterface
                     $addressId = $this->updateOrCreatePlatformMarketShippingAddress($order, $storeName);
                 }
                 if ($addressId) {
-                    $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
+                    $platformMarketOrder = $this->updateOrCreatePlatformMarketOrder($order, $addressId, $storeName);
                     $originOrderItemList = $this->getOrderItemList($order, $order['purchaseid']);
                     if ($originOrderItemList) {
                         foreach ($originOrderItemList as $orderItem) {
                             if (Arr::isAssoc($orderItem)) {
-                                $this->updateOrCreatePlatformMarketOrderItem($order, $orderItem);
+                                $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItem, $storeName);
                             } else {
                                 foreach ($orderItem as $orderItemItem) {
-                                    $this->updateOrCreatePlatformMarketOrderItem($order, $orderItemItem);
+                                    $this->updateOrCreatePlatformMarketOrderItem($platformMarketOrder->id, $order, $orderItemItem, $storeName);
                                 }
                             }
                         }
@@ -221,7 +221,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         $purchasedate = date('Y-m-d H:i:s', mktime($h, $i, 0, $m, $d, $y));
         $platformStore = $this->getPlatformStore($storeName);
         $object = [
-            'platform' => $storeName,
+            //'platform' => $storeName,
             'biz_type' => $this->getPlatformId(),
             'store_id' => $platformStore->id,
             'platform_order_id' => $order['purchaseid'],
@@ -237,15 +237,19 @@ class ApiPriceMinisterService implements ApiPlatformInterface
         ];
 
         $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
-            ['platform_order_id' => $order['purchaseid']],
+            [
+                'platform_order_id' => $order['purchaseid'],
+                'platform' => $storeName,
+            ],
             $object
         );
     }
 
     // update or insert data to order item
-    public function updateOrCreatePlatformMarketOrderItem($order, $orderItem)
+    public function updateOrCreatePlatformMarketOrderItem($platformMarketOrderId, $order, $orderItem, $storeName)
     {
         $object = [
+            'platform_market_order_id' => $platformMarketOrderId,
             'platform_order_id' => $order['purchaseid'],
             'seller_sku' => $orderItem['sku'],
             'order_item_id' => $orderItem['itemid'],
@@ -266,6 +270,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
             [
                     'platform_order_id' => $order['purchaseid'],
                     'order_item_id' => $orderItem['itemid'],
+                    'platform' => $storeName
                 ],
             $object
         );
@@ -289,7 +294,10 @@ class ApiPriceMinisterService implements ApiPlatformInterface
 
         $object['postal_code'] = $deliveryInfo['zipcode'];
         $platformMarketShippingAddress = PlatformMarketShippingAddress::updateOrCreate(
-            ['platform_order_id' => $order['purchaseid']],
+            [
+                'platform_order_id' => $order['purchaseid'],
+                'platform' => $storeName
+            ],
             $object
         );
 
