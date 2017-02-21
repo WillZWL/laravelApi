@@ -13,7 +13,7 @@ class AlertPlatformMarkertOrderTable extends Migration
     public function up()
     {
         //
-        Schema::table('platform_market_order', function (Blueprint $table) {
+        Schema::table('platform_market_shipping_address', function (Blueprint $table) {
             $table->string('platform', 64)->after('platform_order_id');
         });
         Schema::table('platform_market_order_item', function (Blueprint $table) {
@@ -29,7 +29,7 @@ class AlertPlatformMarkertOrderTable extends Migration
     public function down()
     {
         //
-        Schema::table('platform_market_order', function (Blueprint $table) {
+        Schema::table('platform_market_shipping_address', function (Blueprint $table) {
             $table->dropColumn('platform');
         });
         Schema::table('platform_market_order_item', function (Blueprint $table) {
