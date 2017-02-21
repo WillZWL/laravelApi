@@ -5,21 +5,21 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\OrderPackListService;
 
-class OrderInvoice extends Command
+class OrderPackList extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'order:invoice';
+    protected $signature = 'order:packList';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'generate order invoice ';
+    protected $description = 'generate order invoice and delivery note';
 
     /**
      * Create a new command instance.
@@ -38,9 +38,8 @@ class OrderInvoice extends Command
      */
     public function handle()
     {
-        //
-        echo 123;
         $orderPackListService = new OrderPackListService();
-        $orderPackListService->generateInvoice(["345265"]);
+        $orderPackListService->processPackList();
     }
 }
+

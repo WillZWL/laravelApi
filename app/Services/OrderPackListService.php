@@ -28,6 +28,64 @@ class OrderPackListService
     private $website = "http://admincentre.eservicesgroup.com";
     private $lang = "";
 
+    public function processPackList()
+    {
+        $soList = $this->getProcessOrder();
+        if ($soList->count()) {
+            foreach ($soList as $so) {
+                $this->generateCustomInvoice($so->so_no);
+                $this->generateDeliveryNote($so->so_no);
+            }
+        }
+    }
+
+    public function moveSuccessOrder($pickListNo, $soList)
+    {
+        $originalFilePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().date("Ymd");
+        $destinationFilePath =  \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
+        $this->createFolder($destinationFilePath);
+        if ($soList) {
+            foreach ($soList as $soNo) {
+                $deliveryNoteFile = $originalFilePath."/delivery_note/". $soNo . '.pdf';
+                if (!file_exists($deliveryNoteFile)) {
+                    $this->generateDeliveryNote($soNo);
+                }
+                $invoiceFile = $originalFilePath."/invoice/". $soNo . '.pdf';
+                if (!file_exists($invoiceFile)) {
+                    $this->generateCustomInvoice($soNo);
+                }
+                rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
+                rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
+            }
+        }
+
+    }
+
+    public function createFolder($folder)
+    {
+        if(!is_dir($folder))
+        {
+            mkdir($folder, 775, true);
+            mkdir($folder."/delivery_note", 775, true);
+            mkdir($folder."/invoice", 775, true);
+        }
+    }
+
+    public function getProcessOrder()
+    {
+        $soList = So::paidOrder()->where("platform_group_order", 1)->with("sellingPlatform")->get();
+
+        $filtered = $soList->filter(function ($item) {
+            $merchant = $item->sellingPlatform->merchant;
+            $merchantBalance = $merchant->merchantBalance;
+
+            $exclude = $merchantBalance->balance < 0 && $merchant->can_do_prepayment == 1 && $item->sellingPlatform->type == "DISPATCH";
+
+            return ($item->sellingPlatform->merchant_id != "CHATANDVISION") && !$exclude;
+        });
+        return $filtered;
+    }
+
     public function generateDeliveryNote($soNo)
     {
         $soObj = So::where("so_no",$soNo)->first();
@@ -35,7 +93,7 @@ class OrderPackListService
             $result = $this->getDeliveryNote($soObj);
             if ($result) {
                 $returnHTML = view('packlist.delivery-note',$result)->render();
-                $pickListNo = "PlistNo";
+                $pickListNo = date("Ymd");
                 $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
                 $file = $filePath."/delivery_note/". $soNo . '.pdf';
                 PDF::loadHTML($returnHTML)->save($file,true);
@@ -50,11 +108,10 @@ class OrderPackListService
             $result = $this->getCustomInvoice($soObj, $courierId);
             if ($result) {
                 $returnHTML = view('packlist.custom-invoice',$result)->render();
-                $pickListNo = "PlistNo";
+                $pickListNo = date("Ymd");
                 $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
                 $file = $filePath."/invoice/". $soNo . '.pdf';
                 PDF::loadHTML($returnHTML)->save($file,true);
-                echo $returnHTML;
             }
         }
     }

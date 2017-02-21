@@ -107,4 +107,14 @@ class So extends Model
                 ->where('so.prepay_hold_status', 0);
     }
 
+    public function scopePaidOrder($query)
+    {
+        return $query->where('so.status', 3)
+                ->where('so.hold_status', 0)
+                ->where('so.refund_status', 0)
+                ->where('so.prepay_hold_status', 0)
+                ->where('so.merchant_hold_status', 0)
+                ->where('is_test', 0);
+    }
+
 }
