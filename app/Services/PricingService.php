@@ -329,12 +329,16 @@ class PricingService
     {
         // TODO
         // 在 payment_gateway table 中添加 mp_control id 进行关联起来
-        $account = substr($marketplaceProduct->marketplace_id, 0, 2);
-        $marketplaceId = substr($marketplaceProduct->marketplace_id, 2);
-        $countryCode = $marketplaceProduct->mpControl->country_id;
-        $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+        if ($markplaceProduct->marketplace_id == 'ETALIBABA') {
+            $paymentGatewayId = 'et_alipay_alibaba';
+        } else {
+            $account = substr($marketplaceProduct->marketplace_id, 0, 2);
+            $marketplaceId = substr($marketplaceProduct->marketplace_id, 2);
+            $countryCode = $marketplaceProduct->mpControl->country_id;
+            $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+            $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
+        }
 
-        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGateway = PaymentGateway::findOrFail($paymentGatewayId);
         $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $marketplaceProduct->price * $paymentGateway->admin_fee_percent / 100;
 

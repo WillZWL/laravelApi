@@ -342,12 +342,16 @@ class PricingToolService
 
     public function getPaymentGatewayFee(Request $request)
     {
-        $account = substr($request->input('marketplace'), 0, 2);
-        $marketplaceId = substr($request->input('marketplace'), 2);
-        $countryCode = $request->input('country');
-        $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+        if ($request->input('marketpalce') == 'ETALIBABA') {
+            $paymentGatewayId = 'et_alipay_alibaba';
+        } else {
+            $account = substr($request->input('marketplace'), 0, 2);
+            $marketplaceId = substr($request->input('marketplace'), 2);
+            $countryCode = $request->input('country');
+            $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+            $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
+        }
 
-        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGatewayRate = PaymentGateway::findOrFail($paymentGatewayId)->payment_gateway_rate;
 
         return round($request->input('price') * $paymentGatewayRate / 100, 2);
