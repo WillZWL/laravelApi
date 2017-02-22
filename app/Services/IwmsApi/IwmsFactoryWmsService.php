@@ -258,19 +258,18 @@ class IwmsFactoryWmsService extends IwmsCoreService
             ->paginate($pageNum);
     }
 
-    public function requestAllocationPlan($warehouseId, $soIds = [])
+    public function requestAllocationPlan($requestData)
     {
-        $requestBody = array(
-            "warehouse_id" => $warehouseId,
-            "so_ids" => $soIds,
-        );
-        $response = $this->curlIwmsApi('allocation/allocation-plan-request', $requestBody);
-        $this->getIwmsAllocationPlanService()->saveAllocationPlanData($warehouseId, $soIds, $response);
+        $request = $this->getIwmsAllocationPlanService()->getAllocationPlanRequest($requestData);
+        if (isset($request['requestBody']) && isset($request['batchRequest'])) {
+            $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $request['requestBody']);
+            $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+        }
     }
 
     public function getIwmsAllocationPlanService()
     {
-        return $this->iwmsAllocationPlanService = App::make("App\Services\IwmsApi\Order\IwmsAllocationPlanService");
+        return $this->iwmsAllocationPlanService = App::make("App\Services\IwmsApi\Order\IwmsAllocationPlanService", [$this->wmsPlatform]);
     }
 
     public function getIwmsOrderDocumentService()
