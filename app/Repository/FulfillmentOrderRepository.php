@@ -23,10 +23,13 @@ class FulfillmentOrderRepository
         $query = $this->filterOrders($request, $query);
 
         $query->orderBy('expect_delivery_date', 'asc');
-        $query->orderBy('so_no', 'asc');
+        $query->orderBy('so.so_no', 'asc');
         $per_page = 10;
         if ($request->get('per_page')) {
             $per_page = $request->get('per_page');
+        }
+        if ($request->get('page')) {
+            return $query->paginate($per_page,  ['*'], 'page', $request->get('page'));
         }
         return $query->paginate($per_page);
     }
@@ -74,6 +77,10 @@ class FulfillmentOrderRepository
             $query->where('so_no', $filter)->orWhere('platform_id', $filter);
         }
 
+        if ($request->get('into_iwms_status') !== NULL) {
+            $query->leftJoin('so_extend AS se', 'se.so_no', '=', 'so.so_no');
+            $query->where('se.into_iwms_status', $request->get('into_iwms_status'));
+        }
         return $query;
     }
 
@@ -88,6 +95,5 @@ class FulfillmentOrderRepository
                                 ->get()
                                 ->toArray();
         return $lists;
-
     }
 }
