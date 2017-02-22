@@ -40,6 +40,7 @@ class Kernel extends ConsoleKernel
         Commands\PlatformMarketOrderUpdate::class,
         Commands\IwmsDeliveryOrder::class,
         Commands\IwmsCourierOrder::class,
+        Commands\IwmsFulfillmentOrder::class,
         Commands\LgsOrderReadyToship::class,
         Commands\AccOrderNotFulfilledAlert::class,
         Commands\SkuCreatedAlert::class,

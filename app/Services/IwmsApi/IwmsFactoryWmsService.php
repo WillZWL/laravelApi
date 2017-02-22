@@ -22,11 +22,12 @@ class IwmsFactoryWmsService extends IwmsCoreService
     private $iwmsCreateDeliveryOrderService = null;
     private $iwmsCancelDeliveryOrderService = null;
     private $iwmsCourierOrderService = null;
+    private $iwmsFulfillmentOrderService = null;
 
     public function __construct($wmsPlatform = "4px", $debug = 0)
     {
         $this->wmsPlatform = $wmsPlatform;
-        parent::__construct($wmsPlatform,$debug);
+        parent::__construct($wmsPlatform, $debug);
     }
 
     public function createDeliveryOrder($esgOrderNoList = null)
@@ -209,6 +210,16 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
+    public function pushFulfillmentOrder()
+    {
+        try {
+            $this->getIwmsFulfillmentOrderService()->pushFulfillmentOrder();
+        } catch (\Exception $e) {
+            $msg = $e->getMessage();
+            mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com, will.zhang@eservicesgroup.com', '[Vanguard] Push order to iWMS Failed', $msg, 'From: admin@shop.eservciesgroup.com');
+        }
+    }
+
     public function getCourierMappingList($wmsPlatform)
     {
         $courierList = IwmsMerchantCourierMapping::where("status", 1)
@@ -285,6 +296,11 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getIwmsCourierOrderService()
     {
         return $this->iwmsCourierOrderService = App::make("App\Services\IwmsApi\Order\IwmsCourierOrderService", [$this->wmsPlatform]);
+    }
+
+    public function getIwmsFulfillmentOrderService()
+    {
+        return $this->iwmsFulfillmentOrderService = App::make('App\Services\IwmsApi\Order\IwmsFulfillmentOrderService');
     }
 
     public function getApiLazadaService()

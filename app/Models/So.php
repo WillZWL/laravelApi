@@ -96,6 +96,11 @@ class So extends Model
         return $this->hasOne('App\Models\SoPriorityScore', 'so_no', 'so_no');
     }
 
+    public function soExtend()
+    {
+        return $this->hasOne('App\Models\SoExtend', 'so_no', 'so_no');
+    }
+
     public function scopeUnshippedOrder($query)
     {
         return $query->where('so.status', 5)
