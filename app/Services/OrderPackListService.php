@@ -399,7 +399,9 @@ class OrderPackListService
         }
 
         $lineNo = 1;
-        list($deliveryAddr1,$deliveryAddr2,$deliveryAddr3) = explode("|",$soObj->delivery_address);
+        $deliveryAddr = explode("|",$soObj->delivery_address);
+        $deliveryAddr = array_pad($deliveryAddr,3,"");
+        list($deliveryAddr1,$deliveryAddr2,$deliveryAddr3) = $deliveryAddr;
 
         if($soObj->delivery_company != "")
         {
