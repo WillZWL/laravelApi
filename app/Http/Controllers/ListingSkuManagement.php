@@ -132,6 +132,7 @@ class ListingSkuManagement extends Controller
 
         $marketplaceControl = MpControl::where('marketplace_id', '=', $request->input('marketplace'))
             ->where('country_id', '=', $request->input('country'))
+            ->where('status', 1)
             ->firstOrFail();
 
         $marketplaceSkuMapping = MarketplaceSkuMapping::where('marketplace_sku', $marketplaceSku)
