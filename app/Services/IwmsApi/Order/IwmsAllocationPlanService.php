@@ -20,9 +20,10 @@ class IwmsAllocationPlanService
             $merchantId = "ESG";
             $batchRequest = $this->getNewBatchId("ALLOCATION_PLAN_REQUEST", $this->wmsPlatform, $merchantId);
             if ($batchRequest) {
+                $iwmsWarehouseCode = $this->getIwmsWarehouseCode($requestData['warehouse'],$merchantId);
                 $requestBody = [
                     "merchant_id" => $merchantId,
-                    "warehouse_id" => $requestData['warehouse'],
+                    "warehouse_id" => $iwmsWarehouseCode,
                     "plan_date" => isset($requestData['plan_date']) ? $requestData['plan_date'] : date("Y-m-d"),
                 ];
                 $batchRequest->request_log = json_encode($requestBody);
