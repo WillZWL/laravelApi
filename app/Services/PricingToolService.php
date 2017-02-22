@@ -342,7 +342,7 @@ class PricingToolService
 
     public function getPaymentGatewayFee(Request $request)
     {
-        if ($request->input('marketpalce') == 'ETALIBABA') {
+        if ($request->input('marketplace') == 'ETALIBABA') {
             $paymentGatewayId = 'et_alipay_alibaba';
         } else {
             $account = substr($request->input('marketplace'), 0, 2);
