@@ -62,6 +62,12 @@ trait IwmsBaseService
         $batchRequestService->saveBatchIwmsResponseData($batchObject,$responseJson);
     }
 
+    public function updateBatchIwmsResponseData($batchObject, $responseJson)
+    {
+        $batchRequestService = App::make("App\Services\BatchRequestService");
+        $batchRequestService->updateBatchIwmsResponseData($batchObject, $responseJson);
+    }
+
     public function validIwmsCallBackApiToken()
     {
         $iwmsCallbackApiService = App::make("App\Services\IwmsCallbackApiService");
