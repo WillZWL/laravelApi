@@ -47,6 +47,7 @@ class PricingToolService
 
         $this->marketplaceControl = MpControl::whereMarketplaceId($marketplaceId = $request->input('marketplace'))
             ->whereCountryId($this->destination->country_id)
+            ->where('status', 1)
             ->firstOrFail();
 
         $this->exchangeRate = ExchangeRate::whereFromCurrencyId('HKD')
@@ -342,12 +343,16 @@ class PricingToolService
 
     public function getPaymentGatewayFee(Request $request)
     {
-        $account = substr($request->input('marketplace'), 0, 2);
-        $marketplaceId = substr($request->input('marketplace'), 2);
-        $countryCode = $request->input('country');
-        $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+        if ($request->input('marketplace') == 'ETALIBABA') {
+            $paymentGatewayId = 'et_alipay_alibaba';
+        } else {
+            $account = substr($request->input('marketplace'), 0, 2);
+            $marketplaceId = substr($request->input('marketplace'), 2);
+            $countryCode = $request->input('country');
+            $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+            $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
+        }
 
-        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGatewayRate = PaymentGateway::findOrFail($paymentGatewayId)->payment_gateway_rate;
 
         return round($request->input('price') * $paymentGatewayRate / 100, 2);
@@ -355,12 +360,16 @@ class PricingToolService
 
     public function getPaymentGatewayAdminFee(Request $request)
     {
-        $account = substr($request->input('marketplace'), 0, 2);
-        $marketplaceId = substr($request->input('marketplace'), 2);
-        $countryCode = $request->input('country');
-        $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+        if ($request->input('marketplace') == 'ETALIBABA') {
+            $paymentGatewayId = 'et_alipay_alibaba';
+        } else {
+            $account = substr($request->input('marketplace'), 0, 2);
+            $marketplaceId = substr($request->input('marketplace'), 2);
+            $countryCode = $request->input('country');
+            $countryCode = ($countryCode == 'GB') ? 'uk' : $countryCode;
+            $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
+        }
 
-        $paymentGatewayId = strtolower(implode('_', [$account, $marketplaceId, $countryCode]));
         $paymentGateway = PaymentGateway::findOrFail($paymentGatewayId);
         $paymentGatewayAdminFee = $paymentGateway->admin_fee_abs + $request->input('price') * $paymentGateway->admin_fee_percent / 100;
 

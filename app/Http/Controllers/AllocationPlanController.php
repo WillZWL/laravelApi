@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\AllocationPlanService;
+use App\Services\IwmsApi\IwmsCoreService;
 use App\Services\IwmsApi\IwmsFactoryWmsService;
 
 use App\Http\Requests;
@@ -11,6 +12,7 @@ use App\Http\Requests;
 class AllocationPlanController extends Controller
 {
     private $iwmsFactoryWmsService = null;
+    private $iwmsCoreService = null;
     private $allocationPlanService;
 
     public function __construct(AllocationPlanService $allocationPlanService)
@@ -29,14 +31,15 @@ class AllocationPlanController extends Controller
         }
     }
 
-    public function iwmsAllocation(Requests\IwmsAllocationRequest $request)
+    public function wmsAllocationPlan(Requests\IwmsAllocationRequest $request)
     {
         $requestData = $request->all();
-        if (isset($requestData['wms_platform']) && $requestData['wms_platform']) {
-            $wmsPlatform = $requestData['wms_platform'];
-            return $this->getIwmsFactoryWmsService($wmsPlatform)->requestAllocationPlan();
+        if (isset($requestData['warehouse']) && $requestData['warehouse']) {
+            $wmsPlatform = $this->getIwmsCoreService()->getWmsPlatformByWarehouse($requestData['warehouse']);
+            if ($wmsPlatform) {
+                return $this->getIwmsFactoryWmsService($wmsPlatform)->requestAllocationPlan($requestData);
+            }
         }
-        return false;
     }
 
     public function getIwmsFactoryWmsService($wmsPlatform)
@@ -45,5 +48,13 @@ class AllocationPlanController extends Controller
             $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
         }
         return $this->iwmsFactoryWmsService;
+    }
+
+    public function getIwmsCoreService()
+    {
+        if ($this->iwmsCoreService === null) {
+            $this->iwmsCoreService = new IwmsCoreService();
+        }
+        return $this->iwmsCoreService;
     }
 }

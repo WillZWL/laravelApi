@@ -24,7 +24,7 @@ class IwmsAllocationRequest extends Request
     public function rules()
     {
         return [
-            'wms_platform' => 'required',
+            'warehouse' => 'required',
         ];
     }
 
@@ -36,7 +36,7 @@ class IwmsAllocationRequest extends Request
     public function messages()
     {
         return [
-            'wms_platform.required' => 'wms_platform must is required',
+            'warehouse.required' => 'Warehouse ID must is required',
         ];
     }
 }

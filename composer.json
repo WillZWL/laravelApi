@@ -28,7 +28,8 @@
         "h4cc/wkhtmltoimage-amd64": "0.12.x",
         "chumper/zipper": "0.6.x",
         "barryvdh/laravel-cors": "^0.8.2",
-        "websafe/lib-websafe-blueimp-jquery-file-upload-handler": "^9.11"
+        "websafe/lib-websafe-blueimp-jquery-file-upload-handler": "^9.11",
+        "milon/barcode": "^5.3"
     },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
