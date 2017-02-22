@@ -10,7 +10,7 @@ class IwmsCoreService
     protected $accessToken;
     protected $wmsPlatform;
 
-    public function __construct($wmsPlatform ="", $debug)
+    public function __construct($wmsPlatform ="", $debug = 0)
     {
         $this->initIwmsConfig($wmsPlatform, $debug);
     }
@@ -86,6 +86,21 @@ class IwmsCoreService
         $this->debug = $debug;
         $this->urlbase = $iwmsConfig["url"];
         $this->accessToken = $iwmsConfig["accessToken"];
+    }
+
+    public function getWmsPlatformByWarehouse($warehouse)
+    {
+        $wmsPlatform = "";
+        switch ($warehouse) {
+            case 'ES_HK':
+                    $wmsPlatform = "CENTRALLINK";
+                break;
+
+            default:
+                $wmsPlatform = "4PX";
+                break;
+        }
+        return $wmsPlatform;
     }
 
 }

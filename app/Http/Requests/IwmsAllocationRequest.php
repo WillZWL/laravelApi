@@ -25,7 +25,6 @@ class IwmsAllocationRequest extends Request
     {
         return [
             'warehouse' => 'required',
-            'soIds' => 'required',
         ];
     }
 
@@ -38,7 +37,6 @@ class IwmsAllocationRequest extends Request
     {
         return [
             'warehouse.required' => 'Warehouse ID must is required',
-            'soIds.required' => 'So IDs must is required',
         ];
     }
 }
