@@ -47,6 +47,7 @@ class PricingToolService
 
         $this->marketplaceControl = MpControl::whereMarketplaceId($marketplaceId = $request->input('marketplace'))
             ->whereCountryId($this->destination->country_id)
+            ->where('status', 1)
             ->firstOrFail();
 
         $this->exchangeRate = ExchangeRate::whereFromCurrencyId('HKD')
