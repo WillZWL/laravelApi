@@ -274,7 +274,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $request = $this->getIwmsAllocationPlanService()->getAllocationPlanRequest($requestData);
         if (isset($request['requestBody']) && isset($request['batchRequest'])) {
             $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $request['requestBody']);
-            $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+            $this->updateBatchIwmsResponseData($request["batchRequest"], $responseData);
         }
     }
 
