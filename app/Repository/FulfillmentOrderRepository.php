@@ -73,7 +73,7 @@ class FulfillmentOrderRepository
             $query->where('order_create_date', $request->get('order_create_date'));
         }
 
-        if ($request->get('filter') !== NULL) {
+        if ($filter = $request->get('filter') !== NULL) {
             $query->where('so_no', $filter)->orWhere('platform_id', $filter);
         }
 
