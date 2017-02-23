@@ -180,34 +180,16 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $warehouseIdArr[$wmsPlatform];
     }
 
-    public function cronSetIwmsLgsOrderReadytoShip()
+    public function cronSetLgsOrderStatus()
     {
-        $iwmsLgsOrderStatusLogs = IwmsLgsOrderStatusLog::where("status", 0)
-                ->get();
-        if(!$iwmsLgsOrderStatusLogs->isEmpty()){
-            foreach ($iwmsLgsOrderStatusLogs as $iwmsLgsOrderStatusLog) {
-                $esgOrder = So::where("so_no", $iwmsLgsOrderStatusLog->so_no)
-                            ->with('soAllocate')
-                            ->first();
-                if(!empty($esgOrder)){
-                    $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)
-                        ->first();
-                    if(!empty($platformMarketOrder)){
-                        if($platformMarketOrder->order_status == "Pending"){
-                            $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
-                            $result = $this->getApiLazadaService()->wmsSetLgsOrderReadyToShip($esgOrder, $warehouseId, false);
-                            if(isset($result["valid"]) && $result["valid"]){
-                                $iwmsLgsOrderStatusLog->status = 1;
-                                $iwmsLgsOrderStatusLog->save();
-                            }
-                        }else if(in_array($platformMarketOrder->order_status, ["Shipped","ReadyToShip","Delivered"])){
-                            $iwmsLgsOrderStatusLog->status = 1;
-                            $iwmsLgsOrderStatusLog->save();
-                        }
-                    }
-                }
-            }
-        }
+        $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService');
+        $iwmsLgsOrderService->setLgsOrderStatus();
+    }
+
+    public function cronGetLgsOrderDocument()
+    {
+        $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService');
+        $iwmsLgsOrderService->getIwmsLgsOrderDocument();
     }
 
     public function pushFulfillmentOrder()
