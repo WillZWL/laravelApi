@@ -28,13 +28,12 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
             while( ! $this->getOrders($request)->getCollection()->isEmpty() ) {
                 $batchRequest = $this->getNewFulfillmentOrderBatchRequest();
                 $orders = $this->getOrders($request);
-                $soNoList = $orders->getCollection()->implode('so_no', ',');
                 $jsonData = $this->convertToJsonData($orders);
                 $returnPath = $this->saveOrdersToFeedData($jsonData, $batchRequest);
                 $batchRequest->request_log = $returnPath;
-                $this->initIwmsConfig('', 1);
                 $data = json_decode($jsonData);
                 $requestData = $data->data;
+                $this->initIwmsConfig('', 1);
                 $responseData = $this->curlIwmsApi('allocation/save-order', $requestData);
                 $this->processResponseData($batchRequest, $responseData);
             }
@@ -56,9 +55,11 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
                 $soNoList = array_merge($soNoList, $responseData['duplicate_order']);
             }
             if (!empty($soNoList)) {
-                $soExtend = SoExtend::whereIn('so_no', $soNoList)
-                                    ->update(['into_iwms_status' => 1]);
+                SoExtend::whereIn('so_no', $soNoList)
+                        ->update(['into_iwms_status' => 1]);
             }
+        } else {
+            throw new \Exception('No Only ResponseData From iWMS');
         }
         $batchRequest->completion_time = date('Y-m-d H:i:s');
         $batchRequest->status = 'C';
