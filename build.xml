@@ -36,11 +36,14 @@
     </target>
 
     <target name="composer-check">
-        <available file="${basedir}/vendor/bin/composer.phar" property="composer.present"/>
+        <available file="${basedir}/composer.phar" property="composer.present"/>
     </target>
 
     <target name="get-composer" depends="composer-check" unless="composer.present" description="Get Composer">
-        <get src="https://getcomposer.org/composer.phar" dest="${basedir}/vendor/bin/composer.phar"/>
+        <exec executable="/bin/bash">
+            <arg value="-c" />
+            <arg value="curl -s https://getcomposer.org/installer | php" />
+        </exec>
     </target>
 
     <target name="prepare" depends="clean,get-composer" description="Prepare for build">
@@ -49,7 +52,7 @@
         <mkdir dir="${basedir}/build/logs" />
         <mkdir dir="${basedir}/build/pdepend" />
         <mkdir dir="${basedir}/build/phpdox" />
-        <exec executable="${basedir}/vendor/bin/composer.phar" failonerror="true">
+        <exec executable="${basedir}/composer.phar" failonerror="true">
             <arg value="install" />
         </exec>
     </target>
