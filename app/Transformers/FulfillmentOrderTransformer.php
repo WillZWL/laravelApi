@@ -6,22 +6,13 @@ use App\Models\So;
 use App\Models\SoItem;
 use App\Models\ProductAssemblyMapping;
 use League\Fractal\TransformerAbstract;
+use Cache;
 
 class FulfillmentOrderTransformer extends TransformerAbstract
 {
     public function transform(So $order)
     {
-        $assemblyMappings = ProductAssemblyMapping::active()->whereIsReplaceMainSku('1')->get();
-        $prodAssemblyMainSkus = [];
-        if (! $assemblyMappings->isEmpty() ) {
-            foreach ($assemblyMappings as $assemblyMapping) {
-                $prodAssemblyMainSkus[$assemblyMapping->main_sku] = [
-                    'sku' => $assemblyMapping->sku,
-                    'replace_qty' => $assemblyMapping->replace_qty,
-                ];
-            }
-        }
-
+        $prodAssemblyMainSkus = $this->getAssemblyMapping();
         $orderItems = [];
         if (! $order->soItemDetail->isEmpty()) {
             foreach ($order->soItemDetail as $soid) {
@@ -66,5 +57,23 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'status' => $order->status,
             'items' => $orderItems
         ];
+    }
+
+    public function getAssemblyMapping()
+    {
+        Cache::get('prodAssemblyMainSkus', function() {
+            $assemblyMappings = ProductAssemblyMapping::active()->whereIsReplaceMainSku('1')->get();
+            $prodAssemblyMainSkus = [];
+            if (! $assemblyMappings->isEmpty() ) {
+                foreach ($assemblyMappings as $assemblyMapping) {
+                    $prodAssemblyMainSkus[$assemblyMapping->main_sku] = [
+                        'sku' => $assemblyMapping->sku,
+                        'replace_qty' => $assemblyMapping->replace_qty,
+                    ];
+                }
+            }
+            Cache::add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 10);
+            return $prodAssemblyMainSkus;
+        });
     }
 }
