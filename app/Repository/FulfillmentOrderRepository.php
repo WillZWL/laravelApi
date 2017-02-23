@@ -74,7 +74,10 @@ class FulfillmentOrderRepository
         }
 
         if ($request->get('filter') !== NULL) {
-            $query->where('so_no', $filter)->orWhere('platform_id', $filter);
+            $filter = $request->get('filter');
+            if ($filter) {
+                $query->where('so_no', $filter)->orWhere('platform_id', $filter);
+            }
         }
 
         if ($request->get('into_iwms_status') !== NULL) {
