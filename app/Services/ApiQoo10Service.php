@@ -60,7 +60,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
         $waitOrderItemList = PlatformMarketOrder::join('platform_market_order_item AS item', 'item.platform_order_id', '=', 'platform_market_order.platform_order_id')
             ->where('acknowledge', '=', '0')
             ->where('biz_type', '=', 'Qoo10')
-            ->where('platform', '=', $storeName)
+            ->where('item.platform', '=', $storeName)
             ->where('item.seller_sku', '=', '')
             ->select('item.*')
             ->get();
@@ -319,7 +319,7 @@ class ApiQoo10Service  implements ApiPlatformInterface
             [
                 'platform_order_id' => $order['packNo'],
                 'platform' => $storeName,
-            ], 
+            ],
             $object
         );
 
