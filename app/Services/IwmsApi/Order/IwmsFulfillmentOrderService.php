@@ -3,20 +3,18 @@
 namespace App\Services\IwmsApi\Order;
 
 use App\Models\So;
+use App\Models\SoExtend;
 use App\Models\AllocationBatchRequest;
 use App\Repository\FulfillmentOrderRepository;
+use App\Services\IwmsApi\IwmsCoreService;
 use Illuminate\Http\Request;
 use App\Transformers\FulfillmentOrderTransformer;
-use Dingo\Api\Routing\Helpers;
 use League\Fractal;
 use League\Fractal\Manager;
 use App;
 
-class IwmsFulfillmentOrderService extends IwmsBaseOrderService
+class IwmsFulfillmentOrderService extends IwmsCoreService
 {
-    use \App\Services\IwmsApi\IwmsBaseService;
-
-    use Helpers;
 
     public function __construct(FulfillmentOrderRepository $orderRepository)
     {
@@ -25,31 +23,46 @@ class IwmsFulfillmentOrderService extends IwmsBaseOrderService
 
     public function pushFulfillmentOrder()
     {
-        $request = new Request;
-        $totalPage = $this->getOrders($request)->lastPage();
-
-        for ($i=1; $i <= $totalPage; $i++) {
-            $batchRequest = $this->getNewFulfillmentOrderBatchRequest();
-            $orders = $this->getOrders($request, $i);
-            $jsonData = $this->convertToJsonData($orders);
-            $returnPath = $this->saveOrdersToFeedData($jsonData, $batchRequest);
-            $batchRequest->request_log = $returnPath;
-            //$responseData = $this->curlIwmsApi('', $jsonData);
-            $this->processResponseData($batchRequest);
+        try {
+            $request = new Request;
+            while( ! $this->getOrders($request)->getCollection()->isEmpty() ) {
+                $batchRequest = $this->getNewFulfillmentOrderBatchRequest();
+                $orders = $this->getOrders($request);
+                $soNoList = $orders->getCollection()->implode('so_no', ',');
+                $jsonData = $this->convertToJsonData($orders);
+                $returnPath = $this->saveOrdersToFeedData($jsonData, $batchRequest);
+                $batchRequest->request_log = $returnPath;
+                $this->initIwmsConfig('', 1);
+                $data = json_decode($jsonData);
+                $requestData = $data->data;
+                $responseData = $this->curlIwmsApi('allocation/save-order', $requestData);
+                $this->processResponseData($batchRequest, $responseData);
+            }
+        } catch (\Exception $e) {
+            mail('will.zhang@eservicesgroup.com', '[IWMS] PUSH Order To IWMS Failed', 'Error Message'.$e->getMessage());
         }
     }
 
-    //TODO
     public function processResponseData($batchRequest, $responseData = '')
     {
         $batchRequest->response_log = $responseData;
-        $batchRequest->completion_time = date('Y-m-d H:i:s');
-        $batchRequest->save();
         if ($responseData) {
-            //update batchRequest status
-
-            //update so_extend into_wms_status
+            $responseData = json_decode($responseData, true);
+            $soNoList = array();
+            if (isset($responseData['success_order']) && !empty($responseData['success_order'])) {
+                $soNoList = array_merge($soNoList, $responseData['success_order']);
+            }
+            if (isset($responseData['duplicate_order']) && !empty($responseData['duplicate_order'])) {
+                $soNoList = array_merge($soNoList, $responseData['duplicate_order']);
+            }
+            if (!empty($soNoList)) {
+                $soExtend = SoExtend::whereIn('so_no', $soNoList)
+                                    ->update(['into_iwms_status' => 1]);
+            }
         }
+        $batchRequest->completion_time = date('Y-m-d H:i:s');
+        $batchRequest->status = 'C';
+        $batchRequest->save();
     }
 
     public function convertToJsonData($orders)
@@ -70,11 +83,10 @@ class IwmsFulfillmentOrderService extends IwmsBaseOrderService
         return $fileName;
     }
 
-    public function getOrders(Request $request, $page = 1)
+    public function getOrders(Request $request)
     {
         $request->merge(
-            ['per_page' => 50,
-             'page' => $page,
+            ['per_page' => 10,
              'into_iwms_status' => 0
             ]);
         return $this->orderRepository->getOrders($request);
