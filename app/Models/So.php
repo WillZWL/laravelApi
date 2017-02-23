@@ -86,6 +86,11 @@ class So extends Model
         return $this->hasOne('App\Models\PlatformMarketOrder', 'so_no', 'so_no');
     }
 
+    public function iwmsLgsOrderStatusLog()
+    {
+        return $this->hasOne('App\Models\IwmsLgsOrderStatusLog', 'so_no', 'so_no');
+    }
+
     public function amazonOrder()
     {
         return $this->hasOne('App\Models\AmazonOrder', 'amazon_order_id', 'platform_order_id');
