@@ -29,6 +29,7 @@ class OrderPackListService
 {
     private $website = "http://admincentre.eservicesgroup.com";
     private $lang = "";
+    private $per_page = 50;
 
     public function __construct()
     {
@@ -42,9 +43,9 @@ class OrderPackListService
         for ($i=1; $i <= $totalPage; $i++) {
             $soList = $this->getProcessOrder($request, $i);
             if ($soList->count()) {
-                foreach ($soList as $so) {
-                    $this->generateCustomInvoice($so->so_no);
-                    $this->generateDeliveryNote($so->so_no);
+                foreach ($soList as $soObj) {
+                    $this->generateCustomInvoice($soObj);
+                    $this->generateDeliveryNote($soObj);
                 }
             }
         }
@@ -59,11 +60,11 @@ class OrderPackListService
             foreach ($soList as $soNo) {
                 $deliveryNoteFile = $originalFilePath."/delivery_note/". $soNo . '.pdf';
                 if (!file_exists($deliveryNoteFile)) {
-                    $this->generateDeliveryNote($soNo);
+                    $this->regenerateDeliveryNote($soNo);
                 }
                 $invoiceFile = $originalFilePath."/invoice/". $soNo . '.pdf';
                 if (!file_exists($invoiceFile)) {
-                    $this->generateCustomInvoice($soNo);
+                    $this->regenerateCustomInvoice($soNo);
                 }
                 rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
                 rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
@@ -85,50 +86,49 @@ class OrderPackListService
     public function getProcessOrder(Request $request, $page = 1)
     {
         $request->merge(
-            ['per_page' => 1,
+            ['per_page' => $this->per_page,
              'page' => $page
             ]);
         return $this->orderRepository->getOrders($request);
-        // $soList = So::paidOrder()->where("platform_group_order", 1)->with("sellingPlatform")->get();
-
-        // $filtered = $soList->filter(function ($item) {
-        //     $merchant = $item->sellingPlatform->merchant;
-        //     $merchantBalance = $merchant->merchantBalance;
-
-        //     $exclude = $merchantBalance->balance < 0 && $merchant->can_do_prepayment == 1 && $item->sellingPlatform->type == "DISPATCH";
-
-        //     return ($item->sellingPlatform->merchant_id != "CHATANDVISION") && !$exclude;
-        // });
-        // return $filtered;
     }
 
-    public function generateDeliveryNote($soNo)
+    public function regenerateDeliveryNote($soNo)
     {
         $soObj = So::where("so_no",$soNo)->first();
         if ($soObj) {
-            $result = $this->getDeliveryNote($soObj);
-            if ($result) {
-                $returnHTML = view('packlist.delivery-note',$result)->render();
-                $pickListNo = date("Ymd");
-                $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-                $file = $filePath."/delivery_note/". $soNo . '.pdf';
-                PDF::loadHTML($returnHTML)->save($file,true);
-            }
+            $this->generateDeliveryNote($soObj);
         }
     }
 
-    public function generateCustomInvoice($soNo, $courierId = "")
+    public function generateDeliveryNote($soObj)
+    {
+        $result = $this->getDeliveryNote($soObj);
+        if ($result) {
+            $returnHTML = view('packlist.delivery-note',$result)->render();
+            $pickListNo = date("Ymd");
+            $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
+            $file = $filePath."/delivery_note/". $soObj->so_no . '.pdf';
+            PDF::loadHTML($returnHTML)->save($file,true);
+        }
+    }
+
+    public function regenerateCustomInvoice($soNo, $courierId = "")
     {
         $soObj = So::where("so_no",$soNo)->first();
         if ($soObj) {
-            $result = $this->getCustomInvoice($soObj, $courierId);
-            if ($result) {
-                $returnHTML = view('packlist.custom-invoice',$result)->render();
-                $pickListNo = date("Ymd");
-                $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-                $file = $filePath."/invoice/". $soNo . '.pdf';
-                PDF::loadHTML($returnHTML)->save($file,true);
-            }
+            $this->generateCustomInvoice($soObj, $courierId);
+        }
+    }
+
+    public function generateCustomInvoice($soObj, $courierId = "")
+    {
+        $result = $this->getCustomInvoice($soObj, $courierId);
+        if ($result) {
+            $returnHTML = view('packlist.custom-invoice',$result)->render();
+            $pickListNo = date("Ymd");
+            $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
+            $file = $filePath."/invoice/". $soObj->so_no . '.pdf';
+            PDF::loadHTML($returnHTML)->save($file,true);
         }
     }
 
