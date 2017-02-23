@@ -23,7 +23,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         $esgOrders = $this->getReadyToShipLgsOrder(2);
         $this->setLgsOrderStatusAndGetTracking($esgOrderNoList);
     }
-    
+
     public function setLgsOrderStatusByOrderNo($esgOrderNoList)
     {
         $esgOrders = $this->getEsgLgsOrdersByOrderNo($esgOrderNoList);
@@ -90,9 +90,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         $object['platform_order_no'] = $esgOrder->platform_order_id;
         $object['tracking_no'] = $result["tracking_no"];
         if(isset($result["valid"]) && $result["valid"]){
-            $object['status'] = 1;  
+            $object['status'] = 1;
         }
-        return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object) 
+        return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object);
     }
 
     public function getReadyToShipLgsOrder($limit = null, $pageNum = null)
