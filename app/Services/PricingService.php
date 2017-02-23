@@ -329,7 +329,7 @@ class PricingService
     {
         // TODO
         // 在 payment_gateway table 中添加 mp_control id 进行关联起来
-        if ($markplaceProduct->marketplace_id == 'ETALIBABA') {
+        if ($marketplaceProduct->marketplace_id == 'ETALIBABA') {
             $paymentGatewayId = 'et_alipay_alibaba';
         } else {
             $account = substr($marketplaceProduct->marketplace_id, 0, 2);
