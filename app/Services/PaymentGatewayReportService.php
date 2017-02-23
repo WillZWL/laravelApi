@@ -19,8 +19,8 @@ abstract class PaymentGatewayReportService
 {
     const WRONG_TRANSACTION_ID = "Wrong transaction id / so_no";
 
-    private $pmgw;
-    private $folderPath;
+    public $pmgw;
+    public $folderPath;
 
     abstract public function getPmgw();
     abstract public function setPmgw($value);
@@ -64,7 +64,7 @@ abstract class PaymentGatewayReportService
 
         $batchId = $this->insertBatch($filename);
         $output = $this->getFileData($filename);
-        
+
         $batchResult = TRUE;
         $countOutput = count($output);
         if($countOutput > 0)
@@ -73,7 +73,7 @@ abstract class PaymentGatewayReportService
             {
                 $this->insertInterface($batchId, $cell);
             }
-            
+
             $this->afterInsertAllInterface($batchId);
 
             $batchResult = $this->insertMaster($batchId);
@@ -115,19 +115,19 @@ abstract class PaymentGatewayReportService
         $message .= "Batch ID: " . $batchId . "\r\n\r\n";
 
         $flexRiaList = FlexRia::where("flex_batch_id",$batchId)->with("so")->get();
-        
+
         if($flexRiaList->count())
         {
             $message .= "RIA:\r\n";
             $message .= "ORDER NO,TRANSACTION ID,ORDER AMT,REPORT AMT\r\n";
             foreach($flexRiaList as $ria)
-            {           
+            {
                 if($ria->so->amount != $ria->amount ){
                     $message .= $ria->so_no. "," . $ria->txn_id . "," . $ria->so->amount.",".$ria->amount. "\r\n";
                     $isSend = true;
                 }
             }
-            $message .= "\r\n\r\n";            
+            $message .= "\r\n\r\n";
         }
 
         if($isSend)
@@ -149,7 +149,7 @@ abstract class PaymentGatewayReportService
                 return FlexBatch::insertGetId([
                     "gateway_id"=>$this->getPmgw(),
                     "filename"=>$filename
-                    ]);                 
+                    ]);
             }
             else
             {
@@ -205,7 +205,7 @@ abstract class PaymentGatewayReportService
 
     protected function createInterfaceFlexRia($batchId, $status, $cell, $includeFsf = true)
     {
-        
+
         $ifrObj = [];
 
         if(!$cell->so_no && $cell->txn_id)
@@ -227,7 +227,7 @@ abstract class PaymentGatewayReportService
                 "status"=>$status,
                 "batch_status"=>"N"
             ];
-        
+
 
         if(!$ifrObj["so_no"])
         {
@@ -361,7 +361,7 @@ abstract class PaymentGatewayReportService
     {
         $interfaceFlexRia = new InterfaceFlexRia();
         $interfaceFlexRiaList = $interfaceFlexRia->getFlexRiaByBatch($batchId);
-        
+
         $flexRia = new FlexRia();
 
         if($interfaceFlexRiaList->count())
@@ -369,7 +369,7 @@ abstract class PaymentGatewayReportService
             $returnResult = TRUE;
 
             foreach($interfaceFlexRiaList AS $ria)
-            { 
+            {
                 if($ria->batch_status == 'N')
                 {
                     $flexRiaSingle = $flexRia->where("so_no",$ria->so_no)->where("gateway_id",$ria->gateway_id)->where("status",$ria->status)->where("txn_time",$ria->txn_time)->first();
@@ -416,7 +416,7 @@ abstract class PaymentGatewayReportService
                                 $this->_updateInterfaceFlexRiaStatusByGroup($batchId, $ria->so_no, $ria->status, "S", "");
                             }
                             else
-                            {   
+                            {
                                 if(!$failedReason = $this->validSoNo($insert))
                                 {
                                     $failedReason = "datebase error";
@@ -447,7 +447,7 @@ abstract class PaymentGatewayReportService
     {
         $interfaceFlexRefund = new InterfaceFlexRefund();
         $interfaceFlexRefundList = $interfaceFlexRefund->getFlexRefundByBatch($batchId);
-        
+
         $flexRefund = new FlexRefund();
 
         if($interfaceFlexRefundList->count())
@@ -536,14 +536,14 @@ abstract class PaymentGatewayReportService
 
     private function _updateInterfaceFlexRiaStatusByGroup($batchId, $soNo, $status, $batchStatus, $failedReason)
     {
-        
+
         $interfaceFlexRia =new InterfaceFlexRia();
         $collect = $interfaceFlexRia->where("flex_batch_id",$batchId)
                         ->where("gateway_id",$this->getPmgw())
                         ->where("so_no",$soNo)
                         ->where("status",$status)
                         ->get();
-        
+
         if($collect->count())
         {
             foreach($collect as $ria)
@@ -576,7 +576,7 @@ abstract class PaymentGatewayReportService
     public function updateInterfaceSoFeeStatusByGroup($batchId, $soNo, $status, $batchStatus, $failedReason)
     {
         $interfaceFlexSoFee = new InterfaceFlexSoFee();
-        
+
         $collect = $interfaceFlexSoFee->where(["flex_batch_id" => $batchId,
                                                 "gateway_id" => $this->getPmgw(),
                                                 "so_no" => $soNo,
@@ -618,13 +618,13 @@ abstract class PaymentGatewayReportService
                     $soFeeSingle = $flexSoFee->where(["so_no"=>$soFee->so_no, "gateway_id"=>$soFee->gateway_id, "status"=>$soFee->status, "txn_id"=>$soFee->txn_id, "txn_time"=>$soFee->txn_time])->first();
                     if ($soFeeSingle)
                     {
-                       
+
                         if( $soFeeSingle->amount == $soFee->amount )
                         {
                             $this->updateInterfaceSoFeeStatusByGroup($batchId, $soFee->so_no, $soFee->status, "C", "duplicated record");
                         }
                         else
-                        { 
+                        {
                             $soFeeSingle->flex_batch_id = $soFee->flex_batch_id;
                             $soFeeSingle->amount = $soFee->amount;
 
@@ -649,7 +649,7 @@ abstract class PaymentGatewayReportService
                                   'currency_id'=>$soFee->currency_id,
                                   'amount'=>$soFee->amount,
                                   'status'=>$soFee->status];
-                       
+
                         if($this->validTxnId($insert))
                         {
                             if($flexSoFee->insert($insert))
@@ -741,7 +741,7 @@ abstract class PaymentGatewayReportService
 
                         if($flexGatewayFee->insert($insert))
                         {
-                            //gatewayfee have not Multiple records, so only save one 
+                            //gatewayfee have not Multiple records, so only save one
                             $gatewayFee->batch_status = "S";
                             $gatewayFee->save();
                         }
@@ -783,7 +783,7 @@ abstract class PaymentGatewayReportService
             {
                 $message .= $flex->txn_id . "," . $flex->so_no . "," . $flex->failed_reason . "\r\n";
             }
-            $message .= "\r\n\r\n";            
+            $message .= "\r\n\r\n";
         }
 
         // $interfaceFlexGatewayFeeList
@@ -806,7 +806,7 @@ abstract class PaymentGatewayReportService
 
         $interfaceFlexSoFeeList = InterfaceFlexSoFee::where("flex_batch_id",$batchId)->whereIn("batch_status",['F', 'I'])->get();
         if($interfaceFlexSoFeeList->count())
-        {          
+        {
             $totalErr += $interfaceFlexSoFeeList->count();
             $message .= "So Fee:\r\n";
             $message .= "txn_id,so_no,failed_reason\r\n";
@@ -814,7 +814,7 @@ abstract class PaymentGatewayReportService
             {
                 $message .= $flex->txn_id . "," . $flex->so_no . "," . $flex->failed_reason . "\r\n";
             }
-            $message .= "\r\n\r\n";            
+            $message .= "\r\n\r\n";
         }
 
         // if($ifrr_list = $this->get_ifrr_dao()->get_list(array("flex_batch_id"=>$batch_id, "batch_status IN ('F', 'I')"=>null), array("limit"=>-1)))
