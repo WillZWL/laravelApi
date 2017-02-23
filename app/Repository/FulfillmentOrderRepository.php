@@ -84,6 +84,10 @@ class FulfillmentOrderRepository
             $query->leftJoin('so_extend AS se', 'se.so_no', '=', 'so.so_no');
             $query->where('se.into_iwms_status', $request->get('into_iwms_status'));
         }
+
+        if ($request->get('dnote_invoice_status') !== NULL) {
+            $query->where('dnote_invoice_status', $request->get('dnote_invoice_status'));
+        }
         return $query;
     }
 
