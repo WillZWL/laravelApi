@@ -236,7 +236,7 @@ class ApiPriceMinisterService implements ApiPlatformInterface
             'shipping_address_id' => $addressId,
         ];
 
-        $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
+        return $platformMarketOrder = PlatformMarketOrder::updateOrCreate(
             [
                 'platform_order_id' => $order['purchaseid'],
                 'platform' => $storeName,
