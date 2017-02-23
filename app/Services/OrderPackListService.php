@@ -11,15 +11,17 @@ use App\Models\Currency;
 use App\Models\Country;
 use App\Models\CourierMapping;
 use App\Models\SellingPlatform;
-use App\models\PlatformBizVar;
+use App\Models\PlatformBizVar;
 use App\Models\ProductAssemblyMapping;
 use App\Models\SupplierProd;
 use App\Models\ExchangeRate;
 use App\Models\ProductCustomClassification;
-use App\models\HscodeDutyCountry;
-use App\models\SkuMapping;
+use App\Models\HscodeDutyCountry;
+use App\Models\SkuMapping;
 use App\Models\Declaration;
 use App\Models\DeclarationException;
+use App\Repository\FulfillmentOrderRepository;
+use Illuminate\Http\Request;
 use DNS1D;
 use PDF;
 
@@ -28,13 +30,22 @@ class OrderPackListService
     private $website = "http://admincentre.eservicesgroup.com";
     private $lang = "";
 
+    public function __construct()
+    {
+        $this->orderRepository = new FulfillmentOrderRepository();
+    }
+
     public function processPackList()
     {
-        $soList = $this->getProcessOrder();
-        if ($soList->count()) {
-            foreach ($soList as $so) {
-                $this->generateCustomInvoice($so->so_no);
-                $this->generateDeliveryNote($so->so_no);
+        $request = new Request;
+        $totalPage = $this->getProcessOrder($request)->lastPage();
+        for ($i=1; $i <= $totalPage; $i++) {
+            $soList = $this->getProcessOrder($request, $i);
+            if ($soList->count()) {
+                foreach ($soList as $so) {
+                    $this->generateCustomInvoice($so->so_no);
+                    $this->generateDeliveryNote($so->so_no);
+                }
             }
         }
     }
@@ -71,19 +82,24 @@ class OrderPackListService
         }
     }
 
-    public function getProcessOrder()
+    public function getProcessOrder(Request $request, $page = 1)
     {
-        $soList = So::paidOrder()->where("platform_group_order", 1)->with("sellingPlatform")->get();
+        $request->merge(
+            ['per_page' => 1,
+             'page' => $page
+            ]);
+        return $this->orderRepository->getOrders($request);
+        // $soList = So::paidOrder()->where("platform_group_order", 1)->with("sellingPlatform")->get();
 
-        $filtered = $soList->filter(function ($item) {
-            $merchant = $item->sellingPlatform->merchant;
-            $merchantBalance = $merchant->merchantBalance;
+        // $filtered = $soList->filter(function ($item) {
+        //     $merchant = $item->sellingPlatform->merchant;
+        //     $merchantBalance = $merchant->merchantBalance;
 
-            $exclude = $merchantBalance->balance < 0 && $merchant->can_do_prepayment == 1 && $item->sellingPlatform->type == "DISPATCH";
+        //     $exclude = $merchantBalance->balance < 0 && $merchant->can_do_prepayment == 1 && $item->sellingPlatform->type == "DISPATCH";
 
-            return ($item->sellingPlatform->merchant_id != "CHATANDVISION") && !$exclude;
-        });
-        return $filtered;
+        //     return ($item->sellingPlatform->merchant_id != "CHATANDVISION") && !$exclude;
+        // });
+        // return $filtered;
     }
 
     public function generateDeliveryNote($soNo)
@@ -383,7 +399,9 @@ class OrderPackListService
         }
 
         $lineNo = 1;
-        list($deliveryAddr1,$deliveryAddr2,$deliveryAddr3) = explode("|",$soObj->delivery_address);
+        $deliveryAddr = explode("|",$soObj->delivery_address);
+        $deliveryAddr = array_pad($deliveryAddr,3,"");
+        list($deliveryAddr1,$deliveryAddr2,$deliveryAddr3) = $deliveryAddr;
 
         if($soObj->delivery_company != "")
         {
@@ -496,7 +514,7 @@ class OrderPackListService
 
     public function getDeclaredDescAndCode($itemObj, $useOptimizedHscodeDuty, $deliveryCountryId)
     {
-        $code = null;
+        $code = "";
         $declaredDesc = "";
         $product = $itemObj->product;
         $hscodeCatId = $product->hscode_cat_id;
@@ -515,14 +533,16 @@ class OrderPackListService
             $declaredDesc = $product->declared_desc;
         } else {
             $hscodeCategory = $product->hscodeCategory;
-            $hscodeDutyCountry = HscodeDutyCountry::where("hscode_cat_id", $hscodeCatId)->where("country_id", $deliveryCountryId)->first();
-            if ($hscodeDutyCountry) {
-                $code = $hscodeDutyCountry->optimized_hscode;
+            if ($hscodeCategory) {
+                $hscodeDutyCountry = HscodeDutyCountry::where("hscode_cat_id", $hscodeCatId)->where("country_id", $deliveryCountryId)->first();
+                if ($hscodeDutyCountry) {
+                    $code = $hscodeDutyCountry->optimized_hscode;
+                }
+                if (!$code) {
+                    $code = $hscodeCategory->general_hscode;
+                }
+                $declaredDesc = $hscodeCategory->name;
             }
-            if (!$code) {
-                $code = $hscodeCategory->general_hscode;
-            }
-            $declaredDesc = $hscodeCategory->name;
         }
         $skuMapping = SkuMapping::where("sku", $itemObj->prod_sku)->where("ext_sys", "WMS")->first();
         $prodDesc = ($skuMapping ? $skuMapping->ext_sku : "") ." ".$declaredDesc;
