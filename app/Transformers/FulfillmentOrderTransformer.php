@@ -46,7 +46,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'order_no' => $order->so_no,
             'reference_no' => $order->so_no,
             'marketplace_reference_no' => $order->platform_order_id,
-            'marketplace_platfrom_id' => $order->platform_id,
+            'marketplace_platform_id' => $order->platform_id,
             'merchant_id' => 'ESG',
             'sub_merchant_id' => $order->sellingPlatform->merchant_id,
             'order_type' => $order->sellingPlatform->type,
