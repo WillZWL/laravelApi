@@ -44,7 +44,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                 return false;
             }
             $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
-            $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+            $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
         } catch (Exception $e) {
             $msg = $e->getMessage();
             mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Delivery Failed', $msg, 'From: admin@shop.eservciesgroup.com');
@@ -64,7 +64,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                 return false;
             }
             $responseData = $this->curlIwmsApi('courier/create-order', $request["requestBody"]);
-            $this->saveBatchIwmsResponseData($request["batchRequest"],$responseData);
+            $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
             $this->updateSoWaybillStatus($request["batchRequest"], "1");
         } catch (Exception $e) {
             $msg = $e->getMessage();
@@ -256,7 +256,8 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $request = $this->getIwmsAllocationPlanService()->getAllocationPlanRequest($requestData);
         if (isset($request['requestBody']) && isset($request['batchRequest'])) {
             $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $request['requestBody']);
-            $this->updateBatchIwmsResponseData($request["batchRequest"], $responseData);
+            //$this->updateBatchIwmsResponseData($request["batchRequest"], $responseData);
+            $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
         }
     }
 
