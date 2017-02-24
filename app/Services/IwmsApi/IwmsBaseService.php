@@ -56,10 +56,10 @@ trait IwmsBaseService
             ->all();
     }
 
-    public function saveBatchIwmsResponseData($batchObject,$responseJson)
+    public function saveBatchFeedIwmsResponseData($batchObject,$responseJson)
     {
         $batchRequestService = App::make("App\Services\BatchRequestService");
-        $batchRequestService->saveBatchIwmsResponseData($batchObject,$responseJson);
+        $batchRequestService->saveBatchFeedIwmsResponseData($batchObject,$responseJson);
     }
 
     public function updateBatchIwmsResponseData($batchObject, $responseJson)

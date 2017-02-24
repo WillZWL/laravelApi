@@ -4,8 +4,6 @@ namespace App\Services\IwmsApi\Callbacks;
 
 use App;
 use App\Models\So;
-use App\Models\IwmsFeedRequest;
-use App\Models\BatchRequest;
 use App\Models\IwmsCourierOrderLog;
 
 class IwmsCourierOrderService
@@ -16,11 +14,7 @@ class IwmsCourierOrderService
 
     public function createCourierOrder($postMessage)
     {
-        IwmsFeedRequest::where("iwms_request_id", $postMessage->request_id)->update([
-            "status"=> "1",
-            "response_log" => json_encode($postMessage->responseMessage)
-        ]);
-        $batchObject = BatchRequest::where("iwms_request_id", $postMessage->request_id)->first();
+        $batchObject = $this->saveFeedRequestAndGetBatchObject($postMessage);
         if(!empty($batchObject)){
             $batchObject->status = "C";
             $batchObject->save();
@@ -28,7 +22,7 @@ class IwmsCourierOrderService
                 if($key === "success"){
                     $this->updateIwmCallbackOrderSuccess($responseMessage, $batchObject->id);
                 }else if ($key === "failed"){
-                    $this->updateIwmCallbackOrderSuccess($responseMessage, $batchObject->id);
+                    $this->updateIwmCallbackOrderFaild($responseMessage, $batchObject->id);
                 }
             }
         }

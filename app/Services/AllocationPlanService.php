@@ -8,7 +8,7 @@ use App\Models\Inventory;
 use App\Models\SoAllocate;
 use App\Models\InvMovement;
 use App\Models\SoItemDetail;
-
+use App\Repository\TaskScheduleRepository;
 use Config;
 
 class AllocationPlanService
@@ -25,17 +25,39 @@ class AllocationPlanService
 
     public function getAllocationPlan($warehouseId="ES_HK", $requestData = [])
     {
-        $this->requestData = $requestData;
+        $scheduleRepos = new TaskScheduleRepository();
+        $batchName = "CREATE_ALLOCATION_PLAN";
+        $schedule = $scheduleRepos->getTask($batchName);
+        if ($schedule) {
+            if ($schedule->lock == 0) {
+                $scheduleRepos->lockTask($batchName);
 
-        $wmsOrders = $this->getWmsAllocationPlanData();
 
-        $readyOrderData = $this->readyAllocateOrders($wmsOrders);
+                $this->requestData = $requestData;
 
-        $validatePassOrders = $this->validateAllocationPlanOrders($readyOrderData, $wmsOrders, $warehouseId);
+                $wmsOrders = $this->getWmsAllocationPlanData();
 
-        $this->processAllocationPlan($validatePassOrders, $warehouseId);
+                $readyOrderData = $this->readyAllocateOrders($wmsOrders);
 
-        $this->processEmailAlert($warehouseId);
+                $validatePassOrders = $this->validateAllocationPlanOrders($readyOrderData, $wmsOrders, $warehouseId);
+
+                $this->processAllocationPlan($validatePassOrders, $warehouseId);
+
+                $scheduleRepos->unlockTask($batchName);
+
+                $this->processEmailAlert($warehouseId);
+            } else {
+                if (isset($this->requestData['email']) && $this->requestData['email']) {
+                    $to = $this->requestData['email'] .", itsupport-sz@eservicesgroup.com";
+                } else {
+                    $to = "itsupport-sz@eservicesgroup.com";
+                }
+                $subject = "[IWMS] Task Schedule {$wmsPlatform} => {$batchName} has locked";
+                $message = "[{$wmsPlatform}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
+                $header = "From: admin@iwms.eservciesgroup.com";
+                mail($to, $subject, $message, $header);
+            }
+        }
     }
 
     public function readyAllocateOrders($wmsOrders = [])

@@ -44,7 +44,7 @@ class BatchRequestService
         $batchObject->save();
     }
 
-    public function saveBatchIwmsResponseData($batchObject,$responseJson)
+    public function saveBatchFeedIwmsResponseData($batchObject,$responseJson)
     {
         $responseData = json_decode($responseJson);
         $batchObject->response_log = $responseJson;
