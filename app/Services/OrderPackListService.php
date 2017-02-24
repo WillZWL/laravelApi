@@ -39,21 +39,32 @@ class OrderPackListService
     public function processPackList()
     {
         $request = new Request;
-        $totalPage = $this->getProcessOrder($request)->lastPage();
-        for ($i=1; $i <= $totalPage; $i++) {
-            $soList = $this->getProcessOrder($request, $i);
-            if ($soList->count()) {
+        do {
+            $soList = $this->getProcessOrder($request);
+            if ( ! $soList->getCollection()->isEmpty() ) {
+                $soNoList = [];
                 foreach ($soList as $soObj) {
-                    $this->generateCustomInvoice($soObj);
-                    $this->generateDeliveryNote($soObj);
+                   $invoice = $this->generateCustomInvoice($soObj);
+                   $dnote = $this->generateDeliveryNote($soObj);
+                   if ($invoice && $dnote) {
+                       $soNoList[] = $soObj->so_no;
+                   }
                 }
+                $this->updateDnoteInvoiceStatus($soNoList);
             }
+        } while( ! $soList->getCollection()->isEmpty() );
+    }
+
+    public function updateDnoteInvoiceStatus($soNoList)
+    {
+        if (!empty($soNoList)) {
+            So::whereIn('so_no', $soNoList)->update(['dnote_invoice_status' => 2]);
         }
     }
 
     public function moveSuccessOrder($pickListNo, $soList)
     {
-        $originalFilePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().date("Ymd");
+        $originalFilePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix()."tmp";
         $destinationFilePath =  \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
         $this->createFolder($destinationFilePath);
         if ($soList) {
@@ -87,7 +98,8 @@ class OrderPackListService
     {
         $request->merge(
             ['per_page' => $this->per_page,
-             'page' => $page
+             'page' => $page,
+             'dnote_invoice_status' => 0
             ]);
         return $this->orderRepository->getOrders($request);
     }
@@ -105,10 +117,13 @@ class OrderPackListService
         $result = $this->getDeliveryNote($soObj);
         if ($result) {
             $returnHTML = view('packlist.delivery-note',$result)->render();
-            $pickListNo = date("Ymd");
+            $pickListNo = "tmp";
             $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/delivery_note/". $soObj->so_no . '.pdf';
             PDF::loadHTML($returnHTML)->save($file,true);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -125,10 +140,13 @@ class OrderPackListService
         $result = $this->getCustomInvoice($soObj, $courierId);
         if ($result) {
             $returnHTML = view('packlist.custom-invoice',$result)->render();
-            $pickListNo = date("Ymd");
+            $pickListNo = "tmp";
             $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/invoice/". $soObj->so_no . '.pdf';
             PDF::loadHTML($returnHTML)->save($file,true);
+            return true;
+        } else {
+            return false;
         }
     }
 
