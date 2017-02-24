@@ -34,6 +34,7 @@ class OrderPackListService
     public function __construct()
     {
         $this->orderRepository = new FulfillmentOrderRepository();
+        $this->setCountryList();
     }
 
     public function processPackList()
@@ -172,7 +173,8 @@ class OrderPackListService
             $shipperName = $courierMap->shipper_name;
         }
 
-        $deliveryCountryObj = Country::where("id", $soObj->delivery_country_id)->first();
+        //$deliveryCountryObj = Country::where("id", $soObj->delivery_country_id)->first();
+        $deliveryCountryObj = $this->getCountry($soObj->delivery_country_id);
         $declareType = $deliveryCountryObj ? $deliveryCountryObj->declare_type : "FV";
         $currencyCourierId = $this->getCurrencyCourierId($courierId, $deliveryCountryObj);
 
@@ -302,10 +304,12 @@ class OrderPackListService
                 }
             }
 
-            $deliveryCountry = Country::where("id",$soObj->delivery_country_id)->first();
+            //$deliveryCountry = Country::where("id",$soObj->delivery_country_id)->first();
+            $deliveryCountry = $this->getCountry($soObj->delivery_country_id);
             $deliveryAddress = ($soObj->delivery_company ? $soObj->delivery_company."<br/>" : "").trim(str_replace("|", "<br/>", $soObj->delivery_address))."".$soObj->delivery_city." ".$soObj->delivery_state." ".$soObj->delivery_postcode."<br/>".$deliveryCountry->name;
 
-            $billingCountry = Country::where("id",$soObj->bill_country_id)->first();
+            //$billingCountry = Country::where("id",$soObj->bill_country_id)->first();
+            $billingCountry = $this->getCountry($soObj->bill_country_id);
             $billingAddress = ($soObj->bill_company ? $soObj->bill_company."<br/>" : "").trim(str_replace("|", "<br/>", $soObj->bill_address))."".$soObj->bill_city." ".$soObj->bill_state." ".$soObj->bill_postcode."<br/>".$billingCountry->name;
 
             $result["so"] = $soObj;
@@ -597,5 +601,20 @@ class OrderPackListService
                 break;
         }
         return $currencyCourierId;
+    }
+
+    public function setCountryList()
+    {
+        $countryCollect = Country::get();
+        $country = [];
+        foreach ($countryCollect as $value) {
+            $country[$value->id] = $value;
+        }
+        $this->country = $country;
+    }
+
+    public function getCountry($countryId)
+    {
+        return isset($this->country[$countryId]) ? $this->country[$countryId] : NULL;
     }
 }
