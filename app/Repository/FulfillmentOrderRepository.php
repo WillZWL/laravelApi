@@ -10,7 +10,7 @@ class FulfillmentOrderRepository
 {
     public function getOrders(Request $request)
     {
-        $query = So::with('soItem')
+        $query = So::with('soItemDetail')
                    ->with('sellingPlatform')
                    ->where('refund_status', 0)
                    ->where('hold_status', 0)
@@ -98,6 +98,7 @@ class FulfillmentOrderRepository
                                 ->where('type', 'DISPATCH')
                                 ->where('mb.balance', '<', 0)
                                 ->where('m.can_do_prepayment', 1)
+                                ->orWhere('selling_platform.need_fulfillment', 0)
                                 ->select('selling_platform.id')
                                 ->get()
                                 ->toArray();
