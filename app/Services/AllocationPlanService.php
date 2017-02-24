@@ -52,8 +52,8 @@ class AllocationPlanService
                 } else {
                     $to = "itsupport-sz@eservicesgroup.com";
                 }
-                $subject = "[IWMS] Task Schedule {$wmsPlatform} => {$batchName} has locked";
-                $message = "[{$wmsPlatform}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
+                $subject = "[IWMS] Task Schedule {$warehouseId} => {$batchName} has locked";
+                $message = "[{$warehouseId}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
                 $header = "From: admin@iwms.eservciesgroup.com";
                 mail($to, $subject, $message, $header);
             }
