@@ -44,6 +44,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'biz_type' => $order->biz_type,
             'order_create_date' => $order->order_create_date,
             'recommend_courier_id' => $order->recommend_courier_id,
+            'allocation_warehouse' => $this->getAllocationWarehouse($order),
             'delivery_name' => $order->delivery_name,
             'address' => $order->delivery_address,
             'city' =>  $order->delivery_city,
@@ -75,5 +76,15 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             Cache::add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 10);
             return $prodAssemblyMainSkus;
         });
+    }
+
+    //TODO
+    private function getAllocationWarehouse($order)
+    {
+        $warehouse = 'WMS';
+        if ($order->sellingPlatform->merchant_id == 'PREPD') {
+            $warehouse = '4PX_B66';
+        }
+        return $warehouse;
     }
 }
