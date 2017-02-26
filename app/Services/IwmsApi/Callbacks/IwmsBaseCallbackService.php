@@ -5,7 +5,7 @@ namespace App\Services\IwmsApi\Callbacks;
 use App\Models\IwmsFeedRequest;
 use App\Models\BatchRequest;
 
-class IwmsBaseCallbackService extends IwmsBaseCallbackService
+class IwmsBaseCallbackService
 {
     public function __construct()
     {
