@@ -12,7 +12,7 @@ class OrderPackListJob extends Job implements ShouldQueue
 {
     use InteractsWithQueue, SerializesModels;
 
-    protected $packListNo;
+    //protected $packListNo;
     protected $soNo;
     /**
      * Create a new job instance.
@@ -21,7 +21,7 @@ class OrderPackListJob extends Job implements ShouldQueue
      */
     public function __construct($packListNo, $soNo)
     {
-        $this->packListNo = $packListNo;
+        //$this->packListNo = $packListNo;
         $this->soNo = $soNo;
     }
 
@@ -39,6 +39,6 @@ class OrderPackListJob extends Job implements ShouldQueue
             $soNoList[] = $this->soNo;
         }
         $orderPackListService = new OrderPackListService();
-        $orderPackListService->moveSuccessOrder($this->packListNo, $soNoList);
+        $orderPackListService->reprocessPackList($soNoList);
     }
 }
