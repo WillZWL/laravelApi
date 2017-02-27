@@ -65,7 +65,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
 
     private function getAssemblyMapping()
     {
-        return Cache::get('prodAssemblyMainSkus', function() {
+        return Cache::store('file')->get('prodAssemblyMainSkus', function() {
             $assemblyMappings = ProductAssemblyMapping::active()->whereIsReplaceMainSku('1')->get();
             $prodAssemblyMainSkus = [];
             if (! $assemblyMappings->isEmpty() ) {
@@ -76,7 +76,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                     ];
                 }
             }
-            Cache::add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 60);
+            Cache::store('file')->add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 60);
         });
     }
 
@@ -92,12 +92,12 @@ class FulfillmentOrderTransformer extends TransformerAbstract
 
     private function getCouriers()
     {
-        return Cache::get('couriers', function() {
+        return Cache::store('file')->get('couriers', function() {
             $couriers = CourierInfo::all();
             foreach ($couriers as $courier) {
                 $couriersArr[$courier->courier_id] = $courier->courier_name;
             }
-            Cache::add('couriers', $couriersArr, 60*24);
+            Cache::store('file')->add('couriers', $couriersArr, 60*24);
         });
     }
 
@@ -105,8 +105,10 @@ class FulfillmentOrderTransformer extends TransformerAbstract
     {
         $courierName = '';
         $couriersArr = $this->getCouriers();
-        if (array_key_exists($id, $couriersArr)) {
-            $courierName = $couriersArr[$id];
+        if ($couriersArr) {
+            if (array_key_exists($id, $couriersArr)) {
+                $courierName = $couriersArr[$id];
+            }
         }
         return $courierName;
     }
