@@ -58,6 +58,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'delivery_charge' => $order->delivery_charge,
             'amount' => $order->amount,
             'status' => $order->status,
+            'feed_status' => $order->dnote_invoice_status,
             'items' => $orderItems
         ];
     }

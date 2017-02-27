@@ -80,6 +80,14 @@ class FulfillmentOrderRepository
             }
         }
 
+        if ($request->get('merchantId') !== '') {
+            $query->where('platform_id', 'like', '%'.$request->get('merchantId').'%');
+        }
+
+        if ($request->get('courierId') !== '') {
+            $query->where('esg_quotation_courier_id', $request->get('courierId'));
+        }
+
         if ($request->get('into_iwms_status') !== NULL) {
             $query->leftJoin('so_extend AS se', 'se.so_no', '=', 'so.so_no');
             $query->where('se.into_iwms_status', $request->get('into_iwms_status'));
