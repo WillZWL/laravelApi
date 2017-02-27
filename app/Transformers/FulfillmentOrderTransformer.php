@@ -43,7 +43,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'sub_merchant_id' => $order->sellingPlatform->merchant_id,
             'order_type' => $order->sellingPlatform->type,
             'biz_type' => $order->biz_type,
-            'order_create_date' => $order->order_create_date,
+            'order_create_date' => date('Y-m-d', strtotime($order->order_create_date)),
             'courier_id' => $order->esg_quotation_courier_id,
             'courier_name' => $this->getCourierNameById($order->esg_quotation_courier_id),
             'allocation_warehouse' => $this->getAllocationWarehouse($order),
@@ -56,7 +56,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'phone' => trim($order->del_tel_1." ".$order->del_tel_2." ".$order->del_tel_3),
             'currency' => $order->currency_id,
             'delivery_charge' => $order->delivery_charge,
-            'amount' => $order->amount,
+            'amount' => number_format($order->amount, 2, '.', ''),
             'status' => $order->status,
             'feed_status' => $order->dnote_invoice_status,
             'items' => $orderItems
