@@ -63,31 +63,19 @@ class OrderPackListService
         }
     }
 
-    public function moveSuccessOrder($pickListNo, $soNoList)
+    public function reprocessPackList($soNoList)
     {
-        $originalFilePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix()."tmp";
-        $destinationFilePath =  \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-        $this->createFolder($destinationFilePath);
         if ($soNoList) {
             $success = [];
             foreach ($soNoList as $soNo) {
-                $deliveryNoteFile = $originalFilePath."/delivery_note/". $soNo . '.pdf';
-                if (!file_exists($deliveryNoteFile)) {
-                    $this->regenerateDeliveryNote($soNo);
-                }
-                $invoiceFile = $originalFilePath."/invoice/". $soNo . '.pdf';
-                if (!file_exists($invoiceFile)) {
-                    $this->regenerateCustomInvoice($soNo);
-                }
-                $dnoteRes = rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
-                $invoiceRes = rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
+                $dnoteRes = $this->regenerateDeliveryNote($soNo);
+                $invoiceRes = $this->regenerateCustomInvoice($soNo);
                 if ($dnoteRes && $invoiceRes) {
                     $success[] = $soNo;
                 }
             }
             $this->updateDnoteInvoiceStatus($success);
         }
-
     }
 
     public function createFolder($folder)
@@ -102,18 +90,39 @@ class OrderPackListService
 
     public function getProcessOrder(Request $request, $page = 1)
     {
-        $request->merge(
-            ['per_page' => $this->per_page,
-             'page' => $page,
-             'dnote_invoice_status' => 0,
-             'status' => 5
-            ]);
-        return $this->orderRepository->getOrders($request);
+        // $request->merge(
+        //     ['per_page' => $this->per_page,
+        //      'page' => $page,
+        //      'dnote_invoice_status' => 0,
+        //      'status' => 5
+        //     ]);
+        $soList = So::join("so_allocate AS sa", function($join){
+                        $join->on("sa.so_no", "=", "so.so_no")
+                             ->where("line_no", "=",1);
+                    })
+                    ->where("dnote_invoice_status", 0)
+                    ->whereNotNull("sa.picklist_no")
+                    ->select("so.*", "sa.warehouse_id", "sa.picklist_no")
+                    ->paginate($this->per_page);
+        return $soList;
+        //return $this->orderRepository->getOrders($request);
+    }
+
+    public function getOrderBySoNo($soNo)
+    {
+        return So::join("so_allocate AS sa", function($join){
+                        $join->on("sa.so_no", "=", "so.so_no")
+                             ->where("line_no", "=",1);
+                    })
+                    ->whereNotNull("sa.picklist_no")
+                    ->where("so_no", $soNo)
+                    ->select("so.*", "sa.warehouse_id", "sa.picklist_no")
+                    ->first();
     }
 
     public function regenerateDeliveryNote($soNo)
     {
-        $soObj = So::where("so_no",$soNo)->first();
+        $soObj = $this->getOrderBySoNo($soNo);
         if ($soObj) {
             return $this->generateDeliveryNote($soObj);
         } else {
@@ -126,7 +135,7 @@ class OrderPackListService
         $result = $this->getDeliveryNote($soObj);
         if ($result) {
             $returnHTML = view('packlist.delivery-note',$result)->render();
-            $pickListNo = "tmp";
+            $pickListNo = $soObj->picklist_no;
             $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/delivery_note/". $soObj->so_no . '.pdf';
             PDF::loadHTML($returnHTML)->save($file,true);
@@ -138,7 +147,7 @@ class OrderPackListService
 
     public function regenerateCustomInvoice($soNo, $courierId = "")
     {
-        $soObj = So::where("so_no",$soNo)->first();
+        $soObj = $this->getOrderBySoNo($soNo);
         if ($soObj) {
             return $this->generateCustomInvoice($soObj, $courierId);
         } else {
@@ -151,7 +160,7 @@ class OrderPackListService
         $result = $this->getCustomInvoice($soObj, $courierId);
         if ($result) {
             $returnHTML = view('packlist.custom-invoice',$result)->render();
-            $pickListNo = "tmp";
+            $pickListNo = $soObj->picklist_no;
             $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/invoice/". $soObj->so_no . '.pdf';
             PDF::loadHTML($returnHTML)->save($file,true);
@@ -271,7 +280,7 @@ class OrderPackListService
         $result["soItem"] = $itemResult;
         $result["merchant_id"] = $merchantId;
         $result["courier_id"] = $courierId;
-        $result["shipper"] = $this->getShipperData($soObj->so_no, $shipperName);
+        $result["shipper"] = $this->getShipperData($soObj, $shipperName);
         $result["shipp_to"] = $this->getShipToData($soObj);
         $result["fedex_custom_invoice"] = $fedexCustomInvoice;
 
@@ -395,7 +404,7 @@ class OrderPackListService
         return $battery;
     }
 
-    public function getShipperData($soNo, $shipperName = "")
+    public function getShipperData($soObj, $shipperName = "")
     {
         $result = [
             "shipper_contact" => "",
@@ -408,8 +417,9 @@ class OrderPackListService
             "saddr_5" => "HongKong",
             "saddr_6" => "&nbsp;"
         ];
-        if ($soAllocate = SoAllocate::where("so_no", $soNo)->first()) {
-            if ($soAllocate->warehouse_id == 'ES_DGME') {
+        //if ($soAllocate = SoAllocate::where("so_no", $soObj->so_no)->first()) {
+        //    if ($soAllocate->warehouse_id == 'ES_DGME') {
+            if ($soObj->warehouse_id == 'ES_DGME') {
                 $result["shipper_name"]    = '';
                 $result["shipper_contact"] = "ME OPS Team";
                 $result["shipper_phone"]   = "+86 (0) 769-26386615";
@@ -419,7 +429,7 @@ class OrderPackListService
                 $result["saddr_4"]         = "Dong Guan,";
                 $result["saddr_5"]         = "Guangdong Province";
             }
-        }
+        //}
         return $result;
     }
 
