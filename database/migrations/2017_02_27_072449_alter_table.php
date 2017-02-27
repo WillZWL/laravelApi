@@ -17,7 +17,7 @@ class AlterTable extends Migration
         });
 
         Schema::connection('mysql_esg')->table('so', function (Blueprint $table) {
-            $table->string("picklist_no", 15)->nullable()->after('statistic');
+            $table->string("pick_list_no", 15)->nullable()->after('statistic');
         });
     }
 
@@ -29,7 +29,7 @@ class AlterTable extends Migration
     public function down()
     {
         Schema::connection('mysql_esg')->table('so', function (Blueprint $table) {
-            $table->dropColumn('picklist_no');
+            $table->dropColumn('pick_list_no');
         });
 
         Schema::connection('mysql_esg')->table('so_allocate', function (Blueprint $table) {
