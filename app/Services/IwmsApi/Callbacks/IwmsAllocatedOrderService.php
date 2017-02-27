@@ -45,8 +45,8 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         $wmsOrders = $this->getWmsAllocationPlanData($postMessage);
         $readyOrders = $this->readyAllocateOrders($wmsOrders);
         $this->processAllocationPlan($readyOrders, $wmsOrders);
+        $this->unsetFailedByAllocatedOrder();
         $allocationResults = $this->allocationResults();
-        \Log::info($allocationResults);
         return $allocationResults;
     }
 
@@ -142,7 +142,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         if ($so->status == 5 || $so->status == 6) {
             $this->beforeAllocatedOrder[] = $soNo;
         } else {
-            $this->notAllocateOrder[] = $order->reference_no;
+            $this->notAllocateOrder[] = $soNo;
         }
         $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status];
     }
@@ -155,16 +155,14 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                 try {
                     $wmsOrder = $wmsOrders[$soNo];
                     $this->allocation($order, $wmsOrder);
+                    $order->picklist_no = $wmsOrder['wms_picklist_no'];
                     $order->status = 5;
                     $order->modify_by = $this->userName;
                     $order->save();
-                    $this->allocatedOrder[$soNo] = $soNo;
+                    $this->allocatedOrder[] = $soNo;
                     \DB::connection('mysql_esg')->commit();
                 } catch (\Exception $e) {
                     \DB::connection('mysql_esg')->rollBack();
-                    if (isset($this->allocatedOrder[$soNo])) {
-                        unset($this->allocatedOrder[$soNo]);
-                    }
                     $this->allocateFailedOrder[] = $soNo;
                     $this->exceptionInfo[] = $e->getMessage(). ", Line: ".$e->getLine();
                 }
@@ -172,13 +170,25 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         }
     }
 
+    public function unsetFailedByAllocatedOrder()
+    {
+        if ($this->allocateFailedOrder) {
+            $allocatedOrders = array_flip($this->allocatedOrder);
+            $failedOrders = $this->allocateFailedOrder;
+            foreach ($failedOrders as $key => $soNo) {
+                if (isset($allocatedOrders[$soNo])) {
+                    unset($allocatedOrders[$soNo]);
+                }
+            }
+            $this->allocatedOrder =  array_values(array_flip($allocatedOrders));
+        }
+    }
+
     public function allocation($order, $wmsOrder)
     {
-        $wmsPicklistNo = $wmsOrder['wms_picklist_no'];
-        $warehouseId = $wmsOrder['warehouse_id'];
-
         $soNo = $order->so_no;
         $soItemDetail = $order->soItemDetail;
+        $warehouseId = $wmsOrder['warehouse_id'];
         foreach ($soItemDetail as $soid) {
             $itemSku = $soid->item_sku;
             $lineNo = $soid->line_no;
@@ -215,7 +225,6 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                 $soal->item_sku = $itemSku;
                 $soal->qty = $outstandingQty;
                 $soal->warehouse_id = $warehouseId;
-                $soal->picklist_no = $wmsPicklistNo;
                 $soal->status = 1;
                 $soal->create_by = $this->userName;
                 $soal->modify_by = $this->userName;
