@@ -88,6 +88,10 @@ class FulfillmentOrderRepository
         if ($request->get('dnote_invoice_status') !== NULL) {
             $query->where('dnote_invoice_status', $request->get('dnote_invoice_status'));
         }
+
+        if ($request->get('pick_list_no') !== NULL) {
+            $query->whereNotNull("pick_list_no")->where("pick_list_no", "<>", "");
+        }
         return $query;
     }
 
