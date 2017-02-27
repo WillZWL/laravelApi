@@ -13,8 +13,10 @@ use App\Models\IwmsFeedRequest;
 
 class IwmsDeliveryOrderService extends IwmsBaseCallbackService
 {
+    use \App\Services\IwmsApi\IwmsBaseService;
     public function __construct()
     {
+
     }
 
     public function deliveryOrderCreate($postMessage)
