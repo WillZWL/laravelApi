@@ -14,15 +14,26 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
 {
     use \App\Services\IwmsApi\IwmsBaseService;
 
+    private $notAllocateOrder = [];
+    private $allocateFailedOrder = [];
+    private $beforeAllocatedOrder = [];
+    private $allocatedOrder = [];
+    private $exceptionInfo = [];
+    private $notAllocateInfo = [];
     protected $prodAssembMapping = [];
-    private $notAllocate = [];
-    private $allocateFailed = [];
-    private $exceptions = [];
-    // private $allocated = [];
     private $userName = "system_allocated";
     protected $newWarehouseInventory = null;
     protected $newSoAllocation = null;
     protected $newInvMovement = null;
+    private $orderStatus = [
+        '0' => 'Inactive',
+        '1' => 'New',
+        '2' => 'Paid',
+        '3' => 'Fulfilment AKA Credit Checked',
+        '4' => 'Partial Allocated',
+        '5' => 'Full Allocated',
+        '6' => 'Shipped',
+    ];
 
     public function __construct()
     {
@@ -34,10 +45,104 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         $wmsOrders = $this->getWmsAllocationPlanData($postMessage);
         $readyOrders = $this->readyAllocateOrders($wmsOrders);
         $this->processAllocationPlan($readyOrders, $wmsOrders);
-        // return $shippedCollection;
+        $allocationResults = $this->allocationResults();
+        \Log::info($allocationResults);
+        return $allocationResults;
+    }
 
-        \Log::info($this->notAllocate);
-        \Log::info($this->exceptions);
+    public function allocationResults()
+    {
+        return [
+            'not_allocate_order'=> $this->notAllocateOrder,
+            'allocate_failed_order' => $this->allocateFailedOrder,
+            'before_allocated_order' => $this->beforeAllocatedOrder,
+            'allocated_order' => $this->allocatedOrder,
+            'exception_info' => $this->exceptionInfo,
+            'not_allocate_info'=> $this->notAllocateInfo,
+        ];
+    }
+
+    public function getWmsAllocationPlanData($postMessage)
+    {
+        if (isset($postMessage->responseMessage)) {
+            $responseMessage = $postMessage->responseMessage;
+            if (isset($responseMessage->result)
+                && $responseMessage->result == 'success'
+                && isset($responseMessage->orders)
+                && $responseMessage->orders
+            ) {
+                $wmsOrders = [];
+                $wh = [];
+                foreach ($responseMessage->orders as $order) {
+                    $orderItems = $order->items;
+                    $newItem = [];
+                    foreach ($orderItems as $item) {
+                        $newItem[$item->line_no] = [
+                            'line_no' => $item->line_no,
+                            'sku' => $item->sku,
+                            'allocated_qty' => $item->allocated_qty,
+                            'quantity' => $item->quantity,
+                        ];
+                    }
+                    $iwmsWh = $order->iwms_warehouse_code;
+                    $merchantId = $order->merchant_id;
+                    if (! isset($wh[$iwmsWh][$merchantId])) {
+                        $wh[$iwmsWh][$merchantId] = $this->getMerchantWarehouseCode($iwmsWh, $merchantId);
+                    }
+                    if (isset($wh[$iwmsWh][$merchantId])) {
+                        $wmsOrders[$order->reference_no] = [
+                            'allocation_batch_id' => $order->allocation_batch_id,
+                            'so_no' => $order->reference_no,
+                            'warehouse_id' => $wh[$iwmsWh][$merchantId],
+                            'wms_picklist_no' => $order->wms_picklist_no,
+                            'items' => $newItem,
+                        ];
+                    } else {
+                        $this->notAllocateOrder[] = $order->reference_no;
+                        $this->notAllocateInfo[] = "Order number[$soNo] iwms_warehouse[$iwmsWh] with merchant ID[$merchantId] not found available merchant warehouse ID";
+
+                    }
+
+                }
+                return $wmsOrders;
+            }
+        }
+        return false;
+    }
+
+    public function readyAllocateOrders($wmsOrders = [])
+    {
+        if ($wmsOrders) {
+            $readyOrders = [];
+            $pendingOrders = [];
+            $soNoCollection = array_keys($wmsOrders);
+            if ($soNoCollection) {
+                $orders = So::AllocateOrders($soNoCollection);
+                if (! $orders->isEmpty()) {
+                    foreach ($orders as $order) {
+                        $pendingOrders[$order->so_no] = $order;
+                    }
+                }
+            }
+            foreach ($soNoCollection as $soNo) {
+                if (isset($pendingOrders[$soNo])) {
+                    $readyOrders[$soNo] = $pendingOrders[$soNo];
+                } else {
+                    $this->checkSkippedAllocationPlan($soNo);
+                }
+            }
+            return $readyOrders;
+        }
+        return false;
+    }
+
+    public function checkSkippedAllocationPlan($soNo)
+    {
+        $so = So::where('so_no', $soNo)->first();
+        if ($so->status == 5 || $so->status == 6) {
+            $this->beforeAllocatedOrder[] = $soNo;
+        }
+        $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status];
     }
 
     public function processAllocationPlan($orders, $wmsOrders)
@@ -45,21 +150,22 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
 
         if ($orders) {
             foreach ($orders as $soNo => $order) {
-        \Log::info($soNo);
                 \DB::connection('mysql_esg')->beginTransaction();
                 try {
                     $wmsOrder = $wmsOrders[$soNo];
-        \Log::info($wmsOrder);
-
                     $this->allocation($order, $wmsOrder);
                     $order->status = 5;
                     $order->modify_by = $this->userName;
                     $order->save();
-                    $this->allocatedPlanOrder[] = $soNo;
+                    $this->allocatedOrder[$soNo] = $soNo;
                     \DB::connection('mysql_esg')->commit();
                 } catch (\Exception $e) {
                     \DB::connection('mysql_esg')->rollBack();
-                    $this->exceptions[] = $e->getMessage(). ", Line: ".$e->getLine();
+                    if (isset($this->allocatedOrder[$soNo])) {
+                        unset($this->allocatedOrder[$soNo]);
+                    }
+                    $this->allocateFailedOrder[] = $soNo;
+                    $this->exceptionInfo[] = $e->getMessage(). ", Line: ".$e->getLine();
                 }
             }
         }
@@ -134,10 +240,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                     throw new \Exception("This order[{$soNo}] line_no[$lineNo] ship_ref[$ship_ref] inv_movement already exist record");
                 }
 
-                SoItemDetail::whereSoNo($soNo)
-                    ->whereLineNo($lineNo)
-                    ->whereItemSku($soid->item_sku)
-                    ->update(['outstanding_qty' => 0, 'modify_by' => $this->userName]);
+                $this->updateAllocatedSoidOutstandingQty($soNo, $lineNo, $soid->item_sku);
             } else {
                 throw new \Exception("Order[{$soNo}] line_no[$lineNo] so_allocate[". $soAllocation->id ."] already has allocated record");
             }
@@ -153,13 +256,23 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         $whInv =Inventory::warehouseInventory($itemSku, $warehouseId);
         if ($whInv->count() == 0) {
             $newWarehouseInventory = $this->getNewWarehouseInventory();
-            $whInventory = clone $newWarehouseInventory;
-            $whInventory->prod_sku = $itemSku;
-            $whInventory->warehouse_id = $warehouseId;
-            $whInventory->inventory = 0;
-            $whInventory->git = 0;
-            $whInventory->save();
+            $inventory = clone $newWarehouseInventory;
+            $inventory->prod_sku = $itemSku;
+            $inventory->warehouse_id = $warehouseId;
+            $inventory->inventory = 0;
+            $inventory->git = 0;
+            $inventory->create_by = $this->userName;
+            $inventory->modify_by = $this->userName;
+            $inventory->save();
         }
+    }
+
+    public function updateAllocatedSoidOutstandingQty($soNo, $lineNo, $sku)
+    {
+        SoItemDetail::whereSoNo($soNo)
+            ->whereLineNo($lineNo)
+            ->whereItemSku($sku)
+            ->update(['outstanding_qty' => 0, 'modify_by' => $this->userName]);
     }
 
     public function validateAllocatedOutstandingQty($soNo)
@@ -179,79 +292,6 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         if ($soidCount <> $soAllocated->count()) {
             throw new \Exception("Order[{$soNo}] item detail count[". $soItemDetail->count() ."] <>  so allocated count[". $soAllocated->count() ."]");
         }
-    }
-
-    public function readyAllocateOrders($wmsOrders = [])
-    {
-        if ($wmsOrders) {
-            $readyOrders = [];
-            $pendingOrders = [];
-            $soNoCollection = array_keys($wmsOrders);
-            if ($soNoCollection) {
-                $orders = So::AllocateOrders($soNoCollection);
-                if (! $orders->isEmpty()) {
-                    foreach ($orders as $order) {
-                        $pendingOrders[$order->so_no] = $order;
-                    }
-                }
-            }
-            foreach ($soNoCollection as $soNo) {
-                if (isset($pendingOrders[$soNo])) {
-                    $readyOrders[$soNo] = $pendingOrders[$soNo];
-                } else {
-                    $this->notAllocate[] = "Order number[$soNo] not do allocation plan or has been allocated";
-                }
-            }
-            return $readyOrders;
-        }
-        return false;
-    }
-
-    public function getWmsAllocationPlanData($postMessage)
-    {
-        if (isset($postMessage->responseMessage)) {
-            $responseMessage = $postMessage->responseMessage;
-            if (isset($responseMessage->result)
-                && $responseMessage->result == 'success'
-                && isset($responseMessage->orders)
-                && $responseMessage->orders
-            ) {
-                $wmsOrders = [];
-                $wh = [];
-                foreach ($responseMessage->orders as $order) {
-                    $orderItems = $order->items;
-                    $newItem = [];
-                    foreach ($orderItems as $item) {
-                        $newItem[$item->line_no] = [
-                            'line_no' => $item->line_no,
-                            'sku' => $item->sku,
-                            'allocated_qty' => $item->allocated_qty,
-                            'quantity' => $item->quantity,
-                        ];
-                    }
-                    $iwmsWh = $order->iwms_warehouse_code;
-                    $merchantId = $order->merchant_id;
-                    if (! isset($wh[$iwmsWh][$merchantId])) {
-                        $wh[$iwmsWh][$merchantId] = $this->getMerchantWarehouseCode($iwmsWh, $merchantId);
-                    }
-                    if (isset($wh[$iwmsWh][$merchantId])) {
-                        $wmsOrders[$order->reference_no] = [
-                            'allocation_batch_id' => $order->allocation_batch_id,
-                            'so_no' => $order->reference_no,
-                            'warehouse_id' => $wh[$iwmsWh][$merchantId],
-                            'wms_picklist_no' => $order->wms_picklist_no,
-                            'items' => $newItem,
-                        ];
-                    } else {
-                        $this->notAllocate[] = "Order number[$soNo] iwms_warehouse[$iwmsWh] with merchant ID[$merchantId] not found available merchant warehouse ID";
-
-                    }
-
-                }
-                return $wmsOrders;
-            }
-        }
-        return false;
     }
 
     public function setProductAssemblyMapping()
