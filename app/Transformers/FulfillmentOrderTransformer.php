@@ -5,6 +5,7 @@ namespace App\Transformers;
 use App\Models\So;
 use App\Models\SoItem;
 use App\Models\ProductAssemblyMapping;
+use App\Models\CourierInfo;
 use League\Fractal\TransformerAbstract;
 use Cache;
 
@@ -44,6 +45,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'biz_type' => $order->biz_type,
             'order_create_date' => $order->order_create_date,
             'recommend_courier_id' => $order->recommend_courier_id,
+            'recommend_courier_name' => $this->getCourierNameById($order->recommend_courier_id),
             'allocation_warehouse' => $this->getAllocationWarehouse($order),
             'delivery_name' => $order->delivery_name,
             'address' => $order->delivery_address,
@@ -60,9 +62,9 @@ class FulfillmentOrderTransformer extends TransformerAbstract
         ];
     }
 
-    public function getAssemblyMapping()
+    private function getAssemblyMapping()
     {
-        Cache::get('prodAssemblyMainSkus', function() {
+        return Cache::get('prodAssemblyMainSkus', function() {
             $assemblyMappings = ProductAssemblyMapping::active()->whereIsReplaceMainSku('1')->get();
             $prodAssemblyMainSkus = [];
             if (! $assemblyMappings->isEmpty() ) {
@@ -73,8 +75,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                     ];
                 }
             }
-            Cache::add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 10);
-            return $prodAssemblyMainSkus;
+            Cache::add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 60);
         });
     }
 
@@ -86,5 +87,26 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             $warehouse = '4PX_B66';
         }
         return $warehouse;
+    }
+
+    private function getCouriers()
+    {
+        return Cache::get('couriers', function() {
+            $couriers = CourierInfo::all();
+            foreach ($couriers as $courier) {
+                $couriersArr[$courier->courier_id] = $courier->courier_name;
+            }
+            Cache::add('couriers', $couriersArr, 60*24);
+        });
+    }
+
+    private function getCourierNameById($id = '')
+    {
+        $courierName = '';
+        $couriersArr = $this->getCouriers();
+        if (array_key_exists($id, $couriersArr)) {
+            $courierName = $couriersArr[$id];
+        }
+        return $courierName;
     }
 }
