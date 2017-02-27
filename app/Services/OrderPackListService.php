@@ -69,6 +69,7 @@ class OrderPackListService
         $destinationFilePath =  \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
         $this->createFolder($destinationFilePath);
         if ($soNoList) {
+            $success = [];
             foreach ($soNoList as $soNo) {
                 $deliveryNoteFile = $originalFilePath."/delivery_note/". $soNo . '.pdf';
                 if (!file_exists($deliveryNoteFile)) {
@@ -78,10 +79,13 @@ class OrderPackListService
                 if (!file_exists($invoiceFile)) {
                     $this->regenerateCustomInvoice($soNo);
                 }
-                rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
-                rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
+                $dnoteRes = rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
+                $invoiceRes = rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
+                if ($dnoteRes && $invoiceRes) {
+                    $success[] = $soNo;
+                }
             }
-            $this->updateDnoteInvoiceStatus($soNoList);
+            $this->updateDnoteInvoiceStatus($success);
         }
 
     }
@@ -111,7 +115,9 @@ class OrderPackListService
     {
         $soObj = So::where("so_no",$soNo)->first();
         if ($soObj) {
-            $this->generateDeliveryNote($soObj);
+            return $this->generateDeliveryNote($soObj);
+        } else {
+            return false;
         }
     }
 
@@ -134,7 +140,9 @@ class OrderPackListService
     {
         $soObj = So::where("so_no",$soNo)->first();
         if ($soObj) {
-            $this->generateCustomInvoice($soObj, $courierId);
+            return $this->generateCustomInvoice($soObj, $courierId);
+        } else {
+            return false;
         }
     }
 
