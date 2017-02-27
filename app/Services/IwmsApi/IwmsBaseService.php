@@ -35,6 +35,17 @@ trait IwmsBaseService
         return null;
     }
 
+    public function getMerchantWarehouseCode($iwmsWarehouseCode, $merchantId)
+    {
+        $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("iwms_warehouse_code", $iwmsWarehouseCode)
+            ->where("merchant_id", $merchantId)
+            ->first();
+        if ($iwmsMerchantWarehouseMapping) {
+            return $iwmsMerchantWarehouseMapping->merchant_warehouse_id;
+        }
+        return null;
+    }
+
     public function getIwmsCourierCode($courierId,$merchantId)
     {
         $iwmsMerchantCourierMapping = IwmsMerchantCourierMapping::where("merchant_courier_id",$courierId)

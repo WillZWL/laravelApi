@@ -28,4 +28,12 @@ class Inventory extends Model
                 ->where('inventory', '>', 0)
                 ->get(['prod_sku', 'inventory']);
     }
+
+
+    public function scopeWarehouseInventory($query, $sku, $warehouseId)
+    {
+        return $query->where("prod_sku", $sku)
+            ->where('warehouse_id', $warehouseId)
+            ->first();
+    }
 }

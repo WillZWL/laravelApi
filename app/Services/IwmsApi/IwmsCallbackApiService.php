@@ -70,11 +70,11 @@ class IwmsCallbackApiService
             case 'cancelCourierOrder':
                 return $this->getCallBackCourierOrderService()->cancelCourierOrder($postMessage);
                 break;
-            case 'createAllocatedOrder':
-                return $this->getCallBackAllocatedOrderService()->createAllocatedOrder($postMessage);
+            case 'allocationPlan':
+                return $this->getCallBackAllocatedOrderService()->allocationPlan($postMessage);
                 break;
-            case 'cancelAllocatedOrder':
-                return $this->getCallBackAllocatedOrderService()->cancelAllocatedOrder($postMessage);
+            case 'voidAllocated':
+                return $this->getCallBackAllocatedOrderService()->voidAllocated($postMessage);
                 break;
             default:
                 break;
