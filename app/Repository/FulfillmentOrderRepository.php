@@ -46,8 +46,9 @@ class FulfillmentOrderRepository
                     break;
                 case 'allocated':
                     $query->whereIn('status', [4, 5]);
+                    break;
                 case 'dispatch':
-                    $query->where('status', [4, 5]);
+                    $query->whereIn('status', [4, 5]);
                     break;
                 default:
                     $query->where('status', 3);
