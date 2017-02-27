@@ -38,19 +38,20 @@ class FulfillmentOrderRepository
     {
         $status = $request->get('status');
         if (in_array($status, [1, 2, 3, 4, 5, 6])) {
-            $query->where('status', $status);
+            $query->where('so.status', $status);
         } else {
             switch ($status) {
                 case 'paied':
-                    $query->where('status', 3);
+                    $query->where('so.status', 3);
                     break;
                 case 'allocated':
-                    $query->whereIn('status', [4, 5]);
+                    $query->whereIn('so.status', [4, 5]);
+                    break;
                 case 'dispatch':
-                    $query->where('status', [4, 5]);
+                    $query->whereIn('so.status', [4, 5]);
                     break;
                 default:
-                    $query->where('status', 3);
+                    $query->where('so.status', 3);
                     break;
             }
         }
@@ -81,7 +82,8 @@ class FulfillmentOrderRepository
         }
 
         if ($request->get('merchantId') !== NULL && $request->get('merchantId') !== '') {
-            $query->where('platform_id', 'like', '%'.$request->get('merchantId').'%');
+            $query->leftJoin('selling_platform AS sp', 'sp.id', '=', 'so.platform_id');
+            $query->where('sp.merchant_id', $request->get('merchantId'));
         }
 
         if ($request->get('courierId') !== NULL && $request->get('courierId') !== '') {
