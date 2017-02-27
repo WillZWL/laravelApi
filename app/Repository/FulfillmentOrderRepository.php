@@ -80,11 +80,11 @@ class FulfillmentOrderRepository
             }
         }
 
-        if ($request->get('merchantId') !== '') {
+        if ($request->get('merchantId') !== NULL && $request->get('merchantId') !== '') {
             $query->where('platform_id', 'like', '%'.$request->get('merchantId').'%');
         }
 
-        if ($request->get('courierId') !== '') {
+        if ($request->get('courierId') !== NULL && $request->get('courierId') !== '') {
             $query->where('esg_quotation_courier_id', $request->get('courierId'));
         }
 
