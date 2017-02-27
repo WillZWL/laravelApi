@@ -63,13 +63,13 @@ class OrderPackListService
         }
     }
 
-    public function moveSuccessOrder($pickListNo, $soList)
+    public function moveSuccessOrder($pickListNo, $soNoList)
     {
         $originalFilePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix()."tmp";
         $destinationFilePath =  \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
         $this->createFolder($destinationFilePath);
-        if ($soList) {
-            foreach ($soList as $soNo) {
+        if ($soNoList) {
+            foreach ($soNoList as $soNo) {
                 $deliveryNoteFile = $originalFilePath."/delivery_note/". $soNo . '.pdf';
                 if (!file_exists($deliveryNoteFile)) {
                     $this->regenerateDeliveryNote($soNo);
@@ -81,6 +81,7 @@ class OrderPackListService
                 rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
                 rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
             }
+            $this->updateDnoteInvoiceStatus($soNoList);
         }
 
     }
@@ -100,7 +101,8 @@ class OrderPackListService
         $request->merge(
             ['per_page' => $this->per_page,
              'page' => $page,
-             'dnote_invoice_status' => 0
+             'dnote_invoice_status' => 0,
+             'status' => 5
             ]);
         return $this->orderRepository->getOrders($request);
     }
