@@ -45,7 +45,7 @@ class IwmsCourierOrderController extends Controller
     {
         $data["courierList"] = $this->iwmsFactoryWmsService->getCourierMappingList($this->wmsPlatform);
         $data["currentCourier"] = $request->input("courier");
-        $data["courierOrderList"] = $this->iwmsFactoryWmsService->getIwmsCourierOrderLogList(20);
+        $courierOrderList = $this->iwmsFactoryWmsService->getIwmsCourierOrderLogList(20);
         return response()->view('iwms.courier.edit', $data);
     }
 
@@ -71,15 +71,16 @@ class IwmsCourierOrderController extends Controller
 
     public function donwloadLabel($pickListNo, $documentType, Request $request)
     {
-        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/".$documentType."/";
         $soNo = $request->input("so_no");
-        return response()->download($filePath.$soNo.".pdf"); 
+        if(!empty($soNo)){
+            //$pickListNo = $this->iwmsFactoryWmsService->getSoAllocatePickListNo($soNo);
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/".$documentType."/"; 
+            return response()->download($filePath.$soNo.".pdf"); 
+        }
     }
 
-    public function donwloadPickListLabel($documentType, Request $request)
+    public function donwloadPickListLabel($pickListNo, $documentType, Request $request)
     {
-        $pickListNo = "picklist-no";
-        //$pickListNo = $request->input("picklist-no");
         $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/".$documentType."/";
         $zipFileName = $filePath.$pickListNo.".zip";
         if(!file_exists($zipFileName)) {
@@ -89,9 +90,4 @@ class IwmsCourierOrderController extends Controller
         return response()->download($zipFileName); 
     }
 
-    private function initIwmsService(Request $request)
-    {
-        
-        
-    }
 }

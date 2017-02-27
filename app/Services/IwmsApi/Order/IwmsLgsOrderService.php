@@ -18,7 +18,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         $this->wmsPlatform = $wmsPlatform;
     }
 
-    public function setLgsOrderStatus($esgOrderNoList)
+    public function setLgsOrderStatus()
     {
         $esgOrders = $this->getReadyToShipLgsOrder(2);
         $this->setLgsOrderStatusAndGetTracking($esgOrderNoList);
@@ -97,14 +97,18 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function getReadyToShipLgsOrder($limit = null, $pageNum = null)
     {
-        $esgOrderQuery = So::where("status",3)
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList();
+        $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
-            ->whereIn("esg_quotation_courier_id", $this->courierList)
+            ->whereIn("esg_quotation_courier_id", $courierIdList)
             ->where("waybill_status", 0)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
+            })
+            ->whereHas('soAllocate', function ($query) {
+                $query->whereNotNull('picklist_no');
             })
             ->with("iwmsLgsOrderStatusLog");
         if(!empty($limit)){
@@ -120,11 +124,12 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function getReadyToGetDocumentLgsOrder()
     {
-        $esgOrderQuery = So::where("status",3)
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList();
+        $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
-            ->whereIn("esg_quotation_courier_id", $this->courierList)
+            ->whereIn("esg_quotation_courier_id", $courierIdList)
             ->where("waybill_status", 0)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
@@ -154,7 +159,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         $doucmentTypeArr = [
             "invoice" => "invoice",
-            "Manifest" => "carrierManifest",
+            "manifest" => "carrierManifest",
             "AWB" => "shippingLabel"
             ];
         $storeName = $esgOrder->platformMarketOrder->platform;
@@ -182,9 +187,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     private function saveWaybillToPickListFolder($soNo, $folderName, $label)
     {
-        $pickListNo = "picklist-no";
-        $filePath = getLgsOrderPickListFilePath($pickListNo, $folderName);
         if(!empty($soNo) && !empty($label)){
+            $pickListNo = $this->getSoAllocatePickListNo($soNo);
+            $filePath = getLgsOrderPickListFilePath($pickListNo, $folderName);
             $file = $filePath.$value->merchant_order_id.'.pdf';
             file_put_contents($file, $label);
         }

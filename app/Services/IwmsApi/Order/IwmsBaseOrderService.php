@@ -73,6 +73,12 @@ class IwmsBaseOrderService
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
             );
             $creationOrderObject["item"][] = $creationOrderItem;
+            if($esgOrderItem->product->battery == 2){
+                $isBattery = 1;
+            }
+        }
+        if($isBattery){
+            $creationOrderObject["battery"] = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
         return $creationOrderObject;

@@ -4,6 +4,7 @@ namespace App\Services\IwmsApi;
 
 use App\Models\IwmsMerchantWarehouseMapping;
 use App\Models\IwmsMerchantCourierMapping;
+use App\Models\SoAllocate;
 use App;
 use Excel;
 
@@ -11,6 +12,8 @@ trait IwmsBaseService
 {
     private $iwmStatus = array("Success" => "1","Failed" => "2");
     private $token = "iwms-esg";
+    private $awbLabelCourierList = null;
+    private $invoiceLabelCourierList = null;
 
     public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {
@@ -85,17 +88,58 @@ trait IwmsBaseService
         return $iwmsCallbackApiService->valid();
     }
 
-    public function createExcelFile($fileName, $orderPath, $cellData)
+    public function getSoAllocatePickListNo($esgOrderNo)
     {
-        //Excel文件导出功能
-        $excelFile = Excel::create($fileName, function ($excel) use ($cellData) {
-            $excel->sheet('sheet1', function ($sheet) use ($cellData) {
-                $sheet->rows($cellData);
-            });
-        })->store("xlsx",$orderPath);
-        if($excelFile){
-            return true;
+        $soAllocation = SoAllocate::where("so_no", $esgOrderNo)
+                    ->first();
+        if(!empty($soAllocation)){
+            return $soAllocation->picklist_no;
         }
+    }
+
+    public function getEsgOrderAwbLabelUrl($picklistNo, $soNo)
+    {
+        $url = "order/.$picklistNo./AWB?so_no=".$soNo;
+        return url($url);
+    }
+
+    public function getEsgOrderInvoiceLabelUrl($picklistNo, $soNo)
+    {
+        $url = "order/.$picklistNo./invoice?so_no=".$soNo;
+        return url($url);
+    }
+
+    public function getPostAwbLabelToIwmsCourierList()
+    {
+        if(empty($this->awbLabelCourierList)){
+            $this->awbLabelCourierList = IwmsMerchantCourierMapping::where("wms_platform","4px")
+                    ->whereIn("iwms_courier_code", ["4PX-DHL","4PX-PL-LGS"])
+                    ->where("merchant_id", "ESG")
+                    ->pluck("merchant_courier_id")
+                    ->all();
+        }
+        return $this->awbLabelCourierList;
+    }
+
+    public function getPostInvoiceLabelToIwmsCourierList()
+    {
+        if(empty($this->invoiceLabelCourierList)){
+            $this->invoiceLabelCourierList = IwmsMerchantCourierMapping::where("wms_platform", "4px")
+                    ->whereIn("iwms_courier_code", ["4PX-DHL","4PX-PL-LGS"])
+                    ->where("merchant_id", "ESG")
+                    ->pluck("merchant_courier_id")
+                    ->all();
+        }
+        return $this->invoiceLabelCourierList;
+    }
+
+    public function getLgsOrderMerchantCourierIdList()
+    {
+        return IwmsMerchantCourierMapping::where("wms_platform","4px")
+                    ->whereIn("iwms_courier_code", ["4PX-PL-LGS"])
+                    ->where("merchant_id", "ESG")
+                    ->pluck("merchant_courier_id")
+                    ->all();
     }
 
     public function sendAttachmentMail($alertEmail,$subject,$attachment, $cc = "")

@@ -53,16 +53,9 @@ class IwmsCreateDeliveryOrderService
                 $trackingNo = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     $warehouseId = $soAllocate->warehouse_id;
+                    $picklistNo = $soAllocate->picklist_no;
                 }
-                $iwmsCourierCode = $this->getIwmsCourierCode($esgOrder->esg_quotation_courier_id,$merchantId);
-                if(!empty($esgOrder->txn_id) && in_array( $iwmsCourierCode, $this->lgsCourier)){
-                    $iwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId);
-                    if(!empty($iwmsLgsOrderStatusLog)) {
-                        $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId, $iwmsLgsOrderStatusLog->tracking_no);
-                    }
-                }else{
-                    $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId);
-                }
+                $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId, $picklistNo);
             }
             if(!empty($this->message)){
                 $this->sendAlertEmail($this->message);
@@ -94,9 +87,9 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function deliveryOrderCreationRequest($batchId , $esgOrder, $warehouseId, $trackingNo = null)
+    private function deliveryOrderCreationRequest($batchId , $esgOrder, $warehouseId, $picklistNo = null)
     {
-        $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder, $warehouseId, $trackingNo);
+        $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder, $warehouseId, $picklistNo);
         if ($deliveryCreationRequest) {
             $this->_saveIwmsDeliveryOrderRequestData($batchId,$deliveryCreationRequest);
         }
@@ -136,7 +129,7 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function getDeliveryCreationObject($esgOrder, $warehouseId, $trackingNo = null)
+    private function getDeliveryCreationObject($esgOrder, $warehouseId, $picklistNo = null)
     {
         $merchantId = "ESG"; 
         $courierId = $esgOrder->esg_quotation_courier_id;
@@ -190,6 +183,12 @@ class IwmsCreateDeliveryOrderService
             "extra_instruction" => $extra_instruction,
             //"doorplate" => $esgOrder->doorplate,
         );
+        if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
+            $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($picklistNo);
+        }
+        if($this->validInvoiceCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
+            $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($picklistNo);
+        }
         foreach ($esgOrder->soItem as $esgOrderItem) {
             $hscode = null; $hsDescription = null;
             if($esgOrderItem->hscodeCategory){
@@ -209,6 +208,10 @@ class IwmsCreateDeliveryOrderService
             );
             $deliveryOrderObj["item"][] = $deliveryOrderItem;
         }
+        /*if($isBattery){
+            $deliveryOrderObj["battery"] = 1;
+            $deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl();
+        }*/
         return $deliveryOrderObj;
     }
 
@@ -235,8 +238,8 @@ class IwmsCreateDeliveryOrderService
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {
-        $this->fromData = date("Y-m-d 00:00:00");
-        //$this->fromData = date("2017-01-21 00:00:00");
+        //$this->fromData = date("Y-m-d 00:00:00");
+        $this->fromData = date("2017-01-21 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         $esgOrders = So::where("status",5)
@@ -244,6 +247,7 @@ class IwmsCreateDeliveryOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereNotNull("esg_quotation_courier_id")
+            //->where("picklist_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
@@ -285,28 +289,58 @@ class IwmsCreateDeliveryOrderService
                     if($esgOrder->delivery_country_id == "HK"){
                       $esgOrder->delivery_postcode = "00000";
                     }else{
-                        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                        $subject = "OMS create order failed.";
-                        $msg = "Order ID".$esgOrder->so_no." postal is null";
-                        mail("privatelabel-log@eservicesgroup.com,  jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+                        $errorPostCode[] =  $esgOrder->so_no;
                         continue;
                     }
                 }
-                $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
-                        ->where("status", 1)
-                        ->first();
-                if(empty($requestOrderLog)){
-                    $repeatRequestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
-                        ->whereIn("status", array("0","-1"))
-                        ->where("repeat_request", "!=", 1)
-                        ->first();
-                    if(empty($repeatRequestOrderLog)){
-                        $validEsgOrders[] = $esgOrder;
-                    }
+                $validAwbLable = $this->validEsgOrderAwbLableStatus($esgOrder);
+                if(!$validAwbLable){
+                    continue;
                 }
+                $repeatResult = $this->validRepeatRequestDeliveryOrder($esgOrder);
+                if($repeatResult){
+                    $validEsgOrders[] = $esgOrder;
+                }
+            }
+            if(isset($errorPostCode) && $errorPostCode){
+                $msg = null;
+                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                $subject = "OMS create order failed.";
+                foreach ($errorPostCodes as $errorPostCode) {
+                    $msg .= "Order ID".$errorPostCode["so_no"]." postal is null";
+                }
+                mail("privatelabel-log@eservicesgroup.com,  jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
             }
         }
         return $validEsgOrders;
+    }
+
+    private function validEsgOrderAwbLableStatus($esgOrder)
+    {
+        $awbCourierList = $this->getPostAwbLabelToIwmsCourierList();
+        if(in_array($esgOrder->esg_quotation_courier_id, $awbCourierList)){
+            if($esgOrder->waybill_status == 2){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return true;
+        }
+    }
+
+    private function validRepeatRequestDeliveryOrder($esgOrder)
+    {
+        $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
+                        ->where("status", 1)
+                        ->orWhere(function ($query) {
+                            $query->whereIn("status", array("0","-1"))
+                                  ->where("repeat_request", "!=", 1);    
+                            })
+                        ->first();
+        if(empty($requestOrderLog)){
+            return true;
+        }
     }
 
     public function getDeliveryOrderReportRequest($warehouseIds)
@@ -375,47 +409,20 @@ class IwmsCreateDeliveryOrderService
         $this->message['so_no'][] = $so_no;
     }
 
-    public function setIwmsLgsOrderStatusToShip($esgOrder, $merchantId, $warehouseId)
+    private function validAwbCourierLabelUrl($merchantCourierId)
     {
-        $result = null;
-        $iwmsLgsOrderStatusLog = IwmsLgsOrderStatusLog::where("platform_order_no",$esgOrder->platform_order_id)
-                        ->first();
-        if(empty($iwmsLgsOrderStatusLog)) {
-            $result = $this->getApiLazadaService()->iwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId);
-            if(isset($result["tracking_no"]) && $result["tracking_no"]){
-                $object['iwms_platform'] = $this->wmsPlatform;
-                $object['esg_courier_id'] = $esgOrder->esg_quotation_courier_id;
-                $object['so_no'] = $esgOrder->so_no;
-                $object['platform_order_no'] = $esgOrder->platform_order_id;
-                $object['tracking_no'] = $result["tracking_no"];
-                if(isset($result["valid"]) && $result["valid"]){
-                    $object['status'] = 1;  
-                }
-                return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object); 
-            }else{
-                $subject = "LGS order get trackingNo failed.";
-                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                $msg = "Order ID: ".$esgOrder->so_no." can not get trackingNO.\r\n";
-                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
-            }
-        } else {
-            if($iwmsLgsOrderStatusLog->status != 1){
-               $result = $this->getApiLazadaService()->iwmsSetLgsOrderReadyToShip($esgOrder, $warehouseId, false);
-                if(isset($result["valid"]) && $result["valid"]){
-                    $iwmsLgsOrderStatusLog->status = 1;
-                    $iwmsLgsOrderStatusLog->save();
-                }
-            }
-            return $iwmsLgsOrderStatusLog;
+        $awbLabelToIwmsCourierList = $this->getPostAwbLabelToIwmsCourierList()
+        if(in_array($merchantCourierId, $awbLabelToIwmsCourierList)){
+            return true;
         }
     }
 
-    public function getApiLazadaService()
+    private function validInvoiceCourierLabelUrl($merchantCourierId)
     {
-        if ($this->apiLazadaService == null) {
-            $this->apiLazadaService = App::make("App\Services\ApiLazadaService");
+        $invoiceLabelToIwmsCourierList = $this->getPostInvoiceLabelToIwmsCourierList()
+        if(in_array($merchantCourierId, $invoiceLabelToIwmsCourierList)){
+            return true;
         }
-        return $this->apiLazadaService;
     }
 
 }
