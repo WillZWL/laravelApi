@@ -53,12 +53,12 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
     public function allocationResults()
     {
         return [
-            'not_allocate_order'=> $this->notAllocateOrder,
-            'allocate_failed_order' => $this->allocateFailedOrder,
-            'before_allocated_order' => $this->beforeAllocatedOrder,
-            'allocated_order' => $this->allocatedOrder,
-            'exception_info' => $this->exceptionInfo,
-            'not_allocate_info'=> $this->notAllocateInfo,
+            'notAllocateOrder'=> $this->notAllocateOrder,
+            'allocateFailedOrder' => $this->allocateFailedOrder,
+            'beforeAllocatedOrder' => $this->beforeAllocatedOrder,
+            'allocatedOrder' => $this->allocatedOrder,
+            'exceptionInfo' => $this->exceptionInfo,
+            'notAllocateInfo'=> $this->notAllocateInfo,
         ];
     }
 
@@ -141,13 +141,14 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         $so = So::where('so_no', $soNo)->first();
         if ($so->status == 5 || $so->status == 6) {
             $this->beforeAllocatedOrder[] = $soNo;
+        } else {
+            $this->notAllocateOrder[] = $order->reference_no;
         }
         $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status];
     }
 
     public function processAllocationPlan($orders, $wmsOrders)
     {
-
         if ($orders) {
             foreach ($orders as $soNo => $order) {
                 \DB::connection('mysql_esg')->beginTransaction();
