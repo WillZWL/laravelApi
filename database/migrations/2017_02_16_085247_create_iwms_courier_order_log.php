@@ -23,7 +23,7 @@ class CreateIwmsCourierOrderLog extends Migration
             $table->string('wms_order_code',60)->nullable();
             $table->string('iwms_warehouse_code',60)->nullable();
             $table->string('marketplace_platform_id',60);
-            $table->integer('iwms_courier_code');
+            $table->string('iwms_courier_code',60);
             $table->string('platform_order_id',60);
             $table->string('tracking_no',60)->nullable();
             $table->string('store_name',60)->nullable();
