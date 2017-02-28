@@ -292,7 +292,7 @@ class IwmsCreateDeliveryOrderService
                     if($esgOrder->delivery_country_id == "HK"){
                       $esgOrder->delivery_postcode = "00000";
                     }else{
-                        $errorPostCode[] =  $esgOrder->so_no;
+                        $errorPostCodes[] =  $esgOrder->so_no;
                         continue;
                     }
                 }
@@ -305,7 +305,7 @@ class IwmsCreateDeliveryOrderService
                     $validEsgOrders[] = $esgOrder;
                 }
             }
-            if(isset($errorPostCode) && $errorPostCode){
+            if(isset($errorPostCodes) && $errorPostCodes){
                 $msg = null;
                 $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
                 $subject = "OMS create order failed.";
