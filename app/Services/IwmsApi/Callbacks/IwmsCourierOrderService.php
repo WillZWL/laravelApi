@@ -60,7 +60,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         }
         if(!empty($soNoList)){
             So::whereIn("so_no", $soNoList)
-            ->update(array("waybill_status", $waybillStatus));
+            ->update(array("waybill_status" => $waybillStatus));
         }
     }
 
@@ -93,7 +93,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
             if(!empty($value->merchant_order_id)){
                 IwmsCourierOrderLog::where("reference_no",$value->merchant_order_id)
                 ->where("batch_id",$batchId)
-                ->update(array("status" => 1)); 
+                ->update(array("status" => 1, "wms_order_code" => $value->courier_order_code));
             }
         }    
     }

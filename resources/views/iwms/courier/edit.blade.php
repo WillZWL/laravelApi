@@ -55,13 +55,13 @@
                                 <td>{{ $courierOrder->iwms_courier_code }}</td>
                                 <td>{{ $courierOrder->platform_order_id }}</td>
                                 <td>
-                                    <a href="/order/{{ $courierOrder->picklist_no }}/AWB?so_no={{ $courierOrder->reference_no }}">downloand</a>
+                                    <a href="/order/{{ $courierOrder->so->pick_list_no }}/AWB?so_no={{ $courierOrder->reference_no }}">downloand</a>
                                 </td>
                                 <td>
-                                    <a href="/order/{{ $courierOrder->picklist_no }}/invoice?so_no={{ $courierOrder->reference_no }}">downloand</a>
+                                    <a href="/order/{{ $courierOrder->so->pick_list_no }}/invoice?so_no={{ $courierOrder->reference_no }}">downloand</a>
                                 </td>
                                 <td>
-                                    <a href="/order/{{ $courierOrder->picklist_no }}/dnote?so_no={{ $courierOrder->reference_no }} ">downloand</a>
+                                    <a href="/order/{{ $courierOrder->so->pick_list_no }}/dnote?so_no={{ $courierOrder->reference_no }} ">downloand</a>
                                 </td>
                                 <td>{{ $courierOrder->tracking_no }}</td>
                                 <td><input type="checkbox" name="so_no[]" value="{{$courierOrder->so_no}}"></td>
@@ -74,12 +74,6 @@
                 {{ $courierOrderList->links() }} 
             @endif
             <div>
-                <input type="button" value="AWB Label" class="btn btn-primary"  onclick="
-                document.fm_edit.action = '/iwms/courier-order/download-picklist/AWB';document.fm_edit.submit();"/>
-                <input type="button" value="Custom Invoice" class="btn btn-primary"  onclick="
-                document.fm_edit.action = '/iwms/courier-order/download-picklist/invoice';document.fm_edit.submit();"/>
-                <input type="button" value="Delivery Note" class="btn btn-primary"  onclick="
-                document.fm_edit.action = '/iwms/courier-order/download-picklist/dnote';document.fm_edit.submit();"/>
                 <input type="button" value="Cancel Order" class="btn btn-primary"  onclick="document.fm_edit.action = '/iwms/courier-order/cancel';document.fm_edit.submit();"/>
             </div>
         </form>

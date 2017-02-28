@@ -45,7 +45,7 @@ class IwmsCourierOrderController extends Controller
     {
         $data["courierList"] = $this->iwmsFactoryWmsService->getCourierMappingList($this->wmsPlatform);
         $data["currentCourier"] = $request->input("courier");
-        $courierOrderList = $this->iwmsFactoryWmsService->getIwmsCourierOrderLogList(20);
+        $data["courierOrderList"] = $this->iwmsFactoryWmsService->getIwmsCourierOrderLogList(20);
         return response()->view('iwms.courier.edit', $data);
     }
 
