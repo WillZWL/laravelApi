@@ -103,7 +103,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
     public function getOrders(Request $request)
     {
         $request->merge(
-            ['per_page' => 10,
+            ['per_page' => 10000,
              'into_iwms_status' => 0
             ]);
         return $this->orderRepository->getOrders($request);
