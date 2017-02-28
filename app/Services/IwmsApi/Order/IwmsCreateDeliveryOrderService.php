@@ -258,12 +258,12 @@ class IwmsCreateDeliveryOrderService
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
-            /*->whereHas('soAllocate', function ($query) {
+            ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
                     ->where("status", 1)
                     ->where("modify_on", ">=", $this->fromData)
                     ->where("modify_on", "<=", $this->toDate);
-            })*/
+            })
             ->with("client")
             ->with("soItem")
             ->limit(100)
