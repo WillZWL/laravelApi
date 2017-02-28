@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use App\Console\Commands\GenerateCourierFeed;
+use Illuminate\Console\Command;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -46,7 +48,8 @@ class Kernel extends ConsoleKernel
         Commands\SkuCreatedAlert::class,
         Commands\SkuListingAlert::class,
         Commands\OrderPackList::class,
-        Commands\IwmsLgsOrder::class
+        Commands\IwmsLgsOrder::class,
+        Commands\GenerateCourierFeed::class,
     ];
 
     /**
