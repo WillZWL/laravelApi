@@ -174,7 +174,6 @@ class AllocationPlanService
     {
         if ($orders) {
             foreach ($orders as $soNo => $order) {
-                \DB::beginTransaction();
                 \DB::connection('mysql_esg')->beginTransaction();
                 try {
                     $this->allocation($order, $warehouseId);
@@ -183,10 +182,8 @@ class AllocationPlanService
                     $order->save();
                     $this->allocatedPlanOrder[] = $soNo;
                     \DB::connection('mysql_esg')->commit();
-                    \DB::commit();
                 } catch (\Exception $e) {
                     \DB::connection('mysql_esg')->rollBack();
-                    \DB::rollBack();
                     $this->exceptionMessages[] = $e->getMessage(). ", Line: ".$e->getLine();
                 }
             }

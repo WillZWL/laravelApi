@@ -56,9 +56,11 @@ class IwmsBaseOrderService
             if($esgOrderItem->hscodeCategory){
                 $hscode = $esgOrderItem->hscodeCategory->general_hscode;
                 $hsDescription = $esgOrderItem->hscodeCategory->description;
-                $commodityCode = $esgOrderItem->hsdutyCountry->optimized_hscode;
                 $commodityName = $esgOrderItem->hscodeCategory->name;
                 $hscodeCategoryName[] = $esgOrderItem->hscodeCategory->name;
+            }
+            if($esgOrderItem->hsdutyCountry){
+                $commodityCode = $esgOrderItem->hsdutyCountry->optimized_hscode;
             }
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
@@ -77,7 +79,7 @@ class IwmsBaseOrderService
                 $isBattery = 1;
             }
         }
-        if($isBattery){
+        if(isset($isBattery) && $isBattery){
             $creationOrderObject["battery"] = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
