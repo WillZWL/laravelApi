@@ -15,7 +15,7 @@ class AlertIwmsOrderTableLog extends Migration
         //
         Schema::table('iwms_courier_order_logs', function (Blueprint $table) {
             $table->string("battery",2)->default(0)->after('store_name');
-            $table->string("picklist_no", 15)->nullable()->after('response_message');
+            $table->string("pick_list_no", 15)->nullable()->after('response_message');
         });
         Schema::table('iwms_delivery_order_logs', function (Blueprint $table) {
             $table->string("battery",2)->default(0)->after('store_name');
@@ -31,7 +31,7 @@ class AlertIwmsOrderTableLog extends Migration
     {
         //
         Schema::table('iwms_courier_order_logs', function (Blueprint $table) {
-            $table->dropColumn('picklist_no');
+            $table->dropColumn('pick_list_no');
             $table->dropColumn('battery');
         });
         Schema::table('iwms_delivery_order_logs', function (Blueprint $table) {

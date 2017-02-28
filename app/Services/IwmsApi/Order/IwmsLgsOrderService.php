@@ -104,11 +104,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
             ->where("prepay_hold_status", "0")
             ->whereIn("esg_quotation_courier_id", $courierIdList)
             ->where("waybill_status", 0)
+            ->whereNotNull('pick_list_no')
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
-            })
-            ->whereHas('soAllocate', function ($query) {
-                $query->whereNotNull('picklist_no');
             })
             ->with("iwmsLgsOrderStatusLog");
         if(!empty($limit)){
@@ -177,7 +175,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 if($doucmentType == "invoice"){
                     $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
                 }
-                $this->saveWaybillToPickListFolder($esgOrder->so_no, $doucmentType, $fileHtml);
+                $this->saveWaybillToPickListFolder($esgOrder, $doucmentType, $fileHtml);
             }else{
                 return null;
             }
@@ -185,12 +183,12 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         return true;
     }
 
-    private function saveWaybillToPickListFolder($soNo, $folderName, $label)
+    private function saveWaybillToPickListFolder($esgOrder, $folderName, $label)
     {
-        if(!empty($soNo) && !empty($label)){
-            $pickListNo = $this->getSoAllocatePickListNo($soNo);
-            $filePath = getLgsOrderPickListFilePath($pickListNo, $folderName);
-            $file = $filePath.$value->merchant_order_id.'.pdf';
+        if(!empty($esgOrder) && !empty($label)){
+            //$pickListNo = $this->getSoAllocatedPickListNo($soNo);
+            $filePath = getLgsOrderPickListFilePath($esgOrder->pick_list_no, $folderName);
+            $file = $filePath.$esgOrder->so_no.'.pdf';
             file_put_contents($file, $label);
         }
     }
