@@ -97,7 +97,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function getReadyToShipLgsOrder($limit = null, $pageNum = null)
     {
-        $courierIdList = $this->getLgsOrderMerchantCourierIdList();
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
         $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
@@ -122,7 +122,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function getReadyToGetDocumentLgsOrder()
     {
-        $courierIdList = $this->getLgsOrderMerchantCourierIdList();
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
         $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")

@@ -133,9 +133,9 @@ trait IwmsBaseService
         return $this->invoiceLabelCourierList;
     }
 
-    public function getLgsOrderMerchantCourierIdList()
+    public function getLgsOrderMerchantCourierIdList($wmsPlatform)
     {
-        return IwmsMerchantCourierMapping::where("wms_platform","4px")
+        return IwmsMerchantCourierMapping::where("wms_platform", $wmsPlatform)
                     ->whereIn("iwms_courier_code", ["4PX-PL-LGS"])
                     ->where("merchant_id", "ESG")
                     ->pluck("merchant_courier_id")

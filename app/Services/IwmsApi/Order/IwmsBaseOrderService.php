@@ -79,8 +79,8 @@ class IwmsBaseOrderService
                 $isBattery = 1;
             }
         }
-        if(isset($isBattery) && $isBattery){
-            $creationOrderObject["battery"] = 1;
+        if(in_array($esgOrderItem->product->battery, [1, 2])){
+            $isBattery = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
         return $creationOrderObject;
