@@ -18,7 +18,7 @@ class IwmsCreateDeliveryOrderService
     private $message = null;
     private $wmsPlatform = null;
     private $apiLazadaService = null;
-    private $lgsCourier = array("4PX-PL-LGS"); 
+    private $lgsCourier = array("4PX-PL-LGS");
     private $excludeMerchant = array("PREPD");
 
     use \App\Services\IwmsApi\IwmsBaseService;
@@ -46,7 +46,7 @@ class IwmsCreateDeliveryOrderService
 
     public function getDeliveryCreationRequestBatch($esgOrders)
     {
-        $esgAllocateOrder = null; $merchantId = "ESG"; 
+        $esgAllocateOrder = null; $merchantId = "ESG";
         if(!$esgOrders->isEmpty()){
             $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
             foreach ($esgOrders as $esgOrder) {
@@ -131,7 +131,7 @@ class IwmsCreateDeliveryOrderService
 
     private function getDeliveryCreationObject($esgOrder, $warehouseId, $picklistNo = null)
     {
-        $merchantId = "ESG"; 
+        $merchantId = "ESG";
         $courierId = $esgOrder->esg_quotation_courier_id;
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
         $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
@@ -147,7 +147,7 @@ class IwmsCreateDeliveryOrderService
             return false;
         }
         //send remark for depx and fedx for 4px
-        $extra_instruction = ""; 
+        $extra_instruction = "";
         if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
             $extra_instruction = $esgOrder->courierInfo->courier_name;
         }
@@ -157,7 +157,7 @@ class IwmsCreateDeliveryOrderService
         }else{
             $address = $esgOrder->delivery_address;
         }
-        $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode); 
+        $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $iwmsWarehouseCode,
@@ -234,7 +234,7 @@ class IwmsCreateDeliveryOrderService
         $iwmsDeliveryOrderLog->repeat_request = "0";
         $iwmsDeliveryOrderLog->save();
         return $iwmsDeliveryOrderLog;
-    } 
+    }
 
     public function getEsgAllocateOrders($warehouseToIwms)
     {
@@ -335,7 +335,7 @@ class IwmsCreateDeliveryOrderService
                         ->where("status", 1)
                         ->orWhere(function ($query) {
                             $query->whereIn("status", array("0","-1"))
-                                  ->where("repeat_request", "!=", 1);    
+                                  ->where("repeat_request", "!=", 1);
                             })
                         ->first();
         if(empty($requestOrderLog)){
@@ -370,7 +370,7 @@ class IwmsCreateDeliveryOrderService
         if ($soPhone ) {
             $phone = $soPhone;
         } else if ($clientPhone) {
-            $phone = $clientPhone;  
+            $phone = $clientPhone;
         }
         return $phone;
     }
@@ -380,7 +380,7 @@ class IwmsCreateDeliveryOrderService
         if (! isset($this->message['warehouse'])) {
             $this->message['warehouse'] = [];
         }
-        if (isset($this->message['warehouse']) 
+        if (isset($this->message['warehouse'])
             && ! isset($this->message['warehouse'][$merchantId])
         ) {
             $this->message['warehouse'][$merchantId] = [];
@@ -393,7 +393,7 @@ class IwmsCreateDeliveryOrderService
         if (! isset($this->message['courier'])) {
             $this->message['courier'] = [];
         }
-        if (isset($this->message['courier']) 
+        if (isset($this->message['courier'])
             && ! isset($this->message['courier'][$merchantId])
         ) {
             $this->message['courier'][$merchantId] = [];
@@ -411,7 +411,7 @@ class IwmsCreateDeliveryOrderService
 
     private function validAwbCourierLabelUrl($merchantCourierId)
     {
-        $awbLabelToIwmsCourierList = $this->getPostAwbLabelToIwmsCourierList()
+        $awbLabelToIwmsCourierList = $this->getPostAwbLabelToIwmsCourierList();
         if(in_array($merchantCourierId, $awbLabelToIwmsCourierList)){
             return true;
         }
@@ -419,7 +419,7 @@ class IwmsCreateDeliveryOrderService
 
     private function validInvoiceCourierLabelUrl($merchantCourierId)
     {
-        $invoiceLabelToIwmsCourierList = $this->getPostInvoiceLabelToIwmsCourierList()
+        $invoiceLabelToIwmsCourierList = $this->getPostInvoiceLabelToIwmsCourierList();
         if(in_array($merchantCourierId, $invoiceLabelToIwmsCourierList)){
             return true;
         }
