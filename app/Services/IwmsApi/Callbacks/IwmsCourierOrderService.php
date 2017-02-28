@@ -6,8 +6,10 @@ use App;
 use App\Models\So;
 use App\Models\IwmsCourierOrderLog;
 
-class IwmsCourierOrderService
+class IwmsCourierOrderService extends IwmsBaseCallbackService
 {
+    use \App\Services\IwmsApi\IwmsBaseService;
+
     public function __construct()
     {
     }
@@ -58,16 +60,16 @@ class IwmsCourierOrderService
         }
         if(!empty($soNoList)){
             So::whereIn("so_no", $soNoList)
-            ->update(array("waybill_status", $waybillStatus));
+            ->update(array("waybill_status" => $waybillStatus));
         }
     }
 
     private function saveWaybillToPickListFolder($responseMessage)
     {
-        $pickListNo = "picklist-no";
-        $filePath = $this->getCourierPickListFilePath($pickListNo);
         foreach ($responseMessage as $value) {
             if(!empty($value->merchant_order_id)){
+                $pickListNo = $this->getSoAllocatedPickListNo($value->merchant_order_id);
+                $filePath = $this->getCourierPickListFilePath($pickListNo);
                 $waybillLabel= file_get_contents($value->waybill_url);
                 $file = $filePath.$value->merchant_order_id.'.pdf';
                 file_put_contents($file, $waybillLabel);
@@ -91,7 +93,7 @@ class IwmsCourierOrderService
             if(!empty($value->merchant_order_id)){
                 IwmsCourierOrderLog::where("reference_no",$value->merchant_order_id)
                 ->where("batch_id",$batchId)
-                ->update(array("status" => 1)); 
+                ->update(array("status" => 1, "wms_order_code" => $value->courier_order_code));
             }
         }    
     }

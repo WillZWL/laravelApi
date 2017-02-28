@@ -93,10 +93,6 @@ return [
             'driver' => 'local',
             'root' => storage_path('merchant'),
         ],
-        'packlist' => [
-            'driver' => 'local',
-            'root' => storage_path('packlist'),
-        ],
         'iwms' => [
             'driver' => 'local',
             'root' => storage_path('iwms'),

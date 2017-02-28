@@ -63,6 +63,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
             if (!$request["requestBody"]) {
                 return false;
             }
+
             $responseData = $this->curlIwmsApi('courier/create-order', $request["requestBody"]);
             $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
             $this->updateSoWaybillStatus($request["batchRequest"], "1");
@@ -182,13 +183,14 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function cronSetLgsOrderStatus()
     {
-        $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService');
+        $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService',
+            [$this->wmsPlatform]);
         $iwmsLgsOrderService->setLgsOrderStatus();
     }
 
     public function cronGetLgsOrderDocument()
     {
-        $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService');
+        $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService', [$this->wmsPlatform]);
         $iwmsLgsOrderService->getIwmsLgsOrderDocument();
     }
 
@@ -219,7 +221,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
             ->where("prepay_hold_status", "0")
             ->where("esg_quotation_courier_id", $courierList)
             ->where("waybill_status", 2)
-            ->where("picklist_status", 2)
+            ->where("dnote_invoice_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
@@ -248,6 +250,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     {
         return IwmsCourierOrderLog::where("status", 1)
             ->whereNotNull("wms_order_code")
+            ->with("so")
             ->paginate($pageNum);
     }
 
@@ -304,8 +307,9 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $referenceNoList = IwmsCourierOrderLog::where("batch_id", $batchRequest->id)
                     ->pluck("reference_no")
                     ->all();
-        So::whereIn("so_no", $referenceNoList)
-                ->update(array("waybill_status", $status));
+        if(!empty($referenceNoList)){
+            So::whereIn("so_no", $referenceNoList)
+                ->update(array("waybill_status" => $status));
+        }
     }
-
 }

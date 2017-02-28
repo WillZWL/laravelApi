@@ -38,19 +38,20 @@ class FulfillmentOrderRepository
     {
         $status = $request->get('status');
         if (in_array($status, [1, 2, 3, 4, 5, 6])) {
-            $query->where('status', $status);
+            $query->where('so.status', $status);
         } else {
             switch ($status) {
                 case 'paied':
-                    $query->where('status', 3);
+                    $query->where('so.status', 3);
                     break;
                 case 'allocated':
-                    $query->whereIn('status', [4, 5]);
+                    $query->whereIn('so.status', [4, 5]);
+                    break;
                 case 'dispatch':
-                    $query->where('status', [4, 5]);
+                    $query->whereIn('so.status', [4, 5]);
                     break;
                 default:
-                    $query->where('status', 3);
+                    $query->where('so.status', 3);
                     break;
             }
         }
@@ -80,6 +81,15 @@ class FulfillmentOrderRepository
             }
         }
 
+        if ($request->get('merchantId') !== NULL && $request->get('merchantId') !== '') {
+            $query->leftJoin('selling_platform AS sp', 'sp.id', '=', 'so.platform_id');
+            $query->where('sp.merchant_id', $request->get('merchantId'));
+        }
+
+        if ($request->get('courierId') !== NULL && $request->get('courierId') !== '') {
+            $query->where('esg_quotation_courier_id', $request->get('courierId'));
+        }
+
         if ($request->get('into_iwms_status') !== NULL) {
             $query->leftJoin('so_extend AS se', 'se.so_no', '=', 'so.so_no');
             $query->where('se.into_iwms_status', $request->get('into_iwms_status'));
@@ -87,6 +97,10 @@ class FulfillmentOrderRepository
 
         if ($request->get('dnote_invoice_status') !== NULL) {
             $query->where('dnote_invoice_status', $request->get('dnote_invoice_status'));
+        }
+
+        if ($request->get('pick_list_no') !== NULL) {
+            $query->whereNotNull("pick_list_no")->where("pick_list_no", "<>", "");
         }
         return $query;
     }

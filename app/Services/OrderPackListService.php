@@ -10,7 +10,6 @@ use App\Models\Product;
 use App\Models\Currency;
 use App\Models\Country;
 use App\Models\CourierMapping;
-use App\Models\SellingPlatform;
 use App\Models\PlatformBizVar;
 use App\Models\ProductAssemblyMapping;
 use App\Models\SupplierProd;
@@ -27,9 +26,9 @@ use PDF;
 
 class OrderPackListService
 {
-    private $website = "http://admincentre.eservicesgroup.com";
-    private $lang = "";
-    private $per_page = 50;
+    protected $website = "http://admincentre.eservicesgroup.com";
+    protected $country = null;
+    protected $per_page = 50;
 
     public function __construct()
     {
@@ -42,7 +41,7 @@ class OrderPackListService
         $request = new Request;
         do {
             $soList = $this->getProcessOrder($request);
-            if ( ! $soList->getCollection()->isEmpty() ) {
+            if (! $soList->getCollection()->isEmpty()) {
                 $soNoList = [];
                 foreach ($soList as $soObj) {
                    $invoice = $this->generateCustomInvoice($soObj);
@@ -51,49 +50,36 @@ class OrderPackListService
                        $soNoList[] = $soObj->so_no;
                    }
                 }
-                $this->updateDnoteInvoiceStatus($soNoList);
+                $this->updateDeliveryNoteInvoiceStatus($soNoList);
             }
-        } while( ! $soList->getCollection()->isEmpty() );
+        } while(! $soList->getCollection()->isEmpty());
     }
 
-    public function updateDnoteInvoiceStatus($soNoList)
+    public function updateDeliveryNoteInvoiceStatus($soNoList)
     {
         if (!empty($soNoList)) {
             So::whereIn('so_no', $soNoList)->update(['dnote_invoice_status' => 2]);
         }
     }
 
-    public function moveSuccessOrder($pickListNo, $soNoList)
+    public function reprocessPackList($soNoList)
     {
-        $originalFilePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix()."tmp";
-        $destinationFilePath =  \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-        $this->createFolder($destinationFilePath);
         if ($soNoList) {
             $success = [];
             foreach ($soNoList as $soNo) {
-                $deliveryNoteFile = $originalFilePath."/delivery_note/". $soNo . '.pdf';
-                if (!file_exists($deliveryNoteFile)) {
-                    $this->regenerateDeliveryNote($soNo);
-                }
-                $invoiceFile = $originalFilePath."/invoice/". $soNo . '.pdf';
-                if (!file_exists($invoiceFile)) {
-                    $this->regenerateCustomInvoice($soNo);
-                }
-                $dnoteRes = rename($deliveryNoteFile, $destinationFilePath."/delivery_note/". $soNo . '.pdf');
-                $invoiceRes = rename($invoiceFile, $destinationFilePath."/invoice/". $soNo . '.pdf');
+                $dnoteRes = $this->regenerateDeliveryNote($soNo);
+                $invoiceRes = $this->regenerateCustomInvoice($soNo);
                 if ($dnoteRes && $invoiceRes) {
                     $success[] = $soNo;
                 }
             }
-            $this->updateDnoteInvoiceStatus($success);
+            $this->updateDeliveryNoteInvoiceStatus($success);
         }
-
     }
 
     public function createFolder($folder)
     {
-        if(!is_dir($folder))
-        {
+        if (!is_dir($folder)) {
             mkdir($folder, 775, true);
             mkdir($folder."/delivery_note", 775, true);
             mkdir($folder."/invoice", 775, true);
@@ -103,17 +89,25 @@ class OrderPackListService
     public function getProcessOrder(Request $request, $page = 1)
     {
         $request->merge(
-            ['per_page' => $this->per_page,
-             'page' => $page,
-             'dnote_invoice_status' => 0,
-             'status' => 5
-            ]);
+            [
+                'per_page' => $this->per_page,
+                'page' => $page,
+                'dnote_invoice_status' => 0,
+                'status' => 5,
+                'pick_list_no' => true
+            ]
+        );
         return $this->orderRepository->getOrders($request);
+    }
+
+    public function getOrderBySoNo($soNo)
+    {
+        return So::where("so_no", $soNo)->whereNotNull("pick_list_no")->where("pick_list_no", "<>", "")->first();
     }
 
     public function regenerateDeliveryNote($soNo)
     {
-        $soObj = So::where("so_no",$soNo)->first();
+        $soObj = $this->getOrderBySoNo($soNo);
         if ($soObj) {
             return $this->generateDeliveryNote($soObj);
         } else {
@@ -125,11 +119,11 @@ class OrderPackListService
     {
         $result = $this->getDeliveryNote($soObj);
         if ($result) {
-            $returnHTML = view('packlist.delivery-note',$result)->render();
-            $pickListNo = "tmp";
-            $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
+            $returnHTML = view('packlist.delivery-note', $result)->render();
+            $pickListNo = $soObj->pick_list_no;
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/delivery_note/". $soObj->so_no . '.pdf';
-            PDF::loadHTML($returnHTML)->save($file,true);
+            PDF::loadHTML($returnHTML)->save($file, true);
             return true;
         } else {
             return false;
@@ -138,7 +132,7 @@ class OrderPackListService
 
     public function regenerateCustomInvoice($soNo, $courierId = "")
     {
-        $soObj = So::where("so_no",$soNo)->first();
+        $soObj = $this->getOrderBySoNo($soNo);
         if ($soObj) {
             return $this->generateCustomInvoice($soObj, $courierId);
         } else {
@@ -150,11 +144,11 @@ class OrderPackListService
     {
         $result = $this->getCustomInvoice($soObj, $courierId);
         if ($result) {
-            $returnHTML = view('packlist.custom-invoice',$result)->render();
-            $pickListNo = "tmp";
-            $filePath = \Storage::disk('packlist')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
+            $returnHTML = view('packlist.custom-invoice', $result)->render();
+            $pickListNo = $soObj->pick_list_no;
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/invoice/". $soObj->so_no . '.pdf';
-            PDF::loadHTML($returnHTML)->save($file,true);
+            PDF::loadHTML($returnHTML)->save($file, true);
             return true;
         } else {
             return false;
@@ -168,9 +162,9 @@ class OrderPackListService
             $courierId = $soObj->esg_quotation_courier_id;
         }
 
-        $isfedex = 0;
+        $isFedex = 0;
         if (in_array($courierId, ['8', '44', '52', '55', '56', '59'])) {
-            $isfedex = 1;
+            $isFedex = 1;
         }
 
         $sellingPlatformObj = $soObj->sellingPlatform;
@@ -209,7 +203,7 @@ class OrderPackListService
                 }
                 $sumItemAmount += $item->unit_price * $item->qty;
 
-                if ((($item->battery == '1') or ($item->battery == '2')) && ($isfedex == 1)) {
+                if ((($item->battery == '1') or ($item->battery == '2')) && ($isFedex == 1)) {
                     $fedexCustomInvoice = true;
                 }
             }
@@ -253,7 +247,7 @@ class OrderPackListService
                 $descAndCode = $this->getDeclaredDescAndCode($item, $useOptimizedHscodeDuty, $soObj->delivery_country_id);
 
                 $isShow = 1;
-                if( (substr($soObj->platform_id,0,2) == "TF" || substr($soObj->platform_id,0,2) == "AC") && $descAndCode["master_sku"] == "34753-MM-BK"){
+                if ((substr($soObj->platform_id,0,2) == "TF" || substr($soObj->platform_id,0,2) == "AC") && $descAndCode["master_sku"] == "34753-MM-BK") {
                     $isShow = 0;
                 }
                 $itemResult[] = [
@@ -271,12 +265,12 @@ class OrderPackListService
         $result["soItem"] = $itemResult;
         $result["merchant_id"] = $merchantId;
         $result["courier_id"] = $courierId;
-        $result["shipper"] = $this->getShipperData($soObj->so_no, $shipperName);
+        $result["shipper"] = $this->getShipperData($soObj, $shipperName);
         $result["shipp_to"] = $this->getShipToData($soObj);
         $result["fedex_custom_invoice"] = $fedexCustomInvoice;
 
         $result["currency_courier_id"] = $currencyCourierId;
-        $result["total_cost"] = number_format(($declaredValue + $discount),2);
+        $result["total_cost"] = number_format(($declaredValue + $discount), 2);
         $result["total_discount"] = number_format($discount, 2);
         $result["total_amount"] = number_format(($declaredValue), 2);
 
@@ -290,9 +284,9 @@ class OrderPackListService
         if ($pbvObj) {
             $platformId = $soObj->platform_id;
             $bizType = $soObj->biz_type;
-            if ( ((substr($platformId, 0, 4) == 'TF3D') && ($bizType == 'SPECIAL'))
+            if (((substr($platformId, 0, 4) == 'TF3D') && ($bizType == 'SPECIAL'))
                     || (substr($platformId, 0, 4) == 'EXAA')
-                    || (substr($platformId, 0, 4) == 'DPAA') ) {
+                    || (substr($platformId, 0, 4) == 'DPAA')) {
                 $soItemResult = [];
                 foreach ($soObj->soItem as $item) {
                     if ($item->hidden_to_client == 0) {
@@ -348,7 +342,7 @@ class OrderPackListService
         }
 
         $imagePath = $this->website . "/images/product/" . $product->sku . "_s." . $product->image;
-        if (!@fopen($imagePath,"r")) {
+        if (!@fopen($imagePath, "r")) {
             $imagePath = $this->website . "/images/product/imageunavailable_s.jpg";
         }
 
@@ -395,7 +389,7 @@ class OrderPackListService
         return $battery;
     }
 
-    public function getShipperData($soNo, $shipperName = "")
+    public function getShipperData($soObj, $shipperName = "")
     {
         $result = [
             "shipper_contact" => "",
@@ -408,7 +402,7 @@ class OrderPackListService
             "saddr_5" => "HongKong",
             "saddr_6" => "&nbsp;"
         ];
-        if ($soAllocate = SoAllocate::where("so_no", $soNo)->first()) {
+        if ($soAllocate = SoAllocate::where("so_no", $soObj->so_no)->first()) {
             if ($soAllocate->warehouse_id == 'ES_DGME') {
                 $result["shipper_name"]    = '';
                 $result["shipper_contact"] = "ME OPS Team";
@@ -431,49 +425,41 @@ class OrderPackListService
         }
 
         $lineNo = 1;
-        $deliveryAddr = explode("|",$soObj->delivery_address);
-        $deliveryAddr = array_pad($deliveryAddr,3,"");
-        list($deliveryAddr1,$deliveryAddr2,$deliveryAddr3) = $deliveryAddr;
+        $deliveryAddr = explode("|", $soObj->delivery_address);
+        $deliveryAddr = array_pad($deliveryAddr, 3, "");
+        list($deliveryAddr1, $deliveryAddr2, $deliveryAddr3) = $deliveryAddr;
 
-        if($soObj->delivery_company != "")
-        {
+        if ($soObj->delivery_company != "") {
             $result["daddr_".$lineNo] = $soObj->delivery_company;
             $lineNo++;
         }
         $result["daddr_".$lineNo] = $deliveryAddr1;
         $lineNo++;
 
-        if($deliveryAddr2 != "" || $deliveryAddr3 != "")
-        {
-            if($deliveryAddr2 != "")
-            {
+        if ($deliveryAddr2 != "" || $deliveryAddr3 != "") {
+            if ($deliveryAddr2 != "") {
                 $result["daddr_".$lineNo] = $deliveryAddr2;
                 $lineNo++;
             }
 
-            if($deliveryAddr3 != "")
-            {
+            if ($deliveryAddr3 != "") {
                 $result["daddr_".$lineNo] = $deliveryAddr3;
                 $lineNo++;
             }
         }
 
         $csz = "";
-        if($soObj->delivery_city != "")
-        {
+        if ($soObj->delivery_city != "") {
             $csz .= $soObj->delivery_city.", ";
         }
-        if($soObj->delivery_state != "")
-        {
+        if ($soObj->delivery_state != "") {
             $csz .= $soObj->delivery_state;
         }
-        if($soObj->delivery_postcode != "")
-        {
+        if ($soObj->delivery_postcode != "") {
             $csz .= " ".$soObj->delivery_postcode;
         }
-        $csz = @preg_replace("{, $}","",$csz);
-        if(trim($csz))
-        {
+        $csz = @preg_replace("{, $}", "", $csz);
+        if (trim($csz)) {
             $result["daddr_".$lineNo] = $csz;
             $lineNo++;
         }
@@ -494,6 +480,7 @@ class OrderPackListService
     {
         $byDeclarationException = false;
         $defaultDeclarationPercent = 1;
+        $declaredValue = 0;
 
         if ($platformType == 'DISPATCH' || $platformType == 'EXPANDER') {
             $declarationException = DeclarationException::where("platform_type", $platformType)->where("delivery_country_id", $deliveryCountryId)
@@ -534,7 +521,10 @@ class OrderPackListService
         # no setting declaration_exception,  declared_value = total_order_amount * default_declaration_percent
         if ($byDeclarationException === false) {
             $declaration = Declaration::where("platform_type", $platformType)->first();
-            $declaredValue = $totalOrderAmount * ($declaration->default_declaration_percent / 100);
+            if ($declaration) {
+                $defaultDeclarationPercent = $declaration->default_declaration_percent / 100;
+            }
+            $declaredValue = $totalOrderAmount * $defaultDeclarationPercent;
         }
 
         #Not rounding, direct two decimal places
@@ -551,7 +541,7 @@ class OrderPackListService
         $product = $itemObj->product;
         $hscodeCatId = $product->hscode_cat_id;
 
-        if ( in_array($hscodeCatId, ['21','22']) || $hscodeCatId == "" || $useOptimizedHscodeDuty == 0 ) {
+        if (in_array($hscodeCatId, ['21','22']) || $hscodeCatId == "" || $useOptimizedHscodeDuty == 0) {
             $productCustomClassification = ProductCustomClassification::where("sku", $product->sku)->where("country_id", $deliveryCountryId)->first();
             if ($productCustomClassification) {
                 $code = $productCustomClassification->code;

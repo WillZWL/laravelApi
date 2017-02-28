@@ -5,6 +5,7 @@ namespace App\Transformers;
 use App\Models\So;
 use App\Models\SoItem;
 use App\Models\ProductAssemblyMapping;
+use App\Models\CourierInfo;
 use League\Fractal\TransformerAbstract;
 use Cache;
 
@@ -42,8 +43,9 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'sub_merchant_id' => $order->sellingPlatform->merchant_id,
             'order_type' => $order->sellingPlatform->type,
             'biz_type' => $order->biz_type,
-            'order_create_date' => $order->order_create_date,
-            'recommend_courier_id' => $order->recommend_courier_id,
+            'order_create_date' => date('Y-m-d', strtotime($order->order_create_date)),
+            'courier_id' => $order->esg_quotation_courier_id,
+            'courier_name' => $this->getCourierNameById($order->esg_quotation_courier_id),
             'allocation_warehouse' => $this->getAllocationWarehouse($order),
             'delivery_name' => $order->delivery_name,
             'address' => $order->delivery_address,
@@ -54,15 +56,16 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'phone' => trim($order->del_tel_1." ".$order->del_tel_2." ".$order->del_tel_3),
             'currency' => $order->currency_id,
             'delivery_charge' => $order->delivery_charge,
-            'amount' => $order->amount,
+            'amount' => number_format($order->amount, 2, '.', ''),
             'status' => $order->status,
+            'feed_status' => $order->dnote_invoice_status,
             'items' => $orderItems
         ];
     }
 
-    public function getAssemblyMapping()
+    private function getAssemblyMapping()
     {
-        Cache::get('prodAssemblyMainSkus', function() {
+        return Cache::store('file')->get('prodAssemblyMainSkus', function() {
             $assemblyMappings = ProductAssemblyMapping::active()->whereIsReplaceMainSku('1')->get();
             $prodAssemblyMainSkus = [];
             if (! $assemblyMappings->isEmpty() ) {
@@ -73,8 +76,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                     ];
                 }
             }
-            Cache::add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 10);
-            return $prodAssemblyMainSkus;
+            Cache::store('file')->add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 60);
         });
     }
 
@@ -86,5 +88,28 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             $warehouse = '4PX_B66';
         }
         return $warehouse;
+    }
+
+    private function getCouriers()
+    {
+        return Cache::store('file')->get('couriers', function() {
+            $couriers = CourierInfo::all();
+            foreach ($couriers as $courier) {
+                $couriersArr[$courier->courier_id] = $courier->courier_name;
+            }
+            Cache::store('file')->add('couriers', $couriersArr, 60*24);
+        });
+    }
+
+    private function getCourierNameById($id = '')
+    {
+        $courierName = '';
+        $couriersArr = $this->getCouriers();
+        if ($couriersArr) {
+            if (array_key_exists($id, $couriersArr)) {
+                $courierName = $couriersArr[$id];
+            }
+        }
+        return $courierName;
     }
 }

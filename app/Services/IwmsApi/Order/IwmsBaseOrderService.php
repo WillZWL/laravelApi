@@ -33,12 +33,12 @@ class IwmsBaseOrderService
             "tracking_no" => $trackingNo,
             "store_name" => $esgOrder->sellingPlatform->store_name,
             "delivery_name" => $esgOrder->delivery_name,
-            "company" => $esgOrder->delivery_company,
+            "company" => $esgOrder->delivery_company ? $esgOrder->delivery_company : "NA",
             "email" => $esgOrder->client->email,
             "country" => $esgOrder->delivery_country_id,
             "country_name" => $esgOrder->country->name,
             "city" => $esgOrder->delivery_city,
-            "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "x",
+            "state" => $esgOrder->delivery_state ? $esgOrder->delivery_state : "NA",
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $esgOrder->client->tel_3,
@@ -56,9 +56,11 @@ class IwmsBaseOrderService
             if($esgOrderItem->hscodeCategory){
                 $hscode = $esgOrderItem->hscodeCategory->general_hscode;
                 $hsDescription = $esgOrderItem->hscodeCategory->description;
-                $commodityCode = $esgOrderItem->hsdutyCountry->optimized_hscode;
                 $commodityName = $esgOrderItem->hscodeCategory->name;
                 $hscodeCategoryName[] = $esgOrderItem->hscodeCategory->name;
+            }
+            if($esgOrderItem->hsdutyCountry){
+                $commodityCode = $esgOrderItem->hsdutyCountry->optimized_hscode;
             }
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
@@ -73,6 +75,12 @@ class IwmsBaseOrderService
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
             );
             $creationOrderObject["item"][] = $creationOrderItem;
+            if($esgOrderItem->product->battery == 2){
+                $isBattery = 1;
+            }
+        }
+        if(isset($isBattery) && $isBattery){
+            $creationOrderObject["battery"] = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
         return $creationOrderObject;
