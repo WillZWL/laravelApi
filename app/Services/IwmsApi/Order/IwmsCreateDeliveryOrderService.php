@@ -334,11 +334,14 @@ class IwmsCreateDeliveryOrderService
 
     private function validRepeatRequestDeliveryOrder($esgOrder)
     {
-        $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")->where("reference_no",$esgOrder->so_no)
+        $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")
+                        ->where("reference_no",$esgOrder->so_no)
                         ->where("status", 1)
                         ->orWhere(function ($query) {
-                            $query->whereIn("status", array("0","-1"))
-                                  ->where("repeat_request", "!=", 1);
+                            $query->where("merchant_id", "ESG")
+                                ->where("reference_no",$esgOrder->so_no)
+                                ->whereIn("status", array("0","-1"))
+                                ->where("repeat_request", "!=", 1);
                             })
                         ->first();
         if(!empty($requestOrderLog)){
