@@ -53,8 +53,8 @@ class IwmsCreateDeliveryOrderService
                 $trackingNo = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     $warehouseId = $soAllocate->warehouse_id;
-                    $picklistNo = $soAllocate->picklist_no;
                 }
+                $picklistNo = $esgOrder->pick_list_no;
                 $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId, $picklistNo);
             }
             if(!empty($this->message)){

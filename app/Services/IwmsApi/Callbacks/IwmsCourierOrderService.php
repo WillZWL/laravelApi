@@ -68,7 +68,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
     {
         foreach ($responseMessage as $value) {
             if(!empty($value->merchant_order_id)){
-                $pickListNo = $this->getSoAllocatePickListNo($value->merchant_order_id);
+                $pickListNo = $this->getSoAllocatedPickListNo($value->merchant_order_id);
                 $filePath = $this->getCourierPickListFilePath($pickListNo);
                 $waybillLabel= file_get_contents($value->waybill_url);
                 $file = $filePath.$value->merchant_order_id.'.pdf';
