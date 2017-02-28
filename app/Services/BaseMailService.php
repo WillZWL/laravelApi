@@ -47,7 +47,7 @@ trait BaseMailService
         $message .= "Content-Disposition: attachment; filename=\"".$fileName."\"".PHP_EOL.PHP_EOL;
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
-        var_dump( mail($toEmail, $subject, $message, $header) );
+        mail("{$toEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
     }
 
     public function createExcelFile($fileName, $orderPath, $cellData)
