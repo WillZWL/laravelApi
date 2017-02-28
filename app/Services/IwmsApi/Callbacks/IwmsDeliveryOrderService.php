@@ -13,8 +13,10 @@ use App\Models\IwmsFeedRequest;
 
 class IwmsDeliveryOrderService extends IwmsBaseCallbackService
 {
+    use \App\Services\IwmsApi\IwmsBaseService;
     public function __construct()
     {
+
     }
 
     public function deliveryOrderCreate($postMessage)
@@ -124,6 +126,45 @@ class IwmsDeliveryOrderService extends IwmsBaseCallbackService
                 $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com',$subject,$attachment);
             }
         }
+    }
+
+    public function getMsgCreateDeliveryOrderReport($successResponseMessage)
+    {
+        if(!empty($successResponseMessage)){
+            $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Platform Order No', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
+            foreach ($successResponseMessage as $value) {
+                $esgOrder = So::where("so_no",$value->merchant_order_id)
+                        ->with("sellingPlatform")
+                        ->first();
+                if(!empty($esgOrder)){
+                    $builtIn = $esgOrder->hasInternalBattery();
+                    $external = $esgOrder->hasExternalBattery();
+                    $batteryType = "No Battery";
+                    if($builtIn){
+                        $batteryType = "Built In";
+                    }else if($external){
+                        $batteryType = "External";
+                    }
+                    $cellRow = array(
+                        'business_type' => $esgOrder->sellingPlatform->type,
+                        'merchant' => $esgOrder->sellingPlatform->merchant_id,
+                        'platform' => $esgOrder->platform_id,
+                        'platform_order_no' => $esgOrder->platform_order_id,
+                        'order_id' => $value->merchant_order_id,
+                        'delivery_type_id' => $esgOrder->delivery_type_id,
+                        'country' => $value->country,
+                        'battery_type' => $batteryType,
+                        're_courier' => $esgOrder->courierInfo->courier_name,
+                        'wms_order_code' => $value->order_code,
+                        'wms_courier' => $value->iwms_courier,
+                    );
+                    $cellData[] = $cellRow;
+                }
+
+            }
+            return $cellData;
+        }
+        return null;
     }
 
     private function getCreateDeliveryOrderReport($iwmsRequestIds)

@@ -55,13 +55,13 @@
                                 <td>{{ $courierOrder->iwms_courier_code }}</td>
                                 <td>{{ $courierOrder->platform_order_id }}</td>
                                 <td>
-                                    <a href="/iwms/courier-order/download/piclist-no/AWB?so_no={{ $courierOrder->reference_no }}">downloand</a>
+                                    <a href="/order/{{ $courierOrder->picklist_no }}/AWB?so_no={{ $courierOrder->reference_no }}">downloand</a>
                                 </td>
                                 <td>
-                                    <a href="/iwms/courier-order/download/piclist-no/invoice?so_no={{ $courierOrder->reference_no }}">downloand</a>
+                                    <a href="/order/{{ $courierOrder->picklist_no }}/invoice?so_no={{ $courierOrder->reference_no }}">downloand</a>
                                 </td>
                                 <td>
-                                    <a href="/iwms/courier-order/download/piclist-no/dnote?so_no={{ $courierOrder->reference_no }} ">downloand</a>
+                                    <a href="/order/{{ $courierOrder->picklist_no }}/dnote?so_no={{ $courierOrder->reference_no }} ">downloand</a>
                                 </td>
                                 <td>{{ $courierOrder->tracking_no }}</td>
                                 <td><input type="checkbox" name="so_no[]" value="{{$courierOrder->so_no}}"></td>

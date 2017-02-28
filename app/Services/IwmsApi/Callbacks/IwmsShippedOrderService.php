@@ -13,6 +13,8 @@ use App\Repository\MarketplaceProductRepository;
 
 class IwmsShippedOrderService extends IwmsBaseCallbackService
 {
+    use \App\Services\IwmsApi\IwmsBaseService;
+
     public function __construct()
     {
     }

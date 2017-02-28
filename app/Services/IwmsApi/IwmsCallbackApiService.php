@@ -13,8 +13,6 @@ class IwmsCallbackApiService
     private $callbackIwmsCourierOrderService = null;
     private $callbackIwmsAllocatedOrderService = null;
 
-    use IwmsBaseService;
-
     public function __construct()
     {
     }
