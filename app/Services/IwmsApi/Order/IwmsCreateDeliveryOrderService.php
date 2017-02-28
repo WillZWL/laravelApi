@@ -296,10 +296,10 @@ class IwmsCreateDeliveryOrderService
                         continue;
                     }
                 }
-                $validAwbLable = $this->validEsgOrderAwbLableStatus($esgOrder);
+                /*$validAwbLable = $this->validEsgOrderAwbLableStatus($esgOrder);
                 if(!$validAwbLable){
                     continue;
-                }
+                }*/
                 $repeatResult = $this->validRepeatRequestDeliveryOrder($esgOrder);
                 if($repeatResult){
                     $validEsgOrders[] = $esgOrder;
