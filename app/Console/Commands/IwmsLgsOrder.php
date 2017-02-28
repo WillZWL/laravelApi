@@ -42,9 +42,9 @@ class IwmsLgsOrder extends Command
         $wmsPlatform = $this->option('wms');
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
         $action = $this->argument('action');
-        if($action == "SetLgsStatus"){
+        if($action == "setLgsStatus"){
             $this->iwmsFactoryWmsService->cronSetLgsOrderStatus();
-        }else if($action == "GetLgsDocument"){
+        }else if($action == "getLgsDocument"){
             $this->iwmsFactoryWmsService->cronGetLgsOrderDocument();
         }
     }

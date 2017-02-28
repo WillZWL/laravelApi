@@ -166,6 +166,13 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
             ->everyThirtyMinutes();
+        /*$schedule->command('Iwms:CourierOrder create',array('--wms' => 'iwms'))
+            ->everyThirtyMinutes();
+
+        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => '4px'))
+            ->everyThirtyMinutes();
+        $schedule->command('Iwms:LgsOrder getLgsDocument',array('--wms' => '4px'))
+            ->everyThirtyMinutes();*/
 
         $schedule->command('sku:SendNewSkuAlert',
                     array('--sku_type' => '1'))

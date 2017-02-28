@@ -207,11 +207,14 @@ class IwmsCreateDeliveryOrderService
                 //"skuLabelCode" => '',
             );
             $deliveryOrderObj["item"][] = $deliveryOrderItem;
+            if(in_array($esgOrderItem->product->battery, [1, 2])){
+                $isBattery = 1;
+            }
         }
-        /*if($isBattery){
+        if(isset($isBattery) && $isBattery){
             $deliveryOrderObj["battery"] = 1;
             $deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl();
-        }*/
+        }
         return $deliveryOrderObj;
     }
 
