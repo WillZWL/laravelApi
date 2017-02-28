@@ -120,12 +120,15 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
         }else{
             $courierList = $this->getIwmsCourierApiMappingList($wmsPlatform, $merchantId);
         }
-        $esgOrderQuery = So::where("status",3)
+        $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereIn("esg_quotation_courier_id", $courierList)
             ->where("waybill_status", 0)
+            ->whereHas('soAllocate', function ($query) {
+                $query->whereNotNull('picklist_no');
+            })
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })

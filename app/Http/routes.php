@@ -78,8 +78,8 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('iwms/courier-order/', 'IwmsCourierOrderController@index');
     Route::resource('iwms/courier-order/create-or-update', 'IwmsCourierOrderController@editIwmsDeliveryOrder');
     Route::resource('iwms/courier-order/cancel', 'IwmsCourierOrderController@cancelIwmsOrder');
-    Route::get('iwms/courier-order/download/{pickListNo}/{documentType}','IwmsCourierOrderController@donwloadLabel');
-    Route::get('iwms/courier-order/download-picklist/{documentType}','IwmsCourierOrderController@donwloadPickListLabel');
+    Route::get('order/{pickListNo}/{documentType}','IwmsCourierOrderController@donwloadLabel');
+    Route::get('order/picklist/{pickListNo}/{documentType}','IwmsCourierOrderController@donwloadPickListLabel');
     Route::get('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
     Route::post('wms-allocation-plan', 'AllocationPlanController@wmsAllocationPlan');
 });

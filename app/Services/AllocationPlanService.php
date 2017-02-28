@@ -353,7 +353,11 @@ class AllocationPlanService
         $xmlResponse = $this->curl("allocation");
         $data = $this->convert($xmlResponse);
         $wmsOrders = [];
-        if ($data['result'] == "success" && $data['order']) {
+        if (isset($data['result'])
+            && $data['result'] == "success"
+            && $data['order']
+            && isset($data['order'])
+        ) {
             foreach ($data['order'] as $key => $order) {
                 $soNo = $order['retailer_order_reference'];
                 foreach ($order['skus'] as $item) {
