@@ -254,12 +254,12 @@ class IwmsCreateDeliveryOrderService
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
-            ->whereHas('soAllocate', function ($query) {
+            /*->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
                     ->where("status", 1)
                     ->where("modify_on", ">=", $this->fromData)
                     ->where("modify_on", "<=", $this->toDate);
-            })
+            })*/
             ->with("client")
             ->with("soItem")
             ->limit(100)
@@ -334,12 +334,13 @@ class IwmsCreateDeliveryOrderService
 
     private function validRepeatRequestDeliveryOrder($esgOrder)
     {
+        $this->esgOrderNo = $esgOrder->so_no;
         $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")
                         ->where("reference_no",$esgOrder->so_no)
                         ->where("status", 1)
                         ->orWhere(function ($query) {
                             $query->where("merchant_id", "ESG")
-                                ->where("reference_no",$esgOrder->so_no)
+                                ->where("reference_no", $this->esgOrderNo)
                                 ->whereIn("status", array("0","-1"))
                                 ->where("repeat_request", "!=", 1);
                             })
