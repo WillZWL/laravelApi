@@ -23,7 +23,7 @@ trait BaseMailService
         $boundary = md5(uniqid(time()));
 
         // Email header
-        $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+        $header = "From: Admin<admin@shop.eservciesgroup.com>".PHP_EOL;
         if ($cc) {
             $header .= "Cc: ". $cc .PHP_EOL;
         }
