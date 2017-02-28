@@ -131,7 +131,7 @@ class IwmsCreateDeliveryOrderService
 
     private function getDeliveryCreationObject($esgOrder, $warehouseId, $picklistNo = null)
     {
-        $merchantId = "ESG";
+        $merchantId = "ESG"; $trackingNo = null;
         $courierId = $esgOrder->esg_quotation_courier_id;
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
         $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
@@ -152,10 +152,14 @@ class IwmsCreateDeliveryOrderService
             $extra_instruction = $esgOrder->courierInfo->courier_name;
         }
         if(in_array($iwmsCourierCode, $this->lgsCourier)){
+            return false;
             $address = mb_substr($esgOrder->delivery_address, 0, 120, "utf-8");
             $address = (preg_replace( "/\r|\n/", "", $address));
         }else{
             $address = $esgOrder->delivery_address;
+        }
+        if($esgOrder->iwmsLgsOrderStatusLog){
+            $trackingNo = $esgOrder->iwmsLgsOrderStatusLog->tracking_no;
         }
         $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $deliveryOrderObj = array(
@@ -305,12 +309,12 @@ class IwmsCreateDeliveryOrderService
                     $validEsgOrders[] = $esgOrder;
                 }
             }
-            if(isset($errorPostCodes) && $errorPostCodes){
+            if(isset($errorPostCodeOrders) && $errorPostCodeOrders){
                 $msg = null;
                 $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
                 $subject = "OMS create order failed.";
-                foreach ($errorPostCodes as $errorPostCode) {
-                    $msg .= "Order ID".$errorPostCode["so_no"]." postal is null";
+                foreach ($errorPostCodeOrders as $errorOrderNo) {
+                    $msg .= "Order ID".$errorOrderNo." postal is null";
                 }
                 mail("privatelabel-log@eservicesgroup.com,  jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
             }
