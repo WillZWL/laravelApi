@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\IwmsApi\IwmsFactoryWmsService;
+use App\Services\IwmsApi\Order\IwmsFulfillmentOrderService;
 
 class IwmsFulfillmentOrder extends Command
 {
@@ -12,7 +12,7 @@ class IwmsFulfillmentOrder extends Command
      *
      * @var string
      */
-    protected $signature = 'Iwms:fulfillmentOrder {--wms= : iwms} {--debug= : 0 || 1}';
+    protected $signature = 'Iwms:PushFulfillmentOrder';
 
     /**
      * The console command description.
@@ -21,13 +21,16 @@ class IwmsFulfillmentOrder extends Command
      */
     protected $description = 'Push ESG Fulfillment Order to Iwms';
 
+    private $orderService;
+
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(IwmsFulfillmentOrderService $orderService)
     {
+        $this->orderService = $orderService;
         parent::__construct();
     }
 
@@ -38,11 +41,6 @@ class IwmsFulfillmentOrder extends Command
      */
     public function handle()
     {
-        //
-        $wmsPlatform = $this->option('wms');
-        $debugOption = $this->option('debug');
-        $debug = $debugOption ? 1 :0;
-        $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform, $debug);
-        $this->iwmsFactoryWmsService->pushFulfillmentOrder();
+        $this->orderService->pushFulfillmentOrder();
     }
 }
