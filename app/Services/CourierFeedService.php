@@ -24,7 +24,7 @@ class CourierFeedService
         foreach ($ordersGroupByPickListNo as $pickListNo => $orderList) {
             $ordersGroupByCourier = $orderList->groupBy('esg_quotation_courier_id');
             foreach ($ordersGroupByCourier as $courier => $orders) {
-                $orderNumberCollection = $orders->pluck('so_no');
+                $orderNumberCollection = $orders->pluck('so_no')->toArray();
                 $response = $client->request(
                     'GET',
                     'http://admincentre.eservicesgroup.com/simpleintegration/courier_feed/generate_courier_feed',
@@ -42,7 +42,7 @@ class CourierFeedService
                 $this->moveCourierFeedToVanguard($courierFileName, $pickListNo, $courier);
 
                 \DB::connection('mysql_esg')->table('so')
-                    ->whereIn('id', $orderNumberCollection)
+                    ->whereIn('so_no', $orderNumberCollection)
                     ->update(['courier_feed' => 1]);
             }
         }
@@ -50,13 +50,13 @@ class CourierFeedService
 
     private function moveCourierFeedToVanguard($filename, $pickListNo, $courier)
     {
-        $source = '/var/data/shop.eservicesgroup.com/courier' . $filename;
+        $source = '/var/data/shop.eservicesgroup.com/courier/' . $filename;
 
         $courier = CourierInfo::find($courier);
         $dateTime = new \DateTime();
         $destFolder = 'pick-list/' . $dateTime->format('Y-m-d') . '/'.$pickListNo . '/'.$courier->courier_name;
         \Storage::makeDirectory($destFolder);
-        copy($source, storage_path().'/'.$destFolder.'/'.$filename);
+        copy($source, storage_path().'/app/'.$destFolder.'/'.$filename);
 
         return true;
     }

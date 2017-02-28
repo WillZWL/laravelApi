@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Repository\OrderRepository;
+use App\Services\CourierFeedService;
 use Illuminate\Console\Command;
 
 class GenerateCourierFeed extends Command
@@ -37,6 +39,12 @@ class GenerateCourierFeed extends Command
      */
     public function handle()
     {
-
+        $orderRepo = new OrderRepository();
+        $courierFeedService = new CourierFeedService($orderRepo);
+        try {
+            $courierFeedService->getCourierFeed();
+        } catch (\Exception $e) {
+            mail('handy.hon@eservicesgroup.com', 'Generate Courier Feed - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+        }
     }
 }
