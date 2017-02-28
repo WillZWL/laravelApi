@@ -122,7 +122,7 @@ class OrderPackListService
             $returnHTML = view('packlist.delivery-note', $result)->render();
             $pickListNo = $soObj->pick_list_no;
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-            $file = $filePath."/delivery_note/". $soObj->so_no . '.pdf';
+            $file = $filePath."/delivery_note/". $soObj->so_no . '_delivery_note.pdf';
             PDF::loadHTML($returnHTML)->save($file, true);
             return true;
         } else {
@@ -147,7 +147,7 @@ class OrderPackListService
             $returnHTML = view('packlist.custom-invoice', $result)->render();
             $pickListNo = $soObj->pick_list_no;
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-            $file = $filePath."/invoice/". $soObj->so_no . '.pdf';
+            $file = $filePath."/invoice/". $soObj->so_no . '_invoice.pdf';
             PDF::loadHTML($returnHTML)->save($file, true);
             return true;
         } else {
