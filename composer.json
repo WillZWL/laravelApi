@@ -22,7 +22,7 @@
         "barryvdh/laravel-ide-helper": "^2.1",
         "barryvdh/laravel-debugbar": "^2.2",
         "wish/php-sdk":"*@dev",
-        "maatwebsite/excel": "~2.0.0",
+        "maatwebsite/excel": "~2.1.0",
         "barryvdh/laravel-snappy": "^0.3.1",
         "h4cc/wkhtmltopdf-amd64": "0.12.x",
         "h4cc/wkhtmltoimage-amd64": "0.12.x",
