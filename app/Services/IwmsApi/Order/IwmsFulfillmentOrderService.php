@@ -25,6 +25,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
     {
         try {
             $request = new Request;
+            $message = '';
             while( ! $this->getOrders($request)->getCollection()->isEmpty() ) {
                 $batchRequest = $this->getNewFulfillmentOrderBatchRequest();
                 $orders = $this->getOrders($request);
@@ -35,7 +36,10 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
                 $requestData = $data->data;
                 $this->initIwmsConfig('', 1);
                 $responseData = $this->curlIwmsApi('allocation/save-order', $requestData);
-                $this->processResponseData($batchRequest, $responseData);
+                $message .= $this->processResponseData($batchRequest, $responseData);
+            }
+            if (trim($message)) {
+                mail('will.zhang@eservicesgroup.com', '[IWMS] Push Order TO Iwms Data Validate Error', 'Error Detail : '. $message);
             }
         } catch (\Exception $e) {
             mail('will.zhang@eservicesgroup.com', '[IWMS] PUSH Order To IWMS Failed', 'Error Message'.$e->getMessage());
@@ -44,6 +48,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
 
     public function processResponseData($batchRequest, $responseData = '')
     {
+        $message = '';
         $batchRequest->response_log = $responseData;
         if ($responseData) {
             $responseData = json_decode($responseData, true);
@@ -58,12 +63,23 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
                 SoExtend::whereIn('so_no', $soNoList)
                         ->update(['into_iwms_status' => 1]);
             }
+            if (isset($responseData['validate_error']) && !empty($responseData['validate_error'])) {
+                $message = 'Batch ID '.$batchRequest->id. "\r\n";
+                foreach ($responseData['validate_error'] as $error) {
+                    $message .= $error."\r\n";
+                }
+                $message .= "\r\n<hr>";
+            }
         } else {
-            throw new \Exception('No Only ResponseData From iWMS');
+            throw new \Exception('No Any ResponseData From iWMS');
         }
         $batchRequest->completion_time = date('Y-m-d H:i:s');
         $batchRequest->status = 'C';
+        if ($message) {
+            $batchRequest->status = 'CF';
+        }
         $batchRequest->save();
+        return $message;
     }
 
     public function convertToJsonData($orders)
