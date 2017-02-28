@@ -4,7 +4,7 @@ namespace App\Services\IwmsApi\Callbacks;
 
 use App\Models\IwmsFeedRequest;
 use App\Models\BatchRequest;
-use App\Models\SoAllocate;
+use App\Models\So;
 
 class IwmsBaseCallbackService
 {
@@ -22,12 +22,12 @@ class IwmsBaseCallbackService
         return $batchObject;
     }
 
-    public function getSoAllocatePickListNo($esgOrderNo)
+    public function getSoAllocatedPickListNo($esgOrderNo)
     {
-        $soAllocation = SoAllocate::where("so_no", $esgOrderNo)
+        $esgOrder = So::where("so_no", $esgOrderNo)
                     ->first();
-        if(!empty($soAllocation)){
-            return $soAllocation->picklist_no;
+        if(!empty($esgOrderNo)){
+            return $esgOrderNo->pick_list_no;
         }
     }
 

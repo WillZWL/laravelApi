@@ -72,7 +72,7 @@ class BatchRequestService
 
     public function sendAlertEmail($responseData)
     {
-        $subject = "OMS Create Deliveyr Order Vaild Failed ";
+        $subject = "OMS Create Order Vaild Failed ";
         $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
         $alertEmail = "privatelabel-log@eservicesgroup.com";
         $message = null;

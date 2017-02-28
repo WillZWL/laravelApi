@@ -52,9 +52,9 @@ class AllocationPlanService
                 } else {
                     $to = "itsupport-sz@eservicesgroup.com";
                 }
-                $subject = "[IWMS] Task Schedule {$warehouseId} => {$batchName} has locked";
+                $subject = "[ESG] Alert, Task Schedule {$warehouseId} => {$batchName} has locked";
                 $message = "[{$warehouseId}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
-                $header = "From: admin@iwms.eservciesgroup.com";
+                $header = "From: admin@eservciesgroup.com";
                 mail($to, $subject, $message, $header);
             }
         }
@@ -353,7 +353,11 @@ class AllocationPlanService
         $xmlResponse = $this->curl("allocation");
         $data = $this->convert($xmlResponse);
         $wmsOrders = [];
-        if ($data['result'] == "success" && $data['order']) {
+        if (isset($data['result'])
+            && $data['result'] == "success"
+            && $data['order']
+            && isset($data['order'])
+        ) {
             foreach ($data['order'] as $key => $order) {
                 $soNo = $order['retailer_order_reference'];
                 foreach ($order['skus'] as $item) {
