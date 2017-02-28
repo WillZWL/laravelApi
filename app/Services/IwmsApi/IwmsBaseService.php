@@ -11,7 +11,7 @@ use Excel;
 trait IwmsBaseService
 {
     use \App\Services\BaseMailService;
-    
+
     private $iwmStatus = array("Success" => "1","Failed" => "2");
     private $token = "iwms-esg";
     private $awbLabelCourierList = null;
@@ -45,6 +45,7 @@ trait IwmsBaseService
     {
         $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("iwms_warehouse_code", $iwmsWarehouseCode)
             ->where("merchant_id", $merchantId)
+            ->where("status", 1)
             ->first();
         if ($iwmsMerchantWarehouseMapping) {
             return $iwmsMerchantWarehouseMapping->merchant_warehouse_id;

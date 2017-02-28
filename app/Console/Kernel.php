@@ -50,6 +50,7 @@ class Kernel extends ConsoleKernel
         Commands\OrderPackList::class,
         Commands\IwmsLgsOrder::class,
         Commands\GenerateCourierFeed::class,
+        Commands\ShipperNotAvailableOrder::class,
     ];
 
     /**
@@ -184,5 +185,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('sku:SendSkuListingAlert',
                     array('--sku_type' => '1'))
             ->dailyAt('01:00');
+
+        $schedule->command('order:ShipperNotAvailable')->hourly();
     }
 }
