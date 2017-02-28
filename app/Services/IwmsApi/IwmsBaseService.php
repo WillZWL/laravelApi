@@ -109,6 +109,11 @@ trait IwmsBaseService
         return url($url);
     }
 
+    public function getEsgOrderMsdsLabelUrl()
+    {
+        return null;
+    }
+
     public function getPostAwbLabelToIwmsCourierList()
     {
         if(empty($this->awbLabelCourierList)){
