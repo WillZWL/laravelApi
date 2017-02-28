@@ -25,39 +25,47 @@ class AllocationPlanService
 
     public function getAllocationPlan($warehouseId="ES_HK", $requestData = [])
     {
-        $scheduleRepos = new TaskScheduleRepository();
         $batchName = "CREATE_ALLOCATION_PLAN";
+        $scheduleRepos = new TaskScheduleRepository();
         $schedule = $scheduleRepos->getTask($batchName);
-        if ($schedule) {
-            if ($schedule->lock == 0) {
-                $scheduleRepos->lockTask($batchName);
+        try {
+            if ($schedule) {
+                if ($schedule->lock == 0) {
+                    $scheduleRepos->lockTask($batchName);
 
 
-                $this->requestData = $requestData;
+                    $this->requestData = $requestData;
 
-                $wmsOrders = $this->getWmsAllocationPlanData();
+                    $wmsOrders = $this->getWmsAllocationPlanData();
 
-                $readyOrderData = $this->readyAllocateOrders($wmsOrders);
+                    $readyOrderData = $this->readyAllocateOrders($wmsOrders);
 
-                $validatePassOrders = $this->validateAllocationPlanOrders($readyOrderData, $wmsOrders, $warehouseId);
+                    $validatePassOrders = $this->validateAllocationPlanOrders($readyOrderData, $wmsOrders, $warehouseId);
 
-                $this->processAllocationPlan($validatePassOrders, $warehouseId);
+                    $this->processAllocationPlan($validatePassOrders, $warehouseId);
 
-                $scheduleRepos->unlockTask($batchName);
 
-                $this->processEmailAlert($warehouseId);
-            } else {
-                if (isset($this->requestData['email']) && $this->requestData['email']) {
-                    $to = $this->requestData['email'] .", itsupport-sz@eservicesgroup.com";
+                    $this->processEmailAlert($warehouseId);
                 } else {
-                    $to = "itsupport-sz@eservicesgroup.com";
+                    if (isset($this->requestData['email']) && $this->requestData['email']) {
+                        $to = $this->requestData['email'] .", itsupport-sz@eservicesgroup.com";
+                    } else {
+                        $to = "itsupport-sz@eservicesgroup.com";
+                    }
+                    $subject = "[ESG] Alert, Task Schedule {$warehouseId} => {$batchName} has locked";
+                    $message = "[{$warehouseId}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
+                    $header = "From: admin@eservciesgroup.com";
+                    mail($to, $subject, $message, $header);
                 }
-                $subject = "[ESG] Alert, Task Schedule {$warehouseId} => {$batchName} has locked";
-                $message = "[{$warehouseId}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
-                $header = "From: admin@eservciesgroup.com";
-                mail($to, $subject, $message, $header);
             }
+        } catch (Exception $e) {
+            $to = "itsupport-sz@eservicesgroup.com";
+            $subject = "[ESG] Allcation Plan Exception, Please help check it";
+            $message = "Allocation plan Exception, Message: ". $e->getMessage() . ", Error Line". $e->getLine();
+            $header = "From: admin@eservciesgroup.com";
+            mail($to, $subject, $message, $header);
         }
+        $scheduleRepos->unlockTask($batchName);
     }
 
     public function readyAllocateOrders($wmsOrders = [])

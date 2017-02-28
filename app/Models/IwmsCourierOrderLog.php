@@ -13,4 +13,9 @@ class IwmsCourierOrderLog extends Model
     {
         return $this->belongsTo('App\Models\BatchRequest', 'batch_id');
     }
+
+    public function so()
+    {
+        return $this->belongsTo('App\Models\So', 'reference_no',"so_no");
+    }
 }

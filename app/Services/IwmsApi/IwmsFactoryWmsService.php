@@ -250,6 +250,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
     {
         return IwmsCourierOrderLog::where("status", 1)
             ->whereNotNull("wms_order_code")
+            ->with("so")
             ->paginate($pageNum);
     }
 
