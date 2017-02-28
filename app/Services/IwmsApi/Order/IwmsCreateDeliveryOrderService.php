@@ -341,7 +341,9 @@ class IwmsCreateDeliveryOrderService
                                   ->where("repeat_request", "!=", 1);
                             })
                         ->first();
-        if(empty($requestOrderLog)){
+        if(!empty($requestOrderLog)){
+            return false;
+        }else{
             return true;
         }
     }
