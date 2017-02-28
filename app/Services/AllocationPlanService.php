@@ -52,9 +52,9 @@ class AllocationPlanService
                 } else {
                     $to = "itsupport-sz@eservicesgroup.com";
                 }
-                $subject = "[IWMS] Task Schedule {$warehouseId} => {$batchName} has locked";
+                $subject = "[ESG] Alert, Task Schedule {$warehouseId} => {$batchName} has locked";
                 $message = "[{$warehouseId}] - [{$batchName}] has locked, This Allocation plan request will be skipped, Please try later";
-                $header = "From: admin@iwms.eservciesgroup.com";
+                $header = "From: admin@eservciesgroup.com";
                 mail($to, $subject, $message, $header);
             }
         }
