@@ -4,7 +4,7 @@ namespace App\Services\IwmsApi;
 
 use App\Models\IwmsMerchantWarehouseMapping;
 use App\Models\IwmsMerchantCourierMapping;
-use App\Models\SoAllocate;
+use App\Models\So;
 use App;
 use Excel;
 
@@ -88,12 +88,12 @@ trait IwmsBaseService
         return $iwmsCallbackApiService->valid();
     }
 
-    public function getSoAllocatePickListNo($esgOrderNo)
+    public function getSoAllocatedPickListNo($esgOrderNo)
     {
-        $soAllocation = SoAllocate::where("so_no", $esgOrderNo)
+        $esgOrder = So::where("so_no", $esgOrderNo)
                     ->first();
-        if(!empty($soAllocation)){
-            return $soAllocation->picklist_no;
+        if(!empty($esgOrder)){
+            return $esgOrder->pick_list_no;
         }
     }
 
