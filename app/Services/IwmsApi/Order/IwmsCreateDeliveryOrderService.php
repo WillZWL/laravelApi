@@ -188,10 +188,10 @@ class IwmsCreateDeliveryOrderService
             //"doorplate" => $esgOrder->doorplate,
         );
         if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
-            $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($picklistNo);
+            $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($esgOrder);
         }
         if($this->validInvoiceCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
-            $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($picklistNo);
+            $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($esgOrder);
         }
         foreach ($esgOrder->soItem as $esgOrderItem) {
             $hscode = null; $hsDescription = null;

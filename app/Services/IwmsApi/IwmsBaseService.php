@@ -97,16 +97,22 @@ trait IwmsBaseService
         }
     }
 
-    public function getEsgOrderAwbLabelUrl($picklistNo, $soNo)
+    public function getEsgOrderAwbLabelUrl($$esgOrder)
     {
-        $url = "order/.$picklistNo./AWB?so_no=".$soNo;
-        return url($url);
+        if(!empty($esgOrder->pick_list_no)){
+            $url = "order/.$esgOrder->pick_list_no./AWB?so_no=".$esgOrder->so_no;
+            return url($url);
+        }
+        return null;
     }
 
-    public function getEsgOrderInvoiceLabelUrl($picklistNo, $soNo)
+    public function getEsgOrderInvoiceLabelUrl($$esgOrder)
     {
-        $url = "order/.$picklistNo./invoice?so_no=".$soNo;
-        return url($url);
+        if(!empty($esgOrder->pick_list_no)){
+            $url = "order/.$esgOrder->pick_list_no./invoice?so_no=".$esgOrder->so_no;
+            return url($url);
+        }
+        return null;
     }
 
     public function getEsgOrderMsdsLabelUrl()
