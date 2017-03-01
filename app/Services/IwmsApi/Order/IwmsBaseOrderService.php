@@ -88,6 +88,7 @@ class IwmsBaseOrderService
             $isBattery = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
+        print_r($creationOrderObject);exit();
         return $creationOrderObject;
     }
 
