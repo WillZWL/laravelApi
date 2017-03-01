@@ -144,11 +144,21 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
             $this->beforeAllocatedOrder[] = $soNo;
         } else {
             $this->notAllocateOrder[] = $soNo;
-            $holdText = ", Refund Status: ". $so->refund_status
-                    .", Hold Status". $so->hold_status
-                    .", Merchant Hold Status: ". $so->merchant_hold_status
-                    .", Billing Status: ". $so->billing_status
-                    .", Prepay Hold Status". $so->prepay_hold_status;
+            if ($so->refund_status !== 0) {
+                $holdText .= " / Refund Status: ". $so->refund_status;
+            }
+            if ($so->hold_status !== 0) {
+                $holdText .= " / Hold Status: ". $so->hold_status;
+            }
+            if ($so->merchant_hold_status !== 0) {
+                $holdText .= " / Merchant Hold Status: ". $so->merchant_hold_status;
+            }
+            if ($so->billing_status !== 0) {
+                $holdText .= " / Billing Status: ". $so->billing_status;
+            }
+            if ($so->prepay_hold_status !== 0) {
+                $holdText .= " / Prepay Hold Status: ". $so->prepay_hold_status;
+            }
         }
         $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status] . $holdText;
     }

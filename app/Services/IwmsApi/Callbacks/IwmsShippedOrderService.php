@@ -91,7 +91,7 @@ class IwmsShippedOrderService extends IwmsBaseCallbackService
             if($excelFile){
                 $subject = "[ESG]By IWMS Confirm Dispatch Collection Report!";
                 $attachment = array("path" => $orderPath,"file_name"=>$fileName.".xlsx");
-                $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com',$subject,$attachment, "brave.liu@eservicesgroup.com, roland.rao@eservicesgroup.com");
+                $this->sendAttachmentMail('privatelabel-log@eservicesgroup.com', $subject,$attachment, "roland.rao@eservicesgroup.com");
             }
         }
     }
