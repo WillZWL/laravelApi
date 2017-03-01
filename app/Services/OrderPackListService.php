@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Currency;
 use App\Models\Country;
 use App\Models\CourierMapping;
+use App\Models\CourierInfo;
 use App\Models\PlatformBizVar;
 use App\Models\ProductAssemblyMapping;
 use App\Models\SupplierProd;
@@ -28,12 +29,14 @@ class OrderPackListService
 {
     protected $website = "http://admincentre.eservicesgroup.com";
     protected $country = null;
+    protected $courierList = null;
     protected $per_page = 50;
-
+    private $exceptionMsg = [];
     public function __construct()
     {
         $this->orderRepository = new FulfillmentOrderRepository();
         $this->setCountryList();
+        $this->setCourierList();
     }
 
     public function processPackList()
@@ -44,15 +47,17 @@ class OrderPackListService
             if (! $soList->getCollection()->isEmpty()) {
                 $soNoList = [];
                 foreach ($soList as $soObj) {
-                   $invoice = $this->generateCustomInvoice($soObj);
-                   $dnote = $this->generateDeliveryNote($soObj);
-                   if ($invoice && $dnote) {
+                    $invoice = $this->generateCustomInvoice($soObj);
+                    $dnote = $this->generateDeliveryNote($soObj);
+                    if ($invoice && $dnote) {
                        $soNoList[] = $soObj->so_no;
-                   }
+                    }
                 }
                 $this->updateDeliveryNoteInvoiceStatus($soNoList);
             }
         } while(! $soList->getCollection()->isEmpty());
+
+        $this->sendEmailAlert();
     }
 
     public function updateDeliveryNoteInvoiceStatus($soNoList)
@@ -74,7 +79,13 @@ class OrderPackListService
                 }
             }
             $this->updateDeliveryNoteInvoiceStatus($success);
+            $this->sendEmailAlert();
         }
+    }
+
+    public function sendEmailAlert()
+    {
+        //mail("milo.chen@eservicesgroup.com","generate Invoice or Delivery Note failed",implode(PHP_EOL, $this->getExceptionMsg()));
     }
 
     public function createFolder($folder)
@@ -121,13 +132,17 @@ class OrderPackListService
         if ($result) {
             $returnHTML = view('packlist.delivery-note', $result)->render();
             $pickListNo = $soObj->pick_list_no;
+            if (! $soObj->esg_quotation_courier_id) {
+                $this->exceptionMsg[] = "DeliveryNote so: {$soObj->so_no},message:  no rec_courier";
+                return false;
+            }
+            $courierInfo = $this->getCourierInfo($soObj->esg_quotation_courier_id);
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-            $file = $filePath."/delivery_note/". $soObj->so_no . '_delivery_note.pdf';
+            $file = $filePath."/delivery_note/". $courierInfo->courier_name ."/". $soObj->so_no . '_delivery_note.pdf';
             PDF::loadHTML($returnHTML)->save($file, true);
             return true;
-        } else {
-            return false;
         }
+        return false;
     }
 
     public function regenerateCustomInvoice($soNo, $courierId = "")
@@ -146,13 +161,22 @@ class OrderPackListService
         if ($result) {
             $returnHTML = view('packlist.custom-invoice', $result)->render();
             $pickListNo = $soObj->pick_list_no;
+            if (! $soObj->esg_quotation_courier_id) {
+                $this->exceptionMsg[] = "CustomInvoice so: {$soObj->so_no},message:  no rec_courier";
+                return false;
+            }
+            $courierInfo = $this->getCourierInfo($soObj->esg_quotation_courier_id);
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
-            $file = $filePath."/invoice/". $soObj->so_no . '_invoice.pdf';
+            $file = $filePath."/invoice/". $courierInfo->courier_name ."/". $soObj->so_no . '_invoice.pdf';
             PDF::loadHTML($returnHTML)->save($file, true);
             return true;
-        } else {
-            return false;
         }
+        return false;
+    }
+
+    public function getExceptionMsg()
+    {
+        return $this->exceptionMsg;
     }
 
     public function getCustomInvoice($soObj, $courierId = "")
@@ -160,6 +184,11 @@ class OrderPackListService
         $result = [];
         if (!$courierId) {
             $courierId = $soObj->esg_quotation_courier_id;
+        } else {
+            $soObj->esg_quotation_courier_id = $courierId;
+        }
+        if (!$courierId) {
+            return false;
         }
 
         $isFedex = 0;
@@ -616,5 +645,20 @@ class OrderPackListService
     public function getCountry($countryId)
     {
         return isset($this->country[$countryId]) ? $this->country[$countryId] : NULL;
+    }
+
+    public function setCourierList()
+    {
+        $courierCollect = CourierInfo::get();
+        $courierInfo = [];
+        foreach ($courierCollect as $value) {
+            $courierInfo[$value->courier_id] = $value;
+        }
+        $this->courierList = $courierInfo;
+    }
+
+    public function getCourierInfo($courierId)
+    {
+        return isset($this->courierList[$courierId]) ? $this->courierList[$courierId] : NULL;
     }
 }
