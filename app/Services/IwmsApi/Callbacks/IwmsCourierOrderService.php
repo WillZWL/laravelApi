@@ -46,7 +46,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
     private function updateIwmCallbackOrderFaild($responseMessage, $batchId)
     {
         $this->updateEsgOrderWaybillSataus($responseMessage, "3");
-        $this->updateIwmsCourierOrderSuccess($responseMessage, $batchId);
+        $this->updateIwmsCourierOrderFaild($responseMessage, $batchId);
         $this->sendMsgCreateCourierErrorEmail($responseMessage, $batchId);
     }
 
