@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Collection;
 
 class IwmsBaseOrderService
 {
+    use \App\Services\TraitDeclaredService;
+
     protected $message;
     protected $wmsPlatform = null;
     protected $lgsCourier = array("4PX-PL-LGS"); 
@@ -19,6 +21,7 @@ class IwmsBaseOrderService
 
     public function getCreationIwmsCourierOrderObject($esgOrder, $iwmsCourierCode, $iwmsWarehouseCode = null, $extraInstruction = null ,$trackingNo = null)
     {
+        $declaredObject = $this->getOrderdeclaredObject($esgOrder);
         $merchantId = "ESG";
         $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $creationOrderObject = array(
@@ -42,6 +45,8 @@ class IwmsBaseOrderService
             "address" => $esgOrder->delivery_address,
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $esgOrder->client->tel_3,
+            "declared_value" => $declaredObject["declared_value"],
+            "declared_currency" => $declaredObject["declared_currency"],
             "courier_reference_id" => $esgOrder->so_no."-".$esgOrder->sellingPlatform->merchant_id."-".$this->bizType[$esgOrder->sellingPlatform->type],
             "amount_in_hkd" => '0',
             "amount_in_usd" => '0',

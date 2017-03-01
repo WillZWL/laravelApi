@@ -18,7 +18,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         $this->wmsPlatform = $wmsPlatform;
     }
 
-    public function setLgsOrderStatus()
+    public function setLgsOrderStatus($warehouseToIwms)
     {
         $esgOrders = $this->getReadyToShipLgsOrder(2);
         $this->setLgsOrderStatusAndGetTracking($esgOrderNoList);
@@ -95,8 +95,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         return IwmsLgsOrderStatusLog::updateOrCreate(['so_no' => $esgOrder->so_no],$object);
     }
 
-    public function getReadyToShipLgsOrder($limit = null, $pageNum = null)
+    public function getReadyToShipLgsOrder($warehouseToIwms, $limit = null, $pageNum = null)
     {
+        $this->warehouseIds = $warehouseToIwms;
         $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
         $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
@@ -104,9 +105,13 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
             ->where("prepay_hold_status", "0")
             ->whereIn("esg_quotation_courier_id", $courierIdList)
             ->where("waybill_status", 0)
-            ->whereNotNull('pick_list_no')
+            //->whereNotNull('pick_list_no')
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
+            })
+            ->whereHas('soAllocate', function ($query) {
+                $query->whereIn('warehouse_id', $this->warehouseIds)
+                    ->where("status", 1);
             })
             ->with("iwmsLgsOrderStatusLog");
         if(!empty($limit)){
