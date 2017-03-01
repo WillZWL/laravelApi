@@ -105,7 +105,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
             if(!empty($value->merchant_order_id)){
                 IwmsCourierOrderLog::where("reference_no",$value->merchant_order_id)
                 ->where("batch_id",$batchId)
-                ->update(array("status" => -1, "response_message" => $value->remark)); 
+                ->update(array("status" => -1, "response_message" => $value->error_remark));
             }
         }    
     }
