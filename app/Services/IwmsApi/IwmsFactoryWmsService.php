@@ -185,7 +185,8 @@ class IwmsFactoryWmsService extends IwmsCoreService
     {
         $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService',
             [$this->wmsPlatform]);
-        $iwmsLgsOrderService->setLgsOrderStatus();
+        $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
+        $iwmsLgsOrderService->setLgsOrderStatus($warehouseToIwms);
     }
 
     public function cronGetLgsOrderDocument()
