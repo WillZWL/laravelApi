@@ -5,7 +5,7 @@ namespace App\Transformers;
 use App\Models\So;
 use App\Models\SoItem;
 use App\Models\ProductAssemblyMapping;
-use App\Models\CourierInfo;
+use App\Services\CourierInfoService;
 use League\Fractal\TransformerAbstract;
 use Cache;
 
@@ -90,26 +90,10 @@ class FulfillmentOrderTransformer extends TransformerAbstract
         return $warehouse;
     }
 
-    private function getCouriers()
+    public function getCourierNameById($id)
     {
-        return Cache::store('file')->get('couriers', function() {
-            $couriers = CourierInfo::all();
-            foreach ($couriers as $courier) {
-                $couriersArr[$courier->courier_id] = $courier->courier_name;
-            }
-            Cache::store('file')->add('couriers', $couriersArr, 60*24);
-        });
-    }
+        $courierService = new CourierInfoService();
 
-    private function getCourierNameById($id = '')
-    {
-        $courierName = '';
-        $couriersArr = $this->getCouriers();
-        if ($couriersArr) {
-            if (array_key_exists($id, $couriersArr)) {
-                $courierName = $couriersArr[$id];
-            }
-        }
-        return $courierName;
+        return $courierService->getCourierNameById($id);
     }
 }
