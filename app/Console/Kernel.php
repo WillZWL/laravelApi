@@ -172,7 +172,10 @@ class Kernel extends ConsoleKernel
             ->everyThirtyMinutes();
         $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => '4px'))
             ->everyThirtyMinutes();
-            
+
+        $schedule->command('Iwms:PushFulfillmentOrder')
+            ->everyThirtyMinutes();
+
         /*$schedule->command('Iwms:CourierOrder create',array('--wms' => 'iwms'))
             ->everyThirtyMinutes();
         $schedule->command('Iwms:LgsOrder getLgsDocument',array('--wms' => '4px'))

@@ -24,6 +24,13 @@ class FulfillmentOrderController extends Controller
     {
         $orders = $this->orderService->getOrders($request);
 
-        return $this->response->paginator($orders, new FulfillmentOrderTransformer());
+        if ($request->get('export')) {
+            $excelFile = $this->orderService->exportExcel($request);
+            if($excelFile){
+                return response()->download($excelFile);
+            }
+        } else {
+            return $this->response->paginator($orders, new FulfillmentOrderTransformer());
+        }
     }
 }
