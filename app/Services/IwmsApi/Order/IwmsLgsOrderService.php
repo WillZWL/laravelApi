@@ -53,11 +53,13 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         $esgOrders = $this->getReadyToGetDocumentLgsOrder();
         foreach ($esgOrders as $esgOrder) {
-            $result = $this->saveLgsOrderDocument($esgOrder);
-            if($result){
-                $esgOrder->waybill_status = "2";
-                $esgOrder->dnote_status = "2";
-                $esgOrder->save();
+            if(!empty($esgOrder->iwmsLgsOrderStatusLog) && $esgOrder->iwmsLgsOrderStatusLog == 1){
+                $result = $this->saveLgsOrderDocument($esgOrder);
+                if($result){
+                    $esgOrder->waybill_status = "2";
+                    $esgOrder->dnote_status = "2";
+                    $esgOrder->save();
+                }
             }
         }
     }
@@ -129,7 +131,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     public function getReadyToGetDocumentLgsOrder()
     {
         $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
-        $esgOrderQuery = So::where("status",5)
+        $esgOrders = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
@@ -138,12 +140,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
-            ->whereHas('iwmsLgsOrderStatusLog', function ($query) {
-                $query->where('status', 1);
-            })
             ->with("iwmsLgsOrderStatusLog")
             ->get();
-        return $esgOrder;
+        return $esgOrders;
     }
 
     private function getEsgLgsOrdersByOrderNo($esgOrderNoList)
@@ -163,7 +162,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         $doucmentTypeArr = [
             "invoice" => "invoice",
-            "manifest" => "carrierManifest",
+            //"manifest" => "carrierManifest",
             "AWB" => "shippingLabel"
             ];
         $storeName = $esgOrder->platformMarketOrder->platform;
@@ -194,7 +193,11 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         if(!empty($esgOrder) && !empty($label)){
             //$pickListNo = $this->getSoAllocatedPickListNo($soNo);
             $filePath = getLgsOrderPickListFilePath($esgOrder->pick_list_no, $folderName);
-            $file = $filePath.$esgOrder->so_no.'_awb.pdf';
+            if($folderName == "AWB"){
+                $file = $filePath.$esgOrder->so_no.'_awb.pdf';
+            }else if($folderName == "invoice"){
+                $file = $filePath.$esgOrder->so_no.'_invoice.pdf';
+            }
             file_put_contents($file, $label);
         }
     }
