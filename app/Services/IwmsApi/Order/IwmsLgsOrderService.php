@@ -21,7 +21,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function setLgsOrderStatus($warehouseToIwms)
     {
-        $esgOrders = $this->getReadyToShipLgsOrder($warehouseToIwms, 2);
+        $esgOrders = $this->getReadyToShipLgsOrder($warehouseToIwms, 20);
         $this->setLgsOrderStatusAndGetTracking($esgOrders);
     }
 
@@ -35,7 +35,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         foreach ($esgOrders as $esgOrder) {
            $iwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToReadyToShip($esgOrder);
-           if(empty($esgOrder->iwmsLgsOrderStatusLog) || $esgOrder->iwmsLgsOrderStatusLog->status != "1"){
+           if(empty($esgOrder->iwmsLgsOrderStatusLog) || $esgOrder->iwmsLgsOrderStatusLog->status != 1){
                 $error[] = $esgOrder->so_no;
             }
         }
@@ -173,13 +173,13 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
             }
         }
         if(!empty($orderItemIds)){
-            foreach($doucmentTypeArr as $key => $doucmentType ){
+            foreach($doucmentTypeArr as $folderName => $doucmentType ){
                 $fileHtml = $this->getApiLazadaService()->getDocument($storeName, $orderItemIds, $doucmentType);
                 if($fileHtml){
                     if($doucmentType == "invoice"){
                         $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
                     }
-                    $this->saveWaybillToPickListFolder($esgOrder, $doucmentType, $fileHtml);
+                    $this->saveWaybillToPickListFolder($esgOrder, $folderName, $fileHtml);
                 }else{
                     return false;
                 }
@@ -192,7 +192,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         if(!empty($esgOrder) && !empty($label)){
             //$pickListNo = $this->getSoAllocatedPickListNo($soNo);
-            $filePath = getLgsOrderPickListFilePath($esgOrder->pick_list_no, $folderName);
+            $filePath = $this->getLgsOrderPickListFilePath($esgOrder->pick_list_no, $folderName);
             if($folderName == "AWB"){
                 $file = $filePath.$esgOrder->so_no.'_awb.pdf';
             }else if($folderName == "invoice"){

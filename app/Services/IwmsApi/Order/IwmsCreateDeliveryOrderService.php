@@ -151,16 +151,18 @@ class IwmsCreateDeliveryOrderService
         if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
             $extra_instruction = $esgOrder->courierInfo->courier_name;
         }
+        
+        $address = $esgOrder->delivery_address;
         if(in_array($iwmsCourierCode, $this->lgsCourier)){
-            return false;
-            $address = mb_substr($esgOrder->delivery_address, 0, 120, "utf-8");
-            $address = (preg_replace( "/\r|\n/", "", $address));
-        }else{
-            $address = $esgOrder->delivery_address;
+            if(!empty($esgOrder->iwmsLgsOrderStatusLog)){
+                $trackingNo = $esgOrder->iwmsLgsOrderStatusLog->tracking_no;
+                $address = mb_substr($esgOrder->delivery_address, 0, 120, "utf-8");
+                $address = (preg_replace( "/\r|\n/", "", $address));
+            }else{
+                return false;
+            }
         }
-        if($esgOrder->iwmsLgsOrderStatusLog){
-            $trackingNo = $esgOrder->iwmsLgsOrderStatusLog->tracking_no;
-        }
+        
         $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
