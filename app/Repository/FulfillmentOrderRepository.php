@@ -81,13 +81,13 @@ class FulfillmentOrderRepository
             }
         }
 
-        if ($request->get('merchantId') !== NULL && $request->get('merchantId') !== '') {
+        if ($request->get('merchantId') !== NULL && count($request->get('merchantId')) > 0) {
             $query->leftJoin('selling_platform AS sp', 'sp.id', '=', 'so.platform_id');
-            $query->where('sp.merchant_id', $request->get('merchantId'));
+            $query->whereIn('sp.merchant_id', $request->get('merchantId'));
         }
 
-        if ($request->get('courierId') !== NULL && $request->get('courierId') !== '') {
-            $query->where('esg_quotation_courier_id', $request->get('courierId'));
+        if ($request->get('courierId') !== NULL && count($request->get('courierId')) > 0) {
+            $query->whereIn('esg_quotation_courier_id', $request->get('courierId'));
         }
 
         if ($request->get('into_iwms_status') !== NULL) {

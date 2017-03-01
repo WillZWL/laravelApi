@@ -76,7 +76,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                     ];
                 }
             }
-            Cache::store('file')->add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 60);
+            Cache::store('file')->add('prodAssemblyMainSkus', $prodAssemblyMainSkus, 60*24);
         });
     }
 
