@@ -139,12 +139,18 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
     public function checkSkippedAllocationPlan($soNo)
     {
         $so = So::where('so_no', $soNo)->first();
+        $holdText = '';
         if ($so->status == 5 || $so->status == 6) {
             $this->beforeAllocatedOrder[] = $soNo;
         } else {
             $this->notAllocateOrder[] = $soNo;
+            $holdText = ", Refund Status: ". $so->refund_status
+                    .", Hold Status". $so->hold_status
+                    .", Merchant Hold Status: ". $so->merchant_hold_status
+                    .", Billing Status: ". $so->billing_status
+                    .", Prepay Hold Status". $so->prepay_hold_status;
         }
-        $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status];
+        $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status] . $holdText;
     }
 
     public function processAllocationPlan($orders, $wmsOrders)
