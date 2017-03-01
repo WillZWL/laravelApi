@@ -52,40 +52,29 @@ class IwmsBaseOrderService
             "amount_in_usd" => '0',
             "extra_instruction" => $extraInstruction,
         );
+        $sellingPlatformObj = $esgOrder->sellingPlatform;
+        $useOptimizedHscodeDuty = $sellingPlatformObj->merchant->use_optimized_hscode_w_duty;
         foreach ($esgOrder->soItem as $esgOrderItem) {
-            $hscode = null; 
-            $hsDescription = null;
-            $commodityCode = null;
-            $commodityName = null;
-            $hscodeCategoryName = null;
-            if($esgOrderItem->hscodeCategory){
-                $hscode = $esgOrderItem->hscodeCategory->general_hscode;
-                $hsDescription = $esgOrderItem->hscodeCategory->description;
-                $commodityName = $esgOrderItem->hscodeCategory->name;
-                $hscodeCategoryName[] = $esgOrderItem->hscodeCategory->name;
-            }
-            if($esgOrderItem->hsdutyCountry){
-                $commodityCode = $esgOrderItem->hsdutyCountry->optimized_hscode;
-            }
+            $declaredDescAndCode = $this->getDeclaredDescAndCode($esgOrderItem, $useOptimizedHscodeDuty, $esgOrder->delivery_country_id);
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
                 "quantity" => $esgOrderItem->qty,
-                "hscode" => $hscode,
-                "hsdescription" => $hsDescription,
-                "commodity_code" => $commodityCode,
-                "commodity_name" => $commodityName,
+                "hscode" => $declaredDescAndCode["code"],
+                "hsdescription" => $declaredDescAndCode["prod_desc"],
+                "commodity_code" => $declaredDescAndCode["code"],
+                "commodity_name" => $declaredDescAndCode["prod_desc"],
                 "unit_price_hkd" => '0',
                 "unit_price_usd" => '0',
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
             );
             $creationOrderObject["item"][] = $creationOrderItem;
-            if($esgOrderItem->product->battery == 2){
+            if(in_array($esgOrderItem->product->battery, [1, 2])){
                 $isBattery = 1;
             }
         }
-        if(in_array($esgOrderItem->product->battery, [1, 2])){
-            $isBattery = 1;
+        if(isset($isBattery) && $isBattery){
+            $creationOrderObject["battery"] = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
         print_r($creationOrderObject);exit();

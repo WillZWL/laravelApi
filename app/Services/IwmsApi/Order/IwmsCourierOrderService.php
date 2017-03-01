@@ -20,7 +20,8 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     public function getCourierCreationRequest()
     {
         $deliveryCreationRequest = null;
-        $esgOrders = $this->getReadyToIwmsCourierOrder(2);
+        //$esgOrders = $this->getReadyToIwmsCourierOrder(2);
+        $esgOrders = $this->getEsgCourierOrdersByOrderNo(["408030"]);
         $batchRequest = $this->getCourierCreationRequestBatch($esgOrders);
         return $this->getCourierCreationBatchRequest($batchRequest);
     }
@@ -134,7 +135,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             })
             ->whereHas('soAllocate', function ($query) {
                 $query->where("modify_on", ">=", $this->fromData)
-                    ->where("modify_on", "<=", $this->toDate);
+                    ->where("modify_on", "<=", $this->toDate)
                     ->where("status", 1);
             })
             ->with("client")
