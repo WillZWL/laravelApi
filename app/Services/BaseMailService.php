@@ -24,6 +24,7 @@ trait BaseMailService
 
         // Email header
         $header = "From: Admin<admin@shop.eservciesgroup.com>".PHP_EOL;
+        $header .= "Bcc: it@eservicesgroup.net" .PHP_EOL;
         if ($cc) {
             $header .= "Cc: ". $cc .PHP_EOL;
         }
@@ -47,7 +48,7 @@ trait BaseMailService
         $message .= "Content-Disposition: attachment; filename=\"".$fileName."\"".PHP_EOL.PHP_EOL;
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
-        mail("{$toEmail}, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+        mail("{$toEmail}", $subject, $message, $header);
     }
 
     public function createExcelFile($fileName, $orderPath, $cellData)
