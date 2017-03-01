@@ -57,7 +57,6 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 $result = $this->saveLgsOrderDocument($esgOrder);
                 if($result){
                     $esgOrder->waybill_status = "2";
-                    $esgOrder->dnote_status = "2";
                     $esgOrder->save();
                 }
             }
@@ -173,19 +172,20 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 $orderItemIds[] = $itemId;
             }
         }
-        $orderItemId = json_encode($orderItemIds);
-        foreach($doucmentTypeArr as $key => $doucmentType ){
-            $fileHtml = $this->getApiLazadaService()->getDocument($storeName, $orderItemId, $doucmentType);
-            if($fileHtml){
-                if($doucmentType == "invoice"){
-                    $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
+        if(!empty($orderItemIds)){
+            foreach($doucmentTypeArr as $key => $doucmentType ){
+                $fileHtml = $this->getApiLazadaService()->getDocument($storeName, $orderItemIds, $doucmentType);
+                if($fileHtml){
+                    if($doucmentType == "invoice"){
+                        $fileHtml = preg_replace(array('/class="logo"/'), array('class="page"'), $fileHtml,2);
+                    }
+                    $this->saveWaybillToPickListFolder($esgOrder, $doucmentType, $fileHtml);
+                }else{
+                    return false;
                 }
-                $this->saveWaybillToPickListFolder($esgOrder, $doucmentType, $fileHtml);
-            }else{
-                return null;
             }
-        }
-        return true;
+            return true;
+        } 
     }
 
     private function saveWaybillToPickListFolder($esgOrder, $folderName, $label)
