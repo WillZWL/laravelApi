@@ -20,7 +20,8 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     public function getCourierCreationRequest()
     {
         $deliveryCreationRequest = null;
-        $esgOrders = $this->getReadyToIwmsCourierOrder(2);
+        //$esgOrders = $this->getReadyToIwmsCourierOrder(2);
+        $esgOrders = $this->getEsgCourierOrdersByOrderNo(["408030"]);
         $batchRequest = $this->getCourierCreationRequestBatch($esgOrders);
         return $this->getCourierCreationBatchRequest($batchRequest);
     }
@@ -83,7 +84,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     {
         $merchantId = "ESG"; 
         $courierId = $esgOrder->esg_quotation_courier_id;
-        $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
+        $iwmsCourierCode = $this->getIwmsCourierCode($courierId, $merchantId, $this->wmsPlatform);
         if ($iwmsCourierCode === null) {
             $this->_setCourierMessage($merchantId, $courierId);
             $this->_setSoNoMessage($esgOrder->so_no);
@@ -114,6 +115,8 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
 
     public function getReadyToIwmsCourierOrder($limit = null, $courier = null, $pageNum = null)
     {
+        $this->fromData = date("2017-01-21 00:00:00");
+        $this->toDate = date("Y-m-d 23:59:59");
         $wmsPlatform = "iwms"; $merchantId ="ESG";
         if($courier){
             $courierList = array($courier);
@@ -126,9 +129,14 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             ->where("prepay_hold_status", "0")
             ->whereIn("esg_quotation_courier_id", $courierList)
             ->where("waybill_status", 0)
-            ->whereNotNull('pick_list_no')
+            //->whereNotNull('pick_list_no')
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
+            })
+            ->whereHas('soAllocate', function ($query) {
+                $query->where("modify_on", ">=", $this->fromData)
+                    ->where("modify_on", "<=", $this->toDate)
+                    ->where("status", 1);
             })
             ->with("client")
             ->with("soItem");
