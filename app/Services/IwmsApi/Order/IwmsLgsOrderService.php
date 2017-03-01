@@ -10,6 +10,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 {
     private $excludeMerchant = array("PREPD");
     private $courierList = array();
+    private $apiLazadaService = null;
 
     use \App\Services\IwmsApi\IwmsBaseService;
 
@@ -20,14 +21,14 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function setLgsOrderStatus($warehouseToIwms)
     {
-        $esgOrders = $this->getReadyToShipLgsOrder(2);
-        $this->setLgsOrderStatusAndGetTracking($esgOrderNoList);
+        $esgOrders = $this->getReadyToShipLgsOrder($warehouseToIwms, 2);
+        $this->setLgsOrderStatusAndGetTracking($esgOrders);
     }
 
     public function setLgsOrderStatusByOrderNo($esgOrderNoList)
     {
         $esgOrders = $this->getEsgLgsOrdersByOrderNo($esgOrderNoList);
-        $this->setLgsOrderStatusAndGetTracking($esgOrderNoList);
+        $this->setLgsOrderStatusAndGetTracking($esgOrders);
     }
 
     private function setLgsOrderStatusAndGetTracking($esgOrders)
@@ -193,7 +194,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         if(!empty($esgOrder) && !empty($label)){
             //$pickListNo = $this->getSoAllocatedPickListNo($soNo);
             $filePath = getLgsOrderPickListFilePath($esgOrder->pick_list_no, $folderName);
-            $file = $filePath.$esgOrder->so_no.'.pdf';
+            $file = $filePath.$esgOrder->so_no.'_awb.pdf';
             file_put_contents($file, $label);
         }
     }
