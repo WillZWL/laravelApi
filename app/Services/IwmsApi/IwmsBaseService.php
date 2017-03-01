@@ -53,10 +53,12 @@ trait IwmsBaseService
         return null;
     }
 
-    public function getIwmsCourierCode($courierId,$merchantId)
+    public function getIwmsCourierCode($courierId, $merchantId, $wmsPlatform)
     {
         $iwmsMerchantCourierMapping = IwmsMerchantCourierMapping::where("merchant_courier_id",$courierId)
+            ->where("wms_platform", $wmsPlatform)
             ->where("merchant_id", $merchantId)
+            ->where("status", 1)
             ->first();
 
         if ($iwmsMerchantCourierMapping) {
