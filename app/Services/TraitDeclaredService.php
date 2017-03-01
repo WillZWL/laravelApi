@@ -64,12 +64,14 @@ trait TraitDeclaredService
         if($discount > $sumItemAmount) {
             $discount = $sumItemAmount;
         }
+        return $discount;
     }
 
     public function getOrderRate($soObj, $currencyCourierId)
     {
         $soExchangeRate = ExchangeRate::where("from_currency_id", $soObj->currency_id)->where("to_currency_id", $currencyCourierId)->first();
         $soRate = $soExchangeRate->rate;
+        return $soRate;
     }
 
     public function getOrderSumItemAmount($soObj, $soRate)
