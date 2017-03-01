@@ -26,11 +26,11 @@ class CourierFeedService
             foreach ($ordersGroupByCourier as $courier => $orders) {
                 $orderNumberCollection = $orders->pluck('so_no')->toArray();
                 $response = $client->request(
-                    'GET',
+                    'POST',
                     'http://admincentre.eservicesgroup.com/simpleintegration/courier_feed/generate_courier_feed',
                     [
                         'auth' => ['courier_feed', '2swE8uRj7v'],
-                        'query' => [
+                        'form_params' => [
                             'token' => '2CgKkoqoTbVaH69LCq}FLnN',
                             'courier' => $courier,
                             'so_no_list' => $orderNumberCollection,
