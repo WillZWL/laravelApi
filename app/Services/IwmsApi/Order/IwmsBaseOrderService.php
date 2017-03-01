@@ -54,8 +54,10 @@ class IwmsBaseOrderService
         );
         $sellingPlatformObj = $esgOrder->sellingPlatform;
         $useOptimizedHscodeDuty = $sellingPlatformObj->merchant->use_optimized_hscode_w_duty;
+        $hscodeCategoryName = array();
         foreach ($esgOrder->soItem as $esgOrderItem) {
             $declaredDescAndCode = $this->getDeclaredDescAndCode($esgOrderItem, $useOptimizedHscodeDuty, $esgOrder->delivery_country_id);
+            $hscodeCategoryName[] = $declaredDescAndCode["prod_desc"];
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
