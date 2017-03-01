@@ -22,13 +22,14 @@ class AllocationPlanController extends Controller
 
     public function allocation($warehouseId, Request $request)
     {
-        $requestData = $request->all();
-        $this->allocationPlanService->getAllocationPlan($warehouseId, $requestData);
-        if (isset($requestData['redirect_url']) && $requestData['redirect_url']) {
-            return redirect("http://admincentre.eservicesgroup.com/order/integrated_order_fulfillment");
-        } else {
-            return "Execution processing ends";
-        }
+        return "Sorry, Guys, Manual allocation plan is no longer available here, It will by program progress.";
+        // $requestData = $request->all();
+        // $this->allocationPlanService->getAllocationPlan($warehouseId, $requestData);
+        // if (isset($requestData['redirect_url']) && $requestData['redirect_url']) {
+        //     return redirect("http://admincentre.eservicesgroup.com/order/integrated_order_fulfillment");
+        // } else {
+        //     return "Execution processing ends";
+        // }
     }
 
     public function wmsAllocationPlan(Requests\IwmsAllocationRequest $request)
