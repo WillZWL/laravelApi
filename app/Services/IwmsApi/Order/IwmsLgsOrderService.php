@@ -53,7 +53,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         $esgOrders = $this->getReadyToGetDocumentLgsOrder();
         foreach ($esgOrders as $esgOrder) {
-            if(!empty($esgOrder->iwmsLgsOrderStatusLog) && $esgOrder->iwmsLgsOrderStatusLog == 1){
+            if(!empty($esgOrder->iwmsLgsOrderStatusLog) && $esgOrder->iwmsLgsOrderStatusLog->status == 1){
                 $result = $this->saveLgsOrderDocument($esgOrder);
                 if($result){
                     $esgOrder->waybill_status = "2";
