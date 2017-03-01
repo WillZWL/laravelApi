@@ -134,8 +134,7 @@ class IwmsCreateDeliveryOrderService
         $merchantId = "ESG"; $trackingNo = null;
         $courierId = $esgOrder->esg_quotation_courier_id;
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
-        $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
-
+        $iwmsCourierCode = $this->getIwmsCourierCode($courierId, $merchantId, $this->wmsPlatform);
         if ($iwmsWarehouseCode === null || $iwmsCourierCode === null) {
             if ($iwmsWarehouseCode === null) {
                 $this->_setWarehouseMessage($merchantId, $warehouseId);

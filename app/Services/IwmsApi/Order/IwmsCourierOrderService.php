@@ -84,7 +84,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     {
         $merchantId = "ESG"; 
         $courierId = $esgOrder->esg_quotation_courier_id;
-        $iwmsCourierCode = $this->getIwmsCourierCode($courierId,$merchantId);
+        $iwmsCourierCode = $this->getIwmsCourierCode($courierId, $merchantId, $this->wmsPlatform);
         if ($iwmsCourierCode === null) {
             $this->_setCourierMessage($merchantId, $courierId);
             $this->_setSoNoMessage($esgOrder->so_no);
