@@ -265,7 +265,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
     {
         $whInv =Inventory::warehouseInventory($itemSku, $warehouseId);
         if ($whInv->count() == 0) {
-            throw new \Exception("Item sku[$itemSku] with warehouse[$warehouseId] never no inventory record");
+            throw new \Exception("Item sku[$itemSku] in warehouse[$warehouseId] never no inventory record");
             // $newWarehouseInventory = $this->getNewWarehouseInventory();
             // $inventory = clone $newWarehouseInventory;
             // $inventory->prod_sku = $itemSku;
