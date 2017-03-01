@@ -361,8 +361,8 @@ class AllocationPlanService
         $wmsOrders = [];
         if (isset($data['result'])
             && $data['result'] == "success"
-            && $data['order']
             && isset($data['order'])
+            && $data['order']
         ) {
             foreach ($data['order'] as $key => $order) {
                 $soNo = $order['retailer_order_reference'];
