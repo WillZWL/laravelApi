@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <phpdox xmlns="http://xml.phpdox.net/config" silent="false">
-    <project name="accelerator" source="${basedir}/" workdir="${basedir}/build/api/xml">
+    <project name="vanguard" source="${basedir}/" workdir="${basedir}/build/api/xml">
         <collector publiconly="false" backend="parser" />
         <generator output="${basedir}/build/api/docs">
             <build engine="html" enabled="true" output="html">
