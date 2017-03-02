@@ -68,22 +68,12 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
     {
         foreach ($responseMessage as $value) {
             if(!empty($value->merchant_order_id)){
-                $pickListNo = $this->getSoAllocatedPickListNo($value->merchant_order_id);
-                $filePath = $this->getCourierPickListFilePath($pickListNo);
+                $filePath = $this->getCourierPickListFilePath($value->merchant_order_id);
                 $waybillLabel= file_get_contents($value->waybill_url);
                 $file = $filePath.$value->merchant_order_id.'_awb.pdf';
                 file_put_contents($file, $waybillLabel);
             }
         }
-    }
-
-    public function getCourierPickListFilePath($pickListNo)
-    {
-        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/AWB/";
-        if (!file_exists($filePath)) {
-            mkdir($filePath, 0755, true);
-        }
-        return $filePath;
     }
 
     private function updateIwmsCourierOrderSuccess($responseMessage, $batchId)
