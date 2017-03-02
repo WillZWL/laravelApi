@@ -15,6 +15,7 @@ use App;
 
 class IwmsFulfillmentOrderService extends IwmsCoreService
 {
+    private $request;
 
     public function __construct(FulfillmentOrderRepository $orderRepository)
     {
@@ -100,11 +101,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
 
     public function getOrders()
     {
-        $request = new Request;
-        $request->merge(
-            ['per_page' => 50,
-             'into_iwms_status' => 0
-            ]);
+        $request = $this->getNewRequest();
         return $this->orderRepository->getOrders($request);
     }
 
@@ -115,5 +112,17 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
         $batch->status = 'N';
         $batch->save();
         return $batch;
+    }
+
+    public function getNewRequest()
+    {
+        if ($this->request === null) {
+            $this->request = new Request;
+            $this->request->merge([
+                'per_page' => 1000,
+                'into_iwms_status' => 0
+            ]);
+        }
+        return $this->request;
     }
 }
