@@ -24,11 +24,9 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
     public function pushFulfillmentOrder()
     {
         try {
-            $request = new Request;
             $message = '';
-            while( ! $this->getOrders($request)->getCollection()->isEmpty() ) {
+            while( ( $orders = $this->getOrders() ) &&  ( !$orders->getCollection()->isEmpty() ) ) {
                 $batchRequest = $this->getNewFulfillmentOrderBatchRequest();
-                $orders = $this->getOrders($request);
                 $jsonData = $this->convertToJsonData($orders);
                 $returnPath = $this->saveOrdersToFeedData($jsonData, $batchRequest);
                 $batchRequest->request_log = $returnPath;
@@ -100,10 +98,11 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
         return $fileName;
     }
 
-    public function getOrders(Request $request)
+    public function getOrders()
     {
+        $request = new Request;
         $request->merge(
-            ['per_page' => 1000,
+            ['per_page' => 50,
              'into_iwms_status' => 0
             ]);
         return $this->orderRepository->getOrders($request);
