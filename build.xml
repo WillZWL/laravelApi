@@ -35,7 +35,7 @@
         <delete dir="${basedir}/build/phpdox" />
     </target>
 
-    <target name="composer-check">
+    <!-- <target name="composer-check">
         <available file="${basedir}/composer.phar" property="composer.present"/>
     </target>
 
@@ -44,15 +44,15 @@
             <arg value="-c" />
             <arg value="curl -s https://getcomposer.org/installer | php" />
         </exec>
-    </target>
+    </target> -->
 
-    <target name="prepare" depends="clean,get-composer" description="Prepare for build">
+    <target name="prepare" depends="clean" description="Prepare for build">
         <mkdir dir="${basedir}/build/api" />
         <mkdir dir="${basedir}/build/coverage" />
         <mkdir dir="${basedir}/build/logs" />
         <mkdir dir="${basedir}/build/pdepend" />
         <mkdir dir="${basedir}/build/phpdox" />
-        <exec executable="${basedir}/composer.phar" failonerror="true">
+        <exec executable="/usr/local/bin/composer" failonerror="true">
             <arg value="install" />
         </exec>
     </target>
