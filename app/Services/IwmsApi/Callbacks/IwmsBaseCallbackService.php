@@ -28,7 +28,7 @@ class IwmsBaseCallbackService
                     ->with("courierInfo")
                     ->first();
         if(!empty($esgOrder)){
-            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/AWB/".$esgOrder->courierInfo->courier_name."/";
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/AWB/".$esgOrder->courierInfo->courier_name."/";
             if (!file_exists($filePath)) {
                 mkdir($filePath, 0755, true);
             }
