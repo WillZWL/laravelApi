@@ -192,7 +192,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         if(!empty($esgOrder) && !empty($label)){
             //$pickListNo = $this->getSoAllocatedPickListNo($soNo);
-            $filePath = $this->getLgsOrderPickListFilePath($esgOrder->pick_list_no, $folderName);
+            $filePath = $this->getLgsOrderPickListFilePath($esgOrder, $folderName);
             if($folderName == "AWB"){
                 $file = $filePath.$esgOrder->so_no.'_awb.pdf';
             }else if($folderName == "invoice"){
@@ -202,13 +202,15 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         }
     }
 
-    public function getLgsOrderPickListFilePath($pickListNo, $folderName)
+    public function getLgsOrderPickListFilePath($esgOrder, $folderName)
     {
-        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/".$folderName."/";
-        if (!file_exists($filePath)) {
-            mkdir($filePath, 0755, true);
+        if(!empty($esgOrder)){
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/".$folderName."/".$esgOrder->courierInfo->courier_name."/";
+            if (!file_exists($filePath)) {
+                mkdir($filePath, 0755, true);
+            }
+            return $filePath;
         }
-        return $filePath;
     }
 
     public function getApiLazadaService()
