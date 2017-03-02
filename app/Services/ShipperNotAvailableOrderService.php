@@ -92,7 +92,7 @@ class ShipperNotAvailableOrderService
 
     public function saveSoHoldReason($soNo, $reason)
     {
-        $we = $this->getNewSoHoldReason();
+        $newSoHoldReason = $this->getNewSoHoldReason();
         $soHoldReason = clone $newSoHoldReason;
         $soHoldReason->so_no = $soNo;
         $soHoldReason->reason = $reason;
