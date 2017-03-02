@@ -46,6 +46,8 @@ class ShipperNotAvailableOrderService
                         $courierStatus =  $courierStatus;
                         $cellItems[$order->so_no] = [
                             $order->so_no,
+                            $order->order_create_date,
+                            $order->status,
                             $reason,
                             $order->courier_id ? $order->courier_id : '-',
                             $order->courier_name ? $order->courier_name : '-',
@@ -65,6 +67,8 @@ class ShipperNotAvailableOrderService
         if ($cellItems) {
             $headerData[] = [
                 'So NO.',
+                'Order Create Date',
+                'Order Status',
                 'hold Reason',
                 'Courier ID',
                 'Courier Name',
@@ -113,7 +117,14 @@ class ShipperNotAvailableOrderService
                 ->orWhere('so.esg_quotation_courier_id', '=', '')
                 ->orWhere('ci.status', '0');
             })
-            ->get(['so.so_no', 'ci.courier_id', 'ci.courier_name', 'ci.status AS courier_status']);
+            ->get([
+                'so.so_no',
+                'so.order_create_date',
+                'so.status',
+                'ci.courier_id',
+                'ci.courier_name',
+                'ci.status AS courier_status'
+            ]);
     }
 
     public function getNewSoHoldReason()
