@@ -4,7 +4,7 @@ namespace App\Services;
 
 trait BaseMailService
 {
-    public function sendAttachmentMail($toEmail, $subject, $attachment, $cc = "")
+    public function sendAttachmentMail($toEmail, $subject, $attachment, $cc = "", $bcc = "")
     {
         /* Attachment File */
         $fileName = $attachment["file_name"];
@@ -24,7 +24,9 @@ trait BaseMailService
 
         // Email header
         $header = "From: Admin<admin@shop.eservciesgroup.com>".PHP_EOL;
-        $header .= "Bcc: it@eservicesgroup.net" .PHP_EOL;
+        if ($bcc) {
+            $header .= "Bcc: ". $bcc .PHP_EOL;
+        }
         if ($cc) {
             $header .= "Cc: ". $cc .PHP_EOL;
         }
