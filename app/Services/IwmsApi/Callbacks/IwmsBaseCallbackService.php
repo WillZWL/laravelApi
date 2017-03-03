@@ -22,6 +22,20 @@ class IwmsBaseCallbackService
         return $batchObject;
     }
 
+    public function getCourierPickListFilePath($esgOrderNo)
+    {
+        $esgOrder = So::where("so_no", $esgOrderNo)
+                    ->with("courierInfo")
+                    ->first();
+        if(!empty($esgOrder)){
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/AWB/".$esgOrder->courierInfo->courier_name."/";
+            if (!file_exists($filePath)) {
+                mkdir($filePath, 0755, true);
+            }
+            return $filePath;
+        }
+    }
+
     public function getSoAllocatedPickListNo($esgOrderNo)
     {
         $esgOrder = So::where("so_no", $esgOrderNo)
@@ -31,4 +45,8 @@ class IwmsBaseCallbackService
         }
     }
 
+    public function _sendEmail($to, $subject, $message, $header)
+    {
+        mail("{$to}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
+    }
 }

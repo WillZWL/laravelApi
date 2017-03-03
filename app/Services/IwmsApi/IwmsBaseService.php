@@ -103,6 +103,18 @@ trait IwmsBaseService
         }
     }
 
+    public function getCourierPickListFilePathByType($esgOrderNo, $documentType)
+    {
+        $esgOrder = So::where("so_no", $esgOrderNo)
+                    ->with("courierInfo")
+                    ->first();
+        if(!empty($esgOrder)){
+           $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix();
+            $filePath .= $esgOrder->pick_list_no."/".$documentType."/".$esgOrder->courierInfo->courier_name."/";
+         return $filePath; 
+        }
+    }
+
     public function getEsgOrderAwbLabelUrl($esgOrder)
     {
         if(!empty($esgOrder->pick_list_no)){

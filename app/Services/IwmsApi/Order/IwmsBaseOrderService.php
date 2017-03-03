@@ -35,6 +35,7 @@ class IwmsBaseOrderService
             "sub_merchant_id" => $esgOrder->sellingPlatform->merchant_id,
             "tracking_no" => $trackingNo,
             "store_name" => $esgOrder->sellingPlatform->store_name,
+            "incoterm" => $esgOrder->incoterm,
             "delivery_name" => $esgOrder->delivery_name,
             "company" => $esgOrder->delivery_company ? $esgOrder->delivery_company : "NA",
             "email" => $esgOrder->client->email,

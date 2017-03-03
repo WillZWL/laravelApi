@@ -50,7 +50,10 @@ trait BaseMailService
         $message .= "Content-Disposition: attachment; filename=\"".$fileName."\"".PHP_EOL.PHP_EOL;
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
-        mail("{$toEmail}", $subject, $message, $header);
+        if ( mail("{$toEmail}", $subject, $message, $header) === true ) {
+            return true;
+        }
+        return false;
     }
 
     public function createExcelFile($fileName, $orderPath, $cellData)
