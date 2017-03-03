@@ -61,6 +61,9 @@ class FulfillmentOrderService
                     $items
                 ];
             }
+            if ($orders->count() == 5000) {
+                $cellData[] = ["In order to download speed, This file limit of 5000 records. If You need all, ask IT for help"];
+            }
         } else {
             $cellData[] = ['No Any Records'];
         }
