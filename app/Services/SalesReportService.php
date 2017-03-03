@@ -24,6 +24,7 @@ class SalesReportService
             return $order->salesOrderStatistic->map(function ($item) use ($order) {
                 return [
                     'SO number' => $order->so_no,
+                    'Platform order id' => $order->platform_order_id,
                     'ESG SKU' => $item->esg_sku,
                     'Item number' => $item->line_no,
                     'Quantity' => $item->qty,
