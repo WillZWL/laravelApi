@@ -278,8 +278,4 @@ class IwmsDeliveryOrderService extends IwmsBaseCallbackService
         }
     }
 
-    private function _sendEmail($to, $subject, $message, $header)
-    {
-        mail("{$to}, brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", $subject, $message, $header);
-    }
 }

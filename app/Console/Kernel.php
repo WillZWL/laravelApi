@@ -46,6 +46,7 @@ class Kernel extends ConsoleKernel
         Commands\LgsOrderReadyToship::class,
         Commands\AccOrderNotFulfilledAlert::class,
         Commands\SkuCreatedAlert::class,
+        Commands\SkuFirstTimeStockAlert::class,
         Commands\SkuListingAlert::class,
         Commands\OrderPackList::class,
         Commands\IwmsLgsOrder::class,
@@ -186,6 +187,9 @@ class Kernel extends ConsoleKernel
             ->dailyAt('01:00');
 
         $schedule->command('sku:SendSkuListingAlert',
+                    array('--sku_type' => '1'))
+            ->dailyAt('01:00');
+        $schedule->command('sku:SendSkuFirstTimeStockAlert',
                     array('--sku_type' => '1'))
             ->dailyAt('01:00');
 
