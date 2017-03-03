@@ -59,7 +59,7 @@ class SalesReportService
 
         if ($operator = $request->get('selectedOperator')) {
             $formattedOrder = $formattedOrder->reject(function ($item) use ($operator) {
-                return $item['buyer'] != $operator;
+                return $item['operator'] != $operator;
             });
         }
 
