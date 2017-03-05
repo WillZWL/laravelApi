@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="my-project" default="build">
+<project name="vanguard" default="build">
     <!-- import the main tasks -->
     <import file="vendor/phpcq/phpcq/phpcq.main.xml" />
+
+    <!-- Build targets from here on. -->
+    <target
+        name="build"
+        depends="verify, analyze"
+        description="Do a full build"
+    />
+
+    <target
+        name="verify"
+        depends="
+            phplint,
+            composer-validate,
+            autoload-validation"
+        description="Verify the quality of the code"
+    />
+
+    <target
+        name="analyze"
+        depends="
+            phploc,
+            pdepend,
+            phpmd,
+            phpcs,
+            phpcpd,
+            phpunit,
+            phpspec,
+            branch-alias-validation,
+            travis-configuration-check"
+        description="Do static analysis of the code"
+    />
 </project>
