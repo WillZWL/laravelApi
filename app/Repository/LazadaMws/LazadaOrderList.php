@@ -17,7 +17,11 @@ class LazadaOrderList extends LazadaOrderCore
 
     public function fetchOrderList()
     {
-        return parent::query($this->getRequestParams());
+        try {
+            return parent::query($this->getRequestParams());
+        } catch (\Exception $e) {
+            mail('will.zhang@eservicesgroup.com', 'Fetch Lazada Order Error', 'Error Message: '. $e->getMessage());
+        }
     }
 
     protected function getRequestParams()
