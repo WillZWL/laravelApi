@@ -148,7 +148,7 @@ class ApiLazadaService implements ApiPlatformInterface
             }
         }
         if($getTrackingNo){
-            $orderList = $this->getMultipleOrderItems($storeName, [$esgOrder->platformMarketOrder->platform_id]);
+            $orderList = $this->getMultipleOrderItems($storeName, [$esgOrder->platformMarketOrder->platform_order_id]);
             //Not allowed to change the preselected shipment provider
             if(!empty($orderList)){
                 foreach ($orderList as $order) {
@@ -270,15 +270,19 @@ class ApiLazadaService implements ApiPlatformInterface
         $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
         if(!empty($shipmentProvider)){
-            foreach($esgOrder->soItem as $soItem){
-                $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
-                foreach($itemIds as $itemId){
-                    $orderItemIds[] = $itemId;
+            $orderItems = $esgOrder->platformMarketOrder->platformMarketOrderItem
+            foreach($orderItems as $orderItem){
+                if($orderItem->status != "Canceled"){
+                    $orderItemIds[] = $orderItem->order_item_id;
                 }
             }
-            $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-            if($result){
-                $valid = true;
+            if(!empty($orderItemIds)){
+                $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                if($result){
+                    $valid = true;
+                }
+            }else{
+                $valid = false;
             }
         }else{
             $subject = "lazada shipmentProvider need mapping";
@@ -289,7 +293,7 @@ class ApiLazadaService implements ApiPlatformInterface
         }
         return [
             "storeName" => $storeName, 
-            "orderItemId" => $orderItemIds[0],
+            "orderItemId" => !empty($orderItemIds) ? $orderItemIds[0] : null,
             "valid" => $valid,
             ];
     }
