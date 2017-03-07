@@ -31,7 +31,7 @@
                 </tr>
                 <tr>
                     <td class='field'>Shipper Name</td>
-                    <td class='value'>{{ $shipper['shipper_name'] }}</td>
+                    <td class='value'>{!! $shipper['shipper_name'] !!}</td>
                     <td class='field'>Ship to</td>
                     <td class='value'>{{ $so->delivery_name }}</td>
                 </tr>
