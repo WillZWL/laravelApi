@@ -140,9 +140,15 @@ class ApiLazadaService implements ApiPlatformInterface
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
-        $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+        if(!empty($esgOrder->platformMarketOrder)){
+            if(in_array($esgOrder->platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
+                $result["valid"] = 1; 
+            }else{
+                $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+            }
+        }
         if($getTrackingNo){
-            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+            $orderList = $this->getMultipleOrderItems($storeName, [$esgOrder->platformMarketOrder->platform_order_id]);
             //Not allowed to change the preselected shipment provider
             if(!empty($orderList)){
                 foreach ($orderList as $order) {
@@ -264,22 +270,19 @@ class ApiLazadaService implements ApiPlatformInterface
         $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
         if(!empty($shipmentProvider)){
-            foreach($esgOrder->soItem as $soItem){
-                $itemIds = array_filter(explode("||",$soItem->ext_item_cd));
-                foreach($itemIds as $itemId){
-                    $orderItemIds[] = $itemId;
+            $orderItems = $esgOrder->platformMarketOrder->platformMarketOrderItem;
+            foreach($orderItems as $orderItem){
+                if($orderItem->status != "Canceled"){
+                    $orderItemIds[] = $orderItem->order_item_id;
                 }
             }
-            $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
-            if(!empty($platformMarketOrder)){
-                if($platformMarketOrder->order_status == "Pending" && !empty($orderItemIds)){
-                    $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                    if($result){
-                        $valid = true;
-                    }
-                } else if(in_array($platformMarketOrder->order_status, ["Shipped","ReadyToShip","Delivered"])){
+            if(!empty($orderItemIds)){
+                $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+                if($result){
                     $valid = true;
                 }
+            }else{
+                $valid = false;
             }
         }else{
             $subject = "lazada shipmentProvider need mapping";
@@ -290,7 +293,7 @@ class ApiLazadaService implements ApiPlatformInterface
         }
         return [
             "storeName" => $storeName, 
-            "orderItemId" => $orderItemIds[0],
+            "orderItemId" => !empty($orderItemIds) ? $orderItemIds[0] : null,
             "valid" => $valid,
             ];
     }

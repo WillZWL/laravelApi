@@ -191,7 +191,8 @@ class IwmsCreateDeliveryOrderService
         if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
             $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($esgOrder);
         }
-        if($this->validInvoiceCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
+        //
+        if($this->validInvoiceLabelUrl($esgOrder->esg_quotation_courier_id)){
             $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($esgOrder);
         }
         foreach ($esgOrder->soItem as $esgOrderItem) {
@@ -255,7 +256,7 @@ class IwmsCreateDeliveryOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereNotNull("esg_quotation_courier_id")
-            //->where("dnote_invoice_status", 2)
+            ->where("dnote_invoice_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
@@ -431,7 +432,7 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function validInvoiceCourierLabelUrl($merchantCourierId)
+    private function validInvoiceLabelUrl($merchantCourierId)
     {
         $invoiceLabelToIwmsCourierList = $this->getPostInvoiceLabelToIwmsCourierList();
         if(in_array($merchantCourierId, $invoiceLabelToIwmsCourierList)){

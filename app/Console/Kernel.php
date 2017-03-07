@@ -174,6 +174,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => '4px'))
             ->everyThirtyMinutes();
 
+        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => 'esg'))
+            ->dailyAt('20:20');
+        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => 'esg'))
+            ->dailyAt('02:20');
+        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => 'esg'))
+            ->dailyAt('09:20');
+
         $schedule->command('Iwms:PushFulfillmentOrder')
             ->everyThirtyMinutes();
 

@@ -27,7 +27,7 @@ class LazadaCore
         if (isset($data['Head']) && isset($data['Head']['ErrorCode'])) {
             $this->ErrorResponse = $data['Head'];
             $message = $this->storeName." ErrorCode ".$data['Head']['ErrorCode']." message ".$data["Head"]["ErrorMessage"].$this->postUrl;
-            mail("jimmy.gao@eservicesgroup.com", "lazada error message", $message, $headers = 'From: admin@shop.eservciesgroup.com');
+            mail("jimmy.gao@eservicesgroup.com, will.zhang@eservicesgroup.com", "lazada error message", $message, $headers = 'From: admin@shop.eservciesgroup.com');
             return null;
         }
 
@@ -172,7 +172,7 @@ class LazadaCore
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,0); 
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT ,0);
         curl_setopt($ch, CURLOPT_TIMEOUT, 600); //timeout in seconds
         $data = curl_exec($ch);
         $info = curl_getinfo($ch);
@@ -191,7 +191,7 @@ class LazadaCore
     private function convert($xml)
     {
         $xml = preg_replace(array('/&#xd;/','/&#x3;/'), array(' '), $xml);
-        $xmlParser = xml_parser_create(); 
+        $xmlParser = xml_parser_create();
         if(xml_parse($xmlParser,$xml,true)){
             $obj = simplexml_load_string($xml);
             $array = json_decode(json_encode($obj), true);
