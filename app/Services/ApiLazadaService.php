@@ -140,9 +140,15 @@ class ApiLazadaService implements ApiPlatformInterface
         $prefix = strtoupper(substr($esgOrder->platform_id,3,2));
         $countryCode = strtoupper(substr($esgOrder->platform_id, -2));
         $storeName = $prefix."LAZADA".$countryCode;
-        $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+        if(!empty($esgOrder->platformMarketOrder)){
+            if(in_array($esgOrder->platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
+                $result["valid"] = 1; 
+            }else{
+                $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
+            }
+        }
         if($getTrackingNo){
-            $orderList = $this->getMultipleOrderItems($storeName,[$esgOrder->txn_id]);
+            $orderList = $this->getMultipleOrderItems($storeName, [$esgOrder->platformMarketOrder->platform_id]);
             //Not allowed to change the preselected shipment provider
             if(!empty($orderList)){
                 foreach ($orderList as $order) {
@@ -270,16 +276,9 @@ class ApiLazadaService implements ApiPlatformInterface
                     $orderItemIds[] = $itemId;
                 }
             }
-            $platformMarketOrder = PlatformMarketOrder::where("so_no",$esgOrder->so_no)->first();
-            if(!empty($platformMarketOrder)){
-                if($platformMarketOrder->order_status == "Pending" && !empty($orderItemIds)){
-                    $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
-                    if($result){
-                        $valid = true;
-                    }
-                } else if(in_array($platformMarketOrder->order_status, ["Shipped","ReadyToShip","Delivered"])){
-                    $valid = true;
-                }
+            $result = $this->setLgsOrderStatusToReadyToShip($storeName,$orderItemIds,$shipmentProvider);
+            if($result){
+                $valid = true;
             }
         }else{
             $subject = "lazada shipmentProvider need mapping";
