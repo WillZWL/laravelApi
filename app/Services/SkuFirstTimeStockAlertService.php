@@ -64,7 +64,7 @@ class SkuFirstTimeStockAlertService
             ->where('sku_type', $options['sku_type'])
             ->where('first_stocks_email', 0)
             ->where('inv.inventory', '>', 0)
-            ->limit(10)
+            ->where('status', '>', 0)
             ->get();
 
         if (! $products->isEmpty()) {
