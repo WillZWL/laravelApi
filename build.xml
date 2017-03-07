@@ -1,36 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="vanguard" default="build">
+
+    <target name="composer" description="Install dependencies with Composer">
+       <tstamp>
+           <format property="thirty.days.ago" pattern="MM/dd/yyyy hh:mm aa" offset="-30" unit="day" locale="en,GB" />
+       </tstamp>
+       <delete>
+           <fileset dir="${basedir}">
+                <include name="composer.phar" />
+                <date datetime="${thirty.days.ago}" when="before"/>
+            </fileset>
+        </delete>
+
+        <get src="https://getcomposer.org/composer.phar" dest="${basedir}/composer.phar" skipexisting="true" />
+
+        <exec executable="php">
+            <arg value="composer.phar"/>
+            <arg value="install"/>
+        </exec>
+    </target>
+
     <!-- import the main tasks -->
     <import file="vendor/phpcq/phpcq/phpcq.main.xml" />
 
     <!-- Build targets from here on. -->
-    <target
-        name="build"
-        depends="verify, analyze"
-        description="Do a full build"
-    />
-
-    <target
-        name="verify"
-        depends="
-            phplint,
-            composer-validate,
-            autoload-validation"
-        description="Verify the quality of the code"
-    />
-
-    <target
-        name="analyze"
-        depends="
-            phploc,
-            pdepend,
-            phpmd,
-            phpcs,
-            phpcpd,
-            phpunit,
-            phpspec,
-            branch-alias-validation,
-            travis-configuration-check"
-        description="Do static analysis of the code"
-    />
+    <target name="build" depends="verify, analyze" description="Do a full build" />
+    <target name="verify" depends="phplint, composer-validate, autoload-validation" description="Verify the quality of the code" />
+    <target name="analyze" depends=" phploc, pdepend, phpmd, phpcs, phpcpd, phpunit, phpspec, branch-alias-validation, travis-configuration-check" description="Do static analysis of the code" />
 </project>
