@@ -4,6 +4,9 @@ namespace App\Services\IwmsApi\Order;
 
 use App\Models\So;
 use App\Models\IwmsLgsOrderStatusLog;
+use App\Models\InvMovement;
+use App\Models\SoShipment;
+
 use App;
 
 class IwmsLgsOrderService extends IwmsBaseOrderService
@@ -58,6 +61,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 if($result){
                     $esgOrder->waybill_status = "2";
                     $esgOrder->save();
+                    if($esgOrder->iwmsLgsOrderStatusLog->wms_platform == "esg"){
+                        $this->updateEsgLgsOrderStatusToDispatch($esgOrder);
+                    }
                 }
             }
         }
@@ -86,7 +92,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function createIwmsLgsOrderStatusLog($esgOrder, $result)
     {
-        $object['iwms_platform'] = "iwms";
+        $object['iwms_platform'] = $this->wmsPlatform;
         $object['esg_courier_id'] = $esgOrder->esg_quotation_courier_id;
         $object['so_no'] = $esgOrder->so_no;
         $object['platform_order_no'] = $esgOrder->platform_order_id;
@@ -191,12 +197,11 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     private function saveWaybillToPickListFolder($esgOrder, $folderName, $label)
     {
         if(!empty($esgOrder) && !empty($label)){
-            //$pickListNo = $this->getSoAllocatedPickListNo($soNo);
             $filePath = $this->getLgsOrderPickListFilePath($esgOrder, $folderName);
             if($folderName == "AWB"){
                 $file = $filePath.$esgOrder->so_no.'_awb.pdf';
             }else if($folderName == "invoice"){
-                $file = $filePath.$esgOrder->so_no.'_invoice.pdf';
+                $file = $filePath.$esgOrder->so_no.'_lgs_invoice.pdf';
             }
             file_put_contents($file, $label);
         }
@@ -219,6 +224,43 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
             $this->apiLazadaService = App::make("App\Services\ApiLazadaService");
         }
         return $this->apiLazadaService;
+    }
+
+    private function updateEsgLgsOrderStatusToDispatch($esgOrder)
+    {
+        $soShipment = $this->createEsgSoShipment($esgOrder);
+        if(!empty($soShipment)){
+            foreach ($esgOrder->soAllocate as $soAllocate) { 
+                if($soAllocate->status != 1){
+                    continue;
+                }
+                $invMovement = InvMovement::where("ship_ref", $soAllocate->id)
+                    ->where("status", "AL")
+                    ->first();
+                if(!empty($invMovement)){
+                    $invMovement->ship_ref = $soShipment->sh_no;
+                    $invMovement->status = "OT";
+                    $invMovement->save();
+                    $soAllocate->status = 2;
+                    $soAllocate->sh_no = $soShipment->sh_no;
+                    $soAllocate->save();
+                }
+            }
+        }
+    }
+
+    public function createEsgSoShipment($esgOrder)
+    {
+        $soShipment = SoShipment::where("sh_no", $esgOrder->so_no."-01")->first();
+        if(!empty($soShipment)){
+            return null;
+        }else{
+            $object['sh_no'] = $esgOrder->so_no."-01";
+            $object['courier_id'] = $esgOrder->esg_quotation_courier_id;
+            $object['status'] = 1;
+            $soShipment = SoShipment::updateOrCreate(['sh_no' => $object['sh_no']],$object);
+            return $soShipment;
+        }
     }
 
 }

@@ -176,7 +176,8 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getWarehouseToIwms($wmsPlatform)
     {
         $warehouseIdArr = array(
-            '4px' => array("4PXDG_PL","4PX_B66")
+            '4px' => array("4PXDG_PL","4PX_B66"),
+            'esg' => array("ES_HK")
         );
         return $warehouseIdArr[$wmsPlatform];
     }
