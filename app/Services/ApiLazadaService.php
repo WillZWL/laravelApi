@@ -270,7 +270,7 @@ class ApiLazadaService implements ApiPlatformInterface
         $warehouseId = $esgOrder->soAllocate->first()->warehouse_id;
         $shipmentProvider = $this->getEsgShippingProvider($warehouseId,$countryCode,$lazadaShipments);
         if(!empty($shipmentProvider)){
-            $orderItems = $esgOrder->platformMarketOrder->platformMarketOrderItem
+            $orderItems = $esgOrder->platformMarketOrder->platformMarketOrderItem;
             foreach($orderItems as $orderItem){
                 if($orderItem->status != "Canceled"){
                     $orderItemIds[] = $orderItem->order_item_id;
