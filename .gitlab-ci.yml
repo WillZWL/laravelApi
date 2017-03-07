@@ -11,4 +11,4 @@ before_script:
 # PHP 7.0
 php:7.0:
   script:
-    - ant
+    - ant verify
