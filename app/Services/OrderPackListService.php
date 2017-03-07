@@ -31,7 +31,8 @@ class OrderPackListService
     protected $country = null;
     protected $courierList = null;
     protected $per_page = 50;
-    private $exceptionMsg = [];
+    private   $exceptionMsg = [];
+
     public function __construct()
     {
         $this->orderRepository = new FulfillmentOrderRepository();
@@ -54,16 +55,17 @@ class OrderPackListService
                     }
                 }
                 $this->updateDeliveryNoteInvoiceStatus($soNoList);
+                $this->updateDeliveryNoteInvoiceStatus(array_keys($this->exceptionMsg), '-1');
             }
         } while(! $soList->getCollection()->isEmpty());
 
         $this->sendEmailAlert();
     }
 
-    public function updateDeliveryNoteInvoiceStatus($soNoList)
+    public function updateDeliveryNoteInvoiceStatus($soNoList, $status = 2)
     {
         if (!empty($soNoList)) {
-            So::whereIn('so_no', $soNoList)->update(['dnote_invoice_status' => 2]);
+            So::whereIn('so_no', $soNoList)->update(['dnote_invoice_status' => $status]);
         }
     }
 
@@ -79,13 +81,17 @@ class OrderPackListService
                 }
             }
             $this->updateDeliveryNoteInvoiceStatus($success);
+            $this->updateDeliveryNoteInvoiceStatus(array_keys($this->exceptionMsg), '-1');
             $this->sendEmailAlert();
         }
     }
 
     public function sendEmailAlert()
     {
-        //mail("milo.chen@eservicesgroup.com","generate Invoice or Delivery Note failed",implode(PHP_EOL, $this->getExceptionMsg()));
+        if ($this->getExceptionMsg()) {
+            mail("milo.chen@eservicesgroup.com","generate Invoice or Delivery Note failed",implode(PHP_EOL, $this->getExceptionMsg()));
+            //echo implode(PHP_EOL, $this->getExceptionMsg());
+        }
     }
 
     public function createFolder($folder)
@@ -133,7 +139,7 @@ class OrderPackListService
             $returnHTML = view('packlist.delivery-note', $result)->render();
             $pickListNo = $soObj->pick_list_no;
             if (! $soObj->esg_quotation_courier_id) {
-                $this->exceptionMsg[] = "DeliveryNote so: {$soObj->so_no},message:  no rec_courier";
+                $this->exceptionMsg[$soObj->so_no] = "DeliveryNote so: {$soObj->so_no},message:  no rec_courier";
                 return false;
             }
             $courierInfo = $this->getCourierInfo($soObj->esg_quotation_courier_id);
@@ -162,7 +168,7 @@ class OrderPackListService
             $returnHTML = view('packlist.custom-invoice', $result)->render();
             $pickListNo = $soObj->pick_list_no;
             if (! $soObj->esg_quotation_courier_id) {
-                $this->exceptionMsg[] = "CustomInvoice so: {$soObj->so_no},message:  no rec_courier";
+                $this->exceptionMsg[$soObj->so_no] = "CustomInvoice so: {$soObj->so_no},message:  no rec_courier";
                 return false;
             }
             $courierInfo = $this->getCourierInfo($soObj->esg_quotation_courier_id);
@@ -188,6 +194,7 @@ class OrderPackListService
             $soObj->esg_quotation_courier_id = $courierId;
         }
         if (!$courierId) {
+            $this->exceptionMsg[$soObj->so_no] = "CustomInvoice so: {$soObj->so_no},message:  no rec_courier";
             return false;
         }
 
@@ -204,6 +211,10 @@ class OrderPackListService
         $courierMap = CourierMapping::where("courier_id", $courierId)->first();
         if ($courierMap) {
             $shipperName = $courierMap->shipper_name;
+        }
+        //sbf 11032
+        if ($merchantId == "PALETTEGEAR" && $sellingPlatformObj->type == "DISPATCH") {
+            $shipperName = "Grant & Union Inc.(Palette) C/O <br/> E-SERVICES GROUP LIMITED";
         }
 
         //$deliveryCountryObj = Country::where("id", $soObj->delivery_country_id)->first();
@@ -352,6 +363,9 @@ class OrderPackListService
             $result["website"] = $this->website;
 
             return $result;
+        } else {
+            $this->exceptionMsg[$soObj->so_no] = "DeliveryNote so: {$soObj->so_no},message:  not found PlatformBizVar: {$soObj->platform_id}";
+            return false;
         }
     }
 
