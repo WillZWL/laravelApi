@@ -31,7 +31,7 @@ class OrderPackListService
     protected $country = null;
     protected $courierList = null;
     protected $per_page = 50;
-    private   $exceptionMsg = [];
+    private $exceptionMsg = [];
 
     public function __construct()
     {
@@ -51,13 +51,13 @@ class OrderPackListService
                     $invoice = $this->generateCustomInvoice($soObj);
                     $dnote = $this->generateDeliveryNote($soObj);
                     if ($invoice && $dnote) {
-                       $soNoList[] = $soObj->so_no;
+                        $soNoList[] = $soObj->so_no;
                     }
                 }
                 $this->updateDeliveryNoteInvoiceStatus($soNoList);
                 $this->updateDeliveryNoteInvoiceStatus(array_keys($this->exceptionMsg), '-1');
             }
-        } while(! $soList->getCollection()->isEmpty());
+        } while (! $soList->getCollection()->isEmpty());
 
         $this->sendEmailAlert();
     }
@@ -89,7 +89,7 @@ class OrderPackListService
     public function sendEmailAlert()
     {
         if ($this->getExceptionMsg()) {
-            mail("milo.chen@eservicesgroup.com","generate Invoice or Delivery Note failed",implode(PHP_EOL, $this->getExceptionMsg()));
+            mail("milo.chen@eservicesgroup.com", "generate Invoice or Delivery Note failed", implode(PHP_EOL, $this->getExceptionMsg()));
             //echo implode(PHP_EOL, $this->getExceptionMsg());
         }
     }
@@ -213,9 +213,9 @@ class OrderPackListService
             $shipperName = $courierMap->shipper_name;
         }
         //sbf 11032
-        if ($merchantId == "PALETTEGEAR" && $sellingPlatformObj->type == "DISPATCH") {
-            $shipperName = "Grant & Union Inc.(Palette) C/O <br/> E-SERVICES GROUP LIMITED";
-        }
+        // if ($merchantId == "PALETTEGEAR" && $sellingPlatformObj->type == "DISPATCH") {
+        //     $shipperName = "Grant & Union Inc.(Palette) C/O <br/> E-SERVICES GROUP LIMITED";
+        // }
 
         //$deliveryCountryObj = Country::where("id", $soObj->delivery_country_id)->first();
         $deliveryCountryObj = $this->getCountry($soObj->delivery_country_id);
@@ -227,7 +227,7 @@ class OrderPackListService
 
         $sumItemAmount = 0;
         $itemDetailDiscount = 0;
-        $useItemDetailDiscount = FALSE;
+        $useItemDetailDiscount = false;
         $fedexCustomInvoice = false;
         $soItem = $soObj->soItem;
         foreach ($soItem as $item) {
@@ -259,7 +259,7 @@ class OrderPackListService
             $discount = 0;
         }
         # prevent negative
-        if($discount > $sumItemAmount) {
+        if ($discount > $sumItemAmount) {
             $discount = $sumItemAmount;
         }
 
@@ -287,7 +287,7 @@ class OrderPackListService
                 $descAndCode = $this->getDeclaredDescAndCode($item, $useOptimizedHscodeDuty, $soObj->delivery_country_id);
 
                 $isShow = 1;
-                if ((substr($soObj->platform_id,0,2) == "TF" || substr($soObj->platform_id,0,2) == "AC") && $descAndCode["master_sku"] == "34753-MM-BK") {
+                if ((substr($soObj->platform_id, 0, 2) == "TF" || substr($soObj->platform_id, 0, 2) == "AC") && $descAndCode["master_sku"] == "34753-MM-BK") {
                     $isShow = 0;
                 }
                 $itemResult[] = [
@@ -342,8 +342,7 @@ class OrderPackListService
                 }
             } else {
                 $soItemResult = [];
-                foreach($soObj->soItem as $item)
-                {
+                foreach ($soObj->soItem as $item) {
                     $soItemResult[] = $this->getSoItemDeliveryNote($item);
                 }
             }
@@ -374,7 +373,7 @@ class OrderPackListService
         $result = [];
 
         $product = $soItem->product;
-        $productAssemblyMapping = ProductAssemblyMapping::where("main_sku",$product->sku)->where("is_replace_main_sku",1)->first();
+        $productAssemblyMapping = ProductAssemblyMapping::where("main_sku", $product->sku)->where("is_replace_main_sku", 1)->first();
 
         if ($productAssemblyMapping) {
             $itemSku = $productAssemblyMapping->sku ? $productAssemblyMapping->sku : $product->sku;
@@ -412,7 +411,7 @@ class OrderPackListService
         return $result;
     }
 
-    public function getBatteryType($battery='')
+    public function getBatteryType($battery = '')
     {
         switch ($battery) {
             case '0':
@@ -463,7 +462,7 @@ class OrderPackListService
     public function getShipToData($soObj)
     {
         $result = [];
-        for ( $i = 1; $i < 7; $i++) {
+        for ($i = 1; $i < 7; $i++) {
             $result["daddr_".$i] = "&nbsp;";
         }
 
@@ -658,7 +657,7 @@ class OrderPackListService
 
     public function getCountry($countryId)
     {
-        return isset($this->country[$countryId]) ? $this->country[$countryId] : NULL;
+        return isset($this->country[$countryId]) ? $this->country[$countryId] : null;
     }
 
     public function setCourierList()
@@ -673,6 +672,6 @@ class OrderPackListService
 
     public function getCourierInfo($courierId)
     {
-        return isset($this->courierList[$courierId]) ? $this->courierList[$courierId] : NULL;
+        return isset($this->courierList[$courierId]) ? $this->courierList[$courierId] : null;
     }
 }
