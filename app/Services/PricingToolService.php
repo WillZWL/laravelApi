@@ -262,7 +262,7 @@ class PricingToolService
 
         if (in_array($deliveryType,["MCF", "FBA"])) {
             if (in_array($this->destination->country_id,$euCountryList)) {
-                $country_id = 'UK';
+                $country_id = 'GB';
             } else {
                 $country_id = $this->destination->country_id;
             }
