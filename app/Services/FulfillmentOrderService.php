@@ -72,7 +72,6 @@ class FulfillmentOrderService
         $fileName = 'Orders List';
         $excelFile = $this->generateMultipleSheetsExcel($fileName, $cellDataArr, $path);
         return $excelFile["path"].$excelFile["file_name"];
-
     }
 
     public function getCourierNameById($id)

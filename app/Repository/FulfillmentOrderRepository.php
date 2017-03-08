@@ -29,7 +29,7 @@ class FulfillmentOrderRepository
             $per_page = $request->get('per_page');
         }
         if ($request->get('page')) {
-            return $query->paginate($per_page,  ['*'], 'page', $request->get('page'));
+            return $query->paginate($per_page, ['*'], 'page', $request->get('page'));
         }
         return $query->paginate($per_page);
     }
@@ -62,44 +62,44 @@ class FulfillmentOrderRepository
             $query->whereNotIn('platform_id', $excludePlatform);
         }
 
-        if ($request->get('order_no') !== NUll) {
+        if ($request->get('order_no') !== null) {
             $query->where('so_no', $request->get('order_no'));
         }
 
-        if ($request->get('platform_id') !== NUll) {
+        if ($request->get('platform_id') !== null) {
             $query->where('platform_id', $request->get('platform_id'));
         }
 
-        if ($request->get('order_create_date') !== NUll) {
+        if ($request->get('order_create_date') !== null) {
             $query->where('order_create_date', $request->get('order_create_date'));
         }
 
-        if ($request->get('filter') !== NULL) {
+        if ($request->get('filter') !== null) {
             $filter = $request->get('filter');
             if ($filter) {
                 $query->where('so_no', $filter)->orWhere('platform_id', $filter);
             }
         }
 
-        if ($request->get('merchantId') !== NULL && count($request->get('merchantId')) > 0) {
+        if ($request->get('merchantId') !== null && count($request->get('merchantId')) > 0) {
             $query->leftJoin('selling_platform AS sp', 'sp.id', '=', 'so.platform_id');
             $query->whereIn('sp.merchant_id', $request->get('merchantId'));
         }
 
-        if ($request->get('courierId') !== NULL && count($request->get('courierId')) > 0) {
+        if ($request->get('courierId') !== null && count($request->get('courierId')) > 0) {
             $query->whereIn('esg_quotation_courier_id', $request->get('courierId'));
         }
 
-        if ($request->get('into_iwms_status') !== NULL) {
+        if ($request->get('into_iwms_status') !== null) {
             $query->leftJoin('so_extend AS se', 'se.so_no', '=', 'so.so_no');
             $query->where('se.into_iwms_status', $request->get('into_iwms_status'));
         }
 
-        if ($request->get('dnote_invoice_status') !== NULL) {
+        if ($request->get('dnote_invoice_status') !== null) {
             $query->where('dnote_invoice_status', $request->get('dnote_invoice_status'));
         }
 
-        if ($request->get('pick_list_no') !== NULL) {
+        if ($request->get('pick_list_no') !== null) {
             $query->whereNotNull("pick_list_no")->where("pick_list_no", "<>", "");
         }
         return $query;

@@ -65,10 +65,10 @@ class FulfillmentOrderTransformer extends TransformerAbstract
 
     private function getAssemblyMapping()
     {
-        return Cache::store('file')->get('prodAssemblyMainSkus', function() {
+        return Cache::store('file')->get('prodAssemblyMainSkus', function () {
             $assemblyMappings = ProductAssemblyMapping::active()->whereIsReplaceMainSku('1')->get();
             $prodAssemblyMainSkus = [];
-            if (! $assemblyMappings->isEmpty() ) {
+            if (! $assemblyMappings->isEmpty()) {
                 foreach ($assemblyMappings as $assemblyMapping) {
                     $prodAssemblyMainSkus[$assemblyMapping->main_sku] = [
                         'sku' => $assemblyMapping->sku,
