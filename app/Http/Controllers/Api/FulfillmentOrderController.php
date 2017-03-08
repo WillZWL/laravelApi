@@ -26,7 +26,7 @@ class FulfillmentOrderController extends Controller
 
         if ($request->get('export')) {
             $excelFile = $this->orderService->exportExcel($request);
-            if($excelFile){
+            if ($excelFile) {
                 return response()->download($excelFile);
             }
         } else {
