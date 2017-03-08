@@ -356,6 +356,9 @@ class OrderPackListService
             $billingAddress = ($soObj->bill_company ? $soObj->bill_company."<br/>" : "").trim(str_replace("|", "<br/>", $soObj->bill_address))."".$soObj->bill_city." ".$soObj->bill_state." ".$soObj->bill_postcode."<br/>".$billingCountry->name;
 
             $result["so"] = $soObj;
+            $courierInfo = $this->getCourierInfo($soObj->esg_quotation_courier_id);
+            $result["courier_name"] = $courierInfo->courier_name;
+            $result['merchant_name'] = $soObj->sellingPlatform->merchant_id;
             $result["soItem"] = $soItemResult;
             $result["delivery_address"] = $deliveryAddress;
             $result["billing_address"] = $billingAddress;

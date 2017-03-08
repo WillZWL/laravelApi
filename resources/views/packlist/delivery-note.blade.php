@@ -51,6 +51,18 @@ font-size:8pt;
     </tr>
 
     <tr>
+        <td width="50%"><b>Courier: </b>{{ $courier_name }}</td>
+        <td><b>Merchant: </b>{{ $merchant_name }}</td>
+    </tr>
+
+    <tr>
+        <td colspan="2">
+            <p>&nbsp;</p>
+            <p>&nbsp;</p>
+        </td>
+    </tr>
+
+    <tr>
         <td colspan="2">
             <table border="1" cellpadding="4" cellspacing="0" width="100%">
                 <tr>
