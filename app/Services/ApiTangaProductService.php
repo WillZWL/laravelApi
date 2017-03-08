@@ -30,24 +30,25 @@ class ApiTangaProductService implements ApiPlatformProductInterface
         $processStatusProduct = MarketplaceSkuMapping::ProcessStatusProduct($storeName,$processStatus);
 
         if(!$processStatusProduct->isEmpty()){
-            $csvData = "vendor_sku_code,quantity";
-
             foreach ($processStatusProduct as $index => $pendingSku) {
-                $csvData .= "\r\n$pendingSku->marketplace_sku,$pendingSku->inventory";
-            }
+                $requestData = [];
+                $requestData['vendor_product_listing_code'] = $pendingSku->marketplace_sku;
+                $requestData['skus'][] = [
+                    'cost' => $pendingSku->price,
+                    'quantity' => $pendingSku->inventory,
+                    'vendor_sku_code' => $pendingSku->marketplace_sku,
+                ];
+                $this->saveDataToFile(serialize($requestData), 'requestUpdatePriceAndInventory');
+                $this->tangaProductUpdate = new TangaProductUpdate($storeName);
+                $responseData = $this->tangaProductUpdate->updatePriceAndInventory($requestData);
+                $this->saveDataToFile(serialize($responseData), 'responseUpdatePriceAndInventory');
 
-            $this->saveDataToFile($csvData, 'requestProductInventory', 'csv');
-
-            $this->tangaProductUpdate = new TangaProductUpdate($storeName);
-            $this->storeCurrency = $this->tangaProductUpdate->getStoreCurrency();
-            $responseData = $this->tangaProductUpdate->updateInventory($csvData);
-
-            $this->saveDataToFile(serialize($responseData), 'responseProductInventory');
-
-            if ( $responseData['status'] == 'ok') {
-                $this->updatePendingProductProcessStatus($processStatusProduct,$processStatus);
-
-                return $responseData;
+                if (! isset($responseData['errors'])
+                    && isset($responseData['vendor_product_listing_code'])
+                    && $responseData['vendor_product_listing_code'] == $pendingSku->marketplace_sku
+                ) {
+                    $this->updatePendingProductProcessStatusBySku($pendingSku, $processStatus);
+                }
             }
         }
     }
