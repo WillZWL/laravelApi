@@ -99,7 +99,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                         ];
                     } else {
                         $this->notAllocateOrder[] = $order->reference_no;
-                        $this->notAllocateInfo[] = "Order number[$soNo] iwms_warehouse[$iwmsWh] with merchant ID[$merchantId] not found available merchant warehouse ID";
+                        $this->notAllocateInfo[] = "Order number[". $order->reference_no ."] iwms_warehouse[$iwmsWh] with merchant ID[$merchantId] not found available merchant warehouse ID";
 
                     }
 
