@@ -165,68 +165,6 @@ class ApiLazadaService implements ApiPlatformInterface
         return array("tracking_no" => $trackingNo, "valid" => $result["valid"]);
     }
 
-    //ESG SYSTEM SET ORDER TO READYSHIP AND GET DOCUMENT
-    public function cronSetEsgLgsOrderToReadyToShip()
-    {
-        $document = null; $msg = null;
-        $esgOrders = $this->getEsgLgsAllocateOrders();
-        if(!$esgOrders->isEmpty()) {
-            foreach ($esgOrders as $esgOrder) {
-                $result = null;
-                if(!empty($esgOrder->platformMarketOrder)){
-                    if(in_array($esgOrder->platformMarketOrder->status, ["Shipped","ReadyToShip","Delivered"])){
-                        $document[$esgOrder->platformMarketOrder->platform][$esgOrder->so_no] = $esgOrder->txn_id;
-                    }else{
-                        $result = $this->setEsgLgsOrderReadyToShip($esgOrder); 
-                        if($result["valid"]){
-                            $this->updateEsgToShipOrderStatusToDispatch($esgOrder);
-                            $document[$result["storeName"]][$esgOrder->so_no] = $result["orderItemId"];
-                        } else {
-                            $msg .= "Order NO: ".$esgOrder->so_no." set ready to ship failed.\r\n";
-                        }
-                    }
-                }
-            }
-            if(!empty($msg)){
-                $subject = "lazada Order Ready to ship failed";
-                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
-                mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
-            }
-            if(!empty($document)){
-                //$this->backupEsgOrderDocument($document,$batchId);
-                $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
-                foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
-                   $esgLgsOrderDocumentLog = new EsgLgsOrderDocumentLog();
-                   $esgLgsOrderDocumentLog->store_name = $documentLog["store_name"];
-                   $esgLgsOrderDocumentLog->order_item_ids = json_encode($documentLog["order_item_ids"]);
-                   $esgLgsOrderDocumentLog->document_type = $documentLog["document_type"];
-                   $esgLgsOrderDocumentLog->status = $documentLog["status"];
-                   $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
-                   $esgLgsOrderDocumentLog->save();
-                }
-            }
-        }
-    }
-
-    public function cornGetEsgLgsOrderDocument()
-    {
-        $esgLgsOrderDocumentLogs = EsgLgsOrderDocumentLog::where("status",0)
-            ->get();
-        if(!$esgLgsOrderDocumentLogs->isEmpty()){
-            foreach ($esgLgsOrderDocumentLogs as $esgLgsOrderDocumentLog) {
-            $document[$esgLgsOrderDocumentLog->store_name] = json_decode($esgLgsOrderDocumentLog->order_item_ids);
-                if(!empty($document)){
-                    $esgLgsOrderLog = $this->getEsgLgsOrderDocumentLabel($document);
-                    foreach ($esgLgsOrderLog["DocumentLogs"] as $documentLog) {
-                       $esgLgsOrderDocumentLog->status = $documentLog["status"];
-                       $esgLgsOrderDocumentLog->document_url = $esgLgsOrderLog["documentUrl"];
-                       $esgLgsOrderDocumentLog->save();
-                    }
-                }
-            }
-        }
-    }
-
     private function getGroupStoreNameDocument($documentArr)
     {
         $document = null;
@@ -239,25 +177,6 @@ class ApiLazadaService implements ApiPlatformInterface
             }
         }
         return $document;
-    }
-
-    private function getEsgLgsAllocateOrders()
-    {
-        $this->fromData = date("Y-m-d 00:00:00");
-        $this->toDate = date("Y-m-d 23:59:59");
-        return $esgOrders = So::where("status",5)
-            ->where("refund_status", "0")
-            ->where("hold_status", "0")
-            ->where("prepay_hold_status", "0")
-            ->whereIn("esg_quotation_courier_id", ["93","130"])
-            ->whereHas('soAllocate', function ($query) {
-                $query->whereIn('warehouse_id', ["ES_HK"])
-                    ->where("status", 1)
-                    ->where("modify_on", ">=", $this->fromData)
-                    ->where("modify_on", "<=", $this->toDate);
-            })
-            ->with("soItem")
-            ->get();
     }
 
     private function setEsgLgsOrderReadyToShip($esgOrder)

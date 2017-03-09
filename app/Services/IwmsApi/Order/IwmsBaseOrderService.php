@@ -37,7 +37,7 @@ class IwmsBaseOrderService
             "store_name" => $esgOrder->sellingPlatform->store_name,
             "incoterm" => $esgOrder->incoterm,
             "delivery_name" => $esgOrder->delivery_name,
-            "company" => $esgOrder->delivery_company ? $esgOrder->delivery_company : "NA",
+            "company" => $esgOrder->delivery_company ? $esgOrder->delivery_company : $esgOrder->delivery_name,
             "email" => $esgOrder->client->email,
             "country" => $esgOrder->delivery_country_id,
             "country_name" => $esgOrder->country->name,
