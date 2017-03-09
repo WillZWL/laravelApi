@@ -56,10 +56,27 @@ class FulfillmentOrderRepository
             }
         }
 
-        $excludePlatform = $this->getExcludePlatform();
-        $excludePlatform = array_flatten($excludePlatform);
-        if ($excludePlatform) {
-            $query->whereNotIn('platform_id', $excludePlatform);
+        if ($request->get('balanceBelow0') !== null || $request->get('merchantId') !== null) {
+            $query->leftJoin('selling_platform AS sp', 'sp.id', '=', 'so.platform_id');
+        }
+
+        if ($request->get('balanceBelow0') !== null && $request->get('balanceBelow0') == 1) {
+            $query->leftJoin('merchant AS m', 'sp.merchant_id', '=', 'm.id')
+                                ->leftJoin('merchant_balance AS mb', 'mb.merchant_id', '=', 'm.id')
+                                ->where('type', 'DISPATCH')
+                                ->where('mb.balance', '<', 0)
+                                ->where('m.can_do_prepayment', 1)
+                                ->where('sp.need_fulfillment', 1);
+        } else {
+            $excludePlatform = $this->getExcludePlatform();
+            $excludePlatform = array_flatten($excludePlatform);
+            if ($excludePlatform) {
+                $query->whereNotIn('platform_id', $excludePlatform);
+            }
+        }
+
+        if ($request->get('merchantId') !== null && count($request->get('merchantId')) > 0) {
+            $query->whereIn('sp.merchant_id', $request->get('merchantId'));
         }
 
         if ($request->get('order_no') !== null) {
@@ -79,11 +96,6 @@ class FulfillmentOrderRepository
             if ($filter) {
                 $query->where('so_no', $filter)->orWhere('platform_id', $filter);
             }
-        }
-
-        if ($request->get('merchantId') !== null && count($request->get('merchantId')) > 0) {
-            $query->leftJoin('selling_platform AS sp', 'sp.id', '=', 'so.platform_id');
-            $query->whereIn('sp.merchant_id', $request->get('merchantId'));
         }
 
         if ($request->get('courierId') !== null && count($request->get('courierId')) > 0) {
