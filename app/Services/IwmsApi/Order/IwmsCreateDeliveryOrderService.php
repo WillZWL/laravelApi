@@ -256,7 +256,7 @@ class IwmsCreateDeliveryOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereNotNull("esg_quotation_courier_id")
-            ->where("dnote_invoice_status", 2)
+            //->where("dnote_invoice_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
