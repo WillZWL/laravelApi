@@ -15,6 +15,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
     use \App\Services\IwmsApi\IwmsBaseService;
 
     private $notAllocateOrder = [];
+    private $diffPickListOrder = [];
     private $allocateFailedOrder = [];
     private $beforeAllocatedOrder = [];
     private $allocatedOrder = [];
@@ -53,6 +54,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
     public function allocationResults()
     {
         return [
+            'diffPickListOrder'=> $this->diffPickListOrder,
             'notAllocateOrder'=> $this->notAllocateOrder,
             'allocateFailedOrder' => $this->allocateFailedOrder,
             'beforeAllocatedOrder' => $this->beforeAllocatedOrder,
@@ -94,7 +96,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                             'allocation_batch_id' => $order->allocation_batch_id,
                             'so_no' => $order->reference_no,
                             'warehouse_id' => $wh[$iwmsWh][$merchantId],
-                            'wms_picklist_no' => $order->wms_picklist_no,
+                            'pick_list_no' => $order->wms_picklist_no,
                             'items' => $newItem,
                         ];
                     } else {
@@ -128,7 +130,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                 if (isset($pendingOrders[$soNo])) {
                     $readyOrders[$soNo] = $pendingOrders[$soNo];
                 } else {
-                    $this->checkSkippedAllocationPlan($soNo);
+                    $this->checkSkippedAllocationPlan($wmsOrders, $soNo);
                 }
             }
             return $readyOrders;
@@ -136,11 +138,17 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
         return false;
     }
 
-    public function checkSkippedAllocationPlan($soNo)
+    public function checkSkippedAllocationPlan($wmsOrders, $soNo)
     {
         $so = So::where('so_no', $soNo)->first();
         $holdText = '';
-        if ($so->status == 5 || $so->status == 6) {
+        $pickListText = '';
+
+        $pickListNo = $wmsOrders[$soNo]['pick_list_no'];
+        if ($so->status == 5 && ! empty($so->pick_list_no) && $so->pick_list_no != $pickListNo) {
+            $this->diffPickListOrder[] = $soNo;
+            $pickListText = ", Before this has been done allocated, ESG[". $so->pick_list_no ."] with Current WMS[". $pickListNo ."] is two diff Pick List No";
+        } else if ($so->status == 5 || $so->status == 6) {
             $this->beforeAllocatedOrder[] = $soNo;
         } else {
             $this->notAllocateOrder[] = $soNo;
@@ -160,7 +168,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                 $holdText .= " / Prepay Hold Status: ". $so->prepay_hold_status;
             }
         }
-        $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status] . $holdText;
+        $this->notAllocateInfo[] = "Order number[$soNo] not do allocation plan, Order Status: ". $so->status. " - ". $this->orderStatus[$so->status] . $holdText . $pickListText;
     }
 
     public function processAllocationPlan($orders, $wmsOrders)
@@ -171,7 +179,7 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                 try {
                     $wmsOrder = $wmsOrders[$soNo];
                     $this->allocation($order, $wmsOrder);
-                    $order->pick_list_no = $wmsOrder['wms_picklist_no'];
+                    $order->pick_list_no = $wmsOrder['pick_list_no'];
                     $order->status = 5;
                     $order->modify_by = $this->userName;
                     $order->save();
