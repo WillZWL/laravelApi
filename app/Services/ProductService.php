@@ -412,7 +412,7 @@ class ProductService
                 array_filter($sheetItems);
                 foreach ($sheetItems as $item) {
                     $product = '';
-                    if (trim($item['esg_sku'])) {
+                    if (isset($item['esg_sku']) && trim($item['esg_sku'])) {
                         $item['sku'] = $item['esg_sku'];
                         $product = Product::whereSku($item['sku'])->first();
                     } else {
