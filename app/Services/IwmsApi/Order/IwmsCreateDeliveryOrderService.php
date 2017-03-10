@@ -30,10 +30,14 @@ class IwmsCreateDeliveryOrderService
 
     public function getDeliveryCreationRequest($warehouseIds)
     {
-        $deliveryCreationRequest = null;
-        $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
-        $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
-        return $this->getDeliveryCreationBatchRequest($batchRequest);
+        try {
+            $deliveryCreationRequest = null;
+            $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
+            $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
+            return $this->getDeliveryCreationBatchRequest($batchRequest);
+        } catch (\Exception $e) {
+            mail("brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", "[Vanguard] delivery order Exception", "Message: ". $e->getMessage() .", Line: ". $e->getLine());
+        }
     }
 
     public function getDeliveryCreationRequestByOrderNo($esgOrderNoList)
@@ -150,7 +154,7 @@ class IwmsCreateDeliveryOrderService
         if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
             $extra_instruction = $esgOrder->courierInfo->courier_name;
         }
-        
+
         $address = $esgOrder->delivery_address;
         if(in_array($iwmsCourierCode, $this->lgsCourier)){
             if(!empty($esgOrder->iwmsLgsOrderStatusLog)){
@@ -161,7 +165,7 @@ class IwmsCreateDeliveryOrderService
                 return false;
             }
         }
-        
+
         $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $deliveryOrderObj = array(
             "wms_platform" => $this->wmsPlatform,
