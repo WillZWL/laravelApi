@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "38b15111f90dd926afabe6ca166b9937",
+    "content-hash": "58bf49d61a93c047a91bacf362ccf0f1",
     "packages": [
         {
             "name": "barryvdh/laravel-cors",
@@ -60,126 +60,6 @@
             "time": "2017-02-15T21:21:33+00:00"
         },
         {
-            "name": "barryvdh/laravel-debugbar",
-            "version": "v2.3.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/barryvdh/laravel-debugbar.git",
-                "reference": "24e4f0261e352d3fd86d0447791b56ae49398674"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/barryvdh/laravel-debugbar/zipball/24e4f0261e352d3fd86d0447791b56ae49398674",
-                "reference": "24e4f0261e352d3fd86d0447791b56ae49398674",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*",
-                "maximebf/debugbar": "~1.13.0",
-                "php": ">=5.5.9",
-                "symfony/finder": "~2.7|~3.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.3-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Barryvdh\\Debugbar\\": "src/"
-                },
-                "files": [
-                    "src/helpers.php"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Barry vd. Heuvel",
-                    "email": "barryvdh@gmail.com"
-                }
-            ],
-            "description": "PHP Debugbar integration for Laravel",
-            "keywords": [
-                "debug",
-                "debugbar",
-                "laravel",
-                "profiler",
-                "webprofiler"
-            ],
-            "time": "2017-01-19T08:19:49+00:00"
-        },
-        {
-            "name": "barryvdh/laravel-ide-helper",
-            "version": "v2.3.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/barryvdh/laravel-ide-helper.git",
-                "reference": "e82de98cef0d6597b1b686be0b5813a3a4bb53c5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/barryvdh/laravel-ide-helper/zipball/e82de98cef0d6597b1b686be0b5813a3a4bb53c5",
-                "reference": "e82de98cef0d6597b1b686be0b5813a3a4bb53c5",
-                "shasum": ""
-            },
-            "require": {
-                "barryvdh/reflection-docblock": "^2.0.4",
-                "illuminate/console": "^5.0,<5.5",
-                "illuminate/filesystem": "^5.0,<5.5",
-                "illuminate/support": "^5.0,<5.5",
-                "php": ">=5.4.0",
-                "symfony/class-loader": "^2.3|^3.0"
-            },
-            "require-dev": {
-                "doctrine/dbal": "~2.3",
-                "phpunit/phpunit": "4.*",
-                "scrutinizer/ocular": "~1.1",
-                "squizlabs/php_codesniffer": "~2.3"
-            },
-            "suggest": {
-                "doctrine/dbal": "Load information from the database about models for phpdocs (~2.3)"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.3-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Barryvdh\\LaravelIdeHelper\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Barry vd. Heuvel",
-                    "email": "barryvdh@gmail.com"
-                }
-            ],
-            "description": "Laravel IDE Helper, generates correct PHPDocs for all Facade classes, to improve auto-completion.",
-            "keywords": [
-                "autocomplete",
-                "codeintel",
-                "helper",
-                "ide",
-                "laravel",
-                "netbeans",
-                "phpdoc",
-                "phpstorm",
-                "sublime"
-            ],
-            "time": "2017-02-22T12:27:33+00:00"
-        },
-        {
             "name": "barryvdh/laravel-snappy",
             "version": "v0.3.3",
             "source": {
@@ -230,55 +110,6 @@
                 "wkhtmltopdf"
             ],
             "time": "2017-02-09T23:18:54+00:00"
-        },
-        {
-            "name": "barryvdh/reflection-docblock",
-            "version": "v2.0.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/barryvdh/ReflectionDocBlock.git",
-                "reference": "3dcbd98b5d9384a5357266efba8fd29884458e5c"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/barryvdh/ReflectionDocBlock/zipball/3dcbd98b5d9384a5357266efba8fd29884458e5c",
-                "reference": "3dcbd98b5d9384a5357266efba8fd29884458e5c",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.3"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "~4.0,<4.5"
-            },
-            "suggest": {
-                "dflydev/markdown": "~1.0",
-                "erusev/parsedown": "~1.0"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "2.0.x-dev"
-                }
-            },
-            "autoload": {
-                "psr-0": {
-                    "Barryvdh": [
-                        "src/"
-                    ]
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Mike van Riel",
-                    "email": "mike.vanriel@naenius.com"
-                }
-            ],
-            "time": "2016-06-13T19:28:20+00:00"
         },
         {
             "name": "chumper/zipper",
@@ -2011,67 +1842,6 @@
             "time": "2017-01-20T16:16:51+00:00"
         },
         {
-            "name": "maximebf/debugbar",
-            "version": "1.13.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/maximebf/php-debugbar.git",
-                "reference": "afee79a236348e39a44cb837106b7c5b4897ac2a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/maximebf/php-debugbar/zipball/afee79a236348e39a44cb837106b7c5b4897ac2a",
-                "reference": "afee79a236348e39a44cb837106b7c5b4897ac2a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.3.0",
-                "psr/log": "^1.0",
-                "symfony/var-dumper": "^2.6|^3.0"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^4.0|^5.0"
-            },
-            "suggest": {
-                "kriswallsmith/assetic": "The best way to manage assets",
-                "monolog/monolog": "Log using Monolog",
-                "predis/predis": "Redis storage"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "1.13-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "DebugBar\\": "src/DebugBar/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Maxime Bouroumeau-Fuseau",
-                    "email": "maxime.bouroumeau@gmail.com",
-                    "homepage": "http://maximebf.com"
-                },
-                {
-                    "name": "Barry vd. Heuvel",
-                    "email": "barryvdh@gmail.com"
-                }
-            ],
-            "description": "Debug bar in the browser for php application",
-            "homepage": "https://github.com/maximebf/php-debugbar",
-            "keywords": [
-                "debug",
-                "debugbar"
-            ],
-            "time": "2017-01-05T08:46:19+00:00"
-        },
-        {
             "name": "milon/barcode",
             "version": "5.3.3",
             "source": {
@@ -2821,62 +2591,6 @@
             "time": "2017-02-13T07:52:53+00:00"
         },
         {
-            "name": "symfony/class-loader",
-            "version": "v3.2.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/symfony/class-loader.git",
-                "reference": "2847d56f518ad5721bf85aa9174b3aa3fd12aa03"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/symfony/class-loader/zipball/2847d56f518ad5721bf85aa9174b3aa3fd12aa03",
-                "reference": "2847d56f518ad5721bf85aa9174b3aa3fd12aa03",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=5.5.9"
-            },
-            "require-dev": {
-                "symfony/finder": "~2.8|~3.0",
-                "symfony/polyfill-apcu": "~1.1"
-            },
-            "suggest": {
-                "symfony/polyfill-apcu": "For using ApcClassLoader on HHVM"
-            },
-            "type": "library",
-            "extra": {
-                "branch-alias": {
-                    "dev-master": "3.2-dev"
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Symfony\\Component\\ClassLoader\\": ""
-                },
-                "exclude-from-classmap": [
-                    "/Tests/"
-                ]
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Fabien Potencier",
-                    "email": "fabien@symfony.com"
-                },
-                {
-                    "name": "Symfony Community",
-                    "homepage": "https://symfony.com/contributors"
-                }
-            ],
-            "description": "Symfony ClassLoader Component",
-            "homepage": "https://symfony.com",
-            "time": "2017-01-21T17:06:35+00:00"
-        },
-        {
             "name": "symfony/console",
             "version": "v3.0.9",
             "source": {
@@ -3048,16 +2762,16 @@
         },
         {
             "name": "symfony/event-dispatcher",
-            "version": "v3.2.4",
+            "version": "v3.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/event-dispatcher.git",
-                "reference": "9137eb3a3328e413212826d63eeeb0217836e2b6"
+                "reference": "b7a1b9e0a0f623ce43b4c8d775eb138f190c9d8d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/9137eb3a3328e413212826d63eeeb0217836e2b6",
-                "reference": "9137eb3a3328e413212826d63eeeb0217836e2b6",
+                "url": "https://api.github.com/repos/symfony/event-dispatcher/zipball/b7a1b9e0a0f623ce43b4c8d775eb138f190c9d8d",
+                "reference": "b7a1b9e0a0f623ce43b4c8d775eb138f190c9d8d",
                 "shasum": ""
             },
             "require": {
@@ -3104,7 +2818,7 @@
             ],
             "description": "Symfony EventDispatcher Component",
             "homepage": "https://symfony.com",
-            "time": "2017-01-02T20:32:22+00:00"
+            "time": "2017-02-21T09:12:04+00:00"
         },
         {
             "name": "symfony/finder",
@@ -3991,40 +3705,103 @@
                 "PHP"
             ],
             "time": "2016-05-05 08:47:41"
-        },
+        }
+    ],
+    "packages-dev": [
         {
-            "name": "zizaco/entrust",
-            "version": "5.2.x-dev",
+            "name": "barryvdh/laravel-debugbar",
+            "version": "v2.3.2",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Zizaco/entrust.git",
-                "reference": "3623cc052937d9e62543402b50f24065720d44b9"
+                "url": "https://github.com/barryvdh/laravel-debugbar.git",
+                "reference": "24e4f0261e352d3fd86d0447791b56ae49398674"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Zizaco/entrust/zipball/3623cc052937d9e62543402b50f24065720d44b9",
-                "reference": "3623cc052937d9e62543402b50f24065720d44b9",
+                "url": "https://api.github.com/repos/barryvdh/laravel-debugbar/zipball/24e4f0261e352d3fd86d0447791b56ae49398674",
+                "reference": "24e4f0261e352d3fd86d0447791b56ae49398674",
                 "shasum": ""
             },
             "require": {
-                "illuminate/cache": "~5.0",
-                "illuminate/console": "~5.0",
-                "illuminate/support": "~5.0",
-                "php": ">=5.5.0"
-            },
-            "require-dev": {
-                "illuminate/database": "~5.0",
-                "mockery/mockery": "dev-master",
-                "phpunit/phpunit": "~4.1",
-                "sami/sami": "dev-master"
+                "illuminate/support": "5.1.*|5.2.*|5.3.*|5.4.*",
+                "maximebf/debugbar": "~1.13.0",
+                "php": ">=5.5.9",
+                "symfony/finder": "~2.7|~3.0"
             },
             "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.3-dev"
+                }
+            },
             "autoload": {
-                "classmap": [
-                    "src/commands"
-                ],
                 "psr-4": {
-                    "Zizaco\\Entrust\\": "src/Entrust/"
+                    "Barryvdh\\Debugbar\\": "src/"
+                },
+                "files": [
+                    "src/helpers.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Barry vd. Heuvel",
+                    "email": "barryvdh@gmail.com"
+                }
+            ],
+            "description": "PHP Debugbar integration for Laravel",
+            "keywords": [
+                "debug",
+                "debugbar",
+                "laravel",
+                "profiler",
+                "webprofiler"
+            ],
+            "time": "2017-01-19T08:19:49+00:00"
+        },
+        {
+            "name": "barryvdh/laravel-ide-helper",
+            "version": "v2.3.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/barryvdh/laravel-ide-helper.git",
+                "reference": "e82de98cef0d6597b1b686be0b5813a3a4bb53c5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/barryvdh/laravel-ide-helper/zipball/e82de98cef0d6597b1b686be0b5813a3a4bb53c5",
+                "reference": "e82de98cef0d6597b1b686be0b5813a3a4bb53c5",
+                "shasum": ""
+            },
+            "require": {
+                "barryvdh/reflection-docblock": "^2.0.4",
+                "illuminate/console": "^5.0,<5.5",
+                "illuminate/filesystem": "^5.0,<5.5",
+                "illuminate/support": "^5.0,<5.5",
+                "php": ">=5.4.0",
+                "symfony/class-loader": "^2.3|^3.0"
+            },
+            "require-dev": {
+                "doctrine/dbal": "~2.3",
+                "phpunit/phpunit": "4.*",
+                "scrutinizer/ocular": "~1.1",
+                "squizlabs/php_codesniffer": "~2.3"
+            },
+            "suggest": {
+                "doctrine/dbal": "Load information from the database about models for phpdocs (~2.3)"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.3-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Barryvdh\\LaravelIdeHelper\\": "src"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -4033,47 +3810,85 @@
             ],
             "authors": [
                 {
-                    "name": "Andrew Elkins",
-                    "homepage": "http://andrewelkins.com"
-                },
-                {
-                    "name": "Zizaco Zizuini",
-                    "email": "zizaco@gmail.com"
-                },
-                {
-                    "name": "Ben Batschelet",
-                    "homepage": "http://github.com/bbatsche"
-                },
-                {
-                    "name": "Michele Angioni",
-                    "email": "michele.angioni@gmail.com"
+                    "name": "Barry vd. Heuvel",
+                    "email": "barryvdh@gmail.com"
                 }
             ],
-            "description": "This package provides a flexible way to add Role-based Permissions to Laravel",
+            "description": "Laravel IDE Helper, generates correct PHPDocs for all Facade classes, to improve auto-completion.",
             "keywords": [
-                "acl",
-                "auth",
-                "illuminate",
+                "autocomplete",
+                "codeintel",
+                "helper",
+                "ide",
                 "laravel",
-                "permission",
-                "roles"
+                "netbeans",
+                "phpdoc",
+                "phpstorm",
+                "sublime"
             ],
-            "time": "2016-12-29T06:25:06+00:00"
-        }
-    ],
-    "packages-dev": [
+            "time": "2017-02-22T12:27:33+00:00"
+        },
         {
-            "name": "bit3/git-php",
-            "version": "1.4.0",
+            "name": "barryvdh/reflection-docblock",
+            "version": "v2.0.4",
             "source": {
                 "type": "git",
-                "url": "https://github.com/bit3/git-php.git",
-                "reference": "2450d337279a90509d05b1d3b51ee87299888d3a"
+                "url": "https://github.com/barryvdh/ReflectionDocBlock.git",
+                "reference": "3dcbd98b5d9384a5357266efba8fd29884458e5c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/bit3/git-php/zipball/2450d337279a90509d05b1d3b51ee87299888d3a",
-                "reference": "2450d337279a90509d05b1d3b51ee87299888d3a",
+                "url": "https://api.github.com/repos/barryvdh/ReflectionDocBlock/zipball/3dcbd98b5d9384a5357266efba8fd29884458e5c",
+                "reference": "3dcbd98b5d9384a5357266efba8fd29884458e5c",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "~4.0,<4.5"
+            },
+            "suggest": {
+                "dflydev/markdown": "~1.0",
+                "erusev/parsedown": "~1.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Barryvdh": [
+                        "src/"
+                    ]
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Mike van Riel",
+                    "email": "mike.vanriel@naenius.com"
+                }
+            ],
+            "time": "2016-06-13T19:28:20+00:00"
+        },
+        {
+            "name": "bit3/git-php",
+            "version": "1.4.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bit3/git-php.git",
+                "reference": "d3b20f37d90886b11f7f9c2c7b8409747462dff1"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bit3/git-php/zipball/d3b20f37d90886b11f7f9c2c7b8409747462dff1",
+                "reference": "d3b20f37d90886b11f7f9c2c7b8409747462dff1",
                 "shasum": ""
             },
             "require": {
@@ -4103,7 +3918,7 @@
                 "MIT"
             ],
             "description": "Easy to use GIT wrapper for PHP.",
-            "time": "2017-02-07T03:52:28+00:00"
+            "time": "2017-03-09T03:08:46+00:00"
         },
         {
             "name": "doctrine/instantiator",
@@ -4251,6 +4066,67 @@
                 "test"
             ],
             "time": "2015-05-11T14:41:42+00:00"
+        },
+        {
+            "name": "maximebf/debugbar",
+            "version": "1.13.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/maximebf/php-debugbar.git",
+                "reference": "afee79a236348e39a44cb837106b7c5b4897ac2a"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/maximebf/php-debugbar/zipball/afee79a236348e39a44cb837106b7c5b4897ac2a",
+                "reference": "afee79a236348e39a44cb837106b7c5b4897ac2a",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0",
+                "psr/log": "^1.0",
+                "symfony/var-dumper": "^2.6|^3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^4.0|^5.0"
+            },
+            "suggest": {
+                "kriswallsmith/assetic": "The best way to manage assets",
+                "monolog/monolog": "Log using Monolog",
+                "predis/predis": "Redis storage"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.13-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "DebugBar\\": "src/DebugBar/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Maxime Bouroumeau-Fuseau",
+                    "email": "maxime.bouroumeau@gmail.com",
+                    "homepage": "http://maximebf.com"
+                },
+                {
+                    "name": "Barry vd. Heuvel",
+                    "email": "barryvdh@gmail.com"
+                }
+            ],
+            "description": "Debug bar in the browser for php application",
+            "homepage": "https://github.com/maximebf/php-debugbar",
+            "keywords": [
+                "debug",
+                "debugbar"
+            ],
+            "time": "2017-01-05T08:46:19+00:00"
         },
         {
             "name": "mockery/mockery",
@@ -5842,16 +5718,16 @@
         },
         {
             "name": "sebastian/recursion-context",
-            "version": "1.0.2",
+            "version": "1.0.5",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/recursion-context.git",
-                "reference": "913401df809e99e4f47b27cdd781f4a258d58791"
+                "reference": "b19cc3298482a335a95f3016d2f8a6950f0fbcd7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/recursion-context/zipball/913401df809e99e4f47b27cdd781f4a258d58791",
-                "reference": "913401df809e99e4f47b27cdd781f4a258d58791",
+                "url": "https://api.github.com/repos/sebastianbergmann/recursion-context/zipball/b19cc3298482a335a95f3016d2f8a6950f0fbcd7",
+                "reference": "b19cc3298482a335a95f3016d2f8a6950f0fbcd7",
                 "shasum": ""
             },
             "require": {
@@ -5891,7 +5767,7 @@
             ],
             "description": "Provides functionality to recursively process PHP variables",
             "homepage": "http://www.github.com/sebastianbergmann/recursion-context",
-            "time": "2015-11-11T19:50:13+00:00"
+            "time": "2016-10-03T07:41:43+00:00"
         },
         {
             "name": "sebastian/version",
@@ -6007,17 +5883,73 @@
             "time": "2017-03-01T22:17:45+00:00"
         },
         {
-            "name": "symfony/config",
-            "version": "v3.2.4",
+            "name": "symfony/class-loader",
+            "version": "v3.2.6",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/config.git",
-                "reference": "9f99453e77771e629af8a25eeb0a6c4ed1e19da2"
+                "url": "https://github.com/symfony/class-loader.git",
+                "reference": "c29a5bc6ca14cfff1f5e3d7781ed74b6e898d2b9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/config/zipball/9f99453e77771e629af8a25eeb0a6c4ed1e19da2",
-                "reference": "9f99453e77771e629af8a25eeb0a6c4ed1e19da2",
+                "url": "https://api.github.com/repos/symfony/class-loader/zipball/c29a5bc6ca14cfff1f5e3d7781ed74b6e898d2b9",
+                "reference": "c29a5bc6ca14cfff1f5e3d7781ed74b6e898d2b9",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.5.9"
+            },
+            "require-dev": {
+                "symfony/finder": "~2.8|~3.0",
+                "symfony/polyfill-apcu": "~1.1"
+            },
+            "suggest": {
+                "symfony/polyfill-apcu": "For using ApcClassLoader on HHVM"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "3.2-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Symfony\\Component\\ClassLoader\\": ""
+                },
+                "exclude-from-classmap": [
+                    "/Tests/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                },
+                {
+                    "name": "Symfony Community",
+                    "homepage": "https://symfony.com/contributors"
+                }
+            ],
+            "description": "Symfony ClassLoader Component",
+            "homepage": "https://symfony.com",
+            "time": "2017-02-18T17:28:00+00:00"
+        },
+        {
+            "name": "symfony/config",
+            "version": "v3.2.6",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/config.git",
+                "reference": "741d6d4cd1414d67d48eb71aba6072b46ba740c2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/config/zipball/741d6d4cd1414d67d48eb71aba6072b46ba740c2",
+                "reference": "741d6d4cd1414d67d48eb71aba6072b46ba740c2",
                 "shasum": ""
             },
             "require": {
@@ -6060,20 +5992,20 @@
             ],
             "description": "Symfony Config Component",
             "homepage": "https://symfony.com",
-            "time": "2017-02-14T16:27:43+00:00"
+            "time": "2017-03-01T18:18:25+00:00"
         },
         {
             "name": "symfony/dependency-injection",
-            "version": "v3.2.4",
+            "version": "v3.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/dependency-injection.git",
-                "reference": "130aa55b8ed7e6d0d75b0ed37256cec687a22f41"
+                "reference": "74e0935e414ad33d5e82074212c0eedb4681a691"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/130aa55b8ed7e6d0d75b0ed37256cec687a22f41",
-                "reference": "130aa55b8ed7e6d0d75b0ed37256cec687a22f41",
+                "url": "https://api.github.com/repos/symfony/dependency-injection/zipball/74e0935e414ad33d5e82074212c0eedb4681a691",
+                "reference": "74e0935e414ad33d5e82074212c0eedb4681a691",
                 "shasum": ""
             },
             "require": {
@@ -6123,7 +6055,7 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
-            "time": "2017-02-16T22:46:52+00:00"
+            "time": "2017-03-05T00:06:55+00:00"
         },
         {
             "name": "symfony/dom-crawler",
@@ -6183,16 +6115,16 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v3.2.4",
+            "version": "v3.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/filesystem.git",
-                "reference": "a0c6ef2dc78d33b58d91d3a49f49797a184d06f4"
+                "reference": "bc0f17bed914df2cceb989972c3b996043c4da4a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/filesystem/zipball/a0c6ef2dc78d33b58d91d3a49f49797a184d06f4",
-                "reference": "a0c6ef2dc78d33b58d91d3a49f49797a184d06f4",
+                "url": "https://api.github.com/repos/symfony/filesystem/zipball/bc0f17bed914df2cceb989972c3b996043c4da4a",
+                "reference": "bc0f17bed914df2cceb989972c3b996043c4da4a",
                 "shasum": ""
             },
             "require": {
@@ -6228,20 +6160,20 @@
             ],
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
-            "time": "2017-01-08T20:47:33+00:00"
+            "time": "2017-03-06T19:30:27+00:00"
         },
         {
             "name": "symfony/yaml",
-            "version": "v3.2.4",
+            "version": "v3.2.6",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/yaml.git",
-                "reference": "9724c684646fcb5387d579b4bfaa63ee0b0c64c8"
+                "reference": "093e416ad096355149e265ea2e4cc1f9ee40ab1a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/yaml/zipball/9724c684646fcb5387d579b4bfaa63ee0b0c64c8",
-                "reference": "9724c684646fcb5387d579b4bfaa63ee0b0c64c8",
+                "url": "https://api.github.com/repos/symfony/yaml/zipball/093e416ad096355149e265ea2e4cc1f9ee40ab1a",
+                "reference": "093e416ad096355149e265ea2e4cc1f9ee40ab1a",
                 "shasum": ""
             },
             "require": {
@@ -6283,7 +6215,7 @@
             ],
             "description": "Symfony Yaml Component",
             "homepage": "https://symfony.com",
-            "time": "2017-02-16T22:46:52+00:00"
+            "time": "2017-03-07T16:47:02+00:00"
         },
         {
             "name": "theseer/fdomdocument",
@@ -6459,7 +6391,6 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "dingo/api": 20,
-        "zizaco/entrust": 20,
         "zhanbing/amazon-mws-laravel": 20,
         "wish/php-sdk": 20
     },

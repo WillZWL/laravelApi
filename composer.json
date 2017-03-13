@@ -15,12 +15,9 @@
         "laravel/framework": "5.2.*",
         "dingo/api": "1.0.*@dev",
         "lucadegasperi/oauth2-server-laravel": "5.1.*",
-        "zizaco/entrust": "5.2.x-dev",
         "zhanbing/amazon-mws-laravel": "dev-stable",
         "doctrine/dbal": "^2.5",
         "guzzlehttp/guzzle": "6.*",
-        "barryvdh/laravel-ide-helper": "^2.1",
-        "barryvdh/laravel-debugbar": "^2.2",
         "wish/php-sdk":"*@dev",
         "maatwebsite/excel": "~2.1.0",
         "barryvdh/laravel-snappy": "^0.3.1",
@@ -32,6 +29,8 @@
         "milon/barcode": "^5.3"
     },
     "require-dev": {
+        "barryvdh/laravel-ide-helper": "^2.1",
+        "barryvdh/laravel-debugbar": "^2.2",
         "fzaninotto/faker": "~1.4",
         "mockery/mockery": "0.9.*",
         "symfony/css-selector": "2.8.*|3.0.*",
