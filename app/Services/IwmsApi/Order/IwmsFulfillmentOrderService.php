@@ -26,7 +26,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
     {
         try {
             $message = '';
-            while( ( $orders = $this->getOrders() ) &&  ( !$orders->getCollection()->isEmpty() ) ) {
+            while (( $orders = $this->getOrders() ) &&  ( !$orders->getCollection()->isEmpty() )) {
                 $batchRequest = $this->getNewFulfillmentOrderBatchRequest();
                 $jsonData = $this->convertToJsonData($orders);
                 $returnPath = $this->saveOrdersToFeedData($jsonData, $batchRequest);
@@ -120,6 +120,10 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
             $this->request = new Request;
             $this->request->merge([
                 'per_page' => 1000,
+                'refund_status' => 0,
+                'hold_status' => 0,
+                'prepay_hold_status' => 0,
+                'merchant_hold_status' => 0,
                 'into_iwms_status' => 0
             ]);
         }

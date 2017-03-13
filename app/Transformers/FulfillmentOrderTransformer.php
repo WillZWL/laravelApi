@@ -58,6 +58,10 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'delivery_charge' => $order->delivery_charge,
             'amount' => number_format($order->amount, 2, '.', ''),
             'status' => $order->status,
+            'refund_status' => $order->refund_status,
+            'hold_status' => $order->hold_status,
+            'merchant_hold_status' => $order->merchant_hold_status,
+            'prepay_hold_status' => $order->prepay_hold_status,
             'feed_status' => $order->dnote_invoice_status,
             'items' => $orderItems
         ];
