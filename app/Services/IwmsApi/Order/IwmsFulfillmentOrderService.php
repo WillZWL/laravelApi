@@ -24,6 +24,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
 
     public function pushFulfillmentOrder()
     {
+        $exceptionMessage ='';
         try {
             $message = '';
             while (( $orders = $this->getOrders() ) &&  ( !$orders->getCollection()->isEmpty() )) {
@@ -40,8 +41,28 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
             if (trim($message)) {
                 mail('will.zhang@eservicesgroup.com', '[IWMS] Push Order TO Iwms Data Validate Error', 'Error Detail : '. $message);
             }
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            $exceptionMessage .= "message: {$e->getMessage()}. ";
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            # 400-level errors
+            $exceptionMessage .= ", Line: ".__LINE__." client 400-level error. ";
+            if ($e->hasResponse()) {
+                $exceptionMessage .= $e->getResponse()->getBody()->getContents();
+            } else {
+                $exceptionMessage .= ", message: {$e->getMessage()}. ";
+            }
+        } catch (\GuzzleHttp\Exception\ServerException $e) {
+            $exceptionMessage .= "Line: ".__LINE__." server 500-level error. ";
+            if ($e->hasResponse()) {
+                $exceptionMessage .= "status code: {$e->getResponse()->getStatusCode()}. Response: {$e->getResponse()->getBody()->getContents()}";
+            } else {
+                $exceptionMessage .= "message: {$e->getMessage()}. ";
+            }
         } catch (\Exception $e) {
-            mail('will.zhang@eservicesgroup.com', '[IWMS] PUSH Order To IWMS Failed', 'Error Message'.$e->getMessage());
+            $exceptionMessage = $e->getMessage();
+        }
+        if ($exceptionMessage) {
+            mail('will.zhang@eservicesgroup.com', '[IWMS] PUSH Order To IWMS Failed', 'Error Message'.$exceptionMessage);
         }
     }
 
