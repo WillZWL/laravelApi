@@ -78,7 +78,7 @@ Route::group(['middleware' => ['cors']], function () {
     Route::get('iwms/courier-order/', 'IwmsCourierOrderController@index');
     Route::resource('iwms/courier-order/edit', 'IwmsCourierOrderController@editIwmsDeliveryOrder');
     Route::resource('iwms/courier-order/cancel', 'IwmsCourierOrderController@cancelIwmsOrder');
-    Route::get('order/{pickListNo}/{documentType}','IwmsOrderLabelController@donwloadLabel');
+    Route::get('order/{pickListNo}/{documentType}', 'IwmsOrderLabelController@donwloadLabel');
     Route::get('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
     Route::post('wms-allocation-plan', 'AllocationPlanController@wmsAllocationPlan');
 });
@@ -161,6 +161,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
     $api->resource('marketplace-courier-mapping', 'MarketplaceCourierMappingController');
 
     $api->get('fulfillment-order', 'FulfillmentOrderController@index');
+
+    $api->get('merchant-balance', 'MerchantController@balance');
 });
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => ['api.auth', 'cors']], function ($api) {
@@ -173,9 +175,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'mid
 
 $api->version('v1', ['namespace' => 'App\Http\Controllers\Api\Marketplace', 'middleware' => [ 'cors']], function ($api) {
     $api->get('merchant-api/download-label/{file}', 'MerchantApiController@donwloadLabel');
-    $api->get('lazada-api/donwload-label/{file}','LazadaApiController@donwloadLabel');
+    $api->get('lazada-api/donwload-label/{file}', 'LazadaApiController@donwloadLabel');
 });
 
 Route::get('platform/test', 'InterfacePlatformOrder@index');
 Route::resource('iwms-callback', 'IwmsCallBackApiController');
-

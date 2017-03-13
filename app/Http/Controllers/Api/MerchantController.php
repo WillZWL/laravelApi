@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Services\MerchantService;
 use App\Transformers\MerchantTransformer;
+use App\Transformers\MerchantBalanceTransformer;
 use Dingo\Api\Routing\Helpers;
 use Illuminate\Http\Request;
 
@@ -30,6 +31,13 @@ class MerchantController extends Controller
         $merchants = $this->merchantService->all();
 
         return $this->collection($merchants, new MerchantTransformer());
+    }
+
+    public function balance(Request $request)
+    {
+        $merchantBalances = $this->merchantService->balance($request);
+
+        return $this->collection($merchantBalances, new MerchantBalanceTransformer);
     }
 
     /**

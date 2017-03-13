@@ -111,6 +111,10 @@ class OrderPackListService
                 'page' => $page,
                 'dnote_invoice_status' => 0,
                 'status' => 5,
+                'refund_status' => 0,
+                'hold_status' => 0,
+                'prepay_hold_status' => 0,
+                'merchant_hold_status' => 0,
                 'pick_list_no' => true
             ]
         );
