@@ -120,6 +120,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
             $this->request = new Request;
             $this->request->merge([
                 'per_page' => 1000,
+                'status' => 3,
                 'refund_status' => 0,
                 'hold_status' => 0,
                 'prepay_hold_status' => 0,
