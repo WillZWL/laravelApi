@@ -29,7 +29,7 @@ class ApiPlatformFactoryService
 
     public function retrieveOrder($storeName, Schedule $schedule)
     {
-        return $this->apiPlatformInterface->retrieveOrder($storeName,$schedule);
+        return $this->apiPlatformInterface->retrieveOrder($storeName, $schedule);
     }
 
     public function submitOrderFufillment()
@@ -38,16 +38,16 @@ class ApiPlatformFactoryService
         $platformOrderIdList = $this->getPlatformOrderIdList($bizType);
         $esgOrders = $this->getEsgOrders($platformOrderIdList);
         $orderFufillmentByGroup = ["Fnac"];
-        if($esgOrders){
-            if(in_array($bizType, $orderFufillmentByGroup)){
-                $this->submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList);
-            }else{
-                $this->submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList,$bizType);
+        if ($esgOrders) {
+            if (in_array($bizType, $orderFufillmentByGroup)) {
+                $this->submitOrderFufillmentByGroup($esgOrders, $platformOrderIdList);
+            } else {
+                $this->submitOrderFufillmentOneByOne($esgOrders, $platformOrderIdList, $bizType);
             }
         }
     }
     //1 post one by one
-    public function submitOrderFufillmentOneByOne($esgOrders,$platformOrderIdList,$bizType='')
+    public function submitOrderFufillmentOneByOne($esgOrders, $platformOrderIdList, $bizType = '')
     {
         foreach ($esgOrders as $esgOrder) {
             $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
@@ -55,7 +55,7 @@ class ApiPlatformFactoryService
                 $response = $this->apiPlatformInterface->submitOrderFufillment($esgOrder, $esgOrderShipment, $platformOrderIdList);
                 if ($response == true) {
                     $orderState = $this->apiPlatformInterface->getShipedOrderState();
-                    $this->updateEsgMarketOrderStatus($esgOrder,$orderState,$bizType);
+                    $this->updateEsgMarketOrderStatus($esgOrder, $orderState, $bizType);
                     if ($esgOrder->bizType == 'Amazon') {
                         $this->updateOrCreatePlatformOrderFeed($esgOrder, $platformOrderIdList, $response);
                     }
@@ -65,7 +65,7 @@ class ApiPlatformFactoryService
     }
 
     //2 post all data once
-    public function submitOrderFufillmentByGroup($esgOrders,$platformOrderIdList)
+    public function submitOrderFufillmentByGroup($esgOrders, $platformOrderIdList)
     {
         $xmlData = null;
         $esgOrderGroups = $esgOrders->groupBy("platform_id");
@@ -75,27 +75,27 @@ class ApiPlatformFactoryService
                 $esgOrderShipment = SoShipment::where('sh_no', '=', $esgOrder->so_no.'-01')->where('status', '=', '2')->first();
                 if ($esgOrderShipment) {
                     //testing
-                    $xmlData .= $this->apiPlatformInterface->setOrderFufillmentXmlData($storeName,$esgOrder, $esgOrderShipment);
+                    $xmlData .= $this->apiPlatformInterface->setOrderFufillmentXmlData($storeName, $esgOrder, $esgOrderShipment);
                 }
             }
-            $response = $this->apiPlatformInterface->submitOrderFufillment($storeName,$xmlData);
+            $response = $this->apiPlatformInterface->submitOrderFufillment($storeName, $xmlData);
             if ($response) {
                 foreach ($esgOrderGroup as $esgOrder) {
                     $orderState = $this->apiPlatformInterface->getShipedOrderState();
-                    if(in_array($esgOrder->platform_order_id, $response)){
-                        $this->updateEsgMarketOrderStatus($esgOrder,$orderState);
+                    if (in_array($esgOrder->platform_order_id, $response)) {
+                        $this->updateEsgMarketOrderStatus($esgOrder, $orderState);
                     }
                 }
             }
         }
     }
 
-    private function updateEsgMarketOrderStatus($esgOrder,$orderState,$bizType='')
+    private function updateEsgMarketOrderStatus($esgOrder, $orderState, $bizType = '')
     {
         try {
             $this->markSplitOrderShipped($esgOrder);
-            $this->markPlatformMarketOrderShipped($esgOrder->platform_order_id,$orderState,$bizType);
-        } catch(Exception $e) {
+            $this->markPlatformMarketOrderShipped($esgOrder->platform_order_id, $orderState, $bizType);
+        } catch (Exception $e) {
             echo 'Message: ' .$e->getMessage();
         }
     }
@@ -113,7 +113,7 @@ class ApiPlatformFactoryService
     public function merchantOrderAllocatedReadyToShip()
     {
         $storeNames = $this->getCurrentUserStoreName();
-        if($storeNames){
+        if ($storeNames) {
             $platformMarketOrders = $this->allocatedPlatformMarketOrders($storeNames);
         }
         return $this->merchantOrderReadyToShip($platformMarketOrders);
@@ -127,31 +127,31 @@ class ApiPlatformFactoryService
 
     public function merchantOrderReadyToShip($platformMarketOrders)
     {
-        if(!$platformMarketOrders->isEmpty()) {
+        if (!$platformMarketOrders->isEmpty()) {
             $returnData = array();
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
-            foreach($platformMarketOrderGroups as $platform => $platformMarketOrderGroup){
-                $warehouse = $this->getMattelWarehouseByPlatform($platform,$platformMarketOrderGroup);
-                if($warehouse){
-                    $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup,$warehouse);
-                }else{
+            foreach ($platformMarketOrderGroups as $platform => $platformMarketOrderGroup) {
+                $warehouse = $this->getMattelWarehouseByPlatform($platform, $platformMarketOrderGroup);
+                if ($warehouse) {
+                    $returnData[$platform] = $this->apiPlatformInterface->orderFufillmentReadyToShip($platformMarketOrderGroup, $warehouse);
+                } else {
                     $returnData["error"][$platform] = " warehouse not find, please to check";
                 }
             }
             return $result = array("status" => "success","message" => $returnData);
-        }else{
+        } else {
             return $result = array("status" => "failed","message" => "Invalid Order");
         }
     }
 
-    public function merchantOrderFufillmentGetDocument($orderIds,$doucmentType)
+    public function merchantOrderFufillmentGetDocument($orderIds, $doucmentType)
     {
         $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
-        if(!$platformMarketOrders->isEmpty()) {
+        if (!$platformMarketOrders->isEmpty()) {
             $platformMarketOrderGroups = $platformMarketOrders->groupBy('platform');
-            $document = $this->apiPlatformInterface->merchantOrderFufillmentGetDocument($platformMarketOrderGroups,$doucmentType);
+            $document = $this->apiPlatformInterface->merchantOrderFufillmentGetDocument($platformMarketOrderGroups, $doucmentType);
             return $result = array("status"=> "success","document" => $document);
-        }else{
+        } else {
             return $result = array("status"=> "failed","message" => "Invalid Order");
         }
     }
@@ -165,22 +165,23 @@ class ApiPlatformFactoryService
             $marketplaceId = strtoupper(substr($platformMarketOrder->platform, 0, -2));
             $storeId = $platformMarketOrder->store_id;
             $orderItems = $platformMarketOrder->platformMarketOrderItem;
-            $item = null;$sellerSkuList = null;
+            $item = null;
+            $sellerSkuList = null;
             foreach ($orderItems as $orderItem) {
-                if(isset($item[$orderItem->seller_sku]["qty"])){
+                if (isset($item[$orderItem->seller_sku]["qty"])) {
                     $item[$orderItem->seller_sku]["qty"] += $orderItem->quantity_ordered;
-                }else{
+                } else {
                     $sellerSkuList[] = $orderItem->seller_sku;
-                    $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku","=",$orderItem->seller_sku)
-                                        ->where("marketplace_id","=",$marketplaceId)
-                                        ->where("country_id","=",$countryCode)
+                    $marketplaceSkuMapping = MarketplaceSkuMapping::where("marketplace_sku", "=", $orderItem->seller_sku)
+                                        ->where("marketplace_id", "=", $marketplaceId)
+                                        ->where("country_id", "=", $countryCode)
                                         ->with('merchantProductMapping')
                                         ->with('product')
                                         ->first();
 
-                    $storeWarehouse = StoreWarehouse::where('store_id',$storeId)->first();
-                    $mattelSkuMapping = MattelSkuMapping::where("mattel_sku",$marketplaceSkuMapping->merchantProductMapping->merchant_sku)
-                                        ->where('warehouse_id',$storeWarehouse->warehouse_id)
+                    $storeWarehouse = StoreWarehouse::where('store_id', $storeId)->first();
+                    $mattelSkuMapping = MattelSkuMapping::where("mattel_sku", $marketplaceSkuMapping->merchantProductMapping->merchant_sku)
+                                        ->where('warehouse_id', $storeWarehouse->warehouse_id)
                                         ->first();
                     $item[$orderItem->seller_sku]["qty"] = $orderItem->quantity_ordered;
                     $item[$orderItem->seller_sku]["sku"] = $marketplaceSkuMapping->sku;
@@ -189,35 +190,37 @@ class ApiPlatformFactoryService
                     $item[$orderItem->seller_sku]["product_name"] = $marketplaceSkuMapping->product->name;
                 }
             }
-            $productMainImages = $this->apiPlatformInterface->getProductMainImage($platformMarketOrder->platform,$sellerSkuList);
-            foreach ($productMainImages as $sellerSku => $mainImage) {
-                $item[$sellerSku]["image"] = $mainImage;
+            $productMainImages = $this->apiPlatformInterface->getProductMainImage($platformMarketOrder->platform, $sellerSkuList);
+            if ($productMainImages) {
+                foreach ($productMainImages as $sellerSku => $mainImage) {
+                    $item[$sellerSku]["image"] = $mainImage;
+                }
             }
             $result[$platformMarketOrder->platform_order_no] = $item;
         }
         return $result;
     }
 
-    public function setMerchantOrderCanceled($orderIds,$orderParam)
+    public function setMerchantOrderCanceled($orderIds, $orderParam)
     {
         $platformMarketOrders = $this->getPlatformMarketOrders($orderIds);
-        if(!$platformMarketOrders->isEmpty()) {
+        if (!$platformMarketOrders->isEmpty()) {
             $platformMarketOrderGroups = $platformMarketOrders->groupBy("platform");
-            foreach($platformMarketOrderGroups as $storeName => $platformMarketOrderGroup){
-                 foreach ($platformMarketOrderGroup as $platformMarketOrder) {
-                    foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
+            foreach ($platformMarketOrderGroups as $storeName => $platformMarketOrderGroup) {
+                foreach ($platformMarketOrderGroup as $platformMarketOrder) {
+                    foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
                         $orderParam["orderItemId"] = $orderItem->order_item_id;
                         $response = $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderParam);
-                        if(isset($response["RequestId"])){
+                        if (isset($response["RequestId"])) {
                             $result[$platformMarketOrder->id] = true;
-                        }else{
+                        } else {
                             $result[$platformMarketOrder->id] = false;
                         }
                     }
-                    if(!empty($result[$platformMarketOrder->id])){
+                    if (!empty($result[$platformMarketOrder->id])) {
                         $this->setEsgOrderStatusToCanceled($platformMarketOrder);
                     }
-                 }
+                }
             }
             return $result;
         }
@@ -226,7 +229,7 @@ class ApiPlatformFactoryService
     public function getPlatformMarkplaceReasons()
     {
         $storeIds = User::find(\Authorizer::getResourceOwnerId())->stores()->pluck('store_id')->all();
-        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id",$storeIds)->select("store_id","type","reason_name")->get();
+        $platformMarketReasons = PlatformMarketReasons::whereIn("store_id", $storeIds)->select("store_id", "type", "reason_name")->get();
         foreach ($platformMarketReasons as $platformMarketReason) {
             $result[$platformMarketReason->store_id][$platformMarketReason->type][] = $platformMarketReason;
         }
@@ -240,41 +243,41 @@ class ApiPlatformFactoryService
 
     public function setMerchantOrderToShipped($trackingNo)
     {
-        $orderItems = PlatformMarketOrderItem::where("tracking_code",$trackingNo)->get();
-        if(!$orderItems->isEmpty()){
+        $orderItems = PlatformMarketOrderItem::where("tracking_code", $trackingNo)->get();
+        if (!$orderItems->isEmpty()) {
             foreach ($orderItems as $orderItem) {
                 $orderItem->update(array("status"=>"Shipped"));
                 $platformOrderId = $orderItem->platform_order_id;
             }
             $object["order_status"] = "Shipped";
             $object["esg_order_status"] = 6;
-            PlatformMarketOrder::where("platform_order_id",$platformOrderId)->update($object);
-            $platformMarketOrder = PlatformMarketOrder::where("platform_order_id",$platformOrderId)->first();
+            PlatformMarketOrder::where("platform_order_id", $platformOrderId)->update($object);
+            $platformMarketOrder = PlatformMarketOrder::where("platform_order_id", $platformOrderId)->first();
             //So::where('platform_order_id',$platformMarketOrder->platform_order_no)->update(['status' => 6]);
             return $platformMarketOrder->platform_order_no;
-        }else{
+        } else {
             return false;
         }
     }
 
     public function setEsgOrderStatusToCanceled($platformMarketOrder)
     {
-        $soList = So::where("txn_id",$platformMarketOrder->platform_order_id)->get();
-        if(!$soList->isEmpty()){
+        $soList = So::where("txn_id", $platformMarketOrder->platform_order_id)->get();
+        if (!$soList->isEmpty()) {
             foreach ($soList as $so) {
-               $so->update(array("status" => 0 ));
+                $so->update(array("status" => 0 ));
             }
             $orderObject = array(
                 'order_status' => "Canceled",
                 'esg_order_status' => 0
                 );
-            PlatformMarketOrder::where("platform_order_id",$platformMarketOrder->platform_order_id)->update($orderObject);
-            foreach($platformMarketOrder->PlatformMarketOrderItem as $orderItem){
-                PlatformMarketOrderItem::where("platform_order_id",$platformMarketOrder->platform_order_id)
-                                ->where('order_item_id',$orderItem->order_item_id)
+            PlatformMarketOrder::where("platform_order_id", $platformMarketOrder->platform_order_id)->update($orderObject);
+            foreach ($platformMarketOrder->PlatformMarketOrderItem as $orderItem) {
+                PlatformMarketOrderItem::where("platform_order_id", $platformMarketOrder->platform_order_id)
+                                ->where('order_item_id', $orderItem->order_item_id)
                                 ->update(array('status' => "Canceled"));
             }
-            if($platformMarketOrder->esg_order_status == 5){
+            if ($platformMarketOrder->esg_order_status == 5) {
                 $this->deleteWarehouseInventory($platformMarketOrder);
             }
         }
@@ -283,11 +286,11 @@ class ApiPlatformFactoryService
     //when cancel the order at ready to ship page
     public function deleteWarehouseInventory($platformMarketOrder)
     {
-        foreach($platformMarketOrder->platformMarketOrderItem as $orderItem){
+        foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
             $invMovement = InvMovement::where("ship_ref", $platformMarketOrder->so_no."-01")
                     ->where("sku", $orderItem->seller_sku)
                     ->first();
-           if($invMovement){
+            if ($invMovement) {
                 $invMovement->delete();
             }
         }
@@ -295,11 +298,11 @@ class ApiPlatformFactoryService
 
     public function setStatusToCanceled($soNoList, $orderParam)
     {
-        $extItemCd = So::join("so_item","so.so_no","so_item.so_no")
+        $extItemCd = So::join("so_item", "so.so_no", "so_item.so_no")
                 ->whereIn('so_no', $soNoList)
                 ->select("so_item.ext_item_cd")
                 ->first();
-        $orderItemIds = array_filter(explode("||",$extItemCd));
+        $orderItemIds = array_filter(explode("||", $extItemCd));
         $orderParam["orderItemId"] = $orderItemIds[0];
         return $this->apiPlatformInterface->setStatusToCanceled($storeName, $orderParam);
     }
@@ -312,7 +315,7 @@ class ApiPlatformFactoryService
     public function alertSetOrderReadyToShip($storeName)
     {
         $platformOrderIdList = $this->apiPlatformInterface->alertSetOrderReadyToShip($storeName);
-        if($platformOrderIdList){
+        if ($platformOrderIdList) {
             $esgOrders = So::whereIn('platform_order_id', $platformOrderIdList)
             ->where('platform_group_order', '=', '1')
             ->where('status', '!=', '0')
@@ -321,9 +324,9 @@ class ApiPlatformFactoryService
                  $esgOrder->status = $this->getFormatEsgOrderStatus($esgOrder->status);
                  return $esgOrder;
             });
-            if(!$esgOrders->isEmpty()){
-                $this->apiPlatformInterface->sendAlertMailMessage($storeName,$esgOrders);
-            }else{
+            if (!$esgOrders->isEmpty()) {
+                $this->apiPlatformInterface->sendAlertMailMessage($storeName, $esgOrders);
+            } else {
                 return false;
             }
         }
@@ -412,11 +415,12 @@ class ApiPlatformFactoryService
             "5" => "Full Allocated",
             "6" => "Shipped",
         );
-        if(isset($esgStatus[$status]))
-        return $esgStatus[$status];
+        if (isset($esgStatus[$status])) {
+            return $esgStatus[$status];
+        }
     }
 
-    public function markPlatformMarketOrderShipped($orderId,$orderState,$bizType)
+    public function markPlatformMarketOrderShipped($orderId, $orderState, $bizType)
     {
         if ($bizType == 'Tanga') {
             $platformMarketOrder = PlatformMarketOrder::where('platform_order_no', '=', $orderId)
@@ -441,7 +445,7 @@ class ApiPlatformFactoryService
 
     public function getPlatformMarketOrders($orderIds)
     {
-       return $esgOrderGroup = PlatformMarketOrder::whereIn('id', $orderIds)
+        return $esgOrderGroup = PlatformMarketOrder::whereIn('id', $orderIds)
                 ->get();
     }
 
@@ -454,67 +458,69 @@ class ApiPlatformFactoryService
             PlatformMarketConstService::ORDER_STATUS_PENDING,
             PlatformMarketConstService::ORDER_STATUS_UNSHIPPED,
         );
-        $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status",$esgOrderStatus)->whereIn("platform",$platforms)
+        $platformMarketOrders = PlatformMarketOrder::whereIn("esg_order_status", $esgOrderStatus)->whereIn("platform", $platforms)
             ->get();
         return $platformMarketOrders;
     }
 
-    public function getMattelWarehouseByPlatform($platform,$platformMarketOrderGroup)
+    public function getMattelWarehouseByPlatform($platform, $platformMarketOrderGroup)
     {
         $countryCode = strtoupper(substr($platform, -2));
         $marketplaceId = strtoupper(substr($platform, 0, -2));
         $warehouseIdList = $this->getWarehouseIdByMarketplaceId($marketplaceId);
-        if($warehouseIdList){
-            $sellSkuList = null;$warehouse = null;
+        if ($warehouseIdList) {
+            $sellSkuList = null;
+            $warehouse = null;
             foreach ($platformMarketOrderGroup as $platformMarketOrder) {
                 foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
                     $sellSkuList[] = $orderItem->seller_sku;
                 }
                 $storeId = $platformMarketOrder->store_id;
             }
-            $platformMarketInventory = PlatformMarketInventory::where("store_id",$storeId)
-                ->where("warehouse_id",$warehouseIdList[$countryCode])
-                ->whereIn("marketplace_sku",$sellSkuList)
+            $platformMarketInventory = PlatformMarketInventory::where("store_id", $storeId)
+                ->where("warehouse_id", $warehouseIdList[$countryCode])
+                ->whereIn("marketplace_sku", $sellSkuList)
                 ->get()
                 ->toArray();
-            if($platformMarketInventory){
-                foreach($platformMarketInventory as $marketplaceProduct){
+            if ($platformMarketInventory) {
+                foreach ($platformMarketInventory as $marketplaceProduct) {
                     $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
                 }
             }
             return $warehouse;
-        }else{
+        } else {
             return null;
         }
     }
 
-    public function getWarehouseByPlatform($platform,$platformMarketOrderGroup)
+    public function getWarehouseByPlatform($platform, $platformMarketOrderGroup)
     {
         $countryCode = strtoupper(substr($platform, -2));
         $marketplaceId = strtoupper(substr($platform, 0, -2));
         $warehouseIdList = $this->getWarehouseIdByMarketplaceId($marketplaceId);
-        if($warehouseIdList){
-            $sellSkuList = null;$warehouse = null;
+        if ($warehouseIdList) {
+            $sellSkuList = null;
+            $warehouse = null;
             foreach ($platformMarketOrderGroup as $platformMarketOrder) {
                 foreach ($platformMarketOrder->platformMarketOrderItem as $orderItem) {
                     $sellSkuList[] = $orderItem->seller_sku;
                 }
             }
-            $marketplaceProducts = MarketplaceSkuMapping::join("inventory","inventory.prod_sku","=","marketplace_sku_mapping.sku")
-                        ->where("marketplace_id","=",$marketplaceId)
-                        ->where("country_id","=",$countryCode)
-                        ->where("inventory.warehouse_id",$warehouseIdList[$countryCode])
+            $marketplaceProducts = MarketplaceSkuMapping::join("inventory", "inventory.prod_sku", "=", "marketplace_sku_mapping.sku")
+                        ->where("marketplace_id", "=", $marketplaceId)
+                        ->where("country_id", "=", $countryCode)
+                        ->where("inventory.warehouse_id", $warehouseIdList[$countryCode])
                         ->whereIn("marketplace_sku", $sellSkuList)
-                        ->select("sku","marketplace_sku","inventory.inventory","inventory.warehouse_id")
+                        ->select("sku", "marketplace_sku", "inventory.inventory", "inventory.warehouse_id")
                         ->get()
                         ->toArray();
-            if($marketplaceProducts){
-                foreach($marketplaceProducts as $marketplaceProduct){
+            if ($marketplaceProducts) {
+                foreach ($marketplaceProducts as $marketplaceProduct) {
                     $warehouse[$marketplaceProduct["marketplace_sku"]] = $marketplaceProduct;
                 }
             }
             return $warehouse;
-        }else{
+        } else {
             return null;
         }
     }
@@ -523,10 +529,10 @@ class ApiPlatformFactoryService
     {
         $storeNames = null;
         $stores = User::find(\Authorizer::getResourceOwnerId())->stores();
-        foreach($stores as $store){
+        foreach ($stores as $store) {
             $storeNames[] = $store->store_code.$store->marketplace.$store->country;
         }
-       return $storeNames;
+        return $storeNames;
     }
 
     private function getWarehouseIdByMarketplaceId($marketplaceId)
@@ -553,13 +559,12 @@ class ApiPlatformFactoryService
             PlatformMarketConstService::ORDER_STATUS_CANCEL,
             PlatformMarketConstService::ORDER_STATUS_RETURENED
         );
-        $platformOrderList = PlatformMarketOrder::where("biz_type",$bizType)
+        $platformOrderList = PlatformMarketOrder::where("biz_type", $bizType)
                         ->where('acknowledge', '=', '0')
-                        ->whereNotIn('esg_order_status',$notInStatus)
+                        ->whereNotIn('esg_order_status', $notInStatus)
                         ->get();
-        if(!$platformOrderList->isEmpty()){
-            $this->apiPlatformInterface->updatePlatMarketOrderStatus($storeName,$platformOrderList);
+        if (!$platformOrderList->isEmpty()) {
+            $this->apiPlatformInterface->updatePlatMarketOrderStatus($storeName, $platformOrderList);
         }
     }
-
 }

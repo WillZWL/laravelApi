@@ -18,7 +18,7 @@ table td {border-bottom: 2px solid #CCCCCC;}
 <table>
     <thead>
         <tr>
-            <th>SKU</th>
+            <th style="width:115px;">SKU</th>
             <th>DC SKU</th>
             <th>Image</th>
             <th>Product</th>
