@@ -22,7 +22,7 @@ use App\Models\DeclarationException;
 
 trait TraitDeclaredService
 {
-    public function getOrderdeclaredObject($soObj)
+    public function getOrderDeclaredObject($soObj)
     {
         $currencyCourierId = $this->getCurrencyCourierId($soObj->esg_quotation_courier_id, $soObj->country);
         $soRate = $this->getOrderRate($soObj, $currencyCourierId);
@@ -30,14 +30,17 @@ trait TraitDeclaredService
         $sumItemAmount = $this->getOrderSumItemAmount($soObj, $soRate);
         $discount = $this->getOrderDiscount($soObj, $soRate, $declareType, $sumItemAmount);
         $totalOrderAmount = $sumItemAmount - $discount;
+        if ($sumItemAmount == 0) {
+            $itemTotalPercent = 0;
+        } else {
+            $itemTotalPercent = 1 - ($discount / $sumItemAmount);
+        }
         $sellingPlatformObj = $soObj->sellingPlatform;
-        $declaredValue = $this->pickDeclaredValue($sellingPlatformObj->merchant_id, $sellingPlatformObj->type, $soObj->delivery_country_id, $totalOrderAmount, $currencyCourierId, $soObj->incoterm);
-        $declaredObject = array(
-            "declared_value" => number_format($declaredValue, 2),
-            "declared_currency" => $currencyCourierId,
-            "total_order_amount" => number_format($totalOrderAmount, 2),
-            "discount" => number_format($discount, 2),
-            );
+        $calculateDeclaredValue = $this->pickDeclaredValue($sellingPlatformObj->merchant_id, $sellingPlatformObj->type, $soObj->delivery_country_id, $totalOrderAmount, $currencyCourierId, $soObj->incoterm);
+        $declaredObject = $this->getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount , $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue );
+        $declaredObject["declared_currency"] = $currencyCourierId;
+        $declaredObject["total_order_amount"] = number_format($totalOrderAmount, 2);
+        $declaredObject["discount"] = number_format($discount, 2);
         return $declaredObject;
     }
 
@@ -179,6 +182,37 @@ trait TraitDeclaredService
         }
     }
 
+    public function getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount , $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue )
+    {
+        $itemResult = [];
+        $declaredValue = 0;
+        foreach ($soObj->soItem as $item) {
+            if ($item->hidden_to_client == 0) {
+                $unitPrice = $item->unit_price * $soRate;
+                $unitDeclaredValue = $this->getUnitDeclaredValue($unitPrice, $sumItemAmount, $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue);
+                //RPX
+                /*if (in_array($soObj->esg_quotation_courier_id, ['88','91'])) {
+                    $unitDeclaredValue = $item->item_declared_value / $item->qty;
+                }*/
+                $sellingPlatformObj = $soObj->sellingPlatform;
+                $useOptimizedHscodeDuty = $sellingPlatformObj->merchant->use_optimized_hscode_w_duty;
+                $declaredValue += $unitDeclaredValue * $item->qty;
+                $descAndCode = $this->getDeclaredDescAndCode($item, $useOptimizedHscodeDuty, $soObj->delivery_country_id);
+                $itemResult[$item->prod_sku] = [
+                        "prod_desc" => $descAndCode["prod_desc"],
+                        "code" => $descAndCode["code"],
+                        "qty" => $item->qty,
+                        "unit_declared_value" =>number_format($unitDeclaredValue, 2),
+                        "item_declared_value" =>number_format($unitDeclaredValue * $item->qty, 2),
+                    ];
+            }
+        }
+        $declaredObject = array(
+            "declared_value" => number_format($declaredValue, 2),
+            "items" => $itemResult,
+            );
+    }
+
     public function getDeclaredDescAndCode($itemObj, $useOptimizedHscodeDuty, $deliveryCountryId)
     {
         $code = "";
@@ -215,6 +249,17 @@ trait TraitDeclaredService
         $prodDesc = ($skuMapping ? $skuMapping->ext_sku : "") ." ".$declaredDesc;
 
         return ["code"=>$code, "prod_desc"=>$prodDesc, "master_sku"=>$skuMapping ? $skuMapping->ext_sku : ""];
+    }
+
+    public function getUnitDeclaredValue($unitPrice, $sumItemAmount, $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue)
+    {
+        if ($sumItemAmount == 0) {
+            $unitDeclaredPercent = 0;
+        } else {
+            $unitPriceValue = $unitPrice * $itemTotalPercent;
+            $unitDeclaredPercent = $unitPriceValue / ($totalOrderAmount ? $totalOrderAmount : $sumItemAmount);
+        }
+        return $unitDeclaredValue = $calculateDeclaredValue * $unitDeclaredPercent;
     }
 
     public function isSpecialOrder($soObj)

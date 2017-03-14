@@ -21,7 +21,7 @@ class IwmsBaseOrderService
 
     public function getCreationIwmsCourierOrderObject($esgOrder, $iwmsCourierCode, $iwmsWarehouseCode = null, $extraInstruction = null ,$trackingNo = null)
     {
-        $declaredObject = $this->getOrderdeclaredObject($esgOrder);
+        $declaredObject = $this->getOrderDeclaredObject($esgOrder);
         $merchantId = "ESG";
         $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $creationOrderObject = array(
@@ -53,20 +53,25 @@ class IwmsBaseOrderService
             "amount_in_usd" => '0',
             "extra_instruction" => $extraInstruction,
         );
-        $sellingPlatformObj = $esgOrder->sellingPlatform;
-        $useOptimizedHscodeDuty = $sellingPlatformObj->merchant->use_optimized_hscode_w_duty;
-        $hscodeCategoryName = array();
+        
+        $hscodeCategoryName = array(); 
         foreach ($esgOrder->soItem as $esgOrderItem) {
-            $declaredDescAndCode = $this->getDeclaredDescAndCode($esgOrderItem, $useOptimizedHscodeDuty, $esgOrder->delivery_country_id);
+            $hsCode = null; $hsDescription = null;
+            if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["code"])){
+                $hsCode = $declaredObject["items"][$esgOrderItem->prod_sku]["code"];
+            }
+            if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"])){
+                $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"];
+            }
             $hscodeCategoryName[] = $declaredDescAndCode["prod_desc"];
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
                 "quantity" => $esgOrderItem->qty,
-                "hscode" => $declaredDescAndCode["code"],
-                "hsdescription" => $declaredDescAndCode["prod_desc"],
-                "commodity_code" => $declaredDescAndCode["code"],
-                "commodity_name" => $declaredDescAndCode["prod_desc"],
+                "hscode" => $hsCode,
+                "hsdescription" => $hsDescription,
+                "commodity_code" => $hsCode,
+                "commodity_name" => $hsDescription,
                 "unit_price_hkd" => '0',
                 "unit_price_usd" => '0',
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,
