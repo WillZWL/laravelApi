@@ -32,6 +32,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function createDeliveryOrder($esgOrderNoList = null)
     {
+        $merchantId = "ESG";
         try {
             if(!empty($esgOrderNoList)){
                 $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList);
@@ -43,10 +44,10 @@ class IwmsFactoryWmsService extends IwmsCoreService
             if (!$request["requestBody"]) {
                 return false;
             }
-            $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
+            $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"], $merchantId);
             $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
         } catch (Exception $e) {
-            $msg = $e->getMessage();
+            $msg = "Message: ". $e->getMessage() .", Line: ". $e->getLine() .", File: ".$e->getFile();
             mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Delivery Failed', $msg, 'From: admin@shop.eservciesgroup.com');
         }
     }
@@ -75,10 +76,11 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     public function cancelDeliveryOrder($esgOrderNoList)
     {
+        $merchantId = "ESG";
         $batchRequest = $this->getIwmsCancelDeliveryOrderService()->getDeliveryCancelRequest($esgOrderNoList);
         if(!empty($batchRequest->request_log)){
             $requestBody = json_decode($batchRequest->request_log);
-            $responseData = $this->curlIwmsApi('cancel-ship-order',$requestBody);
+            $responseData = $this->curlIwmsApi('cancel-ship-order',$requestBody, $merchantId);
             $this->getIwmsCancelDeliveryOrderService()->responseMsgCancelAction($batchRequest, $responseData);
             return true;
         }else{
@@ -119,8 +121,9 @@ class IwmsFactoryWmsService extends IwmsCoreService
 
     private function getCreateDeliveryOrderReport($iwmsRequestIds)
     {
+        $merchantId = "ESG";
         $requestBody = array("request_id" => $iwmsRequestIds);
-        $responseJson = $this->curlIwmsApi('wms/get-delivery-order-report', $requestBody);
+        $responseJson = $this->curlIwmsApi('wms/get-delivery-order-report', $requestBody, $merchantId);
         if(!empty($responseJson)){
             $responseData = json_decode($responseJson);
             $cellData[] = array('Business Type', 'Merchant', 'Platform', 'Order ID', 'DELIVERY TYPE ID', 'Country', 'Battery Type', 'Rec. Courier', '4PX OMS delivery order ID', 'Pass to 4PX courier');
@@ -157,18 +160,19 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $requestBody = array(
             "order_code" => $iwmsOrderCode,
             );
-        $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody);
+        $merchantId = "ESG";
+        $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody, $merchantId);
         return $responseData;
     }
 
     public function queryDeliveryOrderByWarehouse()
     {
-        $warehouseId = "4PXDG_PL";
+        $warehouseId = "4PXDG_PL"; $merchantId = "ESG";
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$this->merchantId);
         $requestBody = array(
             "iwms_warehouse_code" => $iwmsWarehouseCode,
             );
-        $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody);
+        $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody, $merchantId);
         print_r($responseData);exit();
         return $responseData;
     }

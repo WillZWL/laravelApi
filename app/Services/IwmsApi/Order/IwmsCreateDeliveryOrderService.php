@@ -22,6 +22,7 @@ class IwmsCreateDeliveryOrderService
     private $excludeMerchant = array("PREPD");
 
     use \App\Services\IwmsApi\IwmsBaseService;
+    use \App\Services\TraitDeclaredService;
 
     public function __construct($wmsPlatform)
     {
@@ -36,7 +37,7 @@ class IwmsCreateDeliveryOrderService
             $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
             return $this->getDeliveryCreationBatchRequest($batchRequest);
         } catch (\Exception $e) {
-            mail("brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", "[Vanguard] delivery order Exception", "Message: ". $e->getMessage() .", Line: ". $e->getLine());
+            mail("brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", "[Vanguard] delivery order Exception", "Message: ". $e->getMessage() .", Line: ". $e->getLine() .", File: ". $e->getFile());
         }
     }
 
@@ -149,6 +150,7 @@ class IwmsCreateDeliveryOrderService
             $this->_setSoNoMessage($esgOrder->so_no);
             return false;
         }
+        $declaredObject = $this->getOrderDeclaredObject($esgOrder);
         //send remark for depx and fedx for 4px
         $extra_instruction = "";
         if(in_array($esgOrder->esg_quotation_courier_id, array("52","29"))){
@@ -187,6 +189,8 @@ class IwmsCreateDeliveryOrderService
             "address" => $address,
             "postal" => $esgOrder->delivery_postcode,
             "phone" => $this->getEsgOrderPhone($esgOrder),
+            "declared_value" => $declaredObject["declared_value"],
+            "declared_currency" => $declaredObject["declared_currency"],
             "amount_in_hkd" => '0',
             "amount_in_usd" => '0',
             "extra_instruction" => $extra_instruction,
@@ -200,17 +204,20 @@ class IwmsCreateDeliveryOrderService
             $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($esgOrder);
         }
         foreach ($esgOrder->soItem as $esgOrderItem) {
-            $hscode = null; $hsDescription = null;
-            if($esgOrderItem->hscodeCategory){
-                $hscode = $esgOrderItem->hscodeCategory->general_hscode;
-                $hsDescription = $esgOrderItem->hscodeCategory->description;
+            $hsCode = null; $hsDescription = null;
+            if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["code"])){
+                $hsCode = $declaredObject["items"][$esgOrderItem->prod_sku]["code"];
+            }
+            if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"])){
+                $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"];
             }
             $deliveryOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
                 "quantity" => $esgOrderItem->qty,
-                "hscode" => $hscode,
-                "hsDescription" => $hsDescription,
+                "hscode" => $hsCode,
+                "hsdescription" => $hsDescription,
+                "item_declared_value" => $declaredObject["items"][$esgOrderItem->prod_sku]["item_declared_value"],
                 "unit_price_hkd" => '0',
                 "unit_price_usd" => '0',
                 "marketplace_items_serial" => $esgOrderItem->ext_item_cd,

@@ -15,7 +15,7 @@ class IwmsCoreService
         $this->initIwmsConfig($wmsPlatform, $debug);
     }
 
-    public function curlIwmsApi($action, $requestBody = array())
+    public function curlIwmsApi($action, $requestBody = array(), $merchantId = null)
     {
         $clientBody = null;
         $requestOption["headers"] = array(
@@ -26,7 +26,7 @@ class IwmsCoreService
         if(!empty($requestBody)){
             $requestOption['body'] = json_encode($requestBody);
         }
-        $requestUrl = $this->getRequestUrl($action);
+        $requestUrl = $this->getRequestUrl($action, $merchantId);
         $response = $client->request('POST',$requestUrl,$requestOption);
         $returnContent = $response->getBody()->getContents();
         // if error
@@ -73,10 +73,14 @@ class IwmsCoreService
         return $data;
     }
 
-    public function getRequestUrl($action)
+    public function getRequestUrl($action, $merchantId = null)
     {
         $wmsPlatform = $this->wmsPlatform ? $this->wmsPlatform : "";
-        return $this->urlbase . $action ."/". $wmsPlatform ."?debug=". $this->debug;
+        if(!empty($merchantId)){
+            return $this->urlbase . $action ."/". $wmsPlatform ."/".$merchantId."?debug=". $this->debug;
+        }else{
+            return $this->urlbase . $action ."/". $wmsPlatform ."?debug=". $this->debug;
+        }
     }
 
     public function initIwmsConfig($wmsPlatform = "", $debug)
