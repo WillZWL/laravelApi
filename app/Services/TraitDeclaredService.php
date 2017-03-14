@@ -207,7 +207,7 @@ trait TraitDeclaredService
                     ];
             }
         }
-        $declaredObject = array(
+        return $declaredObject = array(
             "declared_value" => number_format($declaredValue, 2),
             "items" => $itemResult,
             );
