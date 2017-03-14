@@ -37,7 +37,7 @@ class IwmsCreateDeliveryOrderService
             $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
             return $this->getDeliveryCreationBatchRequest($batchRequest);
         } catch (\Exception $e) {
-            mail("brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", "[Vanguard] delivery order Exception", "Message: ". $e->getMessage() .", Line: ". $e->getLine());
+            mail("brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", "[Vanguard] delivery order Exception", "Message: ". $e->getMessage() .", Line: ". $e->getLine() .", File: ". $e->getFile());
         }
     }
 

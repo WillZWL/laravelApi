@@ -46,7 +46,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
             $responseData = $this->curlIwmsApi('wms/create-delivery-order', $request["requestBody"]);
             $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
         } catch (Exception $e) {
-            $msg = $e->getMessage();
+            $msg = "Message: ". $e->getMessage() .", Line: ". $e->getLine() .", File: ".$e->getFile();
             mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create Delivery Failed', $msg, 'From: admin@shop.eservciesgroup.com');
         }
     }
