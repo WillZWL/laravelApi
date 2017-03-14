@@ -39,8 +39,8 @@ trait TraitDeclaredService
         $calculateDeclaredValue = $this->pickDeclaredValue($sellingPlatformObj->merchant_id, $sellingPlatformObj->type, $soObj->delivery_country_id, $totalOrderAmount, $currencyCourierId, $soObj->incoterm);
         $declaredObject = $this->getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount , $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue );
         $declaredObject["declared_currency"] = $currencyCourierId;
-        $declaredObject["total_order_amount"] = number_format($totalOrderAmount, 2);
-        $declaredObject["discount"] = number_format($discount, 2);
+        $declaredObject["total_order_amount"] = number_format($totalOrderAmount, 2, '.', '');
+        $declaredObject["discount"] = number_format($discount, 2, '.', '');
         return $declaredObject;
     }
 
@@ -202,13 +202,14 @@ trait TraitDeclaredService
                         "prod_desc" => $descAndCode["prod_desc"],
                         "code" => $descAndCode["code"],
                         "qty" => $item->qty,
-                        "unit_declared_value" =>number_format($unitDeclaredValue, 2),
-                        "item_declared_value" =>number_format($unitDeclaredValue * $item->qty, 2),
+                        "unit_declared_value" =>number_format($unitDeclaredValue, 2, '.', ''),
+                        "item_declared_value" =>number_format($unitDeclaredValue * $item->qty, 2, '.', ''),
                     ];
             }
         }
+
         return $declaredObject = array(
-            "declared_value" => number_format($declaredValue, 2),
+            "declared_value" => number_format($declaredValue, 2, '.', ''),
             "items" => $itemResult,
             );
     }
