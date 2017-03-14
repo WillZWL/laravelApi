@@ -75,8 +75,9 @@ class IwmsCoreService
 
     public function getRequestUrl($action)
     {
+        $merchantId = "ESG";
         $wmsPlatform = $this->wmsPlatform ? $this->wmsPlatform : "";
-        return $this->urlbase . $action ."/". $wmsPlatform ."?debug=". $this->debug;
+        return $this->urlbase . $action ."/". $wmsPlatform ."/".$merchantId."?debug=". $this->debug;
     }
 
     public function initIwmsConfig($wmsPlatform = "", $debug)
