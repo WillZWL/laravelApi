@@ -118,7 +118,7 @@ trait IwmsBaseService
     public function getEsgOrderAwbLabelUrl($esgOrder)
     {
         if(!empty($esgOrder->pick_list_no)){
-            $url = "order/.$esgOrder->pick_list_no./AWB?so_no=".$esgOrder->so_no;
+            $url = "order/".$esgOrder->pick_list_no."/AWB?so_no=".$esgOrder->so_no;
             return url($url);
         }
         return null;
@@ -127,7 +127,7 @@ trait IwmsBaseService
     public function getEsgOrderInvoiceLabelUrl($esgOrder)
     {
         if(!empty($esgOrder->pick_list_no)){
-            $url = "order/.$esgOrder->pick_list_no./invoice?so_no=".$esgOrder->so_no;
+            $url = "order/".$esgOrder->pick_list_no."/invoice?so_no=".$esgOrder->so_no;
             return url($url);
         }
         return null;
