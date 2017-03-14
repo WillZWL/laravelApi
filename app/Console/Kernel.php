@@ -201,5 +201,8 @@ class Kernel extends ConsoleKernel
             ->dailyAt('01:00');
 
         $schedule->command('order:ShipperNotAvailable')->hourly();
+
+        $schedule->command('generate:courier_feed')->everyThirtyMinutes();
+        $schedule->command('order:packList')->everyThirtyMinutes();
     }
 }
