@@ -105,6 +105,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('fulfillment-order-feed'),
         ],
+        'settlementPreview' => [
+            'driver' => 'local',
+            'root' => storage_path('settlement_preview'),
+        ]
     ],
 
 ];
