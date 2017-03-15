@@ -52,6 +52,7 @@ class Kernel extends ConsoleKernel
         Commands\IwmsLgsOrder::class,
         Commands\GenerateCourierFeed::class,
         Commands\ShipperNotAvailableOrder::class,
+        Commands\SettlementPreview::class,
     ];
 
     /**
