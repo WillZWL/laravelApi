@@ -32,7 +32,7 @@ class IwmsDeliveryOrderService extends IwmsBaseCallbackService
                     }
                     $this->sendMsgCreateDeliveryOrderReport($responseMessage);
                 }
-               if($key === "failed"){
+                if($key === "failed"){
                     $this->sendMsgCreateDeliveryErrorEmail($responseMessage, $batchObject->id);
                 }
             }

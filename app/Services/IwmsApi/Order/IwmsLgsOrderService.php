@@ -201,7 +201,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
             if($folderName == "AWB"){
                 $file = $filePath.$esgOrder->so_no.'_awb.pdf';
             }else if($folderName == "invoice"){
-                $file = $filePath.$esgOrder->so_no.'_lgs_invoice.pdf';
+                $file = $filePath.$esgOrder->so_no.'_invoice.pdf';
             }
             file_put_contents($file, $label);
         }
