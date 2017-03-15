@@ -1,5 +1,7 @@
 # cache
 cache:
+  key: "$CI_BUILD_NAME/$CI_BUILD_REF_NAME"
+  untracked: true
   paths:
   - .env
   - vendor/
@@ -8,7 +10,6 @@ cache:
 before_script:
   - echo 'Building start...'
 
-# PHP 7.0
-php:7.0:
+verify:
   script:
     - ant verify
