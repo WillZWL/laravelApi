@@ -37,7 +37,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                 $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList, $merchantId);
             }else{
                 //cron job request
-                $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
+                $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform, $merchantId);
                 $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms, $merchantId);
             }
             if (!$request["requestBody"]) {
@@ -191,7 +191,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $responseData;
     }
 
-    public function getWarehouseToIwms($wmsPlatform, $merchantId = "ESG")
+    public function getWarehouseToIwms($wmsPlatform, $merchantId)
     {
         $warehouseIdArr = array(
             '4px' => array(
@@ -205,11 +205,11 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $warehouseIdArr[$wmsPlatform][$merchantId];
     }
 
-    public function cronSetLgsOrderStatus()
+    public function cronSetLgsOrderStatus($merchantId)
     {
         $iwmsLgsOrderService = App::make('App\Services\IwmsApi\Order\IwmsLgsOrderService',
             [$this->wmsPlatform]);
-        $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
+        $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform, $merchantId);
         $iwmsLgsOrderService->setLgsOrderStatus($warehouseToIwms);
     }
 
