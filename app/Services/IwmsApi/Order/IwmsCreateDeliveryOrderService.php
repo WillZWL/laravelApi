@@ -262,7 +262,7 @@ class IwmsCreateDeliveryOrderService
     {
         if($merchantId == "ESG"){
             $esgOrders = $this->getEsgChinaAllocateOrders($warehouseToIwms);
-        }else if ($merchantId == "ESG_HK_TEST"){
+        }else if ($merchantId == "ESG-HK-TEST"){
             $esgOrders = $this->getEsgAccelerateAllocateOrders($warehouseToIwms);
         }
         return $this->checkEsgAllocateOrders($esgOrders, $merchantId);
