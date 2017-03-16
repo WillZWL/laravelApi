@@ -31,7 +31,7 @@ class SettlementPreviewService
 
     public function getNotifyEmail()
     {
-        return "milo.chen@eservicesgroup.com";
+        return "finance@eservicesgroup.net, gonzalo@eservicesgroup.com, celine@eservicesgroup.com";
     }
 
     public function getSettlementCellDatas($orders)
@@ -96,8 +96,9 @@ class SettlementPreviewService
                                 'week' => date('W')
                             ];
             }
-            $cellDatas["Order Detail"] = $orderCellData;
+
             $cellDatas["Summary"] = $summaryCellData;
+            $cellDatas["Order Detail"] = $orderCellData;
 
             return $cellDatas;
         }
@@ -119,7 +120,9 @@ class SettlementPreviewService
                 $this->sendAttachmentMail(
                     $toMail,
                     $subject,
-                    $attachment
+                    $attachment,
+                    "",
+                    "milo.chen@eservicesgroup.com"
                 );
             }
         }
