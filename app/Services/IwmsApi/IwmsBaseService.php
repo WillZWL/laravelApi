@@ -119,8 +119,8 @@ trait IwmsBaseService
     {
         if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
-            $urlPath = "/order/".$esgOrder->pick_list_no."/AWB?so_no=".$esgOrder->so_no;
-            return $url = $baseUrl.$urlPath;
+            $urlPath = $baseUrl."/order/".$esgOrder->pick_list_no."/AWB?so_no=".$esgOrder->so_no;
+            return $urlPath;
         }
         return null;
     }
@@ -129,8 +129,8 @@ trait IwmsBaseService
     {
         if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
-            $urlPath = "/order/".$esgOrder->pick_list_no."/invoice?so_no=".$esgOrder->so_no;
-           return $url = $baseUrl.$urlPath;
+            $urlPath = $baseUrl."/order/".$esgOrder->pick_list_no."/invoice?so_no=".$esgOrder->so_no;
+           return $urlPath;
         }
         return null;
     }
@@ -139,8 +139,8 @@ trait IwmsBaseService
     {
         /*if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
-            $urlPath = "/product/".$esgOrder->pick_list_no."/msds?sku=".$esgOrder->so_no;
-           return $url = $baseUrl.$urlPath;
+            $urlPath = $baseUrl."/product/".$esgOrder->pick_list_no."/msds?sku=".$esgOrder->so_no;
+           return $urlPath;
         }*/
         return null;
     }
