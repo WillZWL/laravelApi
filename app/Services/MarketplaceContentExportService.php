@@ -11,9 +11,24 @@ use App\Repository\ProductRepository;
 class MarketplaceContentExportService
 {
     private $prodRepos = null;
-    private $suppStatus = ['A' => 'Available', 'C' => 'Stock Constraint', 'D' => 'Discontinued', 'L' => 'Last Lot', 'O' => 'Temp Out of Stock'];
-    private $webState = ['I' => 'In Stock', 'O' => 'Out Stock', 'P' => 'Pre-Order', 'A' => 'Arriving'];
-    private $status = ['0' => 'Inactive', '1' => 'Created', '2' => 'Listed'];
+    private $suppStatus = [
+                'A' => 'Available',
+                'C' => 'Stock Constraint',
+                'D' => 'Discontinued',
+                'L' => 'Last Lot',
+                'O' => 'Temp Out of Stock',
+            ];
+    private $webState = [
+                'I' => 'In Stock',
+                'O' => 'Out Stock',
+                'P' => 'Pre-Order',
+                'A' => 'Arriving',
+            ];
+    private $status = [
+                '0' => 'Inactive',
+                '1' => 'Created',
+                '2' => 'Listed',
+            ];
 
     public function getMarketplaceContentExport($marketplace)
     {
@@ -35,7 +50,11 @@ class MarketplaceContentExportService
             }
         }
 
-        if (isset($data['field_value']) && isset($data['marketplace'])) {
+        if (isset($data['field_value'])
+            && $data['field_value']
+            && isset($data['marketplace'])
+            && $data['marketplace']
+        ) {
             foreach ($data['field_value'] as $sort => $value) {
                 \Log::info($sort);
                 MarketplaceContentExport::updateOrCreate(['marketplace'=> $data['marketplace'], 'field_value' => $value], ['sort'=>$sort, 'status'=>1]);
