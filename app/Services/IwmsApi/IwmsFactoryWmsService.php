@@ -30,16 +30,15 @@ class IwmsFactoryWmsService extends IwmsCoreService
         parent::__construct($wmsPlatform, $debug);
     }
 
-    public function createDeliveryOrder($esgOrderNoList = null)
+    public function createDeliveryOrder($merchantId, $esgOrderNoList = null)
     {
-        $merchantId = "ESG";
         try {
             if(!empty($esgOrderNoList)){
-                $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList);
+                $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequestByOrderNo($esgOrderNoList, $merchantId);
             }else{
                 //cron job request
                 $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform);
-                $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms);
+                $request = $this->getIwmsCreateDeliveryOrderService()->getDeliveryCreationRequest($warehouseToIwms, $merchantId);
             }
             if (!$request["requestBody"]) {
                 return false;
@@ -119,10 +118,10 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
-    public function sendCreateDeliveryOrderReport()
+    public function sendCreateDeliveryOrderReport($merchantId)
     {
         $iwmsRequestIds = IwmsFeedRequest::where("status","0")->pluck("iwms_request_id")->all();
-        $cellData = $this->getCreateDeliveryOrderReport($iwmsRequestIds);
+        $cellData = $this->getCreateDeliveryOrderReport($iwmsRequestIds, $merchantId);
         $filePath = \Storage::disk('iwms')->getDriver()->getAdapter()->getPathPrefix();
         $orderPath = $filePath."orderCreate/";
         $fileName = "deliveryOrderDetail-".time();
@@ -136,9 +135,8 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
-    private function getCreateDeliveryOrderReport($iwmsRequestIds)
+    private function getCreateDeliveryOrderReport($iwmsRequestIds, $merchantId = "ESG")
     {
-        $merchantId = "ESG";
         $requestBody = array("request_id" => $iwmsRequestIds);
         $responseJson = $this->curlIwmsApi('wms/get-delivery-order-report', $requestBody, $merchantId);
         if(!empty($responseJson)){
@@ -172,20 +170,19 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return null;
     }
 
-    public function queryDeliveryOrderStatus($iwmsOrderCode)
+    public function queryDeliveryOrderStatus($iwmsOrderCode, $merchantId = "ESG")
     {
         $requestBody = array(
             "order_code" => $iwmsOrderCode,
             );
-        $merchantId = "ESG";
         $responseData = $this->curlIwmsApi('wms/query-delivery-order', $requestBody, $merchantId);
         return $responseData;
     }
 
-    public function queryDeliveryOrderByWarehouse()
+    public function queryDeliveryOrderByWarehouse($merchantId = "ESG")
     {
-        $warehouseId = "4PXDG_PL"; $merchantId = "ESG";
-        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$this->merchantId);
+        $warehouseId = "4PXDG_PL";
+        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId, $merchantId);
         $requestBody = array(
             "iwms_warehouse_code" => $iwmsWarehouseCode,
             );
@@ -230,7 +227,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $courierList;
     }
 
-   /* public function getReadyToIwmsDeliveryOrder($wmsPlatform, $pageNum)
+    /* public function getReadyToIwmsDeliveryOrder($wmsPlatform, $pageNum)
     {
         $courierList = $this->getCourierMappingList($wmsPlatform);
         $esgOrderQuery = So::where("status",3)

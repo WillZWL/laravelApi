@@ -170,7 +170,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('accNotFulfilled:Order')
             ->dailyAt('09:30');
 
-        $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px'))
+        $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px', '--merchant' => 'all'))
             ->everyThirtyMinutes();
         $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => '4px'))
             ->everyThirtyMinutes();
@@ -203,7 +203,11 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('order:ShipperNotAvailable')->hourly();
 
+
         $schedule->command('generate:courier_feed')->everyThirtyMinutes();
         $schedule->command('order:packList')->everyThirtyMinutes();
+
+        $schedule->command('settlement:preview')->weekly()->mondays()->at('2:00');
+
     }
 }

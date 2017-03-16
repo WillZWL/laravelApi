@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\IwmsApi\Order;
+namespace App\Services\IwmsApi\Product;
 
 use App\Models\Product;
 use App\Models\IwmsProductLog;

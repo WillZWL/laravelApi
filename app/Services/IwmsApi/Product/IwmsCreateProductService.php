@@ -117,8 +117,8 @@ class IwmsCreateProductService
             "reference_code" => $esgProduct->ean,
             "upc" => $esgProduct->ean,
             "battery_type" => $esgProduct->battery,
-            "origin_country" => "HK",
-            "iwms_measure_uom" => "1",
+            "origin_country" => "CHINA",
+            "iwms_measure_uom" => "4", //PIECE
             "brand" => $esgProduct->brand->name,
             //"units" => '2',
             "weight" => $esgProduct->weight,

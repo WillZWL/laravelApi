@@ -29,38 +29,37 @@ class IwmsCreateDeliveryOrderService
         $this->wmsPlatform = $wmsPlatform;
     }
 
-    public function getDeliveryCreationRequest($warehouseIds)
+    public function getDeliveryCreationRequest($warehouseIds, $merchantId)
     {
         try {
             $deliveryCreationRequest = null;
-            $esgOrders = $this->getEsgAllocateOrders($warehouseIds);
-            $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
-            return $this->getDeliveryCreationBatchRequest($batchRequest);
+            $esgOrders = $this->getEsgAllocateOrders($warehouseIds, $merchantId);
+            $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders, $merchantId);
+            return $this->getDeliveryCreationBatchRequest($batchRequest, $merchantId);
         } catch (\Exception $e) {
             mail("brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com", "[Vanguard] delivery order Exception", "Message: ". $e->getMessage() .", Line: ". $e->getLine() .", File: ". $e->getFile());
         }
     }
 
-    public function getDeliveryCreationRequestByOrderNo($esgOrderNoList)
+    public function getDeliveryCreationRequestByOrderNo($esgOrderNoList, $merchantId)
     {
         $deliveryCreationRequest = null;
         $esgOrders = $this->getEsgAllocateOrdersByOrderNo($esgOrderNoList);
-        $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders);
-        return $this->getDeliveryCreationBatchRequest($batchRequest);
+        $batchRequest = $this->getDeliveryCreationRequestBatch($esgOrders, $merchantId);
+        return $this->getDeliveryCreationBatchRequest($batchRequest, $merchantId);
     }
 
-    public function getDeliveryCreationRequestBatch($esgOrders)
+    public function getDeliveryCreationRequestBatch($esgOrders, $merchantId)
     {
-        $esgAllocateOrder = null; $merchantId = "ESG";
+        $esgAllocateOrder = null; 
         if(!$esgOrders->isEmpty()){
-            $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform,$merchantId);
+            $batchRequest = $this->getNewBatchId("CREATE_DELIVERY",$this->wmsPlatform, $merchantId);
             foreach ($esgOrders as $esgOrder) {
                 $trackingNo = null;
                 foreach ($esgOrder->soAllocate as $soAllocate) {
                     $warehouseId = $soAllocate->warehouse_id;
                 }
-                $picklistNo = $esgOrder->pick_list_no;
-                $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId, $picklistNo);
+                $this->deliveryOrderCreationRequest($batchRequest->id , $esgOrder, $warehouseId, $merchantId);
             }
             if(!empty($this->message)){
                 $this->sendAlertEmail($this->message);
@@ -69,10 +68,13 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    public function getDeliveryCreationBatchRequest($batchRequest)
+    public function getDeliveryCreationBatchRequest($batchRequest, $merchantId)
     {
         if(!empty($batchRequest)){
-            $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+            $requestLogs = IwmsDeliveryOrderLog::where("merchant_id", $merchantId)
+                    ->where("batch_id",$batchRequest->id)    
+                    ->pluck("request_log")
+                    ->all();
             if(!empty($requestLogs)){
                 foreach ($requestLogs as $requestLog) {
                     $deliveryCreationRequest[] = json_decode($requestLog);
@@ -92,9 +94,9 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function deliveryOrderCreationRequest($batchId , $esgOrder, $warehouseId, $picklistNo = null)
+    private function deliveryOrderCreationRequest($batchId , $esgOrder, $warehouseId, $merchantId)
     {
-        $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder, $warehouseId, $picklistNo);
+        $deliveryCreationRequest = $this->getDeliveryCreationObject($esgOrder, $warehouseId, $merchantId);
         if ($deliveryCreationRequest) {
             $this->_saveIwmsDeliveryOrderRequestData($batchId,$deliveryCreationRequest);
         }
@@ -134,11 +136,11 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function getDeliveryCreationObject($esgOrder, $warehouseId, $picklistNo = null)
+    private function getDeliveryCreationObject($esgOrder, $warehouseId, $merchantId)
     {
-        $merchantId = "ESG"; $trackingNo = null;
+        $trackingNo = null;
         $courierId = $esgOrder->esg_quotation_courier_id;
-        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId,$merchantId);
+        $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId, $merchantId);
         $iwmsCourierCode = $this->getIwmsCourierCode($courierId, $merchantId, $this->wmsPlatform);
         if ($iwmsWarehouseCode === null || $iwmsCourierCode === null) {
             if ($iwmsWarehouseCode === null) {
@@ -235,7 +237,7 @@ class IwmsCreateDeliveryOrderService
         return $deliveryOrderObj;
     }
 
-    public function _saveIwmsDeliveryOrderRequestData($batchId,$requestData)
+    public function _saveIwmsDeliveryOrderRequestData($batchId, $requestData)
     {
         $iwmsDeliveryOrderLog = new IwmsDeliveryOrderLog();
         $iwmsDeliveryOrderLog->batch_id = $batchId;
@@ -256,13 +258,23 @@ class IwmsCreateDeliveryOrderService
         return $iwmsDeliveryOrderLog;
     }
 
-    public function getEsgAllocateOrders($warehouseToIwms)
+    public function getEsgAllocateOrders($warehouseToIwms, $merchantId)
+    {
+        if($merchantId == "ESG"){
+            $esgOrders = $this->getEsgChinaAllocateOrders($warehouseToIwms);
+        }else if ($merchantId == "ESG_HK_TEST"){
+            $esgOrders = $this->getEsgAccelerateAllocateOrders($warehouseToIwms);
+        }
+        return $this->checkEsgAllocateOrders($esgOrders, $merchantId);
+    }
+
+    public function getEsgChinaAllocateOrders($warehouseToIwms)
     {
         //$this->fromData = date("Y-m-d 00:00:00");
         $this->fromData = date("2017-01-21 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
-        $esgOrders = So::where("status",5)
+        return So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
@@ -281,7 +293,33 @@ class IwmsCreateDeliveryOrderService
             ->with("soItem")
             ->limit(100)
             ->get();
-        return $this->checkEsgAllocateOrders($esgOrders);
+    }
+
+    public function getEsgAccelerateAllocateOrders($warehouseToIwms)
+    {
+        //$this->fromData = date("Y-m-d 00:00:00");
+        $this->fromData = date("2017-01-21 00:00:00");
+        $this->toDate = date("Y-m-d 23:59:59");
+        $this->warehouseIds = $warehouseToIwms;
+        return So::where("status",5)
+            ->where("refund_status", "0")
+            ->where("hold_status", "0")
+            ->where("prepay_hold_status", "0")
+            ->whereNotNull("esg_quotation_courier_id")
+            //->where("dnote_invoice_status", 2)
+            ->whereHas('sellingPlatform', function ($query) {
+                $query->where('merchant_id', "ESG");
+            })
+            ->whereHas('soAllocate', function ($query) {
+                $query->whereIn('warehouse_id', $this->warehouseIds)
+                    ->where("status", 1)
+                    ->where("modify_on", ">=", $this->fromData)
+                    ->where("modify_on", "<=", $this->toDate);
+            })
+            ->with("client")
+            ->with("soItem")
+            ->limit(1)
+            ->get();
     }
 
     private function getEsgAllocateOrdersByOrderNo($esgOrderNoList)
@@ -299,7 +337,7 @@ class IwmsCreateDeliveryOrderService
         return $esgOrders;
     }
 
-    private function checkEsgAllocateOrders($esgOrders)
+    private function checkEsgAllocateOrders($esgOrders, $merchantId)
     {
         $validEsgOrders = new Collection();
         if(!$esgOrders->isEmpty()){
@@ -317,7 +355,7 @@ class IwmsCreateDeliveryOrderService
                 if(!$validAwbLable){
                     continue;
                 }*/
-                $repeatResult = $this->validRepeatRequestDeliveryOrder($esgOrder);
+                $repeatResult = $this->validRepeatRequestDeliveryOrder($esgOrder, $merchantId);
                 if($repeatResult){
                     $validEsgOrders[] = $esgOrder;
                 }
@@ -349,14 +387,15 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    private function validRepeatRequestDeliveryOrder($esgOrder)
+    private function validRepeatRequestDeliveryOrder($esgOrder, $merchantId)
     {
         $this->esgOrderNo = $esgOrder->so_no;
-        $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", "ESG")
+        $this->merchantId = $merchantId;
+        $requestOrderLog = IwmsDeliveryOrderLog::where("merchant_id", $merchantId)
                         ->where("reference_no",$esgOrder->so_no)
                         ->where("status", 1)
                         ->orWhere(function ($query) {
-                            $query->where("merchant_id", "ESG")
+                            $query->where("merchant_id", $this->merchantId)
                                 ->where("reference_no", $this->esgOrderNo)
                                 ->whereIn("status", array("0","-1"))
                                 ->where("repeat_request", "!=", 1);
@@ -369,12 +408,15 @@ class IwmsCreateDeliveryOrderService
         }
     }
 
-    public function getDeliveryOrderReportRequest($warehouseIds)
+    public function getDeliveryOrderReportRequest($warehouseIds, $merchantId)
     {
         $deliveryCreationRequest = null;
-        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds);
+        $batchRequest = $this->getDeliveryCreationRequestBatch($warehouseIds, $merchantId);
         if(!empty($batchRequest)){
-            $requestLogs = IwmsDeliveryOrderLog::where("batch_id",$batchRequest->id)->pluck("request_log")->all();
+            $requestLogs = IwmsDeliveryOrderLog::where("merchant_id", $merchantId)
+                ->where("batch_id",$batchRequest->id)
+                ->pluck("request_log")
+                ->all();
             if(!empty($requestLogs)){
                 foreach ($requestLogs as $requestLog) {
                     $deliveryCreationRequest[] = json_decode($requestLog);

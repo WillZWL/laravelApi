@@ -12,7 +12,7 @@ class IwmsDeliveryOrder extends Command
      *
      * @var string
      */
-    protected $signature = 'Iwms:deliveryOrder {action}  {--wms= : fourpx} {--debug= : 0 || 1}';
+    protected $signature = 'Iwms:deliveryOrder {action}  {--wms= : 4px} {--merchant= : ESG} {--debug= : 0 || 1} ';
 
     /**
      * The console command description.
@@ -38,17 +38,28 @@ class IwmsDeliveryOrder extends Command
      */
     public function handle()
     {
+        $merchantArr = array("ESG", "ESG_HK_TEST");
         $wmsPlatform = $this->option('wms');
         $debugOption = $this->option('debug');
+        $merchantId = $this->option('merchant');
         $debug = $debugOption ? 1 :0;
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform,$debug);
         $action = $this->argument('action');
+        if($merchantId == "all"){
+            foreach ($merchantArr as $value) {
+                $this->runAction($action, $value);
+            }
+        }else {
+            $this->runAction($action, $merchantId);
+        }
+    }
+
+    public function runAction($action, $merchantId)
+    {
         if($action == "create"){
-            $this->iwmsFactoryWmsService->createDeliveryOrder();
-        }else if($action == "query"){
-            $this->iwmsFactoryWmsService->queryDeliveryOrder();
+            $this->iwmsFactoryWmsService->createDeliveryOrder($merchantId);
         }else if($action == "report"){
-            $this->iwmsFactoryWmsService->sendCreateDeliveryOrderReport();
+            $this->iwmsFactoryWmsService->sendCreateDeliveryOrderReport($merchantId);
         }
     }
 }
