@@ -39,7 +39,7 @@ class IwmsLgsOrder extends Command
     public function handle()
     {
         //
-        $merchantArr = array("ESG", "ESG_HK_TEST");
+        $merchantArr = array("ESG", "ESG-HK-TEST");
         $wmsPlatform = $this->option('wms');
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
         $action = $this->argument('action');
