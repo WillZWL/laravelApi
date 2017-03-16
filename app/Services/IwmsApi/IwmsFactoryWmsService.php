@@ -88,6 +88,23 @@ class IwmsFactoryWmsService extends IwmsCoreService
         }
     }
 
+    public function createProduct($merchantId)
+    {
+        try {
+            //cron job request
+            $warehouseToIwms = $this->getWarehouseToIwms($this->wmsPlatform, $merchantId);
+            $request = $this->getIwmsCreateProductService()->getProductCreationRequest($warehouseToIwms);
+            if (!$request["requestBody"]) {
+                return false;
+            }
+            $responseData = $this->curlIwmsApi('wms/create-product', $request["requestBody"], $merchantId);
+            $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
+        } catch (Exception $e) {
+            $msg = "Message: ". $e->getMessage() .", Line: ". $e->getLine() .", File: ".$e->getFile();
+            mail('brave.liu@eservicesgroup.com, jimmy.gao@eservicesgroup.com', '[Vanguard] Create OMS Product Failed', $msg, 'From: admin@shop.eservciesgroup.com');
+        }
+    }
+
     public function getDeliveryOrderDocument($esgOrderNoList, $documentType)
     {
         $batchRequest = $this->getIwmsOrderDocumentService()->getOrderDocumentRequest($esgOrderNoList);
@@ -177,13 +194,18 @@ class IwmsFactoryWmsService extends IwmsCoreService
         return $responseData;
     }
 
-    public function getWarehouseToIwms($wmsPlatform)
+    public function getWarehouseToIwms($wmsPlatform, $merchantId = "ESG")
     {
         $warehouseIdArr = array(
-            '4px' => array("4PXDG_PL","4PX_B66"),
-            'esg' => array("ES_HK")
+            '4px' => array(
+                'ESG' => array("4PXDG_PL","4PX_B66"),
+                "ESG-HK-TEST" => array("ES_HK"),
+                ),
+            'esg' => array(
+                'ESG' => array("ES_HK")
+                )
         );
-        return $warehouseIdArr[$wmsPlatform];
+        return $warehouseIdArr[$wmsPlatform][$merchantId];
     }
 
     public function cronSetLgsOrderStatus()
@@ -278,6 +300,11 @@ class IwmsFactoryWmsService extends IwmsCoreService
     public function getIwmsCancelDeliveryOrderService()
     {
         return $this->iwmsCancelDeliveryOrderService = App::make("App\Services\IwmsApi\Order\IwmsCancelDeliveryOrderService", [$this->wmsPlatform]);
+    }
+
+    public function getIwmsCreateProductService()
+    {
+        return $this->iwmsCreateProductService = App::make("App\Services\IwmsApi\Order\IwmsCreateProductService", [$this->wmsPlatform]);
     }
 
     public function getIwmsCourierOrderService()

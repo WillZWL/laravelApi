@@ -1,5 +1,7 @@
 # cache
 cache:
+  key: "$CI_BUILD_NAME/$CI_BUILD_REF_NAME"
+  untracked: true
   paths:
   - .env
   - vendor/
@@ -7,8 +9,13 @@ cache:
 # Before Script
 before_script:
   - echo 'Building start...'
+  - wget https://composer.github.io/installer.sig -O - -q | tr -d '\n' > installer.sig
+  - php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+  - php -r "if (hash_file('SHA384', 'composer-setup.php') === file_get_contents('installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+  - php composer-setup.php
+  - php -r "unlink('composer-setup.php'); unlink('installer.sig');"
+  - php composer.phar install
 
-# PHP 7.0
-php:7.0:
+verify:
   script:
     - ant verify
