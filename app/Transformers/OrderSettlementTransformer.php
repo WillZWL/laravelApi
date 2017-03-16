@@ -3,6 +3,7 @@
 namespace App\Transformers;
 
 use App\Models\So;
+use App\Services\SettlementPreviewService;
 use League\Fractal\TransformerAbstract;
 
 class OrderSettlementTransformer extends TransformerAbstract
@@ -54,9 +55,7 @@ class OrderSettlementTransformer extends TransformerAbstract
     //TODO
     public function getEstimatedSettlementAmount($order)
     {
-        $estimated_settlement_amount = '';
-
-
-        return $estimated_settlement_amount;
+        $settlementPreviewService = new SettlementPreviewService();
+        return $settlementPreviewService->calculateEstimatedAmount($order);
     }
 }
