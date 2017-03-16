@@ -26,7 +26,7 @@ class IwmsDeliveryOrderController extends Controller
         $data["currentWmsPlatform"]= $this->wmsPlatform;
         if(!empty($this->iwmsFactoryWmsService)){
             $courier = $request->input("courier");
-            $data["esgOrderList"] = $this->iwmsFactoryWmsService->getReadyToDispatchOrder($courier,$this->merchantCourierList);
+            $data["esgOrderList"] = $this->iwmsFactoryWmsService->getReadyToDispatchOrder($courier, $this->merchantCourierList);
         }
         return response()->view('iwms-order.index', $data);
     }
