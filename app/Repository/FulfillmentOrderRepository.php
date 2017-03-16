@@ -62,6 +62,11 @@ class FulfillmentOrderRepository
             }
         }
 
+        if ($request->get('picklist_no') != null) {
+            $picklist_no = $request->get('picklist_no');
+            $query->where('pick_list_no', trim($picklist_no));
+        }
+
         if ($request->get('courier_id') !== null && count($request->get('courier_id')) > 0) {
             $query->whereIn('esg_quotation_courier_id', $request->get('courier_id'));
         }
