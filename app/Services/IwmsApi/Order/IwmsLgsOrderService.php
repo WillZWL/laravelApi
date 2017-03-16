@@ -8,6 +8,7 @@ use App\Models\InvMovement;
 use App\Models\SoShipment;
 
 use App;
+use PDF;
 
 class IwmsLgsOrderService extends IwmsBaseOrderService
 {
@@ -194,17 +195,30 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         } 
     }
 
-    private function saveWaybillToPickListFolder($esgOrder, $folderName, $label)
+    private function saveWaybillToPickListFolder($esgOrder, $folderName, $document)
     {
-        if(!empty($esgOrder) && !empty($label)){
+        if(!empty($esgOrder) && !empty($document)){
             $filePath = $this->getLgsOrderPickListFilePath($esgOrder, $folderName);
             if($folderName == "AWB"){
                 $file = $filePath.$esgOrder->so_no.'_awb.pdf';
+                $this->generateAwbLabel($document, $file);
             }else if($folderName == "invoice"){
                 $file = $filePath.$esgOrder->so_no.'_invoice.pdf';
+                PDF::loadHTML($document)->setOption("encoding","UTF-8")->save($file);
             }
-            file_put_contents($file, $label);
         }
+    }
+
+    private function generateAwbLabel($document, $file)
+    {
+        PDF::loadHTML($documentFile)->setOption('page-width', '100')
+            ->setOption('margin-left', 0)
+            ->setOption('margin-right', 2)
+            ->setOption('margin-top', 2)
+            ->setOption('margin-bottom', 2)
+            ->setOption('page-height', '150.40')
+            ->setOption("encoding","UTF-8")
+            ->save($file);
     }
 
     public function getLgsOrderPickListFilePath($esgOrder, $folderName)
