@@ -39,11 +39,14 @@ class IwmsLgsOrder extends Command
     public function handle()
     {
         //
+        $merchantArr = array("ESG", "ESG_HK_TEST");
         $wmsPlatform = $this->option('wms');
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
         $action = $this->argument('action');
         if($action == "setLgsStatus"){
-            $this->iwmsFactoryWmsService->cronSetLgsOrderStatus();
+            foreach ($merchantArr as $merchantId) {
+                $this->iwmsFactoryWmsService->cronSetLgsOrderStatus($merchantId);
+            }
         }else if($action == "getLgsDocument"){
             $this->iwmsFactoryWmsService->cronGetLgsOrderDocument();
         }
