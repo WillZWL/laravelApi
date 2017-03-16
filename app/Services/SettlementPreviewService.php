@@ -117,6 +117,12 @@ class SettlementPreviewService
                     "path" => $filePath,
                     "file_name"=>$fileName .".xlsx"
                 ];
+                $template = "Hi FIN Team,".PHP_EOL
+                            ."Attached is the weekly forecast for Marketplace settlements.".PHP_EOL
+                            ."Please check if we receive the payment from each Marketplace and upload the Settlement Date in ESG admin (http://admincentre.eservicesgroup.com/account/gateway_report/settlement).".PHP_EOL
+                            ."thank you.".PHP_EOL
+                            ."ESG System".PHP_EOL.PHP_EOL;
+                $this->setMailTemplate($template);
                 $this->sendAttachmentMail(
                     $toMail,
                     $subject,
