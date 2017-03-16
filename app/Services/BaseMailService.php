@@ -4,6 +4,18 @@ namespace App\Services;
 
 trait BaseMailService
 {
+    private $mailTemplate = null;
+
+    public function setMailTemplate($template)
+    {
+        $this->mailTemplate = $template;
+    }
+
+    public function getEmailTemplate()
+    {
+        return $this->mailTemplate;
+    }
+
     public function sendAttachmentMail($toEmail, $subject, $attachment, $cc = "", $bcc = "")
     {
         /* Attachment File */
@@ -39,8 +51,12 @@ trait BaseMailService
 
         // Email content
         // Content-type can be text/plain or text/html
-        $message = "Please check the attachment Report!".PHP_EOL;
-        $message .= "Thanks".PHP_EOL.PHP_EOL;
+        if ($this->getEmailTemplate()) {
+            $message = $this->getEmailTemplate();
+        } else {
+            $message = "Please check the attachment Report!".PHP_EOL;
+            $message .= "Thanks".PHP_EOL.PHP_EOL;
+        }
         $message .= "--".$boundary.PHP_EOL;
 
         // Attachment
@@ -50,7 +66,7 @@ trait BaseMailService
         $message .= "Content-Disposition: attachment; filename=\"".$fileName."\"".PHP_EOL.PHP_EOL;
         $message .= $content.PHP_EOL;
         $message .= "--".$boundary."--";
-        if ( mail("{$toEmail}", $subject, $message, $header) === true ) {
+        if (mail("{$toEmail}", $subject, $message, $header) === true) {
             return true;
         }
         return false;
@@ -62,8 +78,8 @@ trait BaseMailService
             $excel->sheet('sheet1', function ($sheet) use ($cellData) {
                 $sheet->rows($cellData);
             });
-        })->store("xlsx",$orderPath);
-        if($excelFile){
+        })->store("xlsx", $orderPath);
+        if ($excelFile) {
             return true;
         }
     }
