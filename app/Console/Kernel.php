@@ -202,5 +202,7 @@ class Kernel extends ConsoleKernel
             ->dailyAt('01:00');
 
         $schedule->command('order:ShipperNotAvailable')->hourly();
+
+        $schedule->command('settlement:preview')->weekly()->mondays()->at('2:00');
     }
 }
