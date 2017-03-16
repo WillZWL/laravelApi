@@ -16,7 +16,8 @@ trait IwmsBaseService
     private $token = "iwms-esg";
     private $awbLabelCourierList = null;
     private $invoiceLabelCourierList = null;
-    private $accessInfo = "&email=openapi@4px.com&password=^4pxOpenApi/ygO";
+    //private $accessInfo = "&email=openapi@4px.com&password=^4pxOpenApi/ygO";
+    private $accessInfo = null;
 
     public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {
