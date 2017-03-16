@@ -203,7 +203,11 @@ class Kernel extends ConsoleKernel
 
         $schedule->command('order:ShipperNotAvailable')->hourly();
 
+
         $schedule->command('generate:courier_feed')->everyThirtyMinutes();
         $schedule->command('order:packList')->everyThirtyMinutes();
+
+        $schedule->command('settlement:preview')->weekly()->mondays()->at('2:00');
+
     }
 }
