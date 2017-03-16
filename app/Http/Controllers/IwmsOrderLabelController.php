@@ -15,6 +15,7 @@ class IwmsOrderLabelController extends Controller
     
     public function __construct(Request $request)
     {
+        $this->middleware("auth");
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($this->wmsPlatform);
     }
 
@@ -27,7 +28,7 @@ class IwmsOrderLabelController extends Controller
             );
         if(!empty($soNo)){
             $filePath = $this->iwmsFactoryWmsService->getCourierPickListFilePathByType($soNo, $documentType);
-            return response()->download($filePath.$soNo.$documentSuffix[$documentType]".pdf");
+            return response()->download($filePath.$soNo.$documentSuffix[$documentType].".pdf");
         }
     }
 
