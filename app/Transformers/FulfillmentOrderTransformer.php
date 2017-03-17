@@ -63,6 +63,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'merchant_hold_status' => $order->merchant_hold_status,
             'prepay_hold_status' => $order->prepay_hold_status,
             'feed_status' => $order->dnote_invoice_status,
+            'pick_list_no' => $order->pick_list_no,
             'items' => $orderItems
         ];
     }
