@@ -180,6 +180,9 @@ class IwmsAllocatedOrderService extends IwmsBaseCallbackService
                     $wmsOrder = $wmsOrders[$soNo];
                     $this->allocation($order, $wmsOrder);
                     $order->pick_list_no = $wmsOrder['pick_list_no'];
+                    $order->dnote_invoice_status = 0;
+                    $order->courier_feed = 0;
+                    $order->waybill_status = 0;
                     $order->status = 5;
                     $order->modify_by = $this->userName;
                     $order->save();
