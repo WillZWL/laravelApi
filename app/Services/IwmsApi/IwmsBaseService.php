@@ -17,7 +17,7 @@ trait IwmsBaseService
     private $awbLabelCourierList = null;
     private $invoiceLabelCourierList = null;
     //private $accessInfo = "&email=openapi@4px.com&password=^4pxOpenApi/ygO";
-    private $accessInfo = null;
+    private $downloadToken = "&token=ik5oHdNIn3luiB4AQ7hyFoQmWu6aGJC1Qahjrbxm";
 
     public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {
@@ -113,7 +113,7 @@ trait IwmsBaseService
         if(!empty($esgOrder)){
            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix();
             $filePath .= $esgOrder->pick_list_no."/".$documentType."/".$esgOrder->courierInfo->courier_name."/";
-            return $urlPath.$this->accessInfo;
+            return $urlPath.$this->downloadToken;
         }
     }
 
@@ -122,7 +122,7 @@ trait IwmsBaseService
         if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
             $urlPath = $baseUrl."/order/".$esgOrder->pick_list_no."/AWB?so_no=".$esgOrder->so_no;
-            return $urlPath.$this->accessInfo;
+            return $urlPath.$this->downloadToken;
         }
         return null;
     }
@@ -132,7 +132,7 @@ trait IwmsBaseService
         if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
             $urlPath = $baseUrl."/order/".$esgOrder->pick_list_no."/invoice?so_no=".$esgOrder->so_no;
-           return $urlPath.$this->accessInfo;
+           return $urlPath.$this->downloadToken;
         }
         return null;
     }

@@ -15,11 +15,10 @@ class IwmsOrderLabelController extends Controller
     
     public function __construct(Request $request)
     {
-        $this->middleware("auth");
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($this->wmsPlatform);
     }
 
-    public function donwloadLabel($pickListNo, $documentType, Request $request)
+    public function donwloadLabel($documentType, Request $request)
     {
         $soNo = $request->input("so_no");
         $documentSuffix = array(
