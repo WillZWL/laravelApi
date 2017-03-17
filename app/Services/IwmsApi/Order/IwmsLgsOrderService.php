@@ -41,15 +41,19 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         foreach ($esgOrders as $esgOrder) {
            $iwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToReadyToShip($esgOrder);
-           if(empty($esgOrder->iwmsLgsOrderStatusLog) || $esgOrder->iwmsLgsOrderStatusLog->status != 1){
+            if(empty($esgOrder->iwmsLgsOrderStatusLog)){
                 $error[] = $esgOrder->so_no;
+                $subject = "LGS order set Order status and get trackingNo failed.";
+            }else if(!empty($esgOrder->iwmsLgsOrderStatusLog) && $esgOrder->iwmsLgsOrderStatusLog->status != 1){
+                $error[] = $esgOrder->so_no;
+                $subject = "LGS order get trackingNo failed.";
             }
         }
         if( isset($error) && $error ){
-            $subject = "LGS order get trackingNo failed.";
             $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+            $msg = "LGS Order ID: \r\n";
             foreach ($error as $key => $soNo) {
-               $msg = "LGS Order ID: ".$soNo." can not get trackingNO.\r\n";
+               $msg .= $soNo." .\r\n";
             }
             mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
         }
