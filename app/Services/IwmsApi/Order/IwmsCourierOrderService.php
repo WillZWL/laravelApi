@@ -114,7 +114,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
 
     public function getReadyToIwmsCourierOrder($limit = null, $courier = null, $pageNum = null)
     {
-        $this->fromData = date("2017-03-21 00:00:00");
+        $this->fromData = date("2017-03-16 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $wmsPlatform = "iwms"; $merchantId = "ESG";
         if($courier){

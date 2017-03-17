@@ -25,6 +25,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                     $this->updateIwmCallbackOrderSuccess($responseMessage, $batchObject->id);
                 }else if ($key === "failed"){
                     $this->updateIwmCallbackOrderFaild($responseMessage, $batchObject->id);
+                    $this->generateCreateCourierErrorCsv($responseMessage, $batchObject->id);
                 }
             }
         }
@@ -178,10 +179,10 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                         'weight' => 0.5,
                         'currency_courier_id' => $requestLog->declared_currency,
                         'declared_value' => $requestLog->declared_value,
-                        'cc_desc' => $requestLog->item[0]->hsdescription;
+                        'cc_desc' => $requestLog->item[0]->hsdescription,
                         'battery' => $battery,
                         'battery_1' => $battery_1,
-                        'cc_code' => $requestLog->item[0]->hscode;
+                        'cc_code' => $requestLog->item[0]->hscode,
                         'Field27' => FALSE,
                         'incoterm_3' => TRUE,
                         'Field29' => 'CHINA',
