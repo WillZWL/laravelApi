@@ -15,12 +15,14 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     private $excludeMerchant = array("PREPD");
     private $courierList = array();
     private $apiLazadaService = null;
+    protected $merchantId = null;
 
     use \App\Services\IwmsApi\IwmsBaseService;
 
-    public function __construct($wmsPlatform)
+    public function __construct($wmsPlatform, $merchantId)
     {
         $this->wmsPlatform = $wmsPlatform;
+        $this->merchantId = $merchantId;
     }
 
     public function setLgsOrderStatus($warehouseToIwms)
@@ -107,7 +109,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     public function getReadyToShipLgsOrder($warehouseToIwms, $limit = null, $pageNum = null)
     {
         $this->warehouseIds = $warehouseToIwms;
-        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform, $this->merchantId);
         $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
@@ -136,7 +138,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function getReadyToGetDocumentLgsOrder()
     {
-        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform, $this->merchantId);
         $esgOrders = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")

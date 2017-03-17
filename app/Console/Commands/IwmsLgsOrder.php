@@ -43,12 +43,13 @@ class IwmsLgsOrder extends Command
         $wmsPlatform = $this->option('wms');
         $this->iwmsFactoryWmsService = new IwmsFactoryWmsService($wmsPlatform);
         $action = $this->argument('action');
-        if($action == "setLgsStatus"){
-            foreach ($merchantArr as $merchantId) {
+        foreach ($merchantArr as $merchantId) {
+            if($action == "setLgsStatus"){
                 $this->iwmsFactoryWmsService->cronSetLgsOrderStatus($merchantId);
             }
-        }else if($action == "getLgsDocument"){
-            $this->iwmsFactoryWmsService->cronGetLgsOrderDocument();
+            else if($action == "getLgsDocument"){
+                $this->iwmsFactoryWmsService->cronGetLgsOrderDocument($merchantId);
+            }
         }
     }
 }
