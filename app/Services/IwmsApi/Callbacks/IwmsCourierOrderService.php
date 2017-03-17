@@ -121,17 +121,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         }
     }
 
-    public function generateCreateCourierErrorCsv($faildResponseMessage, $batchId)
-    {
-        $cellData = $this->getMsgCreateCourierOrderReport($faildResponseMessage, $batchId);
-        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/".$folderName."/".$esgOrder->courierInfo->courier_name."/";
-        $fileName = "DHL_so_delivery_".date("YmdHis");
-        if(!empty($cellData)){
-            $excelFile = $this->createExcelFile($fileName, $filePath, $cellData);
-        }
-    }
-
-    private function getMsgCreateCourierOrderReport($responseMessage, $batchId)
+    public function generateCreateCourierErrorCsv($responseMessage, $batchId)
     {
         $cellData = null;
         if(!empty($responseMessage)){
@@ -139,8 +129,35 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                 if(!empty($value->merchant_order_id)){
                     $iwmsCourierOrderLog = IwmsCourierOrderLog::where("reference_no",$value->merchant_order_id)
                     ->where("batch_id",$batchId)
+                    ->with("so")
                     ->first();
+                    $pickListNo = $iwmsCourierOrderLog->so->pick_list_no;
+                    $pickListOrder[$pickListNo][] = $iwmsCourierOrderLog;
                 }
+            }
+            if(isset($pickListOrder) && !empty($pickListOrder)){
+                foreach ($pickListOrder as $pickListNo => $iwmsCourierOrderLogs) {
+                   $cellData = $this->getMsgCreateCourierOrderCellData($iwmsCourierOrderLogs);
+                   $this->saveCreateCourierOrderCellDataFeed($cellData, $pickListNo);
+                }
+            }
+        }
+    }
+
+    private function saveCreateCourierOrderCellDataFeed($cellData, $pickListNo)
+    {
+        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/";
+        $fileName = "DHL_so_delivery_".date("YmdHis");
+        if(!empty($cellData)){
+            $excelFile = $this->createExcelFile($fileName, $filePath, $cellData);
+        }
+    }
+
+    private function getMsgCreateCourierOrderCellData($iwmsCourierOrderLogs)
+    {
+        $cellData = null;
+        if(!empty($iwmsCourierOrderLogs)){
+            foreach ($iwmsCourierOrderLogs as $iwmsCourierOrderLog) {
                 if(!empty($iwmsCourierOrderLog)){
                     $battery = " "; $battery_1 = " ";
                     $requestLog = json_decode($iwmsCourierOrderLog->request_log);
@@ -186,7 +203,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                         'Field27' => FALSE,
                         'incoterm_3' => TRUE,
                         'Field29' => 'CHINA',
-                        'so_no' => $iwmsCourierOrderLog->courier_reference_id,
+                        'so_no' => $requestLog->courier_reference_id,
                         'incoterm_1' => 1,
                         'Field32' => 'DD',
                         'incoterm' => $requestLog->incoterm,
