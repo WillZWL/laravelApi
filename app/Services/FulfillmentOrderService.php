@@ -23,6 +23,98 @@ class FulfillmentOrderService
         return $orders;
     }
 
+    public function dashboard()
+    {
+
+        $data['all_paid_orders_count'] = $this->getAllPaidOrdersCount();
+
+        $data['pending_paid_orders_count'] =  $this->getPendingPaidOrdersCount();
+
+        $data['allocated_orders_count'] = $this->getAllocatedOrdersCount();
+
+        $data['merchant_pending_orders_count'] = $this->getMerchantPendingOrdersCount();
+
+        $data['merchant_all_paid_orders_count'] = $this->getMerchantAllPaidOrdersCount();
+
+        $data['merchant_allocated_orders_count'] = $this->getMerchantAllocatedOrdersCount();
+
+        return $data;
+    }
+
+    public function getMerchantAllocatedOrdersCount()
+    {
+        $request = new Request;
+        $request->merge([
+            'status' => 5,
+            'refund_status' => 0,
+            'hold_status' => 0,
+            'prepay_hold_status' => 0,
+            'merchant_hold_status' => 0
+        ]);
+        return $this->orderRepository->getMerchantOrdersCount($request);
+    }
+
+    public function getMerchantAllPaidOrdersCount()
+    {
+        $request = new Request;
+        $request->merge([
+            'status' => 3,
+            'exclude_lack_balance' => 0
+        ]);
+        return $this->orderRepository->getMerchantOrdersCount($request);
+    }
+
+    public function getMerchantPendingOrdersCount()
+    {
+        $request = new Request;
+        $request->merge([
+            'status' => 3,
+            'refund_status' => 0,
+            'hold_status' => 0,
+            'prepay_hold_status' => 0,
+            'merchant_hold_status' => 0,
+            'exclude_lack_balance' => 1
+        ]);
+        return $this->orderRepository->getMerchantOrdersCount($request);
+    }
+
+    public function getAllocatedOrdersCount()
+    {
+        $request = new Request;
+        $request->merge([
+            'status' => 5,
+            'refund_status' => 0,
+            'hold_status' => 0,
+            'prepay_hold_status' => 0,
+            'merchant_hold_status' => 0
+        ]);
+        return $this->orderRepository->getOrders($request)->total();
+    }
+
+    public function getAllPaidOrdersCount()
+    {
+        $request = new Request;
+        $request->merge([
+            'status' => 3,
+            'exclude_lack_balance' => 0
+        ]);
+        return $this->orderRepository->getOrders($request)->total();
+    }
+
+    public function getPendingPaidOrdersCount()
+    {
+        $request = new Request;
+        $request->merge([
+            'status' => 3,
+            'refund_status' => 0,
+            'hold_status' => 0,
+            'prepay_hold_status' => 0,
+            'merchant_hold_status' => 0,
+            'exclude_lack_balance' => 1,
+        ]);
+        return $this->orderRepository->getOrders($request)->total();
+    }
+
     public function exportExcel(Request $request)
     {
         $request->merge(['per_page' => 5000]);

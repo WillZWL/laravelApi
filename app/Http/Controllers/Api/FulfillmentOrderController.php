@@ -33,4 +33,11 @@ class FulfillmentOrderController extends Controller
             return $this->response->paginator($orders, new FulfillmentOrderTransformer());
         }
     }
+
+    public function dashboard()
+    {
+        $data = $this->orderService->dashboard();
+
+        return $data;
+    }
 }
