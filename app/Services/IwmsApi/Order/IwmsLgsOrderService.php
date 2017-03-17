@@ -46,7 +46,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 $subject = "LGS order set Order status and get trackingNo failed.";
             }else if(!empty($esgOrder->iwmsLgsOrderStatusLog) && $esgOrder->iwmsLgsOrderStatusLog->status != 1){
                 $error[] = $esgOrder->so_no;
-                $subject = "LGS order get trackingNo failed.";
+                $subject = "LGS order set Order Status Failed.";
             }
         }
         if( isset($error) && $error ){
@@ -210,14 +210,22 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 $this->generateAwbLabel($document, $file);
             }else if($folderName == "invoice"){
                 $file = $filePath.$esgOrder->so_no.'_invoice.pdf';
-                PDF::loadHTML($document)->setOption("encoding","UTF-8")->save($file);
+                $this->generateInvoiceLabel($document, $file);
             }
         }
     }
 
+    private function generateInvoiceLabel($document, $file)
+    {
+        PDF::loadHTML($document)->setPaper('a4')
+            ->setOption('margin-bottom', 0)
+            ->setOption("encoding","UTF-8")
+            ->save($file, true);
+    }
+
     private function generateAwbLabel($document, $file)
     {
-        PDF::loadHTML($documentFile)->setOption('page-width', '100')
+        PDF::loadHTML($document)->setOption('page-width', '100')
             ->setOption('margin-left', 0)
             ->setOption('margin-right', 2)
             ->setOption('margin-top', 2)
