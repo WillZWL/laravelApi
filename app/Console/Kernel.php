@@ -170,25 +170,18 @@ class Kernel extends ConsoleKernel
         $schedule->command('accNotFulfilled:Order')
             ->dailyAt('09:30');
 
-        $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px', '--merchant' => 'all'))
+        $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px', '--merchant' => 'ESG'))
             ->everyThirtyMinutes();
         $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => '4px'))
             ->everyThirtyMinutes();
-
-        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => 'esg'))
-            ->dailyAt('20:20');
-        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => 'esg'))
-            ->dailyAt('02:20');
-        $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => 'esg'))
-            ->dailyAt('09:20');
 
         $schedule->command('Iwms:PushFulfillmentOrder')
             ->everyThirtyMinutes();
 
         /*$schedule->command('Iwms:CourierOrder create',array('--wms' => 'iwms'))
-            ->everyThirtyMinutes();
-        $schedule->command('Iwms:LgsOrder getLgsDocument',array('--wms' => '4px'))
             ->everyThirtyMinutes();*/
+        $schedule->command('Iwms:LgsOrder getLgsDocument',array('--wms' => '4px'))
+            ->everyThirtyMinutes();
 
         $schedule->command('sku:SendNewSkuAlert',
                     array('--sku_type' => '1'))

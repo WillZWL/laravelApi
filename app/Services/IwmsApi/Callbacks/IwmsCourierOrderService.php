@@ -25,6 +25,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                     $this->updateIwmCallbackOrderSuccess($responseMessage, $batchObject->id);
                 }else if ($key === "failed"){
                     $this->updateIwmCallbackOrderFaild($responseMessage, $batchObject->id);
+                    $this->generateCreateCourierErrorCsv($responseMessage, $batchObject->id);
                 }
             }
         }
@@ -120,4 +121,107 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         }
     }
 
+    public function generateCreateCourierErrorCsv($responseMessage, $batchId)
+    {
+        $cellData = null;
+        if(!empty($responseMessage)){
+            foreach ($responseMessage as $value) {
+                if(!empty($value->merchant_order_id)){
+                    $iwmsCourierOrderLog = IwmsCourierOrderLog::where("reference_no",$value->merchant_order_id)
+                    ->where("batch_id",$batchId)
+                    ->with("so")
+                    ->first();
+                    $pickListNo = $iwmsCourierOrderLog->so->pick_list_no;
+                    $pickListOrder[$pickListNo][] = $iwmsCourierOrderLog;
+                }
+            }
+            if(isset($pickListOrder) && !empty($pickListOrder)){
+                foreach ($pickListOrder as $pickListNo => $iwmsCourierOrderLogs) {
+                   $cellData = $this->getMsgCreateCourierOrderCellData($iwmsCourierOrderLogs);
+                   $this->saveCreateCourierOrderCellDataFeed($cellData, $pickListNo);
+                }
+            }
+        }
+    }
+
+    private function saveCreateCourierOrderCellDataFeed($cellData, $pickListNo)
+    {
+        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/";
+        $fileName = "DHL_so_delivery_".date("YmdHis");
+        if(!empty($cellData)){
+            $excelFile = $this->createExcelFile($fileName, $filePath, $cellData);
+        }
+    }
+
+    private function getMsgCreateCourierOrderCellData($iwmsCourierOrderLogs)
+    {
+        $cellData = null;
+        if(!empty($iwmsCourierOrderLogs)){
+            foreach ($iwmsCourierOrderLogs as $iwmsCourierOrderLog) {
+                if(!empty($iwmsCourierOrderLog)){
+                    $battery = " "; $battery_1 = " ";
+                    $requestLog = json_decode($iwmsCourierOrderLog->request_log);
+                    if($requestLog->incoterm == "DDU"){
+                        $deliveryDuty = 'Delivery Duty Unpaid';
+                    }else if ($requestLog->incoterm == "DDP"){
+                        $deliveryDuty = 'Delivery Duty Paid'; 
+                    }
+                    if(isset($requestLog->battery) && $requestLog->battery == 1){
+                        $battery = 'Lithium-ion batteries in compliance with';
+                        $battery_1 = 'section II of PI967';
+                    }
+                    $cellRow = array(
+                        'Field1' => 'ME',
+                        'shipper' => 'INSPIRING WORLD LTD-ES PRIORITY',
+                        'Field3' => 'Kary',
+                        'Field4' => 'Workshop A 10/F',
+                        'Field5' =>'Wah Shing Industrial Building',
+                        'Field6' => 'Hong Kong',
+                        'Field7' => 'Lai Chi Kok',
+                        'Field8' => '35430892',
+                        'Field9' => 'HKG',
+                        'Field10' => '631158448',
+                        'delivery_name' => $requestLog->delivery_name,
+                        'delivery_company' => $requestLog->company,
+                        'delivery_address1' => $requestLog->address,
+                        'delivery_address2' => '.',
+                        'delivery_address3' => '.',
+                        'delivery_city' => $requestLog->city,
+                        'delivery_state' => $requestLog->state,
+                        'delivery_postcode' => $requestLog->postal,
+                        'delivery_country_id' => $requestLog->country,
+                        'tel' => $requestLog->phone,
+                        'Field21' => 'P',
+                        'qty' => 1,
+                        'weight' => 0.5,
+                        'currency_courier_id' => $requestLog->declared_currency,
+                        'declared_value' => $requestLog->declared_value,
+                        'cc_desc' => $requestLog->item[0]->hsdescription,
+                        'battery' => $battery,
+                        'battery_1' => $battery_1,
+                        'cc_code' => $requestLog->item[0]->hscode,
+                        'Field27' => FALSE,
+                        'incoterm_3' => TRUE,
+                        'Field29' => 'CHINA',
+                        'so_no' => $requestLog->courier_reference_id,
+                        'incoterm_1' => 1,
+                        'Field32' => 'DD',
+                        'incoterm' => $requestLog->incoterm,
+                        'Field34' => ' ',
+                        'Field35' => 0,
+                        'Field36' => 0,
+                        'Field37' => 0,
+                        'incoterm' => $requestLog->incoterm,
+                        'incoterm_2' => $deliveryDuty,
+                        'Field40' => '631158448',
+                        'Field41' => 'HK',
+                        'Field42' => ' ',
+                    );
+                    $cellData[] = $cellRow;
+                }
+            }
+            return $cellData;
+        }
+        return null;
+    }
 }

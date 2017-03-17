@@ -8,18 +8,21 @@ use App\Models\InvMovement;
 use App\Models\SoShipment;
 
 use App;
+use PDF;
 
 class IwmsLgsOrderService extends IwmsBaseOrderService
 {
     private $excludeMerchant = array("PREPD");
     private $courierList = array();
     private $apiLazadaService = null;
+    protected $merchantId = null;
 
     use \App\Services\IwmsApi\IwmsBaseService;
 
-    public function __construct($wmsPlatform)
+    public function __construct($wmsPlatform, $merchantId)
     {
         $this->wmsPlatform = $wmsPlatform;
+        $this->merchantId = $merchantId;
     }
 
     public function setLgsOrderStatus($warehouseToIwms)
@@ -38,15 +41,19 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     {
         foreach ($esgOrders as $esgOrder) {
            $iwmsLgsOrderStatusLog = $this->setIwmsLgsOrderStatusToReadyToShip($esgOrder);
-           if(empty($esgOrder->iwmsLgsOrderStatusLog) || $esgOrder->iwmsLgsOrderStatusLog->status != 1){
+            if(empty($esgOrder->iwmsLgsOrderStatusLog)){
                 $error[] = $esgOrder->so_no;
+                $subject = "LGS order set Order status and get trackingNo failed.";
+            }else if(!empty($esgOrder->iwmsLgsOrderStatusLog) && $esgOrder->iwmsLgsOrderStatusLog->status != 1){
+                $error[] = $esgOrder->so_no;
+                $subject = "LGS order set Order Status Failed.";
             }
         }
         if( isset($error) && $error ){
-            $subject = "LGS order get trackingNo failed.";
             $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+            $msg = "LGS Order ID: \r\n";
             foreach ($error as $key => $soNo) {
-               $msg = "LGS Order ID: ".$soNo." can not get trackingNO.\r\n";
+               $msg .= $soNo." .\r\n";
             }
             mail("jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
         }
@@ -61,9 +68,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 if($result){
                     $esgOrder->waybill_status = "2";
                     $esgOrder->save();
-                    if($esgOrder->iwmsLgsOrderStatusLog->wms_platform == "esg"){
+                    /*if(in_array($iwmsLgsOrderStatusLog->iwmsLgsOrderStatusLog)){
                         $this->updateEsgLgsOrderStatusToDispatch($esgOrder);
-                    }
+                    }*/
                 }
             }
         }
@@ -106,7 +113,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
     public function getReadyToShipLgsOrder($warehouseToIwms, $limit = null, $pageNum = null)
     {
         $this->warehouseIds = $warehouseToIwms;
-        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform, $this->merchantId);
         $esgOrderQuery = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
@@ -135,7 +142,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
 
     public function getReadyToGetDocumentLgsOrder()
     {
-        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform);
+        $courierIdList = $this->getLgsOrderMerchantCourierIdList($this->wmsPlatform, $this->merchantId);
         $esgOrders = So::where("status",5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
@@ -194,17 +201,38 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         } 
     }
 
-    private function saveWaybillToPickListFolder($esgOrder, $folderName, $label)
+    private function saveWaybillToPickListFolder($esgOrder, $folderName, $document)
     {
-        if(!empty($esgOrder) && !empty($label)){
+        if(!empty($esgOrder) && !empty($document)){
             $filePath = $this->getLgsOrderPickListFilePath($esgOrder, $folderName);
             if($folderName == "AWB"){
                 $file = $filePath.$esgOrder->so_no.'_awb.pdf';
+                $this->generateAwbLabel($document, $file);
             }else if($folderName == "invoice"){
                 $file = $filePath.$esgOrder->so_no.'_invoice.pdf';
+                $this->generateInvoiceLabel($document, $file);
             }
-            file_put_contents($file, $label);
         }
+    }
+
+    private function generateInvoiceLabel($document, $file)
+    {
+        PDF::loadHTML($document)->setPaper('a4')
+            ->setOption('margin-bottom', 0)
+            ->setOption("encoding","UTF-8")
+            ->save($file, true);
+    }
+
+    private function generateAwbLabel($document, $file)
+    {
+        PDF::loadHTML($document)->setOption('page-width', '100')
+            ->setOption('margin-left', 0)
+            ->setOption('margin-right', 2)
+            ->setOption('margin-top', 2)
+            ->setOption('margin-bottom', 2)
+            ->setOption('page-height', '150.40')
+            ->setOption("encoding","UTF-8")
+            ->save($file);
     }
 
     public function getLgsOrderPickListFilePath($esgOrder, $folderName)
@@ -226,6 +254,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         return $this->apiLazadaService;
     }
 
+    //need change
     private function updateEsgLgsOrderStatusToDispatch($esgOrder)
     {
         $soShipment = $this->createEsgSoShipment($esgOrder);
