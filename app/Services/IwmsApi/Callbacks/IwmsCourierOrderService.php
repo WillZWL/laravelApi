@@ -141,7 +141,17 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                     ->first();
                 }
                 if(!empty($iwmsCourierOrderLog)){
+                    $battery = " "; $battery_1 = " ";
                     $requestLog = json_decode($iwmsCourierOrderLog->request_log);
+                    if($requestLog->incoterm == "DDU"){
+                        $deliveryDuty = 'Delivery Duty Unpaid';
+                    }else if ($requestLog->incoterm == "DDP"){
+                        $deliveryDuty = 'Delivery Duty Paid'; 
+                    }
+                    if(isset($requestLog->battery) && $requestLog->battery == 1){
+                        $battery = 'Lithium-ion batteries in compliance with';
+                        $battery_1 = 'section II of PI967';
+                    }
                     $cellRow = array(
                         'Field1' => 'ME',
                         'shipper' => 'INSPIRING WORLD LTD-ES PRIORITY',
@@ -157,7 +167,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                         'delivery_company' => $requestLog->company,
                         'delivery_address1' => $requestLog->address,
                         'delivery_address2' => '.',
-                        'delivery_address3' => '',
+                        'delivery_address3' => '.',
                         'delivery_city' => $requestLog->city,
                         'delivery_state' => $requestLog->state,
                         'delivery_postcode' => $requestLog->postal,
@@ -168,25 +178,26 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
                         'weight' => 0.5,
                         'currency_courier_id' => $requestLog->declared_currency,
                         'declared_value' => $requestLog->declared_value,
-                        'battery' => 'Pen-No Ink(Plastic)',
-                        'battery_1' => '3D Pen-No Ink(Plastic)|Lithium-ion batteries in compliance with|section II of PI967',
-                        'cc_desc' => ''
+                        'cc_desc' => $requestLog->item[0]->hsdescription;
+                        'battery' => $battery,
+                        'battery_1' => $battery_1,
+                        'cc_code' => $requestLog->item[0]->hscode;
                         'Field27' => FALSE,
                         'incoterm_3' => TRUE,
                         'Field29' => 'CHINA',
-                        'so_no' => $iwmsCourierOrderLog->reference_no,
+                        'so_no' => $iwmsCourierOrderLog->courier_reference_id,
                         'incoterm_1' => 1,
                         'Field32' => 'DD',
                         'incoterm' => $requestLog->incoterm,
-                        'Field34' => '',
+                        'Field34' => ' ',
                         'Field35' => 0,
                         'Field36' => 0,
                         'Field37' => 0,
                         'incoterm' => $requestLog->incoterm,
-                        'incoterm_2' => 'Delivery Duty Paid',
+                        'incoterm_2' => $deliveryDuty,
                         'Field40' => '631158448',
                         'Field41' => 'HK',
-                        'Field42' => '',
+                        'Field42' => ' ',
                     );
                     $cellData[] = $cellRow;
                 }
@@ -195,55 +206,4 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         }
         return null;
     }
-
-#Table name
-data
-
-#Input column name  Output column name  Specify value
-      ME
-shipper Field2
-    Field3  Kary
-    Field4  Workshop A 10/F
-    Field5  Wah Shing Industrial Building
-    Field6  18 Cheung Shun Street
-    Field7  Lai Chi Kok
-    Field8  35430892
-    Field9  HKG
-    Field10 631158448
-delivery_name   DeliveryName
-delivery_company    DeliveryCompany
-delivery_address1   DeliveryAddress1
-delivery_address2   DeliveryAddress2
-delivery_address2   DeliveryAddress2
-delivery_city   DeliveryCity
-delivery_state  DeliveryState
-delivery_postcode   DeliveryPostalCode
-delivery_country_id DeliveryCountry
-tel     DeliveryPhone
-    Field21 P
-qty Qty
-    Weight  0.5
-currency_courier_id Currency
-declared_value  DeclaredValue
-cc_desc CustomClassificationDescription
-battery
-battery_1
-cc_code CustomClassificationCode
-    Field27 FALSE
-incoterm_3  TRUE
-    Field39 CHINA
-so_no   OrderNumber
-incoterm_1  1
-    Field42 DD
-incoterm    DDP
-    Field44
-    Field45 0
-    Field46 0
-    Field47 0
-incoterm    DDP
-incoterm_2  Delivery Duty Paid
-    Field50 631158448
-    Field51 HK
-    Field52
-
 }
