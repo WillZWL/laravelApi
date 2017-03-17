@@ -120,4 +120,130 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         }
     }
 
+    public function generateCreateCourierErrorCsv($faildResponseMessage, $batchId)
+    {
+        $cellData = $this->getMsgCreateCourierOrderReport($faildResponseMessage);
+        $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/".$folderName."/".$esgOrder->courierInfo->courier_name."/";
+        $fileName = "DHL_so_delivery_".date("YmdHis");
+        if(!empty($cellData)){
+            $excelFile = $this->createExcelFile($fileName, $filePath, $cellData);
+        }
+    }
+
+    private function getMsgCreateCourierOrderReport($responseMessage)
+    {
+        $cellData = null;
+        if(!empty($responseMessage)){
+            foreach ($responseMessage as $value) {
+                if(!empty($value->merchant_order_id)){
+                    $iwmsCourierOrderLog = IwmsCourierOrderLog::where("reference_no",$value->merchant_order_id)
+                    ->where("batch_id",$batchId)
+                    ->first();
+                }
+                if(!empty($iwmsCourierOrderLog)){
+                    $requestLog = json_decode($iwmsCourierOrderLog->request_log);
+                    $cellRow = array(
+                        'Field1' => 'ME',
+                        'shipper' => 'INSPIRING WORLD LTD-ES PRIORITY',
+                        'Field3' => 'Kary',
+                        'Field4' => 'Workshop A 10/F',
+                        'Field5' =>'Wah Shing Industrial Building',
+                        'Field6' => 'Hong Kong',
+                        'Field7' => 'Lai Chi Kok',
+                        'Field8' => '35430892',
+                        'Field9' => 'HKG',
+                        'Field10' => '631158448',
+                        'delivery_name' => $requestLog->delivery_name,
+                        'delivery_company' => $requestLog->company,
+                        'delivery_address1' => $requestLog->address,
+                        'delivery_address2' => '.',
+                        'delivery_address3' => '',
+                        'delivery_city' => $requestLog->city,
+                        'delivery_state' => $requestLog->state,
+                        'delivery_postcode' => $requestLog->postal,
+                        'delivery_country_id' => $requestLog->country,
+                        'tel' => $requestLog->phone,
+                        'Field21' => 'P',
+                        'qty' => 1,
+                        'weight' => 0.5,
+                        'currency_courier_id' => $requestLog->declared_currency,
+                        'declared_value' => $requestLog->declared_value,
+                        'battery' => 'Pen-No Ink(Plastic)',
+                        'battery_1' => '3D Pen-No Ink(Plastic)|Lithium-ion batteries in compliance with|section II of PI967',
+                        'cc_desc' => ''
+                        'Field27' => FALSE,
+                        'incoterm_3' => TRUE,
+                        'Field29' => 'CHINA',
+                        'so_no' => $iwmsCourierOrderLog->reference_no,
+                        'incoterm_1' => 1,
+                        'Field32' => 'DD',
+                        'incoterm' => $requestLog->incoterm,
+                        'Field34' => '',
+                        'Field35' => 0,
+                        'Field36' => 0,
+                        'Field37' => 0,
+                        'incoterm' => $requestLog->incoterm,
+                        'incoterm_2' => 'Delivery Duty Paid',
+                        'Field40' => '631158448',
+                        'Field41' => 'HK',
+                        'Field42' => '',
+                    );
+                    $cellData[] = $cellRow;
+                }
+            }
+            return $cellData;
+        }
+        return null;
+    }
+
+#Table name
+data
+
+#Input column name  Output column name  Specify value
+      ME
+shipper Field2
+    Field3  Kary
+    Field4  Workshop A 10/F
+    Field5  Wah Shing Industrial Building
+    Field6  18 Cheung Shun Street
+    Field7  Lai Chi Kok
+    Field8  35430892
+    Field9  HKG
+    Field10 631158448
+delivery_name   DeliveryName
+delivery_company    DeliveryCompany
+delivery_address1   DeliveryAddress1
+delivery_address2   DeliveryAddress2
+delivery_address2   DeliveryAddress2
+delivery_city   DeliveryCity
+delivery_state  DeliveryState
+delivery_postcode   DeliveryPostalCode
+delivery_country_id DeliveryCountry
+tel     DeliveryPhone
+    Field21 P
+qty Qty
+    Weight  0.5
+currency_courier_id Currency
+declared_value  DeclaredValue
+cc_desc CustomClassificationDescription
+battery
+battery_1
+cc_code CustomClassificationCode
+    Field27 FALSE
+incoterm_3  TRUE
+    Field39 CHINA
+so_no   OrderNumber
+incoterm_1  1
+    Field42 DD
+incoterm    DDP
+    Field44
+    Field45 0
+    Field46 0
+    Field47 0
+incoterm    DDP
+incoterm_2  Delivery Duty Paid
+    Field50 631158448
+    Field51 HK
+    Field52
+
 }

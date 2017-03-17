@@ -198,11 +198,11 @@ class IwmsCreateDeliveryOrderService
             "extra_instruction" => $extra_instruction,
             //"doorplate" => $esgOrder->doorplate,
         );
-        if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id)){
+        if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
             $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($esgOrder);
         }
         //
-        if($this->validInvoiceLabelUrl($esgOrder->esg_quotation_courier_id)){
+        if($this->validInvoiceLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
             $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($esgOrder);
         }
         foreach ($esgOrder->soItem as $esgOrderItem) {
@@ -351,7 +351,7 @@ class IwmsCreateDeliveryOrderService
                         continue;
                     }
                 }
-                /*$validAwbLable = $this->validEsgOrderAwbLableStatus($esgOrder);
+                /*$validAwbLable = $this->validEsgOrderAwbLableStatus($esgOrder, $merchantId);
                 if(!$validAwbLable){
                     continue;
                 }*/
@@ -373,9 +373,9 @@ class IwmsCreateDeliveryOrderService
         return $validEsgOrders;
     }
 
-    private function validEsgOrderAwbLableStatus($esgOrder)
+    private function validEsgOrderAwbLableStatus($esgOrder, $merchantId)
     {
-        $awbCourierList = $this->getPostAwbLabelToIwmsCourierList();
+        $awbCourierList = $this->getPostAwbLabelToIwmsCourierList($merchantId);
         if(in_array($esgOrder->esg_quotation_courier_id, $awbCourierList)){
             if($esgOrder->waybill_status == 2){
                 return true;
@@ -477,17 +477,17 @@ class IwmsCreateDeliveryOrderService
         $this->message['so_no'][] = $so_no;
     }
 
-    private function validAwbCourierLabelUrl($merchantCourierId)
+    private function validAwbCourierLabelUrl($merchantCourierId, $merchantId)
     {
-        $awbLabelToIwmsCourierList = $this->getPostAwbLabelToIwmsCourierList();
+        $awbLabelToIwmsCourierList = $this->getPostAwbLabelToIwmsCourierList($merchantId);
         if(in_array($merchantCourierId, $awbLabelToIwmsCourierList)){
             return true;
         }
     }
 
-    private function validInvoiceLabelUrl($merchantCourierId)
+    private function validInvoiceLabelUrl($merchantCourierId, $merchantId)
     {
-        $invoiceLabelToIwmsCourierList = $this->getPostInvoiceLabelToIwmsCourierList();
+        $invoiceLabelToIwmsCourierList = $this->getPostInvoiceLabelToIwmsCourierList($merchantId);
         if(in_array($merchantCourierId, $invoiceLabelToIwmsCourierList)){
             return true;
         }
