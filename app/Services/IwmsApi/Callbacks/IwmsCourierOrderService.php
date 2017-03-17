@@ -123,7 +123,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
 
     public function generateCreateCourierErrorCsv($faildResponseMessage, $batchId)
     {
-        $cellData = $this->getMsgCreateCourierOrderReport($faildResponseMessage);
+        $cellData = $this->getMsgCreateCourierOrderReport($faildResponseMessage, $batchId);
         $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/".$folderName."/".$esgOrder->courierInfo->courier_name."/";
         $fileName = "DHL_so_delivery_".date("YmdHis");
         if(!empty($cellData)){
@@ -131,7 +131,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         }
     }
 
-    private function getMsgCreateCourierOrderReport($responseMessage)
+    private function getMsgCreateCourierOrderReport($responseMessage, $batchId)
     {
         $cellData = null;
         if(!empty($responseMessage)){
