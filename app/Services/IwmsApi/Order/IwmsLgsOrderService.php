@@ -254,6 +254,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         return $this->apiLazadaService;
     }
 
+    //need change
     private function updateEsgLgsOrderStatusToDispatch($esgOrder)
     {
         $soShipment = $this->createEsgSoShipment($esgOrder);

@@ -114,15 +114,15 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
 
     public function getReadyToIwmsCourierOrder($limit = null, $courier = null, $pageNum = null)
     {
-        $this->fromData = date("2017-01-21 00:00:00");
+        $this->fromData = date("2017-03-21 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
-        $wmsPlatform = "iwms"; $merchantId ="ESG";
+        $wmsPlatform = "iwms"; $merchantId = "ESG";
         if($courier){
             $courierList = array($courier);
         }else{
             $courierList = $this->getIwmsCourierApiMappingList($wmsPlatform, $merchantId);
         }
-        $esgOrderQuery = So::where("status",5)
+        $esgOrderQuery = So::where("status", 5)
             ->where("refund_status", "0")
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")

@@ -63,7 +63,7 @@ class IwmsBaseOrderService
             if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"])){
                 $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"];
             }
-            $hscodeCategoryName[] = $declaredDescAndCode["prod_desc"];
+            $hscodeCategoryName[] = $hsDescription;
             $creationOrderItem = array(
                 "sku" => $esgOrderItem->prod_sku,
                 "product_name" => (preg_replace( "/\r|\n/", "", $esgOrderItem->prod_name)),
@@ -85,7 +85,6 @@ class IwmsBaseOrderService
             $creationOrderObject["battery"] = 1;
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
-        print_r($creationOrderObject);exit();
         return $creationOrderObject;
     }
 
