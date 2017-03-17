@@ -32,6 +32,8 @@ class OrderPackListService
     protected $courierList = null;
     protected $per_page = 50;
     private $exceptionMsg = [];
+    protected $invoiceSuccess = [];
+    protected $deliverySuccess = [];
 
     public function __construct()
     {
@@ -60,6 +62,7 @@ class OrderPackListService
         } while (! $soList->getCollection()->isEmpty());
 
         $this->sendEmailAlert();
+        $this->sendSuccessEmail();
     }
 
     public function updateDeliveryNoteInvoiceStatus($soNoList, $status = 2)
@@ -90,7 +93,28 @@ class OrderPackListService
     {
         if ($this->getExceptionMsg()) {
             mail("milo.chen@eservicesgroup.com", "generate Invoice or Delivery Note failed", implode(PHP_EOL, $this->getExceptionMsg()));
-            //echo implode(PHP_EOL, $this->getExceptionMsg());
+        }
+    }
+
+    public function sendSuccessEmail()
+    {
+        $message = "";
+        if ($this->invoiceSuccess) {
+            $message .= "Create Invoice Success:".PHP_EOL;
+            foreach ($this->invoiceSuccess as $pickListNo => $list) {
+                $message .= "PickListNo:".$pickListNo.PHP_EOL.implode(",", $list).PHP_EOL;
+            }
+        }
+
+        if ($this->deliverySuccess) {
+            $message .= "Create DeliveryNote Success:".PHP_EOL;
+            foreach ($this->deliverySuccess as $pickListNo => $list) {
+                $message .= "PickListNo:".$pickListNo.PHP_EOL.implode(",", $list).PHP_EOL;
+            }
+        }
+
+        if ($message) {
+            mail("milo.chen@eservicesgroup.com", "generate Invoice and Delivery Success", $message);
         }
     }
 
@@ -150,6 +174,7 @@ class OrderPackListService
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/delivery_note/". $courierInfo->courier_name ."/". $soObj->so_no . '_delivery_note.pdf';
             PDF::loadHTML($returnHTML)->save($file, true);
+            $this->deliverySuccess[$pickListNo][] = $soObj->so_no;
             return true;
         }
         return false;
@@ -167,6 +192,20 @@ class OrderPackListService
 
     public function generateCustomInvoice($soObj, $courierId = "")
     {
+        if (!$courierId) {
+            $courierId = $soObj->esg_quotation_courier_id;
+        } else {
+            $soObj->esg_quotation_courier_id = $courierId;
+        }
+        if (!$courierId) {
+            $this->exceptionMsg[$soObj->so_no] = "CustomInvoice so: {$soObj->so_no},message:  no rec_courier";
+            return false;
+        }
+        //LGS order do not create invoice
+        if (in_array($courierId, ['93', '103', '130', '131', '136', '170'])) {
+            return true;
+        }
+
         $result = $this->getCustomInvoice($soObj, $courierId);
         if ($result) {
             $returnHTML = view('packlist.custom-invoice', $result)->render();
@@ -179,6 +218,7 @@ class OrderPackListService
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo;
             $file = $filePath."/invoice/". $courierInfo->courier_name ."/". $soObj->so_no . '_invoice.pdf';
             PDF::loadHTML($returnHTML)->save($file, true);
+            $this->invoiceSuccess[$pickListNo][] = $soObj->so_no;
             return true;
         }
         return false;
@@ -192,15 +232,6 @@ class OrderPackListService
     public function getCustomInvoice($soObj, $courierId = "")
     {
         $result = [];
-        if (!$courierId) {
-            $courierId = $soObj->esg_quotation_courier_id;
-        } else {
-            $soObj->esg_quotation_courier_id = $courierId;
-        }
-        if (!$courierId) {
-            $this->exceptionMsg[$soObj->so_no] = "CustomInvoice so: {$soObj->so_no},message:  no rec_courier";
-            return false;
-        }
 
         $isFedex = 0;
         if (in_array($courierId, ['8', '44', '52', '55', '56', '59'])) {
