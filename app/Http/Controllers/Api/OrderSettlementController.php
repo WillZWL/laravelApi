@@ -27,4 +27,9 @@ class OrderSettlementController extends Controller
 
         return $this->response->paginator($orders, new OrderSettlementTransformer());
     }
+
+    public function bulkUpdate(Request $request)
+    {
+        return $this->orderSettlementService->bulkUpdate($request);
+    }
 }

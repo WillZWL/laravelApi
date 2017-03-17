@@ -5,6 +5,7 @@ namespace App\Repository;
 use Illuminate\Http\Request;
 use App\Models\So;
 use App\Models\SellingPlatform;
+use DB;
 
 class FulfillmentOrderRepository
 {
@@ -26,6 +27,19 @@ class FulfillmentOrderRepository
             return $query->paginate($per_page, ['*'], 'page', $request->get('page'));
         }
         return $query->paginate($per_page);
+    }
+
+
+    public function getMerchantOrdersCount($request)
+    {
+        $query = So::leftJoin('selling_platform AS sp', 'so.platform_id', '=', 'sp.id')
+                   ->where('platform_group_order', 1);
+        $query = $this->filterOrders($request, $query);
+        $query->groupBy('sp.merchant_id');
+        $query->select('sp.merchant_id', DB::raw('count(*) as count'));
+        $data = $query->get();
+        $sorted = $data->sortBy('count');
+        return $sorted->values()->all();
     }
 
     public function filterOrders(Request $request, $query)

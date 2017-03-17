@@ -162,9 +162,13 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->get('fulfillment-order', 'FulfillmentOrderController@index');
 
+    $api->get('fulfillment-order-dashboard', 'FulfillmentOrderController@dashboard');
+
     $api->get('merchant-balance', 'MerchantController@balance');
 
     $api->get('orders-settlement', 'OrderSettlementController@index');
+
+    $api->post('order-settlement/bulk-update', 'OrderSettlementController@bulkUpdate');
 
     $api->get('payment-gateways', 'PaymentGatewayController@index');
 });

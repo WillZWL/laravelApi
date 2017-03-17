@@ -17,7 +17,7 @@ class MerchantRepository
         if ($request->get('merchant_id')) {
             return MerchantBalance::where('merchant_id', $request->get('merchant_id'))->get();
         } else {
-            return MerchantBalance::get();
+            return MerchantBalance::orderBy('balance', 'asc')->get();
         }
     }
 }
