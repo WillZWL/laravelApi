@@ -68,9 +68,9 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 if($result){
                     $esgOrder->waybill_status = "2";
                     $esgOrder->save();
-                    if(in_array($esgOrder->esg_quotation_courier_id, ["93", "130"])){
+                    /*if(in_array($iwmsLgsOrderStatusLog->iwmsLgsOrderStatusLog)){
                         $this->updateEsgLgsOrderStatusToDispatch($esgOrder);
-                    }
+                    }*/
                 }
             }
         }
