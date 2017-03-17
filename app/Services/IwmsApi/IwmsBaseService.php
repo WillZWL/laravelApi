@@ -147,39 +147,38 @@ trait IwmsBaseService
         return null;
     }
 
-    public function getPostAwbLabelToIwmsCourierList()
+    public function getPostAwbLabelToIwmsCourierList($merchantId)
     {
         if(empty($this->awbLabelCourierList)){
             $this->awbLabelCourierList = IwmsMerchantCourierMapping::where("wms_platform","4px")
                     ->whereIn("iwms_courier_code", ["4PX-DHL","4PX-PL-LGS"])
-                    ->where("merchant_id", "ESG")
+                    ->where("merchant_id", $merchantId)
                     ->pluck("merchant_courier_id")
                     ->all();
         }
         return $this->awbLabelCourierList;
     }
 
-    public function getPostInvoiceLabelToIwmsCourierList()
+    public function getPostInvoiceLabelToIwmsCourierList($merchantId)
     {
         if(empty($this->invoiceLabelCourierList)){
             $this->invoiceLabelCourierList = IwmsMerchantCourierMapping::where("wms_platform", "4px")
                     //->whereIn("iwms_courier_code", ["4PX-DHL","4PX-PL-LGS"])
-                    ->where("merchant_id", "ESG")
+                    ->where("merchant_id", $merchantId)
                     ->pluck("merchant_courier_id")
                     ->all();
         }
         return $this->invoiceLabelCourierList;
     }
 
-    public function getLgsOrderMerchantCourierIdList($wmsPlatform)
+    public function getLgsOrderMerchantCourierIdList($wmsPlatform, $merchantId)
     {
         $iwmsLgsCode = array(
-            "4px" => array("4PX-PL-LGS"),
-            "esg" => array("ESG-PL-LGS"),
+            "4px" => array("4PX-PL-LGS")
         );
         return IwmsMerchantCourierMapping::where("wms_platform", $wmsPlatform)
                     ->whereIn("iwms_courier_code", $iwmsLgsCode[$wmsPlatform])
-                    ->where("merchant_id", "ESG")
+                    ->where("merchant_id", $merchantId)
                     ->pluck("merchant_courier_id")
                     ->all();
     }
