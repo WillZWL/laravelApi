@@ -36,8 +36,11 @@ class FulfillmentOrderController extends Controller
 
     public function dashboard()
     {
-        $data = $this->orderService->dashboard();
+        return $this->orderService->dashboard();
+    }
 
-        return $data;
+    public function picklistCount(Request $request)
+    {
+        return $this->orderService->picklistCount($request);
     }
 }

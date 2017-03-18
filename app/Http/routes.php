@@ -167,6 +167,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->get('fulfillment-order-dashboard', 'FulfillmentOrderController@dashboard');
 
+    $api->get('fulfillment-order-picklist-count', 'FulfillmentOrderController@picklistCount');
+
     $api->get('merchant-balance', 'MerchantController@balance');
 
     $api->get('orders-settlement', 'OrderSettlementController@index');
