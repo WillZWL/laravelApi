@@ -17,7 +17,7 @@ trait IwmsBaseService
     private $awbLabelCourierList = null;
     private $invoiceLabelCourierList = null;
     //private $accessInfo = "&email=openapi@4px.com&password=^4pxOpenApi/ygO";
-    private $downloadToken = "&token=ik5oHdNIn3luiB4AQ7hyFoQmWu6aGJC1Qahjrbxm";
+    private $downloadToken = "&access_token=1mrsafuSp8ZUGXgwnVFQo5sPF0vFMUnEyFExeRIU";
 
     public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {
@@ -113,7 +113,7 @@ trait IwmsBaseService
         if(!empty($esgOrder)){
            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix();
             $filePath .= $esgOrder->pick_list_no."/".$documentType."/".$esgOrder->courierInfo->courier_name."/";
-            return $urlPath.$this->downloadToken;
+            return $filePath.$this->downloadToken;
         }
     }
 
