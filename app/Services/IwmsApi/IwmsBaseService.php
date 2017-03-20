@@ -140,11 +140,12 @@ trait IwmsBaseService
 
     public function getEsgOrderMsdsLabelUrl($esgOrder)
     {
-        /*if(!empty($esgOrder->pick_list_no)){
+        $filePath = \Storage::disk('product')->getDriver()->getAdapter()->getPathPrefix()."msds/".$esgOrder->so_no.".pdf";
+        if(file_exists($filePath)){
             $baseUrl = config('app.url');
-            $urlPath = $baseUrl."/api/downlaod/product/msds?sku=".$esgOrder->so_no;
-           return $urlPath;
-        }*/
+            $urlPath = $baseUrl."/api/downlaod/msds?so_no=".$esgOrder->so_no;
+            return $urlPath.$this->downloadToken;
+        }
         return null;
     }
 
