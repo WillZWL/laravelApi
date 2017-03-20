@@ -23,7 +23,6 @@ class IwmsBaseOrderService
     {
         $declaredObject = $this->getOrderDeclaredObject($esgOrder);
         $merchantId = "ESG";
-        $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $creationOrderObject = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $iwmsWarehouseCode,
@@ -61,7 +60,7 @@ class IwmsBaseOrderService
                 $hsCode = $declaredObject["items"][$esgOrderItem->prod_sku]["code"];
             }
             if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"])){
-                $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"];
+                $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["declared_desc"];
             }
             $hscodeCategoryName[] = $hsDescription;
             $creationOrderItem = array(
@@ -86,6 +85,23 @@ class IwmsBaseOrderService
         }
         $creationOrderObject["shipment_content"] = $hscodeCategoryName[0];
         return $creationOrderObject;
+    }
+
+    private function getValidPostCode($postCode, $deliveryCountry)
+    {
+        if(empty($postCode)){
+            if($deliveryCountry == "HK"){
+                return "00000";
+            }else{
+                return null;
+            }
+        }else{
+            if($deliveryCountry == "US" && strlen($postCode) < 5){
+                return str_pad($esgOrder->delivery_postcode, 5, "0", STR_PAD_LEFT);
+            }else{
+                return $postCode;
+            }
+        }
     }
 
     private function getEsgOrderPhone($esgOrder)
