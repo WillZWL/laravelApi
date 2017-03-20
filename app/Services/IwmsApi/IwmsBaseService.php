@@ -114,8 +114,7 @@ trait IwmsBaseService
         if(!empty($esgOrder)){
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix();
             $filePath .= $esgOrder->pick_list_no."/".$documentType."/".$esgOrder->courierInfo->courier_name."/";
-            $urlPath = $filePath.$esgOrderNo.$documentSuffix[$documentType].".pdf"
-            return $urlPath.;
+            return $filePath.$esgOrderNo.$documentSuffix[$documentType].".pdf";
         }
     }
 
