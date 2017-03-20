@@ -21,14 +21,9 @@ class IwmsOrderLabelController extends Controller
     public function donwloadLabel($documentType, Request $request)
     {
         $soNo = $request->input("so_no");
-        $documentSuffix = array(
-            "AWB" => "_awb",
-            "invoice" => "_invoice",
-            );
         if(!empty($soNo)){
             $filePath = $this->iwmsFactoryWmsService->getCourierPickListFilePathByType($soNo, $documentType);
-            return response()->download($filePath.$soNo.$documentSuffix[$documentType].".pdf");
+            return response()->download($filePath);
         }
     }
-
 }

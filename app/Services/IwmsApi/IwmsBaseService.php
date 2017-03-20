@@ -110,10 +110,12 @@ trait IwmsBaseService
         $esgOrder = So::where("so_no", $esgOrderNo)
                     ->with("courierInfo")
                     ->first();
+        $documentSuffix = array("AWB" => "_awb", "invoice" => "_invoice");
         if(!empty($esgOrder)){
-           $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix();
+            $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix();
             $filePath .= $esgOrder->pick_list_no."/".$documentType."/".$esgOrder->courierInfo->courier_name."/";
-            return $filePath.$this->downloadToken;
+            $urlPath = $filePath.$esgOrderNo.$documentSuffix[$documentType].".pdf"
+            return $urlPath.;
         }
     }
 
