@@ -37,8 +37,10 @@ class FulfillmentOrderRepository
         $query->groupBy('sp.merchant_id');
         $query->select('sp.merchant_id', DB::raw('count(*) as count'));
         $data = $query->get();
+        $result['total_count'] = $data->sum('count');
         $sorted = $data->sortBy('count');
-        return $sorted->values()->all();
+        $result['list'] = $sorted->values()->all();
+        return $result;
     }
 
     public function getPickListCount($request)
@@ -46,7 +48,7 @@ class FulfillmentOrderRepository
         $query = So::where('platform_group_order', 1);
         $query = $this->filterOrders($request, $query);
         if ($request->get('pick_list_no')) {
-            $query->select('pick_list_no', DB::raw("count(*) as count, GROUP_CONCAT(so_no) as so_no_list"));
+            $query->select('pick_list_no', DB::raw("count(*) as count, GROUP_CONCAT(' ', so_no) as so_no_list"));
         } else {
             $query->select('pick_list_no', DB::raw("count(*) as count"));
         }
@@ -129,9 +131,6 @@ class FulfillmentOrderRepository
                     break;
                 case 'dispatch':
                     $query->whereIn('so.status', [4, 5]);
-                    break;
-                default:
-                    $query->where('so.status', 3);
                     break;
             }
         }

@@ -23,7 +23,6 @@ class IwmsBaseOrderService
     {
         $declaredObject = $this->getOrderDeclaredObject($esgOrder);
         $merchantId = "ESG";
-        $postcode = preg_replace('/[^A-Za-z0-9\-]/', '', $esgOrder->delivery_postcode);
         $creationOrderObject = array(
             "wms_platform" => $this->wmsPlatform,
             "iwms_warehouse_code" => $iwmsWarehouseCode,
@@ -61,7 +60,7 @@ class IwmsBaseOrderService
                 $hsCode = $declaredObject["items"][$esgOrderItem->prod_sku]["code"];
             }
             if(isset($declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"])){
-                $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["prod_desc"];
+                $hsDescription = $declaredObject["items"][$esgOrderItem->prod_sku]["declared_desc"];
             }
             $hscodeCategoryName[] = $hsDescription;
             $creationOrderItem = array(

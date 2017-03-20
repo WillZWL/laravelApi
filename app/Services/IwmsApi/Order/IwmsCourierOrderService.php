@@ -5,6 +5,7 @@ namespace App\Services\IwmsApi\Order;
 use App\Models\So;
 use App\Models\IwmsCourierOrderLog;
 use App;
+use Illuminate\Database\Eloquent\Collection;
 
 class IwmsCourierOrderService extends IwmsBaseOrderService
 {
@@ -20,7 +21,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     public function getCourierCreationRequest()
     {
         $deliveryCreationRequest = null;
-        $esgOrders = $this->getReadyToIwmsCourierOrder(2);
+        $esgOrders = $this->getReadyToIwmsCourierOrder();
         $batchRequest = $this->getCourierCreationRequestBatch($esgOrders);
         return $this->getCourierCreationBatchRequest($batchRequest);
     }
@@ -140,14 +141,14 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             ->with("client")
             ->with("soItem");
         if(!empty($limit)){
-            $esgOrder = $esgOrderQuery->limit($limit);
+            $esgOrders = $esgOrderQuery->limit($limit);
         }
         if(!empty($pageNum)){
-            $esgOrder = $esgOrderQuery->paginate($pageNum);
+            $esgOrders = $esgOrderQuery->paginate($pageNum);
         }else{
-            $esgOrder = $esgOrderQuery->get();
+            $esgOrders = $esgOrderQuery->get();
         }
-        return $esgOrder;
+        return $this->checkEsgAllocateCourierOrders($esgOrders);
     }
 
     private function getEsgCourierOrdersByOrderNo($esgOrderNoList)
@@ -161,6 +162,69 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             ->with("soItem")
             ->get();
         return $esgOrders;
+    }
+
+    private function checkEsgAllocateCourierOrders($esgOrders)
+    {
+        $validEsgOrders = new Collection();
+        if(!$esgOrders->isEmpty()){
+            foreach($esgOrders as $esgOrder) {
+                $valid = null;
+                $postCode = $this->getValidPostCode($esgOrder->delivery_postcode, $esgOrder->delivery_country_id);
+                if(!empty($postCode)){
+                    $esgOrder->delivery_postcode = $postCode;
+                }else{
+                    $errorPostCodes[] =  $esgOrder->so_no;
+                    continue;
+                }
+                $validEsgOrders[] = $esgOrder;
+            }
+            if(isset($errorPostCodeOrders) && $errorPostCodeOrders){
+                $msg = null;
+                $header = "From: admin@shop.eservciesgroup.com".PHP_EOL;
+                $subject = "create courier order failed.";
+                foreach ($errorPostCodeOrders as $errorOrderNo) {
+                    $msg .= "Order ID".$errorOrderNo." postal is null";
+                }
+                mail("dispatcher@eservicesgroup.com,  jimmy.gao@eservicesgroup.com", $subject, $msg, $header);
+            }
+        }
+        return $validEsgOrders;
+    }
+
+    private function getValidPostCode($postCode, $deliveryCountry)
+    {
+        if(empty($postCode)){
+            if($deliveryCountry == "HK"){
+                return "00000";
+            }else{
+                return null;
+            }
+        }else{
+            if($deliveryCountry == "US" && strlen($postCode) < 5){
+                return str_pad($esgOrder->delivery_postcode, 5, "0", STR_PAD_LEFT);
+            }else{
+                return $postCode;
+            }
+        }
+    }
+
+    private function validRepeatRequestCourierOrder($esgOrder)
+    {
+        $this->esgOrderNo = $esgOrder->so_no;
+        $requestOrderLog = IwmsCourierOrderLog::where("reference_no",$esgOrder->so_no)
+                        ->where("status", 1)
+                        ->orWhere(function ($query) {
+                            $query->where("reference_no", $this->esgOrderNo)
+                                ->whereIn("status", array("0","-1"))
+                                ->where("repeat_request", "!=", 1);
+                            })
+                        ->first();
+        if(!empty($requestOrderLog)){
+            return false;
+        }else{
+            return true;
+        }
     }
 
 }
