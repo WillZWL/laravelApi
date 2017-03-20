@@ -177,10 +177,10 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
                     $errorPostCodes[] =  $esgOrder->so_no;
                     continue;
                 }
-                $repeatResult = $this->validRepeatRequestCourierOrder($esgOrder);
+                /*$repeatResult = $this->validRepeatRequestCourierOrder($esgOrder);
                 if($repeatResult){
                     $validEsgOrders[] = $esgOrder;
-                }
+                }*/
             }
             if(isset($errorPostCodeOrders) && $errorPostCodeOrders){
                 $msg = null;
