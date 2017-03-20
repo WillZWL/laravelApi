@@ -153,7 +153,7 @@ trait IwmsBaseService
     {
         if(empty($this->awbLabelCourierList)){
             $this->awbLabelCourierList = IwmsMerchantCourierMapping::where("wms_platform","4px")
-                    ->whereIn("iwms_courier_code", ["4PX-DHL","4PX-PL-LGS"])
+                    ->whereIn("iwms_courier_code", ["ESG-DHL","4PX-PL-LGS"])
                     ->where("merchant_id", $merchantId)
                     ->pluck("merchant_courier_id")
                     ->all();
