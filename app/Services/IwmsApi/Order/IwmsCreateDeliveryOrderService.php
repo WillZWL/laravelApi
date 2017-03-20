@@ -277,7 +277,7 @@ class IwmsCreateDeliveryOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereNotNull("esg_quotation_courier_id")
-            //->where("dnote_invoice_status", 2)
+            ->where("dnote_invoice_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
@@ -296,7 +296,7 @@ class IwmsCreateDeliveryOrderService
     public function getEsgAccelerateAllocateOrders($warehouseToIwms)
     {
         //$this->fromData = date("Y-m-d 00:00:00");
-        $this->fromData = date("2017-01-21 00:00:00");
+        $this->fromData = date("2017-03-16 00:00:00");
         $this->toDate = date("Y-m-d 23:59:59");
         $this->warehouseIds = $warehouseToIwms;
         return So::where("status",5)
@@ -304,7 +304,7 @@ class IwmsCreateDeliveryOrderService
             ->where("hold_status", "0")
             ->where("prepay_hold_status", "0")
             ->whereNotNull("esg_quotation_courier_id")
-            //->where("dnote_invoice_status", 2)
+            ->where("dnote_invoice_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
                 $query->where('merchant_id', "ESG");
             })
@@ -316,7 +316,7 @@ class IwmsCreateDeliveryOrderService
             })
             ->with("client")
             ->with("soItem")
-            ->limit(1)
+            ->limit(10)
             ->get();
     }
 
