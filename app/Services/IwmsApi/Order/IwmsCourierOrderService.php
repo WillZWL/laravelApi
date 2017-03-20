@@ -5,6 +5,7 @@ namespace App\Services\IwmsApi\Order;
 use App\Models\So;
 use App\Models\IwmsCourierOrderLog;
 use App;
+use Illuminate\Database\Eloquent\Collection;
 
 class IwmsCourierOrderService extends IwmsBaseOrderService
 {
@@ -140,12 +141,12 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             ->with("client")
             ->with("soItem");
         if(!empty($limit)){
-            $esgOrder = $esgOrderQuery->limit($limit);
+            $esgOrders = $esgOrderQuery->limit($limit);
         }
         if(!empty($pageNum)){
-            $esgOrder = $esgOrderQuery->paginate($pageNum);
+            $esgOrders = $esgOrderQuery->paginate($pageNum);
         }else{
-            $esgOrder = $esgOrderQuery->get();
+            $esgOrders = $esgOrderQuery->get();
         }
         return $this->checkEsgAllocateCourierOrders($esgOrders);
     }
