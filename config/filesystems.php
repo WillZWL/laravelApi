@@ -101,6 +101,10 @@ return [
             'driver' => 'local',
             'root' => storage_path('picklist'),
         ],
+        'product' => [
+            'driver' => 'local',
+            'root' => storage_path('product'),
+        ],
         'fulfillmentOrderFeed' => [
             'driver' => 'local',
             'root' => storage_path('fulfillment-order-feed'),
