@@ -41,6 +41,19 @@ class FulfillmentOrderService
         return $data;
     }
 
+    public function picklistCount(Request $request)
+    {
+        $request->merge([
+            'status' => 5,
+            'refund_status' => 0,
+            'hold_status' => 0,
+            'prepay_hold_status' => 0,
+            'merchant_hold_status' => 0,
+            'exist_pick_list_no' => 1
+        ]);
+        return $this->orderRepository->getPickListCount($request);
+    }
+
     public function getMerchantAllocatedOrdersCount()
     {
         $request = new Request;

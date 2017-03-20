@@ -29,7 +29,6 @@ class FulfillmentOrderRepository
         return $query->paginate($per_page);
     }
 
-
     public function getMerchantOrdersCount($request)
     {
         $query = So::leftJoin('selling_platform AS sp', 'so.platform_id', '=', 'sp.id')
@@ -37,6 +36,21 @@ class FulfillmentOrderRepository
         $query = $this->filterOrders($request, $query);
         $query->groupBy('sp.merchant_id');
         $query->select('sp.merchant_id', DB::raw('count(*) as count'));
+        $data = $query->get();
+        $sorted = $data->sortBy('count');
+        return $sorted->values()->all();
+    }
+
+    public function getPickListCount($request)
+    {
+        $query = So::where('platform_group_order', 1);
+        $query = $this->filterOrders($request, $query);
+        if ($request->get('pick_list_no')) {
+            $query->select('pick_list_no', DB::raw("count(*) as count, GROUP_CONCAT(so_no) as so_no_list"));
+        } else {
+            $query->select('pick_list_no', DB::raw("count(*) as count"));
+        }
+        $query->groupBy('pick_list_no');
         $data = $query->get();
         $sorted = $data->sortBy('count');
         return $sorted->values()->all();
@@ -76,9 +90,9 @@ class FulfillmentOrderRepository
             }
         }
 
-        if ($request->get('picklist_no') != null) {
-            $picklist_no = $request->get('picklist_no');
-            $query->where('pick_list_no', trim($picklist_no));
+        if ($request->get('pick_list_no') != null) {
+            $pick_list_no = $request->get('pick_list_no');
+            $query->where('pick_list_no', trim($pick_list_no));
         }
 
         if ($request->get('courier_id') !== null && count($request->get('courier_id')) > 0) {
@@ -94,7 +108,7 @@ class FulfillmentOrderRepository
             $query->where('dnote_invoice_status', $request->get('dnote_invoice_status'));
         }
 
-        if ($request->get('pick_list_no') !== null) {
+        if ($request->get('exist_pick_list_no') !== null) {
             $query->whereNotNull("pick_list_no")->where("pick_list_no", "<>", "");
         }
         return $query;

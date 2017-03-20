@@ -139,7 +139,7 @@ class OrderPackListService
                 'hold_status' => 0,
                 'prepay_hold_status' => 0,
                 'merchant_hold_status' => 0,
-                'pick_list_no' => true
+                'exist_pick_list_no' => true
             ]
         );
         return $this->orderRepository->getOrders($request);
