@@ -147,7 +147,7 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
     private function saveCreateCourierOrderCellDataFeed($cellData, $pickListNo)
     {
         $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/";
-        $fileName = "DHL_so_delivery_".date("YmdHis");
+        $fileName = "Failed_DHL_so_delivery_".date("YmdHis");
         if(!empty($cellData)){
             $excelFile = $this->createExcelFile($fileName, $filePath, $cellData);
         }
