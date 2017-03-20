@@ -201,6 +201,7 @@ trait TraitDeclaredService
                 $itemResult[$item->prod_sku] = [
                         "prod_desc" => $descAndCode["prod_desc"],
                         "code" => $descAndCode["code"],
+                        "declared_desc" => $descAndCode["declared_desc"],
                         "qty" => $item->qty,
                         "unit_declared_value" =>number_format($unitDeclaredValue, 2, '.', ''),
                         "item_declared_value" =>number_format($unitDeclaredValue * $item->qty, 2, '.', ''),
