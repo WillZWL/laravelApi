@@ -344,32 +344,38 @@ class ProductService
             $options = $this->allowOptions($imgID, $sku);
 
             $uploadResponse = new FileUploadService($options);
+            if (isset($uploadResponse->response)) {
+                $response = $uploadResponse->response;
+                if ($response && !isset($response['files'][0]->error)) {
+                    $extension = $response['files'][0]->extension;
+                    $priority = ProductImage::whereSku($sku)->max('priority');
+
+                    $object = [
+                        'id' => $imgID,
+                        'sku' => $sku,
+                        'image' => $extension,
+                        'priority' => $priority + 1,
+                        'alt_text' => $response['files'][0]->name,
+                        'status' => 1,
+                    ];
+
+                    ProductImage::firstOrCreate($object);
+
+                    $productImages = ProductImage::prodImages($sku);
+
+                    $response['product_images'] = $productImages;
+                }
+            \Log::info($response);
+
+                return $response;
+            }
         } catch (\Exception $e) {
-            mail('brave.liu@eservicesgroup.com', 'Product Upload Images Failed - Exception', $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine());
+            $exception = "Message: ". $e->getMessage()."\r\n File: ".$e->getFile()."\r\n Line: ".$e->getLine();
+            mail('brave.liu@eservicesgroup.com', 'Product Upload Images Failed - Exception', $exception);
+            \Log::info($exception);
         }
+        return $response['files'][0]->error = "Product Upload Images Failed - Exception";
 
-        $response = $uploadResponse->response;
-        if ($response && !isset($response['files'][0]->error)) {
-            $extension = $response['files'][0]->extension;
-            $priority = ProductImage::whereSku($sku)->max('priority');
-
-            $object = [
-                'id' => $imgID,
-                'sku' => $sku,
-                'image' => $extension,
-                'priority' => $priority + 1,
-                'alt_text' => $response['files'][0]->name,
-                'status' => 1,
-            ];
-
-            ProductImage::firstOrCreate($object);
-
-            $productImages = ProductImage::prodImages($sku);
-
-            $response['product_images'] = $productImages;
-        }
-
-        return $response;
     }
 
     private function allowOptions($imgID, $sku)
@@ -386,6 +392,7 @@ class ProductService
         $options['image_file_types'] = '/\.(gif|jpe?g|png)$/i';
         $options['correct_image_extensions'] = true;
         $options['print_response'] = false;
+        $options['print_response'] = true;
         $options['upload_dir'] = $uploadDir .'/';
         $options['upload_url'] = url($imagePath). "/";
         $options['file_rename'] = $sku ."_". $imgID;
