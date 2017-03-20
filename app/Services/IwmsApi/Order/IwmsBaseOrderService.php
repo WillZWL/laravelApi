@@ -87,23 +87,6 @@ class IwmsBaseOrderService
         return $creationOrderObject;
     }
 
-    private function getValidPostCode($postCode, $deliveryCountry)
-    {
-        if(empty($postCode)){
-            if($deliveryCountry == "HK"){
-                return "00000";
-            }else{
-                return null;
-            }
-        }else{
-            if($deliveryCountry == "US" && strlen($postCode) < 5){
-                return str_pad($esgOrder->delivery_postcode, 5, "0", STR_PAD_LEFT);
-            }else{
-                return $postCode;
-            }
-        }
-    }
-
     private function getEsgOrderPhone($esgOrder)
     {
         $phone = "0-0-0";

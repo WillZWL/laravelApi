@@ -21,7 +21,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     public function getCourierCreationRequest()
     {
         $deliveryCreationRequest = null;
-        $esgOrders = $this->getReadyToIwmsCourierOrder(50);
+        $esgOrders = $this->getReadyToIwmsCourierOrder();
         $batchRequest = $this->getCourierCreationRequestBatch($esgOrders);
         return $this->getCourierCreationBatchRequest($batchRequest);
     }
@@ -177,10 +177,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
                     $errorPostCodes[] =  $esgOrder->so_no;
                     continue;
                 }
-                /*$repeatResult = $this->validRepeatRequestCourierOrder($esgOrder);
-                if($repeatResult){
-                    $validEsgOrders[] = $esgOrder;
-                }*/
+                $validEsgOrders[] = $esgOrder;
             }
             if(isset($errorPostCodeOrders) && $errorPostCodeOrders){
                 $msg = null;
@@ -193,6 +190,23 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
             }
         }
         return $validEsgOrders;
+    }
+
+    private function getValidPostCode($postCode, $deliveryCountry)
+    {
+        if(empty($postCode)){
+            if($deliveryCountry == "HK"){
+                return "00000";
+            }else{
+                return null;
+            }
+        }else{
+            if($deliveryCountry == "US" && strlen($postCode) < 5){
+                return str_pad($esgOrder->delivery_postcode, 5, "0", STR_PAD_LEFT);
+            }else{
+                return $postCode;
+            }
+        }
     }
 
     private function validRepeatRequestCourierOrder($esgOrder)
