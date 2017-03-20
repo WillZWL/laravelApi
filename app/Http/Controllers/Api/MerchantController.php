@@ -35,9 +35,15 @@ class MerchantController extends Controller
 
     public function balance(Request $request)
     {
-        $merchantBalances = $this->merchantService->balance($request);
-
-        return $this->collection($merchantBalances, new MerchantBalanceTransformer);
+        if ($request->get('download')) {
+            $excelFile = $this->merchantService->exportMerchantBalanceToExcel();
+            if ($excelFile) {
+                return response()->download($excelFile);
+            }
+        } else {
+            $merchantBalances = $this->merchantService->balance($request);
+            return $this->collection($merchantBalances, new MerchantBalanceTransformer);
+        }
     }
 
     /**

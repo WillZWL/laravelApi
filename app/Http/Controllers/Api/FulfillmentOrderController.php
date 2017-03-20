@@ -34,13 +34,27 @@ class FulfillmentOrderController extends Controller
         }
     }
 
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        return $this->orderService->dashboard();
+        if ($request->get('download')) {
+            $excelFile = $this->orderService->exportOrderCountToExcel();
+            if ($excelFile) {
+                return response()->download($excelFile);
+            }
+        } else {
+            return $this->orderService->dashboard();
+        }
     }
 
     public function picklistCount(Request $request)
     {
-        return $this->orderService->picklistCount($request);
+        if ($request->get('download')) {
+            $excelFile = $this->orderService->exportPickListCountToExcel();
+            if ($excelFile) {
+                return response()->download($excelFile);
+            }
+        } else {
+            return $this->orderService->picklistCount($request);
+        }
     }
 }

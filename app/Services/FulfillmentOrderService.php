@@ -142,6 +142,60 @@ class FulfillmentOrderService
         return $excelFile["path"].$excelFile["file_name"];
     }
 
+    public function exportOrderCountToExcel()
+    {
+        $merchantPendingOrdersCount = $this->getMerchantPendingOrdersCount();
+        $merchantAllPaidOrdersCount = $this->getMerchantAllPaidOrdersCount();
+        $merchantAllocatedOrdersCount = $this->getMerchantAllocatedOrdersCount();
+        $path = storage_path('fulfillment-order-feed/');
+        $cellDataArr['merchant_pending_orders_count'] = $this->generateOrdersCount($merchantPendingOrdersCount);
+        $cellDataArr['merchant_all_paid_orders_count'] = $this->generateOrdersCount($merchantAllPaidOrdersCount);
+        $cellDataArr['merchant_allocated_orders_count'] = $this->generateOrdersCount($merchantAllocatedOrdersCount);
+        $fileName = 'Merchant_Order_Count_List';
+        $excelFile = $this->generateMultipleSheetsExcel($fileName, $cellDataArr, $path);
+        return $excelFile["path"].$excelFile["file_name"];
+    }
+
+    public function generateOrdersCount($orderCount = [])
+    {
+        $cellData[] = [
+            'Merchant ID',
+            'Orders'
+        ];
+        if ($orderCount['total_count'] > 0) {
+            foreach ($orderCount['list'] as $item) {
+                $cellData[] = [
+                    $item['merchant_id'],
+                    $item['count']
+                ];
+            }
+        }
+        return $cellData;
+    }
+
+    public function exportPickListCountToExcel()
+    {
+        $cellData[] = [
+            'Pick List No',
+            'Orders'
+        ];
+        $request = new Request;
+        $picklistCountData = $this->picklistCount($request);
+        if ($picklistCountData) {
+            foreach ($picklistCountData as $item) {
+                $cellData[] = [
+                    $item['pick_list_no'],
+                    $item['count']
+                ];
+            }
+        }
+        $path = storage_path('fulfillment-order-feed/');
+        $cellDataArr['picklistCount'] = $cellData;
+        $fileName = 'Pick List Count';
+        $excelFile = $this->generateMultipleSheetsExcel($fileName, $cellDataArr, $path);
+        return $excelFile["path"].$excelFile["file_name"];
+    }
+
     public function getCourierNameById($id)
     {
         $courierService = new CourierInfoService();
