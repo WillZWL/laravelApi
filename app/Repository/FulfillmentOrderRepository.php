@@ -37,8 +37,10 @@ class FulfillmentOrderRepository
         $query->groupBy('sp.merchant_id');
         $query->select('sp.merchant_id', DB::raw('count(*) as count'));
         $data = $query->get();
+        $result['total_count'] = $data->sum('count');
         $sorted = $data->sortBy('count');
-        return $sorted->values()->all();
+        $result['list'] = $sorted->values()->all();
+        return $result;
     }
 
     public function getPickListCount($request)
