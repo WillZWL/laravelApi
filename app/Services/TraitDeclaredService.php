@@ -249,7 +249,7 @@ trait TraitDeclaredService
         $skuMapping = SkuMapping::where("sku", $itemObj->prod_sku)->where("ext_sys", "WMS")->first();
         $prodDesc = ($skuMapping ? $skuMapping->ext_sku : "") ." ".$declaredDesc;
 
-        return ["code"=>$code, "prod_desc"=>$prodDesc, "master_sku"=>$skuMapping ? $skuMapping->ext_sku : ""];
+        return ["code"=>$code, "prod_desc"=> $prodDesc, "declared_desc"=>$declaredDesc, "master_sku"=>$skuMapping ? $skuMapping->ext_sku : ""];
     }
 
     public function getUnitDeclaredValue($unitPrice, $sumItemAmount, $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue)
