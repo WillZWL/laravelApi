@@ -76,8 +76,9 @@ Route::group(['middleware' => ['cors']], function () {
     // Route::get('mattel-sku-mapping-list', 'Api\MattelSkuMappingController@index');
     Route::get('amazon-commission-charge-report/{flexBatchId}', 'Api\CommissionChargeController@getAmazonCommissionChargeReport');
     Route::get('iwms/courier-order/', 'IwmsCourierOrderController@index');
-    Route::resource('iwms/courier-order/edit', 'IwmsCourierOrderController@editIwmsDeliveryOrder');
-    Route::resource('iwms/courier-order/cancel', 'IwmsCourierOrderController@cancelIwmsOrder');
+    Route::resource('iwms/courier-order/edit', 'IwmsCourierOrderController@editIwmsCourierOrder');
+    Route::resource('iwms/courier-order/create', 'IwmsCourierOrderController@createIwmsCourierOrder');
+    Route::get('iwms/courier-order/{documentType}', 'IwmsCourierOrderController@donwloadLabel');
     Route::get('allocation-plan-order/{warehouseId}', 'AllocationPlanController@allocation');
     Route::post('wms-allocation-plan', 'AllocationPlanController@wmsAllocationPlan');
 });
