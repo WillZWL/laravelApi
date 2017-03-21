@@ -4,6 +4,7 @@ namespace App\Services\IwmsApi\Order;
 
 use App\Models\So;
 use App\Models\IwmsDeliveryOrderLog;
+use App\Models\IwmsCourierOrderLog;
 use App\Models\IwmsLgsOrderStatusLog;
 
 use App;
@@ -198,6 +199,7 @@ class IwmsCreateDeliveryOrderService
         );
         if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
             $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($esgOrder);
+            $deliveryOrderObj["tracking_no"] = $this->getIwmsCourierOrderLogTrackingNo($esgOrder);
         }
         //
         if($this->validInvoiceLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
@@ -488,6 +490,16 @@ class IwmsCreateDeliveryOrderService
             }else{
                 return $postCode;
             }
+        }
+    }
+
+    private function getIwmsCourierOrderLogTrackingNo($esgOrder)
+    {
+        $iwmsCourierOrderLog = IwmsCourierOrderLog::where("reference_no", $esgOrder->so_no)
+                            ->where("status", "1")
+                            ->first();
+        if(!empty($iwmsCourierOrderLog)){
+            return $iwmsCourierOrderLog->wms_order_code;
         }
     }
 

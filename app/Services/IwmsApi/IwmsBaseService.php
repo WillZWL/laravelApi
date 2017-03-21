@@ -17,7 +17,7 @@ trait IwmsBaseService
     private $awbLabelCourierList = null;
     private $invoiceLabelCourierList = null;
     //private $accessInfo = "&email=openapi@4px.com&password=^4pxOpenApi/ygO";
-    private $downloadToken = "&access_token=1mrsafuSp8ZUGXgwnVFQo5sPF0vFMUnEyFExeRIU";
+    private $downloadToken = "&access_token=zfuYXPHywVoJFoLVawvk1hMlNhNkLBh4mxk4Yh0N";
 
     public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {
@@ -140,11 +140,12 @@ trait IwmsBaseService
 
     public function getEsgOrderMsdsLabelUrl($esgOrder)
     {
-        /*if(!empty($esgOrder->pick_list_no)){
+        $filePath = \Storage::disk('product')->getDriver()->getAdapter()->getPathPrefix()."msds/".$esgOrder->so_no.".pdf";
+        if(file_exists($filePath)){
             $baseUrl = config('app.url');
-            $urlPath = $baseUrl."/api/downlaod/product/msds?sku=".$esgOrder->so_no;
-           return $urlPath;
-        }*/
+            $urlPath = $baseUrl."/api/downlaod/msds?so_no=".$esgOrder->so_no;
+            return $urlPath.$this->downloadToken;
+        }
         return null;
     }
 
@@ -152,7 +153,7 @@ trait IwmsBaseService
     {
         if(empty($this->awbLabelCourierList)){
             $this->awbLabelCourierList = IwmsMerchantCourierMapping::where("wms_platform","4px")
-                    ->whereIn("iwms_courier_code", ["4PX-DHL","4PX-PL-LGS"])
+                    ->whereIn("iwms_courier_code", ["ESG-DHL","4PX-PL-LGS"])
                     ->where("merchant_id", $merchantId)
                     ->pluck("merchant_courier_id")
                     ->all();
