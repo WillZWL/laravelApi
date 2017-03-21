@@ -28,12 +28,11 @@
                 <thead>
                     <tr>
                         <th>Batch Id</th>
-                        <th>Wms Platform</th>
                         <th>SoNo</th>
                         <th>Merchant</th>
                         <th>Store Name</th>
                         <th>Platform Id</th>
-                        <th>Iwms Courier Code</th>
+                        <th>ESG Courier ID</th>
                         <th>Platform Order Id</th>
                         <th>Tracking No</th>
                         <th>AWB</th>
@@ -47,16 +46,15 @@
                         @foreach($courierOrderList as $courierOrder)
                             <tr>
                                 <td>{{ $courierOrder->batch_id }}</td>
-                                <td>{{ $courierOrder->wms_platform }}</td>
                                 <td>{{ $courierOrder->reference_no }}</td>
                                 <td>{{ $courierOrder->sub_merchant_id }}</td>
                                 <td>{{ $courierOrder->store_name }}</td>
                                 <td>{{ $courierOrder->marketplace_platform_id }}</td>
-                                <td>{{ $courierOrder->iwms_courier_code }}</td>
+                                <td>{{ $courierOrder->so->esg_quotation_courier_id }}</td>
                                 <td>{{ $courierOrder->platform_order_id }}</td>
                                 <td>{{ $courierOrder->wms_order_code }}</td>
                                 <td>
-                                    <a href="/order/{{ $courierOrder->so->pick_list_no }}/AWB?so_no={{ $courierOrder->reference_no }}">downloand</a>
+                                    <a href="/iwms/{{ $courierOrder->so->pick_list_no }}/AWB?so_no={{ $courierOrder->reference_no }}">downloand</a>
                                 </td>
                                 <td>
                                     <a href="/order/{{ $courierOrder->so->pick_list_no }}/invoice?so_no={{ $courierOrder->reference_no }}">downloand</a>

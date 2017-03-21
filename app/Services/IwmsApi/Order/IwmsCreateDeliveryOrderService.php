@@ -229,10 +229,14 @@ class IwmsCreateDeliveryOrderService
             if(in_array($esgOrderItem->product->battery, [1, 2])){
                 $isBattery = 1;
             }
+            if($esgOrderItem->product->battery == 1) {
+                $isBattery = 1;
+                $deliveryOrderObj["extra_instruction"] = "PI967";
+            }
         }
         if(isset($isBattery) && $isBattery){
             $deliveryOrderObj["battery"] = 1;
-            //$deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl();
+            $deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl();
         }
         return $deliveryOrderObj;
     }

@@ -21,7 +21,7 @@ class MerchantService
         return $this->merchantRepository->all();
     }
 
-    public function balance($request)
+    public function balance(Request $request)
     {
         return $this->merchantRepository->balance($request);
     }
