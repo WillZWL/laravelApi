@@ -261,6 +261,13 @@ class IwmsFactoryWmsService extends IwmsCoreService
             ->paginate($pageNum);
     }
 
+    public function getFailedIwmsCourierOrderLogList($pageNum)
+    {
+        return IwmsCourierOrderLog::where("status", -1)
+            ->with("so")
+            ->paginate($pageNum);
+    }
+
     public function getIwmsCourierOrderLogList($pageNum)
     {
         return IwmsCourierOrderLog::where("status", 1)

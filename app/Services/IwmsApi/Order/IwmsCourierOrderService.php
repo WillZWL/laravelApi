@@ -21,7 +21,7 @@ class IwmsCourierOrderService extends IwmsBaseOrderService
     public function getCourierCreationRequest()
     {
         $deliveryCreationRequest = null;
-        $esgOrders = $this->getReadyToIwmsCourierOrder();
+        $esgOrders = $this->getReadyToIwmsCourierOrder(100);
         $batchRequest = $this->getCourierCreationRequestBatch($esgOrders);
         return $this->getCourierCreationBatchRequest($batchRequest);
     }
