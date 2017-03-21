@@ -17,7 +17,7 @@ trait IwmsBaseService
     private $awbLabelCourierList = null;
     private $invoiceLabelCourierList = null;
     //private $accessInfo = "&email=openapi@4px.com&password=^4pxOpenApi/ygO";
-    private $downloadToken = "&access_token=1mrsafuSp8ZUGXgwnVFQo5sPF0vFMUnEyFExeRIU";
+    private $downloadToken = "&access_token=zfuYXPHywVoJFoLVawvk1hMlNhNkLBh4mxk4Yh0N";
 
     public function getNewBatchId($name,$wmsPlatform, $merchantId, $requestLog = null)
     {

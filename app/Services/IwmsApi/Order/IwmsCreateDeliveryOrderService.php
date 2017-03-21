@@ -4,6 +4,7 @@ namespace App\Services\IwmsApi\Order;
 
 use App\Models\So;
 use App\Models\IwmsDeliveryOrderLog;
+use App\Models\IwmsCourierOrderLog;
 use App\Models\IwmsLgsOrderStatusLog;
 
 use App;
