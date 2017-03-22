@@ -35,6 +35,12 @@ class OrderSettlementService
         if ($so_no = $request->get('so_no')) {
             $query->where('so.so_no', $so_no);
         }
+        if ($platform_order_id = $request->get('platform_order_id')) {
+            $query->where('so.platform_order_id', $platform_order_id);
+        }
+        if ($validation_status = $request->get('validation_status')) {
+            $query->where('ss.validation_status', $validation_status);
+        }
         $query->select('sps.payment_gateway_id', 'so.biz_type', 'so.txn_id', 'so.so_no', 'so.platform_order_id', 'so.order_create_date', 'so.dispatch_date', 'so.currency_id', 'so.amount', 'so.settlement_date', 'so.create_on', 'pg.settlement_date_type', 'pg.settlement_date_day', 'm.marketplace_contact_name', 'm.marketplace_contact_phone', 'm.marketplace_email_1', 'm.marketplace_email_2', 'm.marketplace_email_3', 'ss.validation_status');
 
         $per_page = 10;
