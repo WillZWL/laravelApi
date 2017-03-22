@@ -70,9 +70,11 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
         foreach ($responseMessage as $value) {
             if(!empty($value->merchant_order_id)){
                 $filePath = $this->getCourierPickListFilePath($value->merchant_order_id);
-                $waybillLabel= file_get_contents($value->waybill_url);
                 $file = $filePath.$value->merchant_order_id.'_awb.pdf';
-                file_put_contents($file, $waybillLabel);
+                if(!file_exists($file)){
+                    $waybillLabel= file_get_contents($value->waybill_url);
+                    file_put_contents($file, $waybillLabel);
+                }
             }
         }
     }
