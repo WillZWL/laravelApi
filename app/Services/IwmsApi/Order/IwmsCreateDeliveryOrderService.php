@@ -236,7 +236,7 @@ class IwmsCreateDeliveryOrderService
         }
         if(isset($isBattery) && $isBattery){
             $deliveryOrderObj["battery"] = 1;
-            $deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl();
+            $deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl($esgOrder);
         }
         return $deliveryOrderObj;
     }
