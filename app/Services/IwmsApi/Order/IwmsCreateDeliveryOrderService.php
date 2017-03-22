@@ -186,7 +186,7 @@ class IwmsCreateDeliveryOrderService
             "marketplace_platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
             "merchant_id" => $merchantId,
             "sub_merchant_id" => $esgOrder->sellingPlatform->merchant_id,
-            "shipping_label_url" => $shippingLabelUrl;
+            "shipping_label_url" => $shippingLabelUrl,
             "tracking_no" => $trackingNo,
             "store_name" => $esgOrder->sellingPlatform->store_name,
             "delivery_name" => $esgOrder->delivery_name,
