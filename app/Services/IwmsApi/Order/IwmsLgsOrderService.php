@@ -240,7 +240,7 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
         if(!empty($esgOrder)){
             $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$esgOrder->pick_list_no."/".$folderName."/".$esgOrder->courierInfo->courier_name."/";
             if (!file_exists($filePath)) {
-                mkdir($filePath, 0755, true);
+                mkdir($filePath, 0775, true);
             }
             return $filePath;
         }
