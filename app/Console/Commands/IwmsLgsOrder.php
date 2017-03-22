@@ -46,8 +46,7 @@ class IwmsLgsOrder extends Command
         foreach ($merchantArr as $merchantId) {
             if($action == "setLgsStatus"){
                 $this->iwmsFactoryWmsService->cronSetLgsOrderStatus($merchantId);
-            }
-            else if($action == "getLgsDocument"){
+            }else if($action == "getLgsDocument"){
                 $this->iwmsFactoryWmsService->cronGetLgsOrderDocument($merchantId);
             }
         }
