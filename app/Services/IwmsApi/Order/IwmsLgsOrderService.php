@@ -125,7 +125,8 @@ class IwmsLgsOrderService extends IwmsBaseOrderService
                 $query->whereNotIn('merchant_id', $this->excludeMerchant);
             })
             ->whereHas('soAllocate', function ($query) {
-                $query->whereIn('warehouse_id', $this->warehouseIds);
+                $query->whereIn('warehouse_id', $this->warehouseIds)
+                    ->where("status", 1);
             })
             ->with("iwmsLgsOrderStatusLog");
         if(!empty($limit)){
