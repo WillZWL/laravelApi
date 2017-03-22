@@ -140,16 +140,16 @@ class IwmsCourierOrderService extends IwmsBaseCallbackService
             if(isset($pickListOrder) && !empty($pickListOrder)){
                 foreach ($pickListOrder as $pickListNo => $iwmsCourierOrderLogs) {
                    $cellData = $this->getMsgCreateCourierOrderCellData($iwmsCourierOrderLogs);
-                   $this->saveCreateCourierOrderCellDataFeed($cellData, $pickListNo);
+                   $this->saveCreateCourierOrderCellDataFeed($cellData, $pickListNo, $batchId);
                 }
             }
         }
     }
 
-    private function saveCreateCourierOrderCellDataFeed($cellData, $pickListNo)
+    private function saveCreateCourierOrderCellDataFeed($cellData, $pickListNo, $batchId)
     {
         $filePath = \Storage::disk('pickList')->getDriver()->getAdapter()->getPathPrefix().$pickListNo."/";
-        $fileName = "Failed_DHL_so_delivery_".date("YmdHis");
+        $fileName = "Failed_DHL_so_delivery_".$batchId;
         if(!empty($cellData)){
             $excelFile = $this->createExcelFile($fileName, $filePath, $cellData);
         }
