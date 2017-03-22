@@ -139,7 +139,7 @@ class IwmsCreateDeliveryOrderService
 
     private function getDeliveryCreationObject($esgOrder, $warehouseId, $merchantId)
     {
-        $trackingNo = null;
+        $trackingNo = null; $shippingLabelUrl = null; 
         $courierId = $esgOrder->esg_quotation_courier_id;
         $iwmsWarehouseCode = $this->getIwmsWarehouseCode($warehouseId, $merchantId);
         $iwmsCourierCode = $this->getIwmsCourierCode($courierId, $merchantId, $this->wmsPlatform);
@@ -163,11 +163,18 @@ class IwmsCreateDeliveryOrderService
         $address = $esgOrder->delivery_address;
         if(in_array($iwmsCourierCode, $this->lgsCourier)){
             if(!empty($esgOrder->iwmsLgsOrderStatusLog)){
-                $trackingNo = $esgOrder->iwmsLgsOrderStatusLog->tracking_no;
                 $address = mb_substr($esgOrder->delivery_address, 0, 120, "utf-8");
                 $address = (preg_replace( "/\r|\n/", "", $address));
             }else{
                 return false;
+            }
+        }
+        if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
+            $shippingLabelUrl = $this->getEsgOrderAwbLabelUrl($esgOrder);
+            if(in_array($iwmsCourierCode, $this->lgsCourier)){
+                $trackingNo = $esgOrder->iwmsLgsOrderStatusLog->tracking_no;
+            }else{
+                $trackingNo = $this->getIwmsCourierOrderLogTrackingNo($esgOrder);
             }
         }
         $deliveryOrderObj = array(
@@ -179,6 +186,7 @@ class IwmsCreateDeliveryOrderService
             "marketplace_platform_id" => $esgOrder->biz_type."-ESG-".$esgOrder->delivery_country_id,
             "merchant_id" => $merchantId,
             "sub_merchant_id" => $esgOrder->sellingPlatform->merchant_id,
+            "shipping_label_url" => $shippingLabelUrl;
             "tracking_no" => $trackingNo,
             "store_name" => $esgOrder->sellingPlatform->store_name,
             "delivery_name" => $esgOrder->delivery_name,
@@ -197,10 +205,6 @@ class IwmsCreateDeliveryOrderService
             "extra_instruction" => $extra_instruction,
             //"doorplate" => $esgOrder->doorplate,
         );
-        if($this->validAwbCourierLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
-            $deliveryOrderObj["shipping_label_url"] = $this->getEsgOrderAwbLabelUrl($esgOrder);
-            $deliveryOrderObj["tracking_no"] = $this->getIwmsCourierOrderLogTrackingNo($esgOrder);
-        }
         //
         if($this->validInvoiceLabelUrl($esgOrder->esg_quotation_courier_id, $merchantId)){
             $deliveryOrderObj["invoice_label_url"] = $this->getEsgOrderInvoiceLabelUrl($esgOrder);
@@ -237,6 +241,9 @@ class IwmsCreateDeliveryOrderService
         if(isset($isBattery) && $isBattery){
             $deliveryOrderObj["battery"] = 1;
             $deliveryOrderObj["msds_label_url"] = $this->getEsgOrderMsdsLabelUrl($esgOrder);
+        }
+        if($esgOrder->incoterm == "DDP"){
+            $deliveryOrderObj["extra_instruction"] .= " DDP";
         }
         return $deliveryOrderObj;
     }
