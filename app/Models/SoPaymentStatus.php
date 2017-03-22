@@ -13,4 +13,9 @@ class SoPaymentStatus extends Model
     public $primaryKey = 'so_no';
 
     public $timestamps = false;
+
+    public function paymentGateway()
+    {
+        return $this->hasOne('App\Models\PaymentGateway', 'id', 'payment_gateway_id');
+    }
 }

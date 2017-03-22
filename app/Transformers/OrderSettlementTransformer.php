@@ -23,11 +23,14 @@ class OrderSettlementTransformer extends TransformerAbstract
             'currency_id' => $order->currency_id,
             'amount' => $order->amount,
             'settlement_date' => $order->settlement_date,
+            'validation_status' => $order->validation_status,
             'estimated_settlement_amount' => $estimated_settlement_amount,
             'estimated_settlement_date' => $estimated_settlement_date,
             'marketplace_contact_name' => $order->marketplace_contact_name,
             'marketplace_contact_phone' => $order->marketplace_contact_phone,
-            'marketplace_email' => trim($order->marketplace_email_1." ".$order->marketplace_email_2." ".$order->marketplace_email_3)
+            'marketplace_email_1' => trim($order->marketplace_email_1),
+            'marketplace_email_2' => trim($order->marketplace_email_2),
+            'marketplace_email_3' => trim($order->marketplace_email_3)
         ];
     }
 

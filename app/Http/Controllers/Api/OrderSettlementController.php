@@ -32,4 +32,9 @@ class OrderSettlementController extends Controller
     {
         return $this->orderSettlementService->bulkUpdate($request);
     }
+
+    public function sendEmail(Request $request)
+    {
+        return $this->orderSettlementService->sendEmail($request);
+    }
 }
