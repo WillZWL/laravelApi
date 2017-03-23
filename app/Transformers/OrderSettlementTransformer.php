@@ -8,6 +8,8 @@ use League\Fractal\TransformerAbstract;
 
 class OrderSettlementTransformer extends TransformerAbstract
 {
+    use \App\Services\TraitDeclaredService;
+
     public function transform(So $order)
     {
         $estimated_settlement_date = $this->getEstimatedSettlementDate($order);
@@ -34,28 +36,6 @@ class OrderSettlementTransformer extends TransformerAbstract
         ];
     }
 
-    public function getEstimatedSettlementDate($order)
-    {
-        $day = $order->settlement_date_day;
-        $estimated_settlement_date = '';
-        switch ($order->settlement_date_type) {
-            case 'order_create_date':
-                $estimated_settlement_date = date('Y-m-d', strtotime($order->order_create_date." +".$day." days"));
-                break;
-            case 'create_on':
-                $estimated_settlement_date = date('Y-m-d', strtotime($order->create_on." +".$day." days"));
-                break;
-            case 'shipped_date':
-                $estimated_settlement_date = date('Y-m-d', strtotime($order->dispatch_date." +".$day." days"));
-                break;
-            default:
-                $estimated_settlement_date = date('Y-m-d', strtotime($order->order_create_date." +".$day." days"));
-                break;
-        }
-        return $estimated_settlement_date;
-    }
-
-    //TODO
     public function getEstimatedSettlementAmount($order)
     {
         $settlementPreviewService = new SettlementPreviewService();
