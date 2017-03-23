@@ -16,9 +16,7 @@ class OrderSettlementService
                    ->leftJoin('so_payment_status AS sps', 'so.so_no', '=', 'sps.so_no')
                    ->leftJoin('payment_gateway AS pg', 'sps.payment_gateway_id', '=', 'pg.id')
                    ->leftJoin('so_settlement AS ss', 'so.so_no', '=', 'ss.so_no')
-                   ->whereNotNull('settlement_date')
-                   ->where('settlement_date', '<>', '')
-                   ->where('settlement_date', '<>', '0000-00-00');
+                   ->whereNull('settlement_date');
         $query->where('so.status', 6);
         if ($type = $request->get('type')) {
             $query->where('sp.type', '=', $type);
