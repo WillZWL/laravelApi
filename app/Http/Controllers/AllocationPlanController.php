@@ -37,8 +37,9 @@ class AllocationPlanController extends Controller
         $requestData = $request->all();
         if (isset($requestData['warehouse']) && $requestData['warehouse']) {
             $wmsPlatform = $this->getIwmsCoreService()->getWmsPlatformByWarehouse($requestData['warehouse']);
+            $merchantId = "ESG";
             if ($wmsPlatform) {
-                return $this->getIwmsFactoryWmsService($wmsPlatform)->requestAllocationPlan($requestData);
+                return $this->getIwmsFactoryWmsService($wmsPlatform)->requestAllocationPlan($requestData, $merchantId);
             }
         }
     }

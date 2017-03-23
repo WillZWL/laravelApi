@@ -276,11 +276,11 @@ class IwmsFactoryWmsService extends IwmsCoreService
             ->paginate($pageNum);
     }
 
-    public function requestAllocationPlan($requestData)
+    public function requestAllocationPlan($requestData, $merchantId)
     {
         $request = $this->getIwmsAllocationPlanService()->getAllocationPlanRequest($requestData);
         if (isset($request['requestBody']) && isset($request['batchRequest'])) {
-            $responseData = $this->curlIwmsApi('allocation/allocation-plan-request', $request['requestBody']);
+            $responseData = $this->curlIwmsApi('allocation/create-allocation-plan', $request['requestBody'], $merchantId);
             //$this->updateBatchIwmsResponseData($request["batchRequest"], $responseData);
             $this->saveBatchFeedIwmsResponseData($request["batchRequest"],$responseData);
         }
