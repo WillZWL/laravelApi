@@ -14,6 +14,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
     public function transform(So $order)
     {
         $prodAssemblyMainSkus = $this->getAssemblyMapping();
+        $merchant = $order->sellingPlatform->merchant;
         $orderItems = [];
         if (! $order->soItemDetail->isEmpty()) {
             foreach ($order->soItemDetail as $soid) {
@@ -30,18 +31,22 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                 $orderItem['line_no'] = $lineNo;
                 $orderItem['sku'] = $itemSku;
                 $orderItem['quantity'] = $qty;
+                $orderItem['default_iwms_warehouse_code'] = $soid->product->default_ship_to_warehosue;
                 $orderItem['outstanding_qty'] = $outstandingQty;
+                $orderItem['sku'] = $itemSku;
                 $orderItems[] = $orderItem;
             }
         }
+        
         return [
             'order_no' => $order->so_no,
             'reference_no' => $order->so_no,
             'marketplace_reference_no' => $order->platform_order_id,
             'marketplace_platform_id' => $order->platform_id,
-            'merchant_id' => 'ESG',
-            'sub_merchant_id' => $order->sellingPlatform->merchant_id,
+            'merchant_id' => $this->getIwmsMerchantId($esgMerchantId),
+            'sub_merchant_id' => $merchant->id,
             'order_type' => $order->sellingPlatform->type,
+            'merchant_iwms_warehouse_code' => $merchant->default_ship_to_warehouse,
             'biz_type' => $order->biz_type,
             'order_create_date' => date('Y-m-d', strtotime($order->order_create_date)),
             'courier_id' => $order->esg_quotation_courier_id,
@@ -66,6 +71,16 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'pick_list_no' => $order->pick_list_no,
             'items' => $orderItems
         ];
+    }
+
+    private function getIwmsMerchantId($esgMerchantId)
+    {
+        /*if(in_array($esgMerchantId, ["RONNEXT","RING","TWINSYNERGY","LUMOS"])){
+            return "ESG-HK-TEST";
+        }else{
+            return "ESG";
+        }*/
+        return "ESG";
     }
 
     private function getAssemblyMapping()
