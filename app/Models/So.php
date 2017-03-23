@@ -106,6 +106,11 @@ class So extends Model
         return $this->hasOne('App\Models\SoExtend', 'so_no', 'so_no');
     }
 
+    public function soPaymentStatus()
+    {
+        return $this->hasOne('App\Models\SoPaymentStatus', 'so_no', 'so_no');
+    }
+
     public function scopeUnshippedOrder($query)
     {
         return $query->where('so.status', 5)
@@ -147,5 +152,4 @@ class So extends Model
                 ->where('so.merchant_hold_status', 0)
                 ->where('is_test', 0);
     }
-
 }

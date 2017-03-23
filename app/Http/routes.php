@@ -176,6 +176,8 @@ $api->version('v1', ['namespace' => 'App\Http\Controllers\Api', 'middleware' => 
 
     $api->post('order-settlement/bulk-update', 'OrderSettlementController@bulkUpdate');
 
+    $api->post('order-settlement/send-email', 'OrderSettlementController@sendEmail');
+
     $api->get('payment-gateways', 'PaymentGatewayController@index');
 });
 

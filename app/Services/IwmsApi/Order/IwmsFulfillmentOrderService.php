@@ -113,7 +113,7 @@ class IwmsFulfillmentOrderService extends IwmsCoreService
     {
         $filePath = \Storage::disk('fulfillmentOrderFeed')->getDriver()->getAdapter()->getPathPrefix().$batchRequest->name."/".date('Y')."/".date('m')."/";
         if (!file_exists($filePath)) {
-            mkdir($filePath, 0755, true);
+            mkdir($filePath, 0775, true);
         }
         $fileName = $filePath.'batch_'.$batchRequest->id.'.json';
         file_put_contents($fileName, $jsonData);

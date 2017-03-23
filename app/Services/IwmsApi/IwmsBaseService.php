@@ -122,7 +122,7 @@ trait IwmsBaseService
     {
         if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
-            $urlPath = $baseUrl."/api/downlaod/AWB?so_no=".$esgOrder->so_no;
+            $urlPath = $baseUrl."/api/download/AWB?so_no=".$esgOrder->so_no;
             return $urlPath.$this->downloadToken;
         }
         return null;
@@ -132,7 +132,7 @@ trait IwmsBaseService
     {
         if(!empty($esgOrder->pick_list_no)){
             $baseUrl = config('app.url');
-            $urlPath = $baseUrl."/api/downlaod/invoice?so_no=".$esgOrder->so_no;
+            $urlPath = $baseUrl."/api/download/invoice?so_no=".$esgOrder->so_no;
            return $urlPath.$this->downloadToken;
         }
         return null;
@@ -143,7 +143,7 @@ trait IwmsBaseService
         $filePath = \Storage::disk('product')->getDriver()->getAdapter()->getPathPrefix()."msds/".$esgOrder->so_no.".pdf";
         if(file_exists($filePath)){
             $baseUrl = config('app.url');
-            $urlPath = $baseUrl."/api/downlaod/msds?so_no=".$esgOrder->so_no;
+            $urlPath = $baseUrl."/api/download/msds?so_no=".$esgOrder->so_no;
             return $urlPath.$this->downloadToken;
         }
         return null;
