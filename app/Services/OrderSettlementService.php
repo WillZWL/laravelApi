@@ -100,7 +100,7 @@ class OrderSettlementService
                 $subject = 'Settlement Enquiry';
                 $message = $this->getEmailContent($marketplaceId);
 
-                $this->getEmailTemplate($message);
+                $this->setMailTemplate($message);
                 $this->sendAttachmentMail($emailsAddress, $subject, $attachmentFile, $refId, 'itsupport-sz@eservicesgroup.com', $refId);
             }
         }
@@ -127,8 +127,10 @@ class OrderSettlementService
     {
         $orders = So::leftJoin('so_allocate AS sa', 'so.so_no', '=', 'sa.so_no')
                     ->leftJoin('so_shipment AS ss', 'sa.sh_no', '=', 'ss.sh_no')
+                    ->leftJoin('so_settlement AS sose', 'sa.so_no', '=', 'sose.so_no')
                     ->leftJoin('courier_info AS ci', 'ss.courier_id', '=', 'ci.courier_id')
                     ->where('so.platform_group_order', 1)
+                    ->where('sose.validation_status', '<', 3)
                     ->whereIn('so.so_no', $soNoList)
                     ->groupBy('sa.so_no')
                     ->select('platform_order_id', 'so.so_no', 'order_create_date', 'dispatch_date', 'ci.courier_name', 'ss.tracking_no')
