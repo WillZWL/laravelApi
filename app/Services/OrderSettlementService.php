@@ -20,6 +20,7 @@ class OrderSettlementService
                    ->leftJoin('so_payment_status AS sps', 'so.so_no', '=', 'sps.so_no')
                    ->leftJoin('payment_gateway AS pg', 'sps.payment_gateway_id', '=', 'pg.id')
                    ->leftJoin('so_settlement AS ss', 'so.so_no', '=', 'ss.so_no')
+                   ->where('so.platform_group_order', 1)
                    ->whereNull('settlement_date');
         $query->where('so.status', 6);
         if ($type = $request->get('type')) {
@@ -127,6 +128,7 @@ class OrderSettlementService
         $orders = So::leftJoin('so_allocate AS sa', 'so.so_no', '=', 'sa.so_no')
                     ->leftJoin('so_shipment AS ss', 'sa.sh_no', '=', 'ss.sh_no')
                     ->leftJoin('courier_info AS ci', 'ss.courier_id', '=', 'ci.courier_id')
+                    ->where('so.platform_group_order', 1)
                     ->whereIn('so.so_no', $soNoList)
                     ->groupBy('sa.so_no')
                     ->select('platform_order_id', 'so.so_no', 'order_create_date', 'dispatch_date', 'ci.courier_name', 'ss.tracking_no')
