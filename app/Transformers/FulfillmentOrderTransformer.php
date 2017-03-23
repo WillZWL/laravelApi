@@ -43,7 +43,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'reference_no' => $order->so_no,
             'marketplace_reference_no' => $order->platform_order_id,
             'marketplace_platform_id' => $order->platform_id,
-            'merchant_id' => $this->getIwmsMerchantId($esgMerchantId),
+            'merchant_id' => $this->getIwmsMerchantId($merchant->id),
             'sub_merchant_id' => $merchant->id,
             'order_type' => $order->sellingPlatform->type,
             'merchant_iwms_warehouse_code' => $merchant->default_ship_to_warehouse,
