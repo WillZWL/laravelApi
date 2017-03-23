@@ -78,7 +78,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
     private function getIwmsWarehouseCode($merchantWarehouseCode, $merchantId)
     {
         if(!empty($merchantWarehouseCode)){
-            $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("merchant_warehouse_code", $merchantWarehouseCode)
+            $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("merchant_warehouse_id", $merchantWarehouseCode)
                 ->where("merchant_id", $merchantId)
                 ->where("status", 1)
                 ->first();
