@@ -5,6 +5,7 @@ namespace App\Transformers;
 use App\Models\So;
 use App\Models\SoItem;
 use App\Models\ProductAssemblyMapping;
+use App\Models\IwmsMerchantWarehouseMapping;
 use App\Services\CourierInfoService;
 use League\Fractal\TransformerAbstract;
 use Cache;
@@ -15,6 +16,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
     {
         $prodAssemblyMainSkus = $this->getAssemblyMapping();
         $merchant = $order->sellingPlatform->merchant;
+        $iwmsMerchantId = $this->getIwmsMerchantId($merchant->id);
         $orderItems = [];
         if (! $order->soItemDetail->isEmpty()) {
             foreach ($order->soItemDetail as $soid) {
@@ -31,7 +33,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                 $orderItem['line_no'] = $lineNo;
                 $orderItem['sku'] = $itemSku;
                 $orderItem['quantity'] = $qty;
-                $orderItem['default_iwms_warehouse_code'] = $soid->product->default_ship_to_warehouse;
+                $orderItem['default_iwms_warehouse_code'] = $this->getIwmsWarehouseCode($soid->product->default_ship_to_warehouse, $iwmsMerchantId);
                 $orderItem['outstanding_qty'] = $outstandingQty;
                 $orderItem['sku'] = $itemSku;
                 $orderItems[] = $orderItem;
@@ -43,10 +45,10 @@ class FulfillmentOrderTransformer extends TransformerAbstract
             'reference_no' => $order->so_no,
             'marketplace_reference_no' => $order->platform_order_id,
             'marketplace_platform_id' => $order->platform_id,
-            'merchant_id' => $this->getIwmsMerchantId($merchant->id),
+            'merchant_id' => $iwmsMerchantId,
             'sub_merchant_id' => $merchant->id,
             'order_type' => $order->sellingPlatform->type,
-            'merchant_iwms_warehouse_code' => $merchant->default_ship_to_warehouse,
+            'merchant_iwms_warehouse_code' => $this->getIwmsWarehouseCode($merchant->default_ship_to_warehouse, $iwmsMerchantId),
             'biz_type' => $order->biz_type,
             'order_create_date' => date('Y-m-d', strtotime($order->order_create_date)),
             'courier_id' => $order->esg_quotation_courier_id,
@@ -73,9 +75,23 @@ class FulfillmentOrderTransformer extends TransformerAbstract
         ];
     }
 
+    private function getIwmsWarehouseCode($merchantWarehouseCode, $merchantId)
+    {
+        if(!empty($merchantWarehouseCode)){
+            $iwmsMerchantWarehouseMapping = IwmsMerchantWarehouseMapping::where("merchant_warehouse_id", $merchantWarehouseCode)
+                ->where("merchant_id", $merchantId)
+                ->where("status", 1)
+                ->first();
+            if ($iwmsMerchantWarehouseMapping) {
+                return $iwmsMerchantWarehouseMapping->iwms_warehouse_code;
+            }
+        }
+        return null;
+    }
+
     private function getIwmsMerchantId($esgMerchantId)
     {
-        /*if(in_array($esgMerchantId, ["RONNEXT","RING","TWINSYNERGY","LUMOS"])){
+        /*if(in_array($esgMerchantId, ["KONNEXT","RING","TWINSYNERGY","LUMOS"])){
             return "ESG-HK-TEST";
         }else{
             return "ESG";
