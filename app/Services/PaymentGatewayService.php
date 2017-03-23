@@ -6,8 +6,13 @@ use App\Models\PaymentGateway;
 
 class PaymentGatewayService
 {
-    public function all()
+    public function getPaymentGateway($request)
     {
-        return PaymentGateway::all();
+        if ($request->get('payment_gateway')) {
+            return PaymentGateway::where('id', $request->get('payment_gateway'))
+                ->get();
+        } else {
+            return PaymentGateway::all();
+        }
     }
 }
