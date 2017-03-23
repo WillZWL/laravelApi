@@ -130,6 +130,10 @@ class OrderSettlementController extends Controller
             11 => 'Verified > Others',
             12 => 'Closed > Settlement received'
         ];
-        return $validationStatusArr[$validationStatus];
+        if (array_key_exists($validationStatus, $validationStatusArr)) {
+            return $validationStatusArr[$validationStatus];
+        } else {
+            return 'Unverified';
+        }
     }
 }
