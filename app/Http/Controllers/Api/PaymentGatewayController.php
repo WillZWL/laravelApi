@@ -25,9 +25,9 @@ class PaymentGatewayController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $paymentGateways = $this->paymentGateway->all();
+        $paymentGateways = $this->paymentGateway->getPaymentGateway($request);
 
         return $this->response->collection($paymentGateways, new PaymentGatewayTransformer());
     }

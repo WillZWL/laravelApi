@@ -11,7 +11,8 @@ class PaymentGatewayTransformer extends TransformerAbstract
     {
         return [
             'id' => $paymentGateway->id,
-            'name' => $paymentGateway->name
+            'name' => $paymentGateway->name,
+            'marketplace_id' => $paymentGateway->marketplace_id
         ];
     }
 }

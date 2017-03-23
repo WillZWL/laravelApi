@@ -16,7 +16,7 @@ trait BaseMailService
         return $this->mailTemplate;
     }
 
-    public function sendAttachmentMail($toEmail, $subject, $attachment, $cc = "", $bcc = "")
+    public function sendAttachmentMail($toEmail, $subject, $attachment, $cc = "", $bcc = "", $from = "")
     {
         /* Attachment File */
         $fileName = $attachment["file_name"];
@@ -36,6 +36,9 @@ trait BaseMailService
 
         // Email header
         $header = "From: Admin<admin@shop.eservciesgroup.com>".PHP_EOL;
+        if ($from) {
+            $header = "From: ".$from.PHP_EOL;
+        }
         if ($bcc) {
             $header .= "Bcc: ". $bcc .PHP_EOL;
         }

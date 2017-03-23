@@ -5,9 +5,13 @@ namespace App\Services;
 use Illuminate\Http\Request;
 use App\Models\So;
 use App\Models\SoSettlement;
+use App\Models\PaymentGateway;
+use App\Models\SoPaymentStatus;
 
 class OrderSettlementService
 {
+
+    use BaseMailService;
 
     public function getOrders(Request $request)
     {
@@ -72,24 +76,84 @@ class OrderSettlementService
     public function sendEmail(Request $request)
     {
         $response['status'] = 1;
-        $soNo = $request->get('so_no');
+        $paymentGatewayId = $request->get('payment_gateway_id');
+        $marketplaceId = $request->get('marketplace_id');
         $emails = $request->get('checked_emails');
-        if ($soNo && $emails) {
-            $soSettlement = SoSettlement::where('so_no', $soNo)->first();
-            if (($soSettlement->validation_status < 3)) {
-                $soSettlement->validation_status = $soSettlement->validation_status + 1;
-            }
-            $soSettlement->save();
-            $paymentGateway = So::where('so_no', $soNo)->first()->soPaymentStatus()->first()->paymentGateway()->first();
+        if ($paymentGatewayId && $emails) {
+            $paymentGateway = PaymentGateway::find($paymentGatewayId);
             $refId = $paymentGateway->ref_id;
 
-            $headers = "";
-            $emailsAddress = implode(',', $emails);
-            $subject = '';
-            $message = '';
-            // mail($emailsAddress, $subject, $message, $headers = 'From:'.$refId);
+            $soNoList = SoPaymentStatus::where('payment_gateway_id', $paymentGatewayId)
+                         ->select('so_no')
+                         ->get()
+                         ->toArray();
+            if ($soNoList) {
+                $attachmentFile = $this->generateAttacheFile($soNoList);
+
+                // SoSettlement::whereIn('so_no', $soNoList)
+                //             ->where('validation_status', '<', 3)
+                //             ->increment('validation_status', 1);
+
+                $emailsAddress = implode(',', $emails);
+                $subject = 'Settlement Enquiry';
+                $message = $this->getEmailContent($marketplaceId);
+
+                $this->getEmailTemplate($message);
+                mail('will.zhang@eservicesgroup.com', $subject, $message.' refId'.$refId.' fileName'.$attachmentFile['file_name'].' emailsAddress'.$emailsAddress);
+                // $this->sendAttachmentMail($emailsAddress, $subject, $attachmentFile, $refId, '', $refId);
+            }
         }
 
         return $response;
+    }
+
+    public function getEmailContent($marketplaceId = '')
+    {
+        $message = "Hello, \r\n";
+        $message .= "Could you please confirm that the attached list of orders has been paid to us and under which payment reference ?\r\n";
+        $message .= "Thank you for your assistance.\r\n";
+        $message .= "Best regards";
+        if (in_array($marketplaceId, ['BCPRICEMINISTER', 'PXPRICEMINISTER', 'VBPRICEMINISTER', 'BCCDISCOUNT', 'PXCDISCOUNT'])) {
+            $message = "Bonjour,\r\n";
+            $message .= "Pourriez vous nous confirmer que la liste de commande en pièce-jointe nous a été payée et sous quel numéro de paiement ?\r\n";
+            $message .= "Merci pour votre assistance.\r\n";
+            $message .= "Cordialement\r\n";
+        }
+        return $message;
+    }
+
+    public function generateAttacheFile($soNoList)
+    {
+        $orders = So::leftJoin('so_allocate AS sa', 'so.so_no', '=', 'sa.so_no')
+                    ->leftJoin('so_shipment AS ss', 'sa.sh_no', '=', 'ss.sh_no')
+                    ->whereIn('so.so_no', $soNoList)
+                    ->groupBy('so.so_no')
+                    ->select('platform_order_id', 'so_no', 'order_create_date', 'dispatch_date', 'ss.courier_id', 'ss.tracking_no')
+                    ->get();
+        if (!$orders->isEmpty()) {
+            $cellData = [];
+            $cellData[] = [
+                'Platform Order Number',
+                'Order Create Date',
+                'Dispatch Date',
+                'Courier',
+                'Tracking Number'
+            ];
+            foreach ($orders as $order) {
+                $cellData[] = [
+                    $order->platform_order_id,
+                    $order->order_create_date,
+                    $order->dispatch_date,
+                    $order->courier_id,
+                    $order->tracking_no
+                ];
+            }
+            $path = storage_path('/app/');
+            $fileName = 'Settlement_Enquiry_Order_List';
+
+            $this->createExcelFile($fileName, $path, $cellData);
+
+            return ['file_name' => $fileName, 'path' => $path];
+        }
     }
 }
