@@ -33,7 +33,7 @@ class FulfillmentOrderTransformer extends TransformerAbstract
                 $orderItem['line_no'] = $lineNo;
                 $orderItem['sku'] = $itemSku;
                 $orderItem['quantity'] = $qty;
-                $orderItem['default_iwms_warehouse_code'] = $this->getIwmsWarehouseCode($soid->product->default_ship_to_warehouse, $iwmsMerchantId),
+                $orderItem['default_iwms_warehouse_code'] = $this->getIwmsWarehouseCode($soid->product->default_ship_to_warehouse, $iwmsMerchantId);
                 $orderItem['outstanding_qty'] = $outstandingQty;
                 $orderItem['sku'] = $itemSku;
                 $orderItems[] = $orderItem;
