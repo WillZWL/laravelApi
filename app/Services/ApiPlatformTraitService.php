@@ -23,7 +23,7 @@ trait ApiPlatformTraitService
     {
         $filePath = storage_path().'/app/ApiPlatform/'.$this->getPlatformId().'/'.$fileName.'/'.date('Y');
         if (!file_exists($filePath)) {
-            mkdir($filePath, 0755, true);
+            mkdir($filePath, 0775, true);
         }
         $file = $filePath .'/'. date('Y-m-d-H-i') .'.'. $ext;
         //write json data into data.json file

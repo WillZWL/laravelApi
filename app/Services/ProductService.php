@@ -384,7 +384,7 @@ class ProductService
 
         $uploadDir = public_path() . $imagePath;
         if (! file_exists($uploadDir))
-            mkdir($uploadDir, 0755, true);
+            mkdir($uploadDir, 0775, true);
 
         $options = [];
         $options['inline_file_types'] = '/\.(gif|jpe?g|png)$/i';
