@@ -128,7 +128,7 @@ class OrderSettlementService
                     ->leftJoin('so_shipment AS ss', 'sa.sh_no', '=', 'ss.sh_no')
                     ->leftJoin('courier_info AS ci', 'ss.courier_id', '=', 'ci.courier_id')
                     ->whereIn('so.so_no', $soNoList)
-                    ->groupBy('so.so_no')
+                    ->groupBy('sa.so_no')
                     ->select('platform_order_id', 'so.so_no', 'order_create_date', 'dispatch_date', 'ci.courier_name', 'ss.tracking_no')
                     ->get();
         if (!$orders->isEmpty()) {
