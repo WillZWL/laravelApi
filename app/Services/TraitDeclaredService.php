@@ -37,7 +37,7 @@ trait TraitDeclaredService
         }
         $sellingPlatformObj = $soObj->sellingPlatform;
         $calculateDeclaredValue = $this->pickDeclaredValue($sellingPlatformObj->merchant_id, $sellingPlatformObj->type, $soObj->delivery_country_id, $totalOrderAmount, $currencyCourierId, $soObj->incoterm);
-        $declaredObject = $this->getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount , $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue );
+        $declaredObject = $this->getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount, $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue );
         $declaredObject["declared_currency"] = $currencyCourierId;
         $declaredObject["total_order_amount"] = number_format($totalOrderAmount, 2, '.', '');
         $declaredObject["discount"] = number_format($discount, 2, '.', '');
@@ -46,7 +46,7 @@ trait TraitDeclaredService
 
     public function getOrderDiscount($soObj, $soRate, $declareType, $sumItemAmount)
     {
-        $useItemDetailDiscount = FALSE;
+        $useItemDetailDiscount = false;
         $itemDetailDiscount = 0;
         foreach ($soObj->soItem as $item) {
             if ($item->promo_disc_amt > 0) {
@@ -64,7 +64,7 @@ trait TraitDeclaredService
             $discount = 0;
         }
         # prevent negative
-        if($discount > $sumItemAmount) {
+        if ($discount > $sumItemAmount) {
             $discount = $sumItemAmount;
         }
         return $discount;
@@ -176,13 +176,13 @@ trait TraitDeclaredService
     private function getDeclareType($soObj)
     {
         $deliveryCountryObj = $soObj->country;
-        if(!empty($deliveryCountryObj)){
+        if (!empty($deliveryCountryObj)) {
             $declareType = $deliveryCountryObj ? $deliveryCountryObj->declare_type : "FV";
             return $declareType;
         }
     }
 
-    public function getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount , $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue )
+    public function getOrderItemsDeclaredObject($soObj, $soRate, $sumItemAmount, $itemTotalPercent, $totalOrderAmount, $calculateDeclaredValue)
     {
         $itemResult = [];
         $declaredValue = 0;
@@ -270,5 +270,26 @@ trait TraitDeclaredService
             return true;
         }
         return false;
+    }
+
+    public function getEstimatedSettlementDate($soObj)
+    {
+        $day = $soObj->settlement_date_day;
+        $estimated_settlement_date = '';
+        switch ($soObj->settlement_date_type) {
+            case 'order_create_date':
+                $estimated_settlement_date = date('Y-m-d', strtotime($soObj->order_create_date." +".$day." days"));
+                break;
+            case 'create_on':
+                $estimated_settlement_date = date('Y-m-d', strtotime($soObj->create_on." +".$day." days"));
+                break;
+            case 'shipped_date':
+                $estimated_settlement_date = date('Y-m-d', strtotime($soObj->dispatch_date." +".$day." days"));
+                break;
+            default:
+                $estimated_settlement_date = date('Y-m-d', strtotime($soObj->order_create_date." +".$day." days"));
+                break;
+        }
+        return $estimated_settlement_date;
     }
 }
