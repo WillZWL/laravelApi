@@ -156,7 +156,7 @@ class OrderSettlementService
 
             $this->createExcelFile($fileName, $path, $cellData);
 
-            return ['file_name' => $fileName, 'path' => $path];
+            return ['file_name' => $fileName.'.xlsx', 'path' => $path];
         }
     }
 }
