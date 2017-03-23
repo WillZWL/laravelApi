@@ -53,6 +53,7 @@ class Kernel extends ConsoleKernel
         Commands\GenerateCourierFeed::class,
         Commands\ShipperNotAvailableOrder::class,
         Commands\SettlementPreview::class,
+        Commands\OnlyForLiveTest::class,
     ];
 
     /**
