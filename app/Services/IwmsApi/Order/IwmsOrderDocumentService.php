@@ -69,7 +69,7 @@ class IwmsOrderDocumentService
         $documentPdf = array();
         $fileDate = date("h-i-s");
         if (!file_exists($pdfFilePath)) {
-            mkdir($pdfFilePath, 0755, true);
+            mkdir($pdfFilePath, 0775, true);
         }
         if($documentFile){
             $file = $pdfFilePath.$documentType.$fileDate.'.pdf';
