@@ -90,17 +90,16 @@ class OrderSettlementService
             if ($soNoList) {
                 $attachmentFile = $this->generateAttacheFile($soNoList);
 
-                // SoSettlement::whereIn('so_no', $soNoList)
-                //             ->where('validation_status', '<', 3)
-                //             ->increment('validation_status', 1);
+                SoSettlement::whereIn('so_no', $soNoList)
+                            ->where('validation_status', '<', 3)
+                            ->increment('validation_status', 1);
 
                 $emailsAddress = implode(',', $emails);
                 $subject = 'Settlement Enquiry';
                 $message = $this->getEmailContent($marketplaceId);
 
                 $this->getEmailTemplate($message);
-                mail('will.zhang@eservicesgroup.com', $subject, $message.' refId'.$refId.' fileName'.$attachmentFile['file_name'].' emailsAddress'.$emailsAddress);
-                // $this->sendAttachmentMail($emailsAddress, $subject, $attachmentFile, $refId, '', $refId);
+                $this->sendAttachmentMail($emailsAddress, $subject, $attachmentFile, $refId, 'itsupport-sz@eservicesgroup.com', $refId);
             }
         }
 
