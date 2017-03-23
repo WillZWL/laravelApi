@@ -8,6 +8,7 @@ use App\Http\Requests;
 use App\Http\Controllers\Controller;
 use App\Models\So;
 use App\Models\Config;
+use App\Models\SoSettlement;
 use App\Services\FlexService;
 use Validator;
 use Excel;
@@ -141,6 +142,7 @@ class GatewayController extends Controller
                 if ($so) {
                     if (!$so->settlement_date) {
                         $res = So::where("so_no", $so_no)->update(['settlement_date' => date("Y-m-d", strtotime($row->settlement_date))]);
+                        SoSettlement::where('so_no', $so_no)->update(['validation_status' => 12]);
                         if (!$res) {
                             $error[] = [
                             "so_no"=>$so_no,
