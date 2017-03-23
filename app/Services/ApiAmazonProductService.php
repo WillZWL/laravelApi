@@ -259,7 +259,7 @@ class ApiAmazonProductService implements ApiPlatformProductInterface
     {
         $path = $this->getDateReportPath("UNSUPPRESSED");
         if (!file_exists($path)) {
-            mkdir($path, 0755, true);
+            mkdir($path, 0775, true);
         }
         $pathFile = $path.'/'.$warehouseId.".txt";
         $amazonReport = new AmazonReport($storeName);
