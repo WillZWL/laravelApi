@@ -126,9 +126,10 @@ class OrderSettlementService
     {
         $orders = So::leftJoin('so_allocate AS sa', 'so.so_no', '=', 'sa.so_no')
                     ->leftJoin('so_shipment AS ss', 'sa.sh_no', '=', 'ss.sh_no')
+                    ->leftJoin('courier_info AS ci', 'ss.courier_id', '=', 'ci.courier_id')
                     ->whereIn('so.so_no', $soNoList)
-                    ->groupBy('so.so_no')
-                    ->select('platform_order_id', 'so_no', 'order_create_date', 'dispatch_date', 'ss.courier_id', 'ss.tracking_no')
+                    ->groupBy('sa.so_no')
+                    ->select('platform_order_id', 'so.so_no', 'order_create_date', 'dispatch_date', 'ci.courier_name', 'ss.tracking_no')
                     ->get();
         if (!$orders->isEmpty()) {
             $cellData = [];
@@ -144,7 +145,7 @@ class OrderSettlementService
                     $order->platform_order_id,
                     $order->order_create_date,
                     $order->dispatch_date,
-                    $order->courier_id,
+                    $order->courier_name,
                     $order->tracking_no
                 ];
             }
