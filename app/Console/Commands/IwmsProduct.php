@@ -39,7 +39,7 @@ class IwmsProduct extends Command
     public function handle()
     {
         //
-        $merchantId = "ESG-HK-TEST";
+        $merchantId = "ESG-HK-WMS";
         $wmsPlatform = $this->option('wms');
         $debugOption = $this->option('debug');
         $debug = $debugOption ? 1 :0;

@@ -38,7 +38,7 @@ class IwmsDeliveryOrder extends Command
      */
     public function handle()
     {
-        $merchantArr = array("ESG", "ESG-HK-TEST");
+        $merchantArr = array("ESG", "ESG-HK-WMS");
         $wmsPlatform = $this->option('wms');
         $debugOption = $this->option('debug');
         $merchantId = $this->option('merchant');

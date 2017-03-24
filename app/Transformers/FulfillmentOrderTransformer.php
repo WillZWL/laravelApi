@@ -91,12 +91,11 @@ class FulfillmentOrderTransformer extends TransformerAbstract
 
     private function getIwmsMerchantId($esgMerchantId)
     {
-        /*if(in_array($esgMerchantId, ["KONNEXT","RING","TWINSYNERGY","LUMOS"])){
-            return "ESG-HK-TEST";
+        if(in_array($esgMerchantId, ["KONNEXT","TWINSYNERGY","LUMOS"])){
+            return "ESG-HK-WMS";
         }else{
             return "ESG";
-        }*/
-        return "ESG";
+        }
     }
 
     private function getAssemblyMapping()
