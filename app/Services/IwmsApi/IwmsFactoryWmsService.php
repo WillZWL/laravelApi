@@ -198,8 +198,7 @@ class IwmsFactoryWmsService extends IwmsCoreService
                 'ESG' => array("4PXDG_PL","4PX_B66"),
                 "ESG-HK-WMS" => array("ES_HK"),
                 )
-            )
-        );
+            );
         return $warehouseIdArr[$wmsPlatform][$merchantId];
     }
 
