@@ -171,7 +171,7 @@ class Kernel extends ConsoleKernel
         $schedule->command('accNotFulfilled:Order')
             ->dailyAt('09:30');
 
-        $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px', '--merchant' => 'all'))
+        $schedule->command('Iwms:deliveryOrder create',array('--wms' => '4px', '--merchant' => 'ESG'))
             ->everyThirtyMinutes();
         $schedule->command('Iwms:LgsOrder setLgsStatus',array('--wms' => '4px'))
             ->everyThirtyMinutes();
