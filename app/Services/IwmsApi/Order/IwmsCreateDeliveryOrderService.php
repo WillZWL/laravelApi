@@ -319,7 +319,7 @@ class IwmsCreateDeliveryOrderService
             ->whereNotNull("esg_quotation_courier_id")
             ->where("dnote_invoice_status", 2)
             ->whereHas('sellingPlatform', function ($query) {
-                $query->whereIn('merchant_id', ["RONNEXT","RING","TWINSYNERGY","LUMOS"]);
+                $query->whereIn('merchant_id', ["KONNEXT","TWINSYNERGY","LUMOS"]);
             })
             ->whereHas('soAllocate', function ($query) {
                 $query->whereIn('warehouse_id', $this->warehouseIds)
