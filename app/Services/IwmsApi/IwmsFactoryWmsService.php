@@ -196,11 +196,9 @@ class IwmsFactoryWmsService extends IwmsCoreService
         $warehouseIdArr = array(
             '4px' => array(
                 'ESG' => array("4PXDG_PL","4PX_B66"),
-                "ESG-HK-TEST" => array("ES_HK"),
-                ),
-            'esg' => array(
-                'ESG' => array("ES_HK")
+                "ESG-HK-WMS" => array("ES_HK"),
                 )
+            )
         );
         return $warehouseIdArr[$wmsPlatform][$merchantId];
     }
