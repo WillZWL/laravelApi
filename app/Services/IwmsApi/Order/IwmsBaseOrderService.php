@@ -17,6 +17,7 @@ class IwmsBaseOrderService
         "ACCELERATOR" => "A",
         "DISPATCH" => "D",
         "EXPANDER" => "E",
+        "EXPANDER_RESELLER" => "E",
         );
 
     public function getCreationIwmsCourierOrderObject($esgOrder, $iwmsCourierCode, $iwmsWarehouseCode = null, $extraInstruction = null ,$trackingNo = null)
